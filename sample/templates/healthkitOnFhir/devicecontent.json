@@ -1,0 +1,74 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartRate)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "steps",
+        "typeMatchExpression": "$..[?(@stepCount)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.stepCount",
+            "valueName": "steps"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bloodpressure",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "glucose",
+        "typeMatchExpression": "$..[?(@bloodGlucose)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.bloodGlucose",
+            "valueName": "glucose"
+          }
+        ]
+      }
+    }
+  ]
+}

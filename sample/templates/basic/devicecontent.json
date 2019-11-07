@@ -1,0 +1,102 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartrate)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartrate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "steps",
+        "typeMatchExpression": "$..[?(@steps)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.steps",
+            "valueName": "steps"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bloodpressure",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "hrv",
+        "typeMatchExpression": "$..[?(@hrv)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.hrv",
+            "valueName": "hrv"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "deviceWorn",
+        "typeMatchExpression": "$..[?(@deviceWorn)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.deviceWorn",
+            "valueName": "deviceWorn"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "deviceRemoved",
+        "typeMatchExpression": "$..[?(@deviceRemoved)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.deviceRemoved",
+            "valueName": "deviceRemoved"
+          }
+        ]
+      }
+    }
+  ]
+}

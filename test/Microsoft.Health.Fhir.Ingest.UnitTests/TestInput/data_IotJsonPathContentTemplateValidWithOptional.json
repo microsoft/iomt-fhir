@@ -1,0 +1,15 @@
+{
+  "templateType": "IotJsonPathContent",
+  "template": {
+    "typeName": "heartrate",
+    "typeMatchExpression": "$..[?(@Body.heartrate)]",
+    "patientIdExpression": "$.patient",
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.Body.heartrate",
+        "valueName": "hr"
+      }
+    ]
+  }
+}

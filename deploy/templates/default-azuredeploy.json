@@ -1,0 +1,880 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ServiceName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 20,
+      "metadata": {
+        "description": "Name for the service(s) being deployed.  Name will applied to all relevant services being created."
+      }
+    },
+    "RepositoryUrl": {
+      "type": "string",
+      "defaultValue": "https://github.com/microsoft/iomt-fhir",
+      "metadata": {
+        "description": "Repository to pull source code from. If blank, source code will not be deployed."
+      }
+    },
+    "RepositoryBranch": {
+      "type": "string",
+      "defaultValue": "master",
+      "metadata": {
+        "description": "Source code branch to deploy."
+      }
+    },
+    "JobWindowUnit": {
+      "type": "string",
+      "allowedValues": [
+        "SECOND",
+        "MINUTE",
+        "HOUR"
+      ],
+      "metadata": {
+        "description": "The time period to collect events before sending them to the FHIR server."
+      },
+      "defaultValue": "MINUTE"
+    },
+    "JobWindowMagnitude": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 60,
+      "metadata": {
+        "description": "The magnitude of time period to collect events before sending them to the FHIR server."
+      },
+      "defaultValue": 5
+    },
+    "StreamingUnits": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 120,
+      "metadata": {
+        "description": "Number of Streaming Units for the ASA job processing device events."
+      },
+      "allowedValues": [
+        1,
+        3,
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        78,
+        84,
+        90,
+        96,
+        102,
+        108,
+        114,
+        120
+      ],
+      "defaultValue": 1
+    },
+    "ThroughputUnits": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 20,
+      "metadata": {
+        "description": "The throughput units reserved for the Event Hubs created."
+      },
+      "defaultValue": 1
+    },
+    "AppServicePlanSku": {
+      "type": "string",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "defaultValue": "S1",
+      "metadata": {
+        "description": "The app service plan tier to use for hosting the required Azure Functions."
+      }
+    },
+    "ResourceLocation": {
+      "type": "string",
+      "allowedValues": [
+        "Australia East",
+        "East US",
+        "East US 2",
+        "West US 2",
+        "North Central US",
+        "South Central US",
+        "Southeast Asia",
+        "North Europe",
+        "West Europe",
+        "UK West",
+        "UK South"
+      ],
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "The location of the deployed resources."
+      }
+    },
+    "FhirServiceUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Url of the FHIR server that IoMT will be written to."
+      }
+    },
+    "FhirServiceAuthority": {
+      "type": "string",
+      "metadata": {
+        "description": "Authority of the FHIR to retrieve a token against."
+      }
+    },
+    "FhirServiceResource": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource/Audience representing the FHIR server on the provided authority."
+      }
+    },
+    "FhirServiceClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Client Id to run services as for access to the FHIR server."
+      }
+    },
+    "FhirServiceClientSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Client secret of the application for accessing a token."
+      }
+    },
+    "ResourceIdentityServiceType": {
+      "type": "string",
+      "allowedValues": [
+        "R4DeviceAndPatientLookupIdentityService",
+        "R4DeviceAndPatientCreateIdentityService",
+        "R4DeviceAndPatientWithEncounterLookupIdentityService"
+      ],
+      "defaultValue": "R4DeviceAndPatientLookupIdentityService",
+      "metadata": {
+        "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
+      }
+    },
+    "DefaultDeviceIdentifierSystem": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Default system to use when searching for device identities. If empty system is not used in the search."
+      }
+    }
+  },
+  "variables": {
+    "asa_job_name": "[parameters('ServiceName')]",
+    "eventhub_namespace_name": "[parameters('ServiceName')]",
+    "storage_account_name": "[parameters('ServiceName')]",
+    "app_plan_name": "[concat(parameters('ServiceName'), 'plan')]",
+    "app_service_name": "[parameters('ServiceName')]",
+    "app_insights_name": "[parameters('ServiceName')]",
+    "key_vault_name": "[parameters('ServiceName')]",
+    "app_service_resource_id": "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
+    "deploy_source_code": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.StreamAnalytics/StreamingJobs",
+      "apiVersion": "2019-06-01",
+      "name": "[variables('asa_job_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'reader')]",
+        "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
+        "[resourceId('Microsoft.Web/sites/config', variables('app_service_name'), 'web')]"
+      ],
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "outputStartMode": "JobStartTime",
+        "sku": {
+          "name": "standard"
+        },
+        "jobType": "Cloud",
+        "eventsOutOfOrderPolicy": "Adjust",
+        "outputErrorPolicy": "Stop",
+        "eventsOutOfOrderMaxDelayInSeconds": 0,
+        "eventsLateArrivalMaxDelayInSeconds": 5,
+        "dataLocale": "en-US",
+        "compatibilityLevel": "1.0",
+        "inputs": [
+          {
+            "name": "normalizeddata",
+            "properties": {
+              "type": "Stream",
+              "datasource": {
+                "type": "Microsoft.ServiceBus/EventHub",
+                "properties": {
+                  "serviceBusNamespace": "[variables('eventhub_namespace_name')]",
+                  "eventHubName": "normalizeddata",
+                  "consumerGroupName": null,
+                  "sharedAccessPolicyName": "reader",
+                  "sharedAccessPolicyKey": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'reader'), '2017-04-01').primaryKey]"
+                }
+              },
+              "compression": {
+                "type": "None"
+              },
+              "serialization": {
+                "type": "Json",
+                "properties": {
+                  "encoding": "UTF8"
+                }
+              }
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "name": "FhirImportOutput",
+            "properties": {
+              "datasource": {
+                "type": "Microsoft.AzureFunction",
+                "properties": {
+                  "functionAppName": "[variables('app_service_name')]",
+                  "functionName": "MeasurementCollectionToFhir",
+                  "apiKey": "[listkeys(concat(resourceId('Microsoft.Web/sites', variables('app_service_name')), '/host/default'), '2018-11-01').masterKey]",
+                  "maxBatchSize": null,
+                  "maxBatchCount": 100
+                }
+              }
+            }
+          }
+        ],
+        "transformation": {
+          "name": "Transformation",
+          "properties": {
+            "streamingUnits": "[parameters('StreamingUnits')]",
+            "query": "[concat('SELECT \r\n    DeviceId [DeviceId], \r\n    PatientId [PatientId],\r\n    EncounterId [EncounterId],\r\n    collect() [Data],\r\n    System.Timestamp [WindowTime],\r\n    Type [MeasureType],\r\n    count(*) [Count]\r\nINTO\r\n    [FhirImportOutput]\r\nFROM\r\n    [NormalizedData] PARTITION BY PartitionId TIMESTAMP BY OccurrenceTimeUtc\r\nGROUP BY  PartitionId, \r\n    DeviceId, \r\n    PatientId, \r\n    EncounterId, \r\n    Type, \r\n    TUMBLINGWINDOW(', parameters('JobWindowUnit'), ', ', parameters('JobWindowMagnitude'), ')')]"
+          }
+        },
+        "functions": [
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces",
+      "apiVersion": "2017-04-01",
+      "name": "[variables('eventhub_namespace_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": "[parameters('ThroughputUnits')]"
+      },
+      "properties": {
+        "zoneRedundant": true,
+        "isAutoInflateEnabled": false,
+        "maximumThroughputUnits": 0,
+        "kafkaEnabled": false
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/RootManageSharedAccessKey')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "rights": [
+          "Listen",
+          "Manage",
+          "Send"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/devicedata')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "messageRetentionInDays": 1,
+        "partitionCount": 32,
+        "status": "Active"
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "messageRetentionInDays": 1,
+        "partitionCount": 32,
+        "status": "Active"
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/devicedata/reader')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "rights": [
+          "Listen"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/devicedata/writer')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "rights": [
+          "Send"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata/reader')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "rights": [
+          "Listen"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata/writer')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+        "rights": [
+          "Send"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/devicedata/$Default')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+      "apiVersion": "2017-04-01",
+      "name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata/$Default')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]"
+      ],
+      "properties": {
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-04-01",
+      "name": "[variables('storage_account_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "sku": {
+        "name": "Standard_RAGRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [
+          ],
+          "ipRules": [
+          ],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "enabled": true
+            },
+            "blob": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2019-04-01",
+      "name": "[concat(variables('storage_account_name'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name'))]"
+      ],
+      "properties": {
+        "cors": {
+          "corsRules": [
+          ]
+        },
+        "deleteRetentionPolicy": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2019-04-01",
+      "name": "[concat(variables('storage_account_name'), '/default/template')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storage_account_name'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name'))]"
+      ],
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2016-09-01",
+      "name": "[variables('app_plan_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "sku": {
+        "name": "[parameters('AppServicePlanSku')]"
+      },
+      "kind": "app",
+      "properties": {
+        "name": "[variables('app_plan_name')]",
+        "perSiteScaling": false,
+        "reserved": false,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2016-08-01",
+      "name": "[variables('app_service_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('app_plan_name'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storage_account_name'), 'default')]"
+      ],
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "enabled": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('app_plan_name'))]",
+        "reserved": false,
+        "scmSiteAlsoStopped": false,
+        "clientAffinityEnabled": false,
+        "clientCertEnabled": false,
+        "hostNamesDisabled": false,
+        "containerSize": 1536,
+        "dailyMemoryTimeQuota": 0,
+        "httpsOnly": true
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[variables('app_service_resource_id')]",
+            "[resourceId('Microsoft.Insights/components/', variables('app_insights_name'))]",
+            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-url')]",
+            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-authority')]",
+            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-resource')]",
+            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-clientid')]",
+            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-clientsecret')]"
+          ],
+          "properties": {
+            "InputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-input-connection'), '2018-02-14').secretUriWithVersion, ')')]",
+            "OutputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-output-connection'), '2018-02-14').secretUriWithVersion, ')')]",
+            "FUNCTIONS_EXTENSION_VERSION": "~2",
+            "FUNCTIONS_EXTENSION_RUNTIME": "dotnet",
+            "PROJECT": "src/func/Microsoft.Health.Ingest.Host/Microsoft.Health.Ingest.Host.csproj",
+            "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
+            "AzureWebJobsSecretStorageType": "Files",
+            "FhirService:Url": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-url'), '2018-02-14').secretUriWithVersion, ')')]",
+            "FhirService:Authority": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-authority'), '2018-02-14').secretUriWithVersion, ')')]",
+            "FhirService:Resource": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-resource'), '2018-02-14').secretUriWithVersion, ')')]",
+            "FhirService:ClientId": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-clientid'), '2018-02-14').secretUriWithVersion, ')')]",
+            "FhirService:ClientSecret": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-clientsecret'), '2018-02-14').secretUriWithVersion, ')')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('Microsoft.Insights/components/', variables('app_insights_name'))).InstrumentationKey]",
+            "Template:DeviceContent": "devicecontent.json",
+            "Template:FhirMapping": "fhirmapping.json",
+            "ResourceIdentity:ResourceIdentityServiceType": "[parameters('ResourceIdentityServiceType')]",
+            "ResourceIdentity:DefaultDeviceIdentifierSystem": "[parameters('DefaultDeviceIdentifierSystem')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "condition": "[variables('deploy_source_code')]",
+          "dependsOn": [
+            "[variables('app_service_resource_id')]",
+            "[resourceId('Microsoft.Web/sites/config', variables('app_service_name'), 'appsettings')]"
+          ],
+          "properties": {
+            "RepoUrl": "[parameters('RepositoryURL')]",
+            "branch": "[parameters('RepositoryBranch')]",
+            "IsManualIntegration": true
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(variables('app_service_name'), '/web')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]"
+      ],
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+        ],
+        "netFrameworkVersion": "v4.0",
+        "phpVersion": "5.6",
+        "pythonVersion": "",
+        "nodeVersion": "",
+        "linuxFxVersion": "",
+        "requestTracingEnabled": false,
+        "remoteDebuggingEnabled": false,
+        "remoteDebuggingVersion": "VS2017",
+        "httpLoggingEnabled": false,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": false,
+        "scmType": "None",
+        "use32BitWorkerProcess": true,
+        "webSocketsEnabled": false,
+        "alwaysOn": true,
+        "appCommandLine": "",
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": true,
+            "virtualDirectories": null
+          }
+        ],
+        "winAuthAdminState": 0,
+        "winAuthTenantState": 0,
+        "customAppPoolIdentityAdminState": false,
+        "customAppPoolIdentityTenantState": false,
+        "loadBalancing": "LeastRequests",
+        "routingRules": [
+        ],
+        "experiments": {
+          "rampUpRules": [
+          ]
+        },
+        "autoHealEnabled": false,
+        "vnetName": "",
+        "siteAuthEnabled": false,
+        "siteAuthSettings": {
+          "enabled": null,
+          "unauthenticatedClientAction": null,
+          "tokenStoreEnabled": null,
+          "allowedExternalRedirectUrls": null,
+          "defaultProvider": null,
+          "clientId": null,
+          "clientSecret": null,
+          "clientSecretCertificateThumbprint": null,
+          "issuer": null,
+          "allowedAudiences": null,
+          "additionalLoginParams": null,
+          "isAadAutoProvisioned": false,
+          "googleClientId": null,
+          "googleClientSecret": null,
+          "googleOAuthScopes": null,
+          "facebookAppId": null,
+          "facebookAppSecret": null,
+          "facebookOAuthScopes": null,
+          "twitterConsumerKey": null,
+          "twitterConsumerSecret": null,
+          "microsoftAccountClientId": null,
+          "microsoftAccountClientSecret": null,
+          "microsoftAccountOAuthScopes": null
+        },
+        "cors": {
+          "allowedOrigins": [
+            "https://functions.azure.com",
+            "https://functions-staging.azure.com",
+            "https://functions-next.azure.com"
+          ],
+          "supportCredentials": false
+        },
+        "localMySqlEnabled": false,
+        "http20Enabled": false,
+        "minTlsVersion": "1.2",
+        "ftpsState": "FtpsOnly",
+        "reservedInstanceCount": 0
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(variables('app_service_name'), '/', variables('app_service_name'), '.azurewebsites.net')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]"
+      ],
+      "properties": {
+        "siteName": "variables('app_service_name')",
+        "hostNameType": "Verified"
+      }
+    },
+    {
+      "type": "microsoft.insights/components",
+      "apiVersion": "2015-05-01",
+      "name": "[variables('app_insights_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "Flow_Type": "Redfield",
+        "Request_Source": "IbizaAIExtension"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2016-10-01",
+      "name": "[variables('key_vault_name')]",
+      "location": "[parameters('ResourceLocation')]",
+      "tags": {
+        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+      },
+      "dependsOn": [
+        "[variables('app_service_resource_id')]"
+      ],
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "Standard"
+        },
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": [
+          {
+            "tenantId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.tenantId]",
+            "objectId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
+            "permissions": {
+              "keys": [
+              ],
+              "secrets": [
+                "Get",
+                "List"
+              ],
+              "certificates": [
+              ]
+            }
+          }
+        ],
+        "enabledForDeployment": false,
+        "enabledForDiskEncryption": false,
+        "enabledForTemplateDeployment": false
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/device-input-connection')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'devicedata', 'reader')]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'devicedata', 'reader'), '2017-04-01').primaryConnectionString]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/device-output-connection')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'writer')]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'writer'), '2017-04-01').primaryConnectionString]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('storage_account_name'), '/blob-storage-cs')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storage_account_name'), 'default')]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage_account_name'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name')), '2019-04-01').keys[0].value)]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/fhirserver-authority')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[parameters('FhirServiceAuthority')]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/fhirserver-clientid')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[parameters('FhirServiceClientId')]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/fhirserver-clientsecret')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[parameters('FhirServiceClientSecret')]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/fhirserver-resource')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[parameters('FhirServiceResource')]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('key_vault_name'), '/fhirserver-url')]",
+      "location": "[parameters('ResourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]"
+      ],
+      "properties": {
+        "contentType": "text/plain",
+        "value": "[parameters('FhirServiceUrl')]",
+        "attributes": {
+          "enabled": true
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "aggregator": {
+    "batchSize": 1000,
+    "flushTimeout": "00:00:30"
+  },
+  "extensions": {
+    "eventHubs": {
+      "batchCheckpointFrequency": 1,
+      "eventProcessorOptions": {
+        "maxBatchSize": 1024,
+        "prefetchCount": 2048
+      }
+    }
+  },
+  "version": "2.0"
+}
