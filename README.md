@@ -60,6 +60,7 @@ provided by the bot. You will only need to do this once across all repos using o
 There are many other ways to contribute to IoMT FHIR Connector for Azure.
 * [Submit bugs](https://github.com/Microsoft/iomt-fhir/issues) and help us verify fixes as they are checked in.
 * Review the [source code changes](https://github.com/Microsoft/iomt-fhir/pulls).
+* Engage with IoMT FHIR Connector for Azure users and developers on [StackOverflow](https://stackoverflow.com/questions/tagged/iomt-fhir-connector-for-azure).
 * [Contribute bug fixes](CONTRIBUTING.md).
 
 See [Contributing to IoMT FHIR Connector for Azure](CONTRIBUTING.md) for more information.
