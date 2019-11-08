@@ -60,6 +60,12 @@ After successful deployment, your IoT Central application must be connected to t
 
 ## Verification
 
-After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices.
+Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IOMT FHIR Connector for Azure and shouldn't be used on any other production services.')
+
+After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
+
+```
+https://<ENVIRONMENTNAME>.azurehealthcareapis.com/Observation
+```
 
 If no data is flowing, you should [debug the environment](./Debugging.md)

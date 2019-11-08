@@ -60,6 +60,6 @@ if ($aadUser) {
 
 $serviceClientAppName = "${EnvironmentName}-service-client"
 $serviceClient = Get-AzureAdApplication -Filter "DisplayName eq '$serviceClientAppName'"
-if ($confidentialClient) {
+if ($serviceClient) {
     Remove-FhirServerApplicationRegistration -AppId $serviceClient.AppId
 }
