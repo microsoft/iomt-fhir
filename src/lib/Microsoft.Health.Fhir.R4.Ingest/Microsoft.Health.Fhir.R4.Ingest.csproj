@@ -11,8 +11,11 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Config\**" />
     <Compile Remove="Search\**" />
+    <EmbeddedResource Remove="Config\**" />
     <EmbeddedResource Remove="Search\**" />
+    <None Remove="Config\**" />
     <None Remove="Search\**" />
   </ItemGroup>
   <ItemGroup>
@@ -40,8 +43,5 @@
     <ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Config\" />
   </ItemGroup>
 </Project>
