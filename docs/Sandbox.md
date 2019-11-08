@@ -4,7 +4,7 @@ You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](
 
 ## Prerequisites
 
-Before deploying the samples scenario make sure that you have `Az` and `AzureAd` powershell modules installed:
+Before deploying the samples scenario make sure that you have `Az` and `AzureAd` powershell modules installed (not required for Azure Cloud Shell):
 
 ```PowerShell
 Install-Module Az
@@ -34,12 +34,20 @@ Connect-AzureAD -TenantDomain <AAD TenantDomain>
 
 **NOTE** The connection to Azure AD can be made using a different tenant domain than the one tied to your Azure subscription. If you don't have privileges to create app registrations, users, etc. in your Azure AD tenant, you can [create a new one](https://docs.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant), which will just be used for demo identities, etc.
 
+If you have more than one subscription, you can choose which to deploy to with:
+
+```PowerShell
+Select-AzSubscription <SubscriptionID>
+```
+
 Then deploy the scenario with the Open Source IoMT FHIR Connector for Azure:
 
 ```PowerShell
 .\Create-IomtFhirSandboxEnvironment.ps1 -EnvironmentName <ENVIRONMENTNAME>
 ```
+
 ## Post Deployment
+
 After successful deployment, your IoT Central application must be connected to the IoMT FHIR Connector for Azure. To do so:
 
 1. Navigate to your IOT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
@@ -50,4 +58,8 @@ After successful deployment, your IoT Central application must be connected to t
 6. We only need to export "Telemetry", so you can turn off "Devices" and "Device Templates".
 7. Click Save.
 
+## Verification
 
+After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices.
+
+If no data is flowing, you should [debug the environment](./Debugging.md)

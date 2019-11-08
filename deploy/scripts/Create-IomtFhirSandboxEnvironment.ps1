@@ -31,9 +31,8 @@ param
     [string]$FhirApiLocation = "northcentralus",
 
     [Parameter(Mandatory = $false)]
-    [string]$SourceRepository = "https://t:@dev.azure.com/microsofthealth/Health/_git/health-iomt",
-    #"https://github.com/Microsoft/fhir-iomt",
-
+    [string]$SourceRepository = "https://github.com/microsoft/iomt-fhir",
+  
     [Parameter(Mandatory = $false)]
     [string]$SourceRevision = "master",
 
@@ -99,7 +98,7 @@ $sandboxTemplate = "..\templates\default-azuredeploy-sandbox.json"
 $tenantDomain = $tenantInfo.TenantDomain
 $aadAuthority = "https://login.microsoftonline.com/${tenantDomain}"
 
-$iomtUrl = "https://${EnvironmentName}iomt.azurewebsites.net"
+$fhirServiceResource = "https://azurehealthcareapis.com"
 
 $fhirServerUrl = "https://${EnvironmentName}.azurehealthcareapis.com"
 
@@ -115,7 +114,7 @@ $accessPolicies += @{ "objectId" = $serviceClientObjectId.ToString() }
 # $accessPolicies += @{ "objectId" = $dashboardUserOid.ToString() }
 
 # Deploy the template
-New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirServiceAuthority $aadAuthority -FhirServiceResource $fhirServerUrl -FhirServiceClientId $serviceClientId -FhirServiceClientSecret $serviceClientSecret -FhirServiceAccessPolicies $accessPolicies -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation 
+New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirServiceAuthority $aadAuthority -FhirServiceResource $fhirServiceResource -FhirServiceClientId $serviceClientId -FhirServiceClientSecret $serviceClientSecret -FhirServiceAccessPolicies $accessPolicies -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation 
 
 # Copy the config templates to storage
 $storageAcct = Get-AzStorageAccount -ResourceGroupName $EnvironmentName -Name $EnvironmentName
@@ -125,6 +124,7 @@ Write-Host "Warming up site..."
 Invoke-WebRequest -Uri "${fhirServerUrl}/metadata" | Out-Null
 
 @{
-    iomtUrl                   = $iomtUrl
     fhirServerUrl             = $fhirServerUrl
+	serviceClientId			  = $serviceClientId 
+	serviceClientSecret		  = $serviceClientSecret
 }
