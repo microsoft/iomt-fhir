@@ -20,7 +20,7 @@ param
     [string]$EnvironmentName,
 
     [Parameter(Mandatory = $false)]
-    [ValidateSet('Australia East','East US','East US 2','West US 2','North Central US','South Central US','Southeast Asia','North Europe','West Europe','UK West','UK South')]
+    [ValidateSet('Australia East','East US','East US 2', 'West US', 'West US 2','North Central US','South Central US','Southeast Asia','North Europe','West Europe','UK West','UK South')]
     [string]$EnvironmentLocation = "North Central US",
 
     [Parameter(Mandatory = $false)]
