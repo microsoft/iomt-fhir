@@ -2,15 +2,15 @@
 
 [![Build Status](https://microsofthealth.visualstudio.com/Health/_apis/build/status/POET/IoMT%20FHIR%20PR?branchName=master)](https://microsofthealth.visualstudio.com/Health/_build/latest?definitionId=461&branchName=master)
 
-IoMT FHIR Connector for Azure is an open-source implementation for ingesting data from IoMT (internet of medical things) devices and persist the data in a FHIR&reg; server. The goal of this Microsoft Healthcare project is to enable developers to rapidly deploy a service for ingesting high frequency IoMT data and landing the data in a FHIR server of their choice.
+The IoMT FHIR Connector for Azure is an open-source project for ingesting data from IoMT (internet of medical things) devices and persisting the data in a FHIR&reg; server. The goal of this Microsoft Healthcare project is to enable developers to rapidly deploy a service for ingesting high frequency IoMT data and landing the data in a FHIR server of their choice.
 
-The IoMT FHIR Connector for Azure can be written to directly or used in concert with other Azure IoT offerings (IoT Hub and IoT Central).  The connector does not provide device security or management which are covered by Azure IoT offerings.
+Device data can be written to directly to the IoMT FHIR Connector for Azure or seamlessly used in concert with other Azure IoT solutions (IoT Hub and IoT Central).  The connector does not provide device security or management which are covered by the Azure IoT solutions mentioned.
 
-The IoMT FHIR Connector is built with extensibility in mind, enabling developers to modify and extend the capabilities to support additional template types and FHIR resources. The different stages for extension are:
+The IoMT FHIR Connector for Azure is built with extensibility in mind, enabling developers to modify and extend the capabilities to support additional device mapping template types and FHIR resources. The different points for extension are:
 * Normalization: Device data information is extracted into a common format for further processing.
 * FHIR Conversion: Normalized and grouped data is mapped to FHIR.  Observations are created or updated according to configured templates and linked to the device and patient.
 
-IoMT FHIR Connector for Azure empowers developers – saving time when they need to quickly integrate IoMT data into their FHIR server for use in their own applications or providing them with a foundation on which they can customize their own IoMT FHIR connector service. As an open source project, contributions and feedback from the FHIR developer community will continue to improve this project.
+The IoMT FHIR Connector for Azure empowers developers – saving time when they need to quickly integrate IoMT data into their FHIR server for use in their own applications or providing them with a foundation on which they can customize their own IoMT FHIR connector service. As an open source project, contributions and feedback from the FHIR developer community will continue to improve this project.
 
 Privacy and security are top priorities and the IoMT FHIR Connector for Azure has been developed in support of requirements for Protected Health Information (PHI). All the Azure services used in IoMT FHIR Connector for Azure [meet the compliance requirements for Protected Health Information](https://www.microsoft.com/en-us/trustcenter/compliance/complianceofferings).
 
@@ -26,10 +26,14 @@ This open source project is fully backed by the Microsoft Healthcare team, but w
 # Getting Started
 To get started you can deploy the [IoMT FHIR Connector for Azure](./docs/ARMInstallation.md) by itself or start with a complete [sandbox environment](./docs/Sandbox.md) that includes an instance of [IoT Central](https://azure.microsoft.com/en-us/services/iot-central/) with simulated devices and a deployed instance of the [Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/).
 
-To send messages to the connector you can [send events](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-dotnet-standard-getstarted-send) directly to the `devicedata` EventHub deployed or use one of the Azure IoT offerings and [export messages](./docs/Iot.md) to the connector. 
+To send messages to the connector you can [send events](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-dotnet-standard-getstarted-send) directly to the `devicedata` EventHub deployed or [send events](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks) to one of the Azure IoT solutions and [export messages](./docs/Iot.md) to the connector. 
 
 # Architecture
+<div style="text-align:center">
+
 ![alt text](/images/processflow.png "Process Flow")
+</div>
+
 * **Ingest**: The ingestion point for device data is an Event Hub. [Scale](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-faq#throughput-units) your Event Hub throughput units based on your message volume.
 * **Normalize**: Device data is processed and compared to templates defined in the `devicecontent.json` configuration file.  Types, values, and other important information are extracted.  The output is written to a second Event Hub.
 * **Group & Buffer**: Normalized data is grouped according to device identity, measurement type, and the configured time period.  The time period controls the latency that observations are written to FHIR.
@@ -41,7 +45,7 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 # Documentation
 - [Configuration](./docs/Configuration.md): Documents the different configurations required for the connector.
 - [Open Source Deployment](./docs/ARMInstallation.md): Describes how to deploy the IoMT FHIR Connector for Azure.
-- [Sandbox Deployment](./docs/Sandbox.md): Describes how to deploy an end to end sandbox environment using IoT Central, IoMT FHIR Connector for Azure, and Azure API for FHIR.
+- [Sandbox Deployment](./docs/Sandbox.md): Describes how to deploy an end to end sandbox environment using IoT Central, IoMT FHIR Connector for Azure, and the Azure API for FHIR.
 - [Connecting to Azure IoT](./docs/Iot.md): Describes how to connect the IoMT FHIR Connector for Azure with different Azure IoT offerings like IoT Hub and IoT Central.
 - [Roadmap](./docs/Roadmap.md): Documents a list of features under consideration for future development.
 - [Debugging](./docs/Debugging.md): Documents steps for local and cloud debugging.
