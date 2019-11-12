@@ -1,6 +1,24 @@
-# IoMT for FHIR Sandbox
+# IoMT FHIR Connector for Azure Sandbox
 
-You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/en-us/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT for FHIR pipeline.
+You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/en-us/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
+
+Once deployment is completed you should see the following Azure components:
+
+- App Service
+- App Service plan
+- Application Insights
+- Event Hubs Namespace
+- Stream Analytics job
+- Storage account
+- Key vault (x2)
+- Azure API for FHIR
+- IoT Central Application
+
+For the ease of using the sandbox, a few steps will be taken for you:
+
+1. Simulated devices are set up in IoT Central to generate data.
+2. Template files for those devices will be copied to the IoMT FHIR Connector for Azure storage account "Template" blob.
+3. The IoMT FHIR Connector for Azure will be configured with the "R4DeviceAndPatientCreateIdentityService" so that patients will automatically be created for each device.
 
 ## Prerequisites
 
