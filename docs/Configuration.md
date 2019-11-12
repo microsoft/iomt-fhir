@@ -1,25 +1,25 @@
 # Configuration
 This article details how to configure your instance of the IoMT FHIR Connector for Azure.
 
-The IoMT FHIR Connector for Azure requires two JSON configuration files.  The first, device content, is responsible for mapping the payloads sent to the Event Hub end point and extracting types, device identifiers, measurement date, and the measurement values.  The second template controls the FHIR mapping.  The FHIR mapping allows configuration of the length of the observation period, FHIR data type used to store the values, and code(s).  The two configuration files should be uploaded to the storage container "template" created under the blob storage account provisioned during the ARM template deployment. The device content mapping file should be call `devicecontent.json` and the FHIR mapping file should be called `fhirmapping.json`. Full examples can be found in the repository under [/sample/templates](../sample/templates).  Configuration files are loaded from blob per compute execution.  Once updated they should take effect immediately. 
+The IoMT FHIR Connector for Azure requires two JSON configuration files.  The first, device content, is responsible for mapping the payloads sent to the Event Hub end point and extracting types, device identifiers, measurement date time, and the measurement value(s).  The second template controls the FHIR mapping.  The FHIR mapping allows configuration of the length of the observation period, FHIR data type used to store the values, and code(s).  The two configuration files should be uploaded to the storage container "template" created under the blob storage account provisioned during the [ARM template deployment](ARMInstallation.md). The device content mapping file should be call `devicecontent.json` and the FHIR mapping file should be called `fhirmapping.json`. Full examples can be found in the repository under [/sample/templates](../sample/templates).  Configuration files are loaded from blob per compute execution.  Once updated they should take effect immediately. 
 
 # Device Content Mapping
 The IoMT FHIR Connector for Azure provides mapping functionality to extract device content into a common format for further evaluation.  Each event hub message received is evaluated against all templates. This allows a single inbound message to be projected to multiple outbound messages and subsequently mapped to different observations in FHIR.  The result is a normalized data object representing the value or values parsed by the templates.  The normalized data model has a few required properties that must be found and extracted: 
 
 | Property | Description |
 | - | - |
-|**Type**|The name/type to classify the measurement as.  This is used to bind to the desired FHIR mapping template.  Multiple templates can output to the same type allowing you to map different representations across multiple devices to a single common output.|
+|**Type**|The name/type to classify the measurement.  This is used to bind to the desired FHIR mapping template.  Multiple templates can output to the same type allowing you to map different representations across multiple devices to a single common output.|
 |**OccurenceTimeUtc**|The time the measurement occurred.|
-|**DeviceId**|The identifier for the device.  This should match an identifier on the device resource that resides on the destination FHIR server|
- |**Properties**|Extract at least one property so the value can be saved in the observation created.  Properties are a collection of key value pairs that extracted during normalization|
+|**DeviceId**|The identifier for the device.  This should match an identifier on the device resource that resides on the destination FHIR server.|
+ |**Properties**|Extract at least one property so the value can be saved in the observation created.  Properties are a collection of key value pairs extracted during normalization.|
 
-The full normalized model is defined by the IMeasurement interface.
+The full normalized model is defined by the [IMeasurement](../src/lib/Microsoft.Health.Fhir.Ingest/Data/IMeasurement.cs) interface.
 
 Below is a conceptual example of what happens during normalization.
 
  ![alt text](/images/normalizationexample.png "Normalization Example")
 
- The content payload itself is an event hub message which is composed of three parts: Body, Properties, and SystemProperties.  The Body is a byte array representing an UTF-8 encoded string.  During template evaluation the byte array is automatically converted into the string value. Properties is a key value collection for use by the message creator.  SystemProperties is also a key value collection reserved by the EventHub framework with entries automatically populated by EventHub.
+ The content payload itself is an event hub message which is composed of three parts: Body, Properties, and SystemProperties.  The `Body` is a byte array representing an UTF-8 encoded string.  During template evaluation the byte array is automatically converted into the string value. `Properties` is a key value collection for use by the message creator.  `SystemProperties` is also a key value collection reserved by the EventHub framework with entries automatically populated by EventHub.
 
  ```json
  {
@@ -43,20 +43,19 @@ Below is a conceptual example of what happens during normalization.
  ```
 
 ## Mapping with JSON Path
-The two device content template types supported today rely on JSON Path to both match to the desired template and extract the values.  
-More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). Both template types use the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. 
+The two device content template types supported today rely on JSON Path to both match the desired template and extract values.  
+More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). Both template types use the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. Additional examples can be found in the [unit tests](../test/Microsoft.Health.Fhir.Ingest.UnitTests/Template/JsonPathContentTemplateTests.cs).
 
 ### **JsonPathContentTemplate**
-The JsonPathContentTemplate allows defining a template to match on and extract values from an EventHub message using JSON Path.
+The JsonPathContentTemplate allows matching on and extracting values from an EventHub message using JSON Path.
 | Property | Description |<div style="width:150px">Example</div>
 | --- | --- | --- 
 |**TypeName**|The type to associate with measurements that match the template.|`heartrate`
 |**TypeMatchExpression**|The JSON Path expression that is evaluated against the EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against the extracted JToken matched here.|`$..[?(@heartRate)]`
-|**TimestampExpression**|The JSON Path expression to extract the timestamp value that will be used the the measurements OccurenceTimeUtc.|`$.endDate`
+|**TimestampExpression**|The JSON Path expression to extract the timestamp value for the measurement's OccurenceTimeUtc.|`$.endDate`
 |**DeviceIdExpression**|The JSON Path expression to extract the device identifier.|`$.deviceId`
 |**PatientIdExpression**|*Optional*: The JSON Path expression to extract the patient identifier.|`$.patientId`
 |**EncounterIdExpression**|*Optional*: The JSON Path expression to extract the encounter identifier.|`$.encounterId`
-|**PeriodExpression**|*Optional*: The JSON Path expression to extract the sample period of the device. Used to explicitly define the sample period of the device in milliseconds.|`$.samplePeriod`
 |**Values[].ValueName**|The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template. |`hr`
 |**Values[].ValueExpression**|The JSON Path expression to extract the desired value.|`$.heartRate`
 |**Values[].Required**|Will require the value to be present in the payload.  If not found a measurement will not be generated and an InvalidOperationException will be thrown.|`true`
@@ -313,7 +312,7 @@ The assumption when using this template is the messages being evaluated were sen
 ```
 
 # FHIR Mapping
-Once the device content is extracted into Measurement definitions it is collected and grouped according to a window of time (set during deployment), device id, and type.  The output of this grouping is sent to be converted into a FHIR resource (observation currently). Here the FHIR mapping controls how the data is mapped into a FHIR observation. Should an observation be created for a point in time or over a period of an hour? What codes should be added to the observation? Should be value be represented as SampledData or a Quantity? These are all things the FHIR mapping configuration controls.
+Once the device content is extracted into [Measurement](../src/lib/Microsoft.Health.Fhir.Ingest/Data/Measurement.cs) definitions the data is collected and grouped according to a window of time (set during deployment), device id, and type.  The output of this grouping is sent to be converted into a FHIR resource (observation currently). Here the FHIR mapping controls how the data is mapped into a FHIR observation. Should an observation be created for a point in time or over a period of an hour? What codes should be added to the observation? Should be value be represented as SampledData or a Quantity? These are all options the FHIR mapping configuration controls.
 
 ## CodeValueFhirTemplate
 The CodeValueFhirTemplate is currently the only template supported in FHIR mapping at this time.  It allows you defined codes, the effective period, and value of the observation. Multiple value types are supported: SampledData, CodeableConcept, and Quantity.  In addition to these configurable values the identifier for the observation, along with linking to the proper device and patient are handled automatically. An additional code used by IoMT FHIR Connector for Azure is also added.
@@ -375,7 +374,7 @@ Represents the [CodeableConcept](http://hl7.org/fhir/datatypes.html#CodeableConc
         "typeName": "heartrate",
         "value": {
             "defaultPeriod": 5000,
-            "unit": "bpm",
+            "unit": "count/min",
             "valueName": "hr",
             "valueType": "SampledData"
         }
