@@ -1,0 +1,116 @@
+{
+    "templateType": "CollectionFhir",
+    "template": [
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "code": "8867-4",
+                        "system": "http://loinc.org",
+                        "display": "Heart rate"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "heartrate",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "count/min",
+                    "valueName": "hr",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "code": "55423-8",
+                        "system": "http://loinc.org",
+                        "display": "Number of steps"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "steps",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "count",
+                    "valueName": "steps",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "code": "41653-7",
+                        "system": "http://loinc.org",
+                        "display": "Glucose Glucometer (BldC) [Mass/Vol]"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "glucose",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "mg/dL",
+                    "valueName": "glucose",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "code": "85354-9",
+                        "display": "Blood pressure panel",
+                        "system": "http://loinc.org"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "bloodpressure",
+                "components": [
+                    {
+                        "codes": [
+                            {
+                                "code": "8867-4",
+                                "display": "Diastolic blood pressure",
+                                "system": "http://loinc.org"
+                            }
+                        ],
+                        "value": {
+                            "defaultPeriod": 5000,
+                            "unit": "mmHg",
+                            "valueName": "diastolic",
+                            "valueType": "SampledData"
+                        }
+                    },
+                    {
+                        "codes": [
+                            {
+                                "code": "8480-6",
+                                "display": "Systolic blood pressure",
+                                "system": "http://loinc.org"
+                            },
+                            {
+                                "code": "271649006",
+                                "display": "Systolic blood pressure",
+                                "system": "http://snomed.info/sct"
+                            }
+                        ],
+                        "value": {
+                            "defaultPeriod": 5000,
+                            "unit": "mmHg",
+                            "valueName": "systolic",
+                            "valueType": "SampledData"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

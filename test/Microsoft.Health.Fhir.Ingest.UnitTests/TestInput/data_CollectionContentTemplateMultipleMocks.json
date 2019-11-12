@@ -1,0 +1,13 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "mockA",
+      "template": {}
+    },
+    {
+      "templateType": "mockB",
+      "template": {}
+    }
+  ]
+}

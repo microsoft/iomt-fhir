@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <HighEntropyVA>true</HighEntropyVA>
+    <AssemblyName>Microsoft.Health.Fhir.Ingest.R4</AssemblyName>
+    <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Config\**" />
+    <Compile Remove="Search\**" />
+    <EmbeddedResource Remove="Config\**" />
+    <EmbeddedResource Remove="Search\**" />
+    <None Remove="Config\**" />
+    <None Remove="Search\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Ensure.That" Version="8.0.0" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="1.2.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Polly" Version="7.1.0" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Extensions.Fhir.R4\Microsoft.Health.Extensions.Fhir.R4.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
+  </ItemGroup>
+</Project>
