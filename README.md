@@ -1,6 +1,6 @@
 # IoMT FHIR Connector for Azure
 
-[![Build Status](https://microsofthealth.visualstudio.com/Health/_apis/build/status/IoMT%20FHIR%20CI?branchName=master)](https://microsofthealth.visualstudio.com/Health/_build/latest?definitionId=462&branchName=master)
+[![Build Status](https://microsofthealth.visualstudio.com/Health/_apis/build/status/POET/IoMT%20FHIR%20CI?branchName=master)](https://microsofthealth.visualstudio.com/Health/_build/latest?definitionId=462&branchName=master)
 
 The IoMT FHIR Connector for Azure is an open-source project for ingesting data from IoMT (internet of medical things) devices and persisting the data in a FHIR&reg; server. The goal of this Microsoft Healthcare project is to enable developers to rapidly deploy a service for ingesting high frequency IoMT data and landing the data in a FHIR server of their choice.
 
