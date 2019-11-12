@@ -46,8 +46,7 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 - [Configuration](./docs/Configuration.md): Documents the different configurations required for the connector.
 - [Open Source Deployment](./docs/ARMInstallation.md): Describes how to deploy the IoMT FHIR Connector for Azure.
 - [Sandbox Deployment](./docs/Sandbox.md): Describes how to deploy an end to end sandbox environment using IoT Central, IoMT FHIR Connector for Azure, and the Azure API for FHIR.
-- [Connecting to Azure IoT](./docs/Iot.md): Describes how to connect the IoMT FHIR Connector for Azure with different Azure IoT offerings like IoT Hub and IoT Central.
-- [Roadmap](./docs/Roadmap.md): Documents a list of features under consideration for future development.
+- [Connecting to Azure IoT](./docs/Iot.md): Describes how to connect the IoMT FHIR Connector for Azure with different Azure IoT solutions like IoT Hub and IoT Central.
 - [Debugging](./docs/Debugging.md): Documents steps for local and cloud debugging.
 
 # Other Resources
