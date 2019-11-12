@@ -19,7 +19,7 @@ An [ARM Template](../deploy/templates/default-azuredeploy.json) is provided for 
 ### Prerequisites
 To run this ARM template the following additional items must be set up before execution:
 
-* FHIR Server - A FHIR server supporting OAuth 2.0 client credential flow. 
+* FHIR Server - A R4 FHIR server supporting OAuth 2.0 client credential flow. 
 * Application registration - An application representing the connector with client id and client secret that has access to the above FHIR server.
 
 ### Parameters
@@ -49,7 +49,7 @@ The following parameters are provided by the ARM template:
 |Type|Behavior
 |---|---
 |**R4DeviceAndPatientLookupIdentityService**|Default setting.  Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
-|**R4DeviceAndPatientCreateIdentityService**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped to in the device content configuration template.
+|**R4DeviceAndPatientCreateIdentityService**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped in the device content configuration template.
 |**R4DeviceAndPatientWithEncounterLookupIdentityService**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Post Deployment
