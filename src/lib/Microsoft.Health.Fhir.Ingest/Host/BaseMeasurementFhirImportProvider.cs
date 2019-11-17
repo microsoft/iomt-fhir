@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Azure.WebJobs.Host.Config;
-using Microsoft.Azure.WebJobs.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,29 +15,23 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 {
     public abstract class BaseMeasurementFhirImportProvider : IExtensionConfigProvider
     {
-        private readonly IConfiguration _config;
-        private readonly IOptions<MeasurementFhirImportOptions> _options;
-        private readonly ILoggerFactory _loggerFactory;
-
         public BaseMeasurementFhirImportProvider(IConfiguration config, IOptions<MeasurementFhirImportOptions> options, ILoggerFactory loggerFactory)
         {
-            _config = EnsureArg.IsNotNull(config, nameof(config));
-            _options = EnsureArg.IsNotNull(options, nameof(options));
-            _loggerFactory = EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory));
+            Config = EnsureArg.IsNotNull(config, nameof(config));
+            Options = EnsureArg.IsNotNull(options, nameof(options));
+            LoggerFactory = EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory));
         }
 
-        protected IConfiguration Config => _config;
+        protected IConfiguration Config { get; }
 
-        protected IOptions<MeasurementFhirImportOptions> Options => _options;
+        protected IOptions<MeasurementFhirImportOptions> Options { get; }
 
-        protected ILoggerFactory LoggerFactory => _loggerFactory;
+        protected ILoggerFactory LoggerFactory { get; }
 
         public void Initialize(ExtensionConfigContext context)
         {
-            var logger = _loggerFactory.CreateLogger(LogCategories.Executor);
-
             var fhirImportService = ResolveFhirImportService();
-            var measurementFhirImportService = new MeasurementFhirImportService(fhirImportService, Options.Value, logger);
+            var measurementFhirImportService = new MeasurementFhirImportService(fhirImportService, Options.Value);
 
             context.AddBindingRule<MeasurementFhirImportAttribute>()
                 .BindToInput(attr => measurementFhirImportService);

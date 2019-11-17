@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Config
 {
     public class MeasurementFhirImportOptions
     {
-        public virtual ParallelTaskOptions ParallelTaskOptions { get; } = new ParallelTaskOptions { MaxConcurrency = 10 }; // TODO: Create configuration option in web config.
+        public virtual ParallelTaskOptions ParallelTaskOptions { get; } = new ParallelTaskOptions { MaxConcurrency = 10 };
 
         public virtual ExceptionTelemetryProcessor ExceptionService { get; } = new ExceptionTelemetryProcessor();
 

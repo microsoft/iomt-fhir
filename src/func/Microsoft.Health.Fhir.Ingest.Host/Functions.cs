@@ -32,7 +32,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             try
             {
-                await measurementImportService.ProcessStreamAsync(req.Body, templateDefinition).ConfigureAwait(false);
+                await measurementImportService.ProcessStreamAsync(req.Body, templateDefinition, log).ConfigureAwait(false);
                 return new AcceptedResult();
             }
             catch (Exception ex)
