@@ -30,18 +30,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options, log);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options);
 
             var stream = Substitute.For<Stream>();
             stream.CanRead.Returns(true);
 
             using (stream)
             {
-                await fhirImport.ProcessStreamAsync(stream, string.Empty);
+                await fhirImport.ProcessStreamAsync(stream, string.Empty, log);
             }
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.DidNotReceiveWithAnyArgs().ProcessAsync(null, null);
+            await fhirService.DidNotReceiveWithAnyArgs().ProcessAsync(default, default);
         }
 
         [Fact]
@@ -51,14 +51,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options, log);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options);
 
             var measurements = new IMeasurementGroup[] { Substitute.For<IMeasurementGroup>(), Substitute.For<IMeasurementGroup>() };
 
-            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty);
+            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(null, null);
+            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, null);
         }
 
         [Fact]
@@ -69,13 +69,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var exception = new InvalidOperationException();
             var fhirService = Substitute.For<FhirImportService>();
-            fhirService.ProcessAsync(null, null).ReturnsForAnyArgs(Task.FromException(exception));
+            fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options, log);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options);
 
             var measurements = new MeasurementGroup[] { Substitute.For<MeasurementGroup>(), Substitute.For<MeasurementGroup>() };
 
-            var aggEx = await Assert.ThrowsAsync<AggregateException>(async () => await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty));
+            var aggEx = await Assert.ThrowsAsync<AggregateException>(async () => await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log));
 
             Assert.Collection(
                 aggEx.InnerExceptions,
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 });
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(null, null);
+            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
         }
 
         [Fact]
@@ -97,16 +97,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var exception = new InvalidOperationException();
             var fhirService = Substitute.For<FhirImportService>();
-            fhirService.ProcessAsync(null, null).ReturnsForAnyArgs(Task.FromException(exception));
+            fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options, log);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options);
 
             var measurements = new IMeasurementGroup[] { Substitute.For<IMeasurementGroup>(), Substitute.For<IMeasurementGroup>() };
 
-            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty);
+            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(null, null);
+            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
             options.ExceptionService.Received(2).HandleException(exception, log);
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
-            var fhirImport = new TestFhirImportService(fhirService, options, log);
+            var fhirImport = new TestFhirImportService(fhirService, options);
 
             var measurements = new IMeasurementGroup[]
             {
@@ -125,10 +125,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Substitute.For<IMeasurementGroup>().Mock(m => m.DeviceId.Returns("1")),
             };
 
-            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty);
+            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             Assert.Equal(1, fhirImport.WorkItemCount);
-            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(null, null);
+            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
-            var fhirImport = new TestFhirImportService(fhirService, options, log);
+            var fhirImport = new TestFhirImportService(fhirService, options);
 
             var measurements = new IMeasurementGroup[]
             {
@@ -148,10 +148,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Substitute.For<IMeasurementGroup>().Mock(m => m.DeviceId.Returns("3")),
             };
 
-            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty);
+            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             Assert.Equal(3, fhirImport.WorkItemCount);
-            await fhirService.ReceivedWithAnyArgs(4).ProcessAsync(null, null);
+            await fhirService.ReceivedWithAnyArgs(4).ProcessAsync(default, default);
         }
 
         [Fact]
@@ -161,7 +161,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
-            var fhirImport = new TestFhirImportService(fhirService, options, log);
+            var fhirImport = new TestFhirImportService(fhirService, options);
 
             var measurements = new IMeasurementGroup[]
             {
@@ -175,10 +175,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     })),
             };
 
-            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty);
+            await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             Assert.Equal(1, fhirImport.WorkItemCount);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(null, null);
+            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
 
             // Telemetry logging is async/non-blocking. Ensure enough time has pass so section is hit.
             await Task.Delay(1000);
@@ -214,8 +214,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private class TestFhirImportService : MeasurementFhirImportService
         {
-            public TestFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options, ILogger log)
-                : base(fhirImportService, options, log)
+            public TestFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options)
+                : base(fhirImportService, options)
             {
             }
 

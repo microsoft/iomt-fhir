@@ -22,21 +22,20 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class MeasurementFhirImportService : ParallelTaskWorker<MeasurementFhirImportOptions>
     {
         private readonly FhirImportService _fhirImportService;
-        private readonly ILogger _log;
 
-        public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options, ILogger log)
+        public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options)
             : base(options, options.ParallelTaskOptions.MaxConcurrency)
         {
             _fhirImportService = EnsureArg.IsNotNull(fhirImportService, nameof(fhirImportService));
-            _log = EnsureArg.IsNotNull(log, nameof(log));
         }
 
-        public async Task ProcessStreamAsync(Stream data, string templateDefinition)
+        public async Task ProcessStreamAsync(Stream data, string templateDefinition, ILogger log)
         {
             EnsureArg.IsNotNull(templateDefinition, nameof(templateDefinition));
+            EnsureArg.IsNotNull(log, nameof(log));
             var template = Options.TemplateFactory.Create(templateDefinition);
 
-            var measurementGroups = await ParseAsync(data).ConfigureAwait(false);
+            var measurementGroups = await ParseAsync(data, log).ConfigureAwait(false);
 
             // Group work by device to avoid race conditions when resource creation is enabled.
             var workItems = measurementGroups.GroupBy(grp => grp.DeviceId)
@@ -51,9 +50,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             catch (Exception ex)
                             {
-                                if (!Options.ExceptionService.HandleException(ex, _log))
+                                if (!Options.ExceptionService.HandleException(ex, log))
                                 {
-                                    _log.LogError(ex, ex.Message);
+                                    log.LogError(ex, ex.Message);
                                     throw;
                                 }
                             }
@@ -63,7 +62,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await StartWorker(workItems).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<IMeasurementGroup>> ParseAsync(Stream data)
+        private static async Task<IEnumerable<IMeasurementGroup>> ParseAsync(Stream data, ILogger log)
         {
             IList<IMeasurementGroup> measurementGroups = new List<IMeasurementGroup>();
             using (var reader = new JsonTextReader(new StreamReader(data)))
@@ -78,21 +77,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     var token = await JToken.ReadFromAsync(reader).ConfigureAwait(false);
                     var group = token.ToObject<MeasurementGroup>();
                     measurementGroups.Add(group);
-                    _ = CalculateMetricsAsync(group.Data).ConfigureAwait(false);
+                    _ = CalculateMetricsAsync(group.Data, log).ConfigureAwait(false);
                 }
             }
 
             return measurementGroups;
         }
 
-        private async Task CalculateMetricsAsync(IList<Measurement> measurements)
+        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ILogger log)
         {
             await Task.Run(() =>
             {
                 DateTime nowRef = DateTime.UtcNow;
 
-                _log.LogMetric(Metrics.MeasurementGroup, 1);
-                _log.LogMetric(Metrics.Measurement, measurements.Count);
+                log.LogMetric(Metrics.MeasurementGroup, 1);
+                log.LogMetric(Metrics.Measurement, measurements.Count);
 
                 for (int i = 0; i < measurements.Count; i++)
                 {
@@ -103,7 +102,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     }
 
                     var latency = (nowRef - m.IngestionTimeUtc.Value).TotalSeconds;
-                    _log.LogMetric(Metrics.MeasurementIngestionLatency, latency);
+                    log.LogMetric(Metrics.MeasurementIngestionLatency, latency);
                 }
             }).ConfigureAwait(false);
         }
