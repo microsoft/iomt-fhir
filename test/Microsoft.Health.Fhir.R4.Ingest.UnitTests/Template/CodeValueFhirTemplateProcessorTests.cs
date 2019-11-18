@@ -228,17 +228,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     Assert.Collection(
                         c.Code.Coding,
-                        c =>
+                        code =>
                         {
-                            Assert.Equal("d", c.System);
-                            Assert.Equal("code2", c.Code);
-                            Assert.Equal("c", c.Display);
+                            Assert.Equal("d", code.System);
+                            Assert.Equal("code2", code.Code);
+                            Assert.Equal("c", code.Display);
                         },
-                        c =>
+                        code =>
                         {
-                            Assert.Equal(FhirImportService.ServiceSystem, c.System);
-                            Assert.Equal("p2", c.Code);
-                            Assert.Equal("p2", c.Display);
+                            Assert.Equal(FhirImportService.ServiceSystem, code.System);
+                            Assert.Equal("p2", code.Code);
+                            Assert.Equal("p2", code.Display);
                         });
                     Assert.Equal(element, c.Value);
                 });
@@ -427,17 +427,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     // New component value added to observation
                     Assert.Collection(
                         c.Code.Coding,
-                        c =>
+                        code =>
                         {
-                            Assert.Equal("f", c.System);
-                            Assert.Equal("code3", c.Code);
-                            Assert.Equal("e", c.Display);
+                            Assert.Equal("f", code.System);
+                            Assert.Equal("code3", code.Code);
+                            Assert.Equal("e", code.Display);
                         },
-                        c =>
+                        code =>
                         {
-                            Assert.Equal(FhirImportService.ServiceSystem, c.System);
-                            Assert.Equal("p3", c.Code);
-                            Assert.Equal("p3", c.Display);
+                            Assert.Equal(FhirImportService.ServiceSystem, code.System);
+                            Assert.Equal("p3", code.Code);
+                            Assert.Equal("p3", code.Display);
                         });
                     Assert.Equal(element, c.Value);
                 });
@@ -517,17 +517,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     // New component value added to observation
                     Assert.Collection(
                         c.Code.Coding,
-                        c =>
+                        code =>
                         {
-                            Assert.Equal("d", c.System);
-                            Assert.Equal("code2", c.Code);
-                            Assert.Equal("c", c.Display);
+                            Assert.Equal("d", code.System);
+                            Assert.Equal("code2", code.Code);
+                            Assert.Equal("c", code.Display);
                         },
-                        c =>
+                        code =>
                         {
-                            Assert.Equal(FhirImportService.ServiceSystem, c.System);
-                            Assert.Equal("p2", c.Code);
-                            Assert.Equal("p2", c.Display);
+                            Assert.Equal(FhirImportService.ServiceSystem, code.System);
+                            Assert.Equal("p2", code.Code);
+                            Assert.Equal("p2", code.Display);
                         });
                     Assert.Equal(element, c.Value);
                 });
