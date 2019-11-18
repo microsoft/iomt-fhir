@@ -30,5 +30,10 @@ steps:
 
 - task: VSTest@2
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    testSelector: 'testAssemblies'
+    testAssemblyVer2: |
+      **\bin\$(BuildConfiguration)\**\*test*.dll
+      !**\obj\**
+      !**\xunit.runner.visualstudio.testadapter.dll
+      !**\xunit.runner.visualstudio.dotnetcore.testadapter.dll
+    searchFolder: '$(System.DefaultWorkingDirectory)'
