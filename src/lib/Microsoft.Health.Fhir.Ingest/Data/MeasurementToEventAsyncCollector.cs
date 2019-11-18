@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             _eventHubService = EnsureArg.IsNotNull(eventHubService, nameof(eventHubService));
         }
 
-        public async Task AddAsync(IMeasurement item, CancellationToken cancellationToken = default)
+        public async Task AddAsync(IMeasurement item, CancellationToken cancellationToken = default(CancellationToken))
         {
             EnsureArg.IsNotNull(item, nameof(item));
 
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             }
         }
 
-        public async Task FlushAsync(CancellationToken cancellationToken = default)
+        public async Task FlushAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             // Currently no batching, no flush needed at this time.
             await Task.Yield();

@@ -5,19 +5,12 @@
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest</AssemblyName>
     <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
+    <langversion>latest</langversion>
   </PropertyGroup>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Search\**" />
-    <Compile Remove="Service\Auth\**" />
-    <EmbeddedResource Remove="Search\**" />
-    <EmbeddedResource Remove="Service\Auth\**" />
-    <None Remove="Search\**" />
-    <None Remove="Service\Auth\**" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="8.0.0" />
     <PackageReference Include="Microsoft.Azure.EventHubs" Version="3.0.0" />
