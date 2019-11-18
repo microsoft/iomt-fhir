@@ -1,0 +1,19 @@
+<!DOCTYPE varsdefined [
+<!ENTITY GitReposFolder "C:\GITs\Repos">
+<!ENTITY GitRepoName "health-iomt">
+]>
+
+<GeoPol_Folders>
+<!-- List of Folders to include for GeoPolitical scanning -->
+<GitRepoName>&GitRepoName;</GitRepoName>
+<SourceGitFolder>&GitReposFolder;\VSTS\HealthMisc\&GitRepoName;</SourceGitFolder>
+  <Component Include="List here folders to Include in a GeoPol Scan">    
+	<!-- . means the entire repo -->
+    <IncludeFolder>.</IncludeFolder>
+  </Component>
+    <Component Exclude="List exceptions here to not be scanned, that have been included above">    
+    <ExcludeFolder>.gitignore</ExcludeFolder>
+    <ExcludeFolder>GeoPol.xml</ExcludeFolder>
+    <ExcludeFolder>THIRDPARTYNOTICES.md</ExcludeFolder>
+  </Component>
+</GeoPol_Folders>

@@ -1,0 +1,275 @@
+﻿{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartRate && @endDate)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "steps",
+        "typeMatchExpression": "$..[?(@stepCount)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.stepCount",
+            "valueName": "steps"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartrate && @measurementdatetime)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartrate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "steps",
+        "typeMatchExpression": "$..[?(@steps && @measurementdatetime)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.steps",
+            "valueName": "steps"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bloodpressure",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic && @measurementdatetime)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "hrv",
+        "typeMatchExpression": "$..[?(@hrv && @measurementdatetime)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.hrv",
+            "valueName": "hrv"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "bootTime",
+        "typeMatchExpression": "$..[?(@Body.patientActiveTime || @Body.patientOffBootTime || @Body.patientRestingTime || @Body.patientUnknownTime)]",
+        "values": [
+          {
+            "required": "false",
+            "valueExpression": "$.Body.patientActiveTime",
+            "valueName": "activeTime"
+          },
+          {
+            "required": "false",
+            "valueExpression": "$.Body.patientOffBootTime",
+            "valueName": "offBootTime"
+          },
+          {
+            "required": "false",
+            "valueExpression": "$.Body.patientRestingTime",
+            "valueName": "restingTime"
+          },
+          {
+            "required": "false",
+            "valueExpression": "$.Body.patientUnknownTime",
+            "valueName": "unknownTime"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "stepsPerMinute",
+        "typeMatchExpression": "$..[?(@Body.patientSteps)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.patientSteps",
+            "valueName": "steps"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "deviceProvisioned",
+        "typeMatchExpression": "$..[?(@Body.deviceProvisioned)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.deviceProvisioned",
+            "valueName": "deviceProvisioned"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "deviceOffBoot",
+        "typeMatchExpression": "$..[?(@Body.deviceOffBoot)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.deviceOffBoot",
+            "valueName": "deviceOffBoot"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "deviceOnBoot",
+        "typeMatchExpression": "$..[?(@Body.deviceOnBoot)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.deviceOnBoot",
+            "valueName": "deviceOnBoot"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "excessiveActivityReached",
+        "typeMatchExpression": "$..[?(@Body.ExcessiveActivityReached)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.ExcessiveActivityReached",
+            "valueName": "excessiveActivityReached"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "maxDayActivityReached",
+        "typeMatchExpression": "$..[?(@Body.MaxDayActivityReached)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.MaxDayActivityReached",
+            "valueName": "maxDayActivityReached"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "minDayActivityReached",
+        "typeMatchExpression": "$..[?(@Body.MinDayActivityReached)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.MinDayActivityReached",
+            "valueName": "minDayActivityReached"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "notEnoughActivityReached",
+        "typeMatchExpression": "$..[?(@Body.NotEnoughActivityReached)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.NotEnoughActivityReached",
+            "valueName": "notEnoughActivityReached"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "patientRemovingBoot",
+        "typeMatchExpression": "$..[?(@Body.patientRemovingBoot)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.patientRemovingBoot",
+            "valueName": "patientRemovingBoot"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "patientWearingBoot",
+        "typeMatchExpression": "$..[?(@Body.patientWearingBoot)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.patientWearingBoot",
+            "valueName": "patientWearingBoot"
+          }
+        ]
+      }
+    }
+  ]
+}

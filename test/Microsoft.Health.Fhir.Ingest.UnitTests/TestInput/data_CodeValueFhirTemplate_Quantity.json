@@ -1,0 +1,49 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "codes": [
+      {
+        "code": "85354-9",
+        "display": "Blood pressure panel with all children optional",
+        "system": "http://loinc.org"
+      }
+    ],
+    "periodInterval": 60,
+    "typeName": "bp",
+    "components": [
+      {
+        "codes": [
+          {
+            "code": "8867-4",
+            "display": "Diastolic blood pressure",
+            "system": "http://loinc.org"
+          }
+        ],
+        "value": {
+          "unit": "mmHg",
+          "valueName": "diastolic",
+          "valueType": "quantity",
+          "code": "mm[Hg]",
+          "system": "http://unitsofmeasure.org"
+        }
+      },
+      {
+        "codes": [
+          {
+            "code": "8480-6",
+            "display": "Systolic blood pressure",
+            "system": "http://loinc.org"
+          }
+        ],
+        "value": {
+          "unit": "mmHg",
+          "valueName": "systolic",
+          "valueType": "quantity",
+          "code": "mm[Hg]",
+          "system": "http://unitsofmeasure.org"
+        }
+      }
+    ]
+
+  }
+}

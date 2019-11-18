@@ -1,0 +1,18 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FhirService:Authority": "",
+    "FhirService:ClientId": "",
+    "FhirService:ClientSecret": "",
+    "FhirService:Resource": "",
+    "FhirService:Url": "",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "InputEventHub": "",
+    "OutputEventHub": "",
+    "ResourceIdentity:ResourceIdentityServiceType": "R4DeviceAndPatientLookupIdentityService",
+    "ResourceIdentity:DefaultDeviceIdentifierSystem": "",
+    "Template:DeviceContent": "devicecontent.json",
+    "Template:FhirMapping": "fhirmapping.json"
+  }
+}

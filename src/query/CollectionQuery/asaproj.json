@@ -1,0 +1,22 @@
+{
+    "name": "CollectionQuery",
+    "startFile": "Script.asaql",
+    "configurations": [
+        {
+            "filePath": "Inputs\\NormalizedDeviceInput.json",
+            "subType": "Input"
+        },
+        {
+            "filePath": "Outputs\\CollectedBlobOutput.json",
+            "subType": "Output"
+        },
+        {
+            "filePath": "Outputs\\FhirImportOutput.json",
+            "subType": "Output"
+        },
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}

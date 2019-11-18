@@ -1,0 +1,30 @@
+﻿{
+  "Sample": "{\"Type\":\"heartrate\",\"OccurrenceDateTime\":\"2019-06-26T14:45:07Z\",\"DeviceId\":\"745a358c-653a-466c-848e-905489bda910\",\"Properties\":[{\"Name\":\"hr\",\"Value\":\"85\"}]}",
+  "EventHubProperties": {
+    "ConsumerGroupName": null,
+    "EventHubName": "normalizeddeviceinput",
+    "ServiceBusNamespace": "iomt2fhir-reference",
+    "SharedAccessPolicyKey": null,
+    "SharedAccessPolicyName": "reader"
+  },
+  "BlobStorageProperties": null,
+  "IoTHubProperties": null,
+  "BlobReferenceProperties": null,
+  "SqlReferenceInputInfo": null,
+  "InputPartionKey": null,
+  "DataSourceCredentialDomain": "106adc33-e478-4b6f-920d-cbcc120a2fba.StreamAnalyticsCredential",
+  "Name": "NormalizedDeviceInput",
+  "Type": "Data Stream",
+  "DataSourceType": "Event Hub",
+  "Serialization": {
+    "Encoding": "UTF8",
+    "Type": "Json",
+    "FieldDelimiter": null,
+    "Format": null,
+    "SerializationDllPath": null,
+    "SerializationClassName": null,
+    "SerializationDllPathInLocal": null
+  },
+  "CompresssionType": "None",
+  "ScriptType": "Input"
+}

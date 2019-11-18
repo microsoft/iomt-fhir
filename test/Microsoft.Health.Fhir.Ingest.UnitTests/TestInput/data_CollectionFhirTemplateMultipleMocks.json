@@ -1,0 +1,13 @@
+{
+  "templateType": "CollectionFhir",
+  "template": [
+    {
+      "templateType": "mockA",
+      "template": {}
+    },
+    {
+      "templateType": "mockB",
+      "template": {}
+    }
+  ]
+}

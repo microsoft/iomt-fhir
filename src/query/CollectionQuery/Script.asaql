@@ -1,0 +1,18 @@
+﻿SELECT 
+    DeviceId [DeviceId], 
+    PatientId [PatientId],
+    EncounterId [EncounterId],
+    collect() [Data],
+    System.Timestamp [WindowTime],
+    Type [MeasureType],
+    count(*) [Count]
+INTO
+    [FhirImportOutput]
+FROM
+    [NormalizedDeviceInput] PARTITION BY PartitionId TIMESTAMP BY OccurrenceTimeUtc
+GROUP BY PartitionId,
+    DeviceId, 
+    PatientId, 
+    EncounterId, 
+    Type, 
+    TUMBLINGWINDOW(MINUTE, 5)
