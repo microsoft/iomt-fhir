@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "func", "func", "{E8C74AB9-F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FAF8B402-892E-4EA2-B4CF-69B0C70BA762}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Ingest.Host", "src\func\Microsoft.Health.Fhir.Ingest.Host\Microsoft.Health.Ingest.Host.csproj", "{11F6C10F-483A-4DD7-99A3-14FDD5CCA3F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Host", "src\func\Microsoft.Health.Fhir.Ingest.Host\Microsoft.Health.Fhir.Ingest.Host.csproj", "{11F6C10F-483A-4DD7-99A3-14FDD5CCA3F1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.UnitTests", "test\Microsoft.Health.Fhir.Ingest.UnitTests\Microsoft.Health.Fhir.Ingest.UnitTests.csproj", "{F6422A39-DC02-436B-AC1F-82CC9CF75E73}"
 EndProject

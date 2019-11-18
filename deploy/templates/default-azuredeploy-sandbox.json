@@ -12,7 +12,7 @@
     },
     "RepositoryUrl": {
       "type": "string",
-      "defaultValue": "https://github.com/microsoft/iomt-fhir",
+      "defaultValue": "https://github.com/Microsoft/iomt-fhir",
       "metadata": {
         "description": "Repository to pull source code from. If blank, source code will not be deployed."
       }
@@ -637,7 +637,7 @@
             "OutputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-output-connection'), '2018-02-14').secretUriWithVersion, ')')]",
             "FUNCTIONS_EXTENSION_VERSION": "~2",
             "FUNCTIONS_EXTENSION_RUNTIME": "dotnet",
-            "PROJECT": "src/func/Microsoft.Health.Ingest.Host/Microsoft.Health.Ingest.Host.csproj",
+            "PROJECT": "src/func/Microsoft.Health.Fhir.Ingest.Host/Microsoft.Health.Fhir.Ingest.Host.csproj",
             "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
             "AzureWebJobsSecretStorageType": "Files",
             "FhirService:Url": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-url'), '2018-02-14').secretUriWithVersion, ')')]",
