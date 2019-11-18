@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <CodeAnalysisRuleSet>..\..\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
     <IsPackable>false</IsPackable>
     <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
