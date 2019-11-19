@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
@@ -25,6 +26,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         protected static string GetDeviceIdentity(IMeasurementGroup input)
         {
+            EnsureArg.IsNotNull(input, nameof(input));
+
             return input.DeviceId;
         }
 

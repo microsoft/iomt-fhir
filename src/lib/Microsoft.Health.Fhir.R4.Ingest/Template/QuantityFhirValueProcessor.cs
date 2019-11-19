@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using EnsureThat;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -15,6 +16,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         protected override Element CreateValueImpl(QuantityFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue)
         {
+            EnsureArg.IsNotNull(template, nameof(template));
+
             return new Quantity
             {
                 Value = decimal.Parse(inValue.values.Single().Item2, CultureInfo.InvariantCulture),

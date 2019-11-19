@@ -30,6 +30,8 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 
         public void Initialize(ExtensionConfigContext context)
         {
+            EnsureArg.IsNotNull(context, nameof(context));
+
             var fhirImportService = ResolveFhirImportService();
             var measurementFhirImportService = new MeasurementFhirImportService(fhirImportService, Options.Value);
 

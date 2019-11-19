@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using EnsureThat;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Config;
 
@@ -23,6 +24,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public IResourceIdentityService Create(ResourceIdentityOptions config, params object[] constructorParams)
         {
+            EnsureArg.IsNotNull(config, nameof(config));
+
             var serviceType = Assembly
                 .GetCallingAssembly()
                 .GetTypes()

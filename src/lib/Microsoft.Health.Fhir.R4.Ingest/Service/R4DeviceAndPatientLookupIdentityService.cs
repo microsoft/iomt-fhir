@@ -40,6 +40,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         protected static string GetPatientIdFromDevice(Model.Device device)
         {
+            EnsureArg.IsNotNull(device, nameof(device));
+
             return device.Patient?.GetId<Model.Patient>() ?? throw new FhirResourceNotFoundException(ResourceType.Patient);
         }
     }

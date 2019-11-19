@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -32,6 +33,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection)
         {
+            EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+
             var template = new CollectionContentTemplate();
             foreach (var token in templateCollection)
             {

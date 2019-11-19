@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -15,6 +16,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected override Element CreateValueImpl(CodeableConceptFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue)
         {
             // Values for codeable concepts currently have no meaning. The existance of the measurement means the code applies.
+
+            EnsureArg.IsNotNull(template, nameof(template));
 
             return new CodeableConcept
             {

@@ -29,6 +29,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public IEnumerable<IObservationGroup> Build(IMeasurementGroup input)
         {
+            EnsureArg.IsNotNull(input, nameof(input));
+
             var lookup = new Dictionary<DateTime, IObservationGroup>();
             foreach (var m in input.Data)
             {
@@ -57,6 +59,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public virtual IObservationGroup CreateObservationGroup(IMeasurementGroup group, (DateTime Start, DateTime End) boundary)
         {
+            EnsureArg.IsNotNull(group, nameof(group));
+
             return new MeasurementObservationGroup
             {
                 Name = group.MeasureType,

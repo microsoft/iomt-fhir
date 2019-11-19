@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     OccurrenceTimeUtc = seedDate,
                     Properties = new List<MeasurementProperty>
                     {
-                        new MeasurementProperty { Name = "a", Value = "1"},
+                        new MeasurementProperty { Name = "a", Value = "1" },
                     },
                 },
             };

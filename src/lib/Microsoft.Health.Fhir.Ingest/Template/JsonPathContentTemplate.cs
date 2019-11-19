@@ -32,6 +32,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
+            EnsureArg.IsNotNull(token, nameof(token));
+
             foreach (var typeToken in MatchTypeTokens(token))
             {
                 yield return CreateMeasurementFromToken(typeToken);
@@ -40,6 +42,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected static T EvalExpression<T>(JToken token, params string[] expressions)
         {
+            EnsureArg.IsNotNull(token, nameof(token));
+
             if (expressions == null)
             {
                 return default(T);

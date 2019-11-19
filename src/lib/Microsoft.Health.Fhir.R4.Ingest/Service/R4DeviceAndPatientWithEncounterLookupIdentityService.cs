@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Model = Hl7.Fhir.Model;
@@ -29,6 +30,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         protected async override Task<IDictionary<ResourceType, string>> ResolveResourceIdentitiesInternalAsync(IMeasurementGroup input)
         {
+            EnsureArg.IsNotNull(input, nameof(input));
+
             var identities = await base.ResolveResourceIdentitiesInternalAsync(input).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(input.EncounterId))

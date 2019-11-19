@@ -16,6 +16,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public virtual string BuildSampledData((DateTime Time, string Value)[] values, DateTime startBoundary, DateTime endBoundary, decimal? samplePeriod)
         {
+            EnsureArg.IsNotNull(values, nameof(values));
             EnsureArg.IsNotNull(samplePeriod, nameof(samplePeriod));
 
             var timeIncrement = Convert.ToDouble(samplePeriod.Value);
@@ -68,6 +69,9 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public virtual (DateTime Time, string Value)[] MergeData((DateTime Time, string Value)[] data1, (DateTime Time, string Value)[] data2)
         {
+            EnsureArg.IsNotNull(data1, nameof(data1));
+            EnsureArg.IsNotNull(data2, nameof(data2));
+
             var output = new List<(DateTime Time, string Value)>(data1.Length + data2.Length);
             var data1Pos = 0;
             var data2Pos = 0;
