@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{AC515D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{7486FD7F-2711-4184-8764-71D1103D48B2}"
 	ProjectSection(SolutionItems) = preProject
+		deploy\templates\consumption-azuredeploy.json = deploy\templates\consumption-azuredeploy.json
 		deploy\templates\default-azuredeploy-sandbox.json = deploy\templates\default-azuredeploy-sandbox.json
 		deploy\templates\default-azuredeploy.json = deploy\templates\default-azuredeploy.json
 	EndProjectSection
