@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -27,6 +28,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection)
         {
+            EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+
             var lookupTemplate = new FhirLookupTemplate();
             foreach (var token in templateCollection)
             {

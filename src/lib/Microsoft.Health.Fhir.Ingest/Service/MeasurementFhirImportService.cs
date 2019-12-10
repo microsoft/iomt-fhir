@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly FhirImportService _fhirImportService;
 
         public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options)
-            : base(options, options.ParallelTaskOptions.MaxConcurrency)
+            : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _fhirImportService = EnsureArg.IsNotNull(fhirImportService, nameof(fhirImportService));
         }

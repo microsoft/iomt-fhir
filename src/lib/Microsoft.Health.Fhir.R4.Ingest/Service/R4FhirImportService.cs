@@ -96,6 +96,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         protected static Model.Identifier GenerateObservationIdentifier(IObservationGroup grp, IDictionary<ResourceType, string> ids)
         {
             EnsureArg.IsNotNull(grp, nameof(grp));
+            EnsureArg.IsNotNull(ids, nameof(ids));
+
             var identity = FhirImportService.GenerateObservationId(grp, ids[ResourceType.Device], ids[ResourceType.Patient]);
             return new Model.Identifier
             {
@@ -108,6 +110,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(grp, nameof(grp));
             EnsureArg.IsNotNull(observationId, nameof(observationId));
+            EnsureArg.IsNotNull(ids, nameof(ids));
 
             var patientId = Ensure.String.IsNotNullOrWhiteSpace(ids[ResourceType.Patient], nameof(ResourceType.Patient));
             var deviceId = Ensure.String.IsNotNullOrWhiteSpace(ids[ResourceType.Device], nameof(ResourceType.Device));

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Hl7.Fhir.Rest;
 
 namespace Microsoft.Health.Extensions.Fhir.Search
@@ -14,6 +15,8 @@ namespace Microsoft.Health.Extensions.Fhir.Search
     {
         public static Hl7.Fhir.Rest.SearchParams MatchOnId(this Hl7.Fhir.Rest.SearchParams searchParams, string id)
         {
+            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
+
             searchParams.Parameters.Add(new Tuple<string, string>(SearchParam.Id.ToString(), id));
             return searchParams;
         }
@@ -35,12 +38,16 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         public static Hl7.Fhir.Rest.SearchParams ForSubject<TResource>(this Hl7.Fhir.Rest.SearchParams searchParams, string subjectValue)
             where TResource : Hl7.Fhir.Model.Resource
         {
+            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
+
             searchParams.Add(SearchParam.Subject.ToString(), $@"{typeof(TResource).Name}/{subjectValue}");
             return searchParams;
         }
 
         public static Hl7.Fhir.Rest.SearchParams SetCount(this Hl7.Fhir.Rest.SearchParams searchParams, int? count)
         {
+            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
+
             searchParams.Count = count;
             return searchParams;
         }
@@ -103,6 +110,8 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         /// <returns>The modified search parameter collection.</returns>
         public static Hl7.Fhir.Rest.SearchParams WhenParamValue(this Hl7.Fhir.Rest.SearchParams searchParams, string searchParam, object paramValue, SearchPrefix searchPrefix = null)
         {
+            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
+
             if (searchParam == null)
             {
                 throw new ArgumentNullException(nameof(searchParam));
@@ -132,6 +141,8 @@ namespace Microsoft.Health.Extensions.Fhir.Search
 
         public static Hl7.Fhir.Rest.SearchParams MatchOnAnyIdentifier(this Hl7.Fhir.Rest.SearchParams searchParams, IEnumerable<Hl7.Fhir.Model.Identifier> identifiers)
         {
+            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
+
             searchParams.Add(SearchParam.Identifier.ToString(), identifiers
                 .Select(id => id.ToSearchToken())
                 .CompositeOr());
@@ -168,6 +179,8 @@ namespace Microsoft.Health.Extensions.Fhir.Search
 
         public static string ToSearchToken(this Hl7.Fhir.Model.Identifier identifier)
         {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
             var token = string.Empty;
             if (!string.IsNullOrEmpty(identifier.System))
             {

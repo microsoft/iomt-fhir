@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 
 namespace Microsoft.Health.Tests.Common
 {
@@ -11,6 +12,8 @@ namespace Microsoft.Health.Tests.Common
     {
         public static T Mock<T>(this T obj, Action<T> mock)
         {
+            EnsureArg.IsNotNull(mock, nameof(mock));
+
             mock(obj);
             return obj;
         }

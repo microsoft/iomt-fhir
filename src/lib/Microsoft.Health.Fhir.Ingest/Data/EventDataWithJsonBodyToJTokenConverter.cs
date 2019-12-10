@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Text;
+using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json.Linq;
 
@@ -13,6 +14,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
     {
         public JToken Convert(EventData input)
         {
+            EnsureArg.IsNotNull(input, nameof(input));
+
             var body = input.Body.Count > 0
                 ? JToken.Parse(Encoding.UTF8.GetString(input.Body.Array, input.Body.Offset, input.Body.Count))
                 : null;

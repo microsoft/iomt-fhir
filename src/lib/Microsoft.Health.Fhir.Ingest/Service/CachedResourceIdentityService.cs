@@ -19,17 +19,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         IResourceIdentityService,
         IDisposable
     {
-        private IMemoryCache _identityCache = new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 5000 }));
-        private ResourceIdentityOptions _options;
-
         ~CachedResourceIdentityService()
         {
             Dispose(false);
         }
 
-        protected IMemoryCache IdentityCache => _identityCache;
+        protected IMemoryCache IdentityCache { get; private set; } = new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 5000 }));
 
-        protected ResourceIdentityOptions ResourceIdentityOptions => _options;
+        protected ResourceIdentityOptions ResourceIdentityOptions { get; private set; }
 
         public async Task<IDictionary<ResourceType, string>> ResolveResourceIdentitiesAsync(IMeasurementGroup input)
         {
@@ -50,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public void Initialize(ResourceIdentityOptions options)
         {
-            _options = EnsureArg.IsNotNull(options);
+            ResourceIdentityOptions = EnsureArg.IsNotNull(options);
         }
 
         public void Dispose()
@@ -63,9 +60,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             if (disposing)
             {
-                if (_identityCache.TryDispose())
+                if (IdentityCache.TryDispose())
                 {
-                    _identityCache = null;
+                    IdentityCache = null;
                 }
             }
         }

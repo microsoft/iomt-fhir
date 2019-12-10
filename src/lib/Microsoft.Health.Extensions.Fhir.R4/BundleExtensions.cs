@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 
@@ -70,6 +71,8 @@ namespace Microsoft.Health.Extensions.Fhir
         public static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(this Bundle bundle, IFhirClient fhirClient, int? count = null)
             where TResource : Resource
         {
+            EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
+
             var resources = new List<TResource>();
             while (bundle != null)
             {
@@ -96,6 +99,9 @@ namespace Microsoft.Health.Extensions.Fhir
         public static async Task<IEnumerable<TResource>> SearchWithContinuationAsync<TResource>(this IFhirClient fhirClient, SearchParams searchParams)
             where TResource : Resource
         {
+            EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
+            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
+
             var result = await fhirClient.SearchAsync<TResource>(searchParams).ConfigureAwait(false) as Bundle;
             return await result.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, searchParams.Count).ConfigureAwait(false);
         }
@@ -103,6 +109,8 @@ namespace Microsoft.Health.Extensions.Fhir
         public static async Task<IEnumerable<TResource>> GetWithContinuationAsync<TResource>(this IFhirClient fhirClient, Uri resourceUri, int? count = null)
             where TResource : Resource
         {
+            EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
+
             var result = await fhirClient.GetAsync(resourceUri).ConfigureAwait(false) as Bundle;
             return await result.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, count).ConfigureAwait(false);
         }

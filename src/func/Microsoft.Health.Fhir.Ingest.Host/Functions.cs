@@ -30,6 +30,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             [MeasurementFhirImport] MeasurementFhirImportService measurementImportService,
             ILogger log)
         {
+            EnsureArg.IsNotNull(measurementImportService, nameof(measurementImportService));
+            EnsureArg.IsNotNull(req, nameof(req));
+
             try
             {
                 await measurementImportService.ProcessStreamAsync(req.Body, templateDefinition, log).ConfigureAwait(false);
@@ -52,6 +55,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             try
             {
                 EnsureArg.IsNotNull(templateDefinitions, nameof(templateDefinitions));
+                EnsureArg.IsNotNull(events, nameof(events));
+
                 var template = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
 
                 log.LogMetric(Metrics.DeviceEvent, events.Length);

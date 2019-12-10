@@ -31,6 +31,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override Observation CreateObseravtionImpl(CodeValueFhirTemplate template, IObservationGroup grp)
         {
+            EnsureArg.IsNotNull(template, nameof(template));
+            EnsureArg.IsNotNull(grp, nameof(grp));
+
             var observation = new Observation
             {
                 Status = ObservationStatus.Final,
@@ -73,6 +76,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override Observation MergeObservationImpl(CodeValueFhirTemplate template, IObservationGroup grp, Observation existingObservation)
         {
+            EnsureArg.IsNotNull(grp, nameof(grp));
+            EnsureArg.IsNotNull(existingObservation, nameof(existingObservation));
+
             existingObservation.Status = ObservationStatus.Amended;
 
             var values = grp.GetValues();
@@ -119,6 +125,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override IEnumerable<IObservationGroup> CreateObservationGroupsImpl(CodeValueFhirTemplate template, IMeasurementGroup measurementGroup)
         {
+            EnsureArg.IsNotNull(template, nameof(template));
+
             IObservationGroupFactory<IMeasurementGroup> factory = new MeasurementObservationGroupFactory(template.PeriodInterval);
             return factory.Build(measurementGroup);
         }

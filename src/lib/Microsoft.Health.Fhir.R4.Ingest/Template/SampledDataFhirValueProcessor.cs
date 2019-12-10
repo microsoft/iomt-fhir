@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Health.Fhir.Ingest.Data;
 
@@ -22,6 +23,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override Element CreateValueImpl(SampledDataFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue)
         {
+            EnsureArg.IsNotNull(template, nameof(template));
+
             return new SampledData
             {
                 Origin = new SimpleQuantity { Value = 0, Unit = template.Unit },
@@ -33,6 +36,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override Element MergeValueImpl(SampledDataFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue, Element existingValue)
         {
+            EnsureArg.IsNotNull(template, nameof(template));
+
             if (!(existingValue is SampledData sampledData))
             {
                 throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(SampledData)}.");
