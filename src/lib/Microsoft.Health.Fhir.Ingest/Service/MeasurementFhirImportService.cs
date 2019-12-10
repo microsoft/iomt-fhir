@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly FhirImportService _fhirImportService;
 
         public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options)
-            : base(options, PassThroughNonNull(options).ParallelTaskOptions.MaxConcurrency)
+            : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _fhirImportService = EnsureArg.IsNotNull(fhirImportService, nameof(fhirImportService));
         }
@@ -105,13 +105,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     log.LogMetric(Metrics.MeasurementIngestionLatency, latency);
                 }
             }).ConfigureAwait(false);
-        }
-
-        // Null check method
-        private static MeasurementFhirImportOptions PassThroughNonNull(MeasurementFhirImportOptions options)
-        {
-            EnsureArg.IsNotNull(options, nameof(options));
-            return options;
         }
     }
 }
