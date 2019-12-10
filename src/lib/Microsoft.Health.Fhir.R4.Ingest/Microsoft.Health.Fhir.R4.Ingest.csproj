@@ -5,6 +5,7 @@
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest.R4</AssemblyName>
     <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

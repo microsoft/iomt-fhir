@@ -5,6 +5,7 @@
     <CodeAnalysisRuleSet>..\..\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="8.0.0" />

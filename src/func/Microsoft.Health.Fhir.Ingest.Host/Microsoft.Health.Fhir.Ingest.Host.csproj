@@ -6,7 +6,7 @@
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest.Host</AssemblyName>
     <RootNamespace>Microsoft.Health.Fhir.Ingest.Host</RootNamespace>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
