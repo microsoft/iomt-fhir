@@ -1,7 +1,22 @@
 {
   "aggregator": {
-    "batchSize": 1000,
-    "flushTimeout": "00:00:30"
+    "batchSize": 5000,
+    "flushTimeout": "00:01:00"
+  },
+  "logging": {
+    "logLevel": {
+      "default": "Information",
+      "Host.Results": "Error",
+      "Function": "Error"
+    },
+    "applicationInsights": {
+      "enableDependencyTracking": true,
+      "enablePerformanceCountersCollection": true,
+      "samplingSettings": {
+        "isEnabled": true,
+        "maxTelemetryItemsPerSecond": 20
+      }
+    }
   },
   "extensions": {
     "eventHubs": {
