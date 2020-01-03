@@ -35,7 +35,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         };
 
         [Theory]
-        [FileData(@"TestInput\data_IotHubPayloadExample.json")]
+        [FileData(@"TestInput/data_IotHubPayloadExample.json")]
         public void GivenTemplateAndSingleValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
             var evt = EventDataTestHelper.BuildEventFromJson(eventJson);
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_IotHubPayloadMultiValueExample.json")]
+        [FileData(@"TestInput/data_IotHubPayloadMultiValueExample.json")]
         public void GivenTemplateAndSingleMultiValueValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
             var evt = EventDataTestHelper.BuildEventFromJson(eventJson);
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_IoTHubPayloadExampleMissingCreateTime.json")]
+        [FileData(@"TestInput/data_IoTHubPayloadExampleMissingCreateTime.json")]
         public void GivenTemplateAndSingleValidTokenWithoutCreationTime_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
             var evt = EventDataTestHelper.BuildEventFromJson(eventJson);

@@ -142,7 +142,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var searchParams = identifier.ToSearchParams();
             var result = await _client.SearchAsync<Model.Observation>(searchParams).ConfigureAwait(false);
-            return result.ReadOneFromBundle<Model.Observation>();
+            return await result.ReadOneFromBundleWithContinuationAsync<Model.Observation>(_client);
         }
     }
 }
