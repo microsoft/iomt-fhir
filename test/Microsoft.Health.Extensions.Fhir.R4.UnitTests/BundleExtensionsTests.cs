@@ -3,13 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
-using Xunit;
+using System.Collections.Generic;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
-using System.Collections.Generic;
 using NSubstitute;
+using Xunit;
 
 namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 {
