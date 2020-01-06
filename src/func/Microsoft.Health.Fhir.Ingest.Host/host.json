@@ -4,11 +4,6 @@
     "flushTimeout": "00:01:00"
   },
   "logging": {
-    "logLevel": {
-      "default": "Information",
-      "Host.Results": "Error",
-      "Function": "Error"
-    },
     "applicationInsights": {
       "enableDependencyTracking": true,
       "enablePerformanceCountersCollection": true,
