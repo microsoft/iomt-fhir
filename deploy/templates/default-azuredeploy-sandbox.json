@@ -218,7 +218,7 @@
     "fhir_service_name": "[parameters('ServiceName')]",
     "fhir_service_url": "[concat('https://', parameters('ServiceName'),'.azurehealthcareapis.com')]",
     "fhir_service_cosmos_throughput": 1000,
-    "aad_fhir_server_audience": "https://azurehealthcareapis.com"
+    "aad_fhir_server_audience": "[concat('https://', parameters('ServiceName'),'.azurehealthcareapis.com')]"
   },
   "resources": [
     {
