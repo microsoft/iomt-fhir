@@ -12,7 +12,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class JsonContentTemplateFactoryTests
     {
         [Theory]
-        [FileData(@"TestInput\data_JsonPathContentTemplateValid.json")]
+        [FileData(@"TestInput/data_JsonPathContentTemplateValid.json")]
         public void GivenValidTemplateJson_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_JsonPathContentTemplateValidWithOptional.json")]
+        [FileData(@"TestInput/data_JsonPathContentTemplateValidWithOptional.json")]
         public void GivenValidTemplateJsonWithOptionalExpressions_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);

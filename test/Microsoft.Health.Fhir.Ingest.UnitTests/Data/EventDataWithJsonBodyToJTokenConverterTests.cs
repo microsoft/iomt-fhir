@@ -61,7 +61,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         }
 
         [Theory]
-        [FileData(@"TestInput\data_IotHubPayloadExample.json")]
+        [FileData(@"TestInput/data_IotHubPayloadExample.json")]
         public void GivenIoTCentralPopulatedEvent_WhenConvert_ThenTokenWithNonSerializedBodyAndPropertiesReturned_Test(string json)
         {
             var evt = EventDataTestHelper.BuildEventFromJson(json);

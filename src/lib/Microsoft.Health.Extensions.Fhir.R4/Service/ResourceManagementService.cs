@@ -52,7 +52,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             var searchParams = identifier.ToSearchParams();
             var result = await client.SearchAsync<TResource>(searchParams).ConfigureAwait(false);
-            return result.ReadOneFromBundle<TResource>();
+            return await result.ReadOneFromBundleWithContinuationAsync<TResource>(client);
         }
 
         protected static async Task<TResource> CreateResourceByIdentityAsync<TResource>(IFhirClient client, Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)

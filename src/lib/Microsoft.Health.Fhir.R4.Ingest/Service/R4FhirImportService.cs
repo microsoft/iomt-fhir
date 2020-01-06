@@ -68,18 +68,23 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             else
             {
                 var policyResult = await Policy<Model.Observation>
-                     .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict)
-                     .FallbackAsync(async ct =>
+                     .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
+                     .RetryAsync(2, async (polyRes, attempt) =>
                      {
-                         var refreshObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
-                         var mergedObservation = MergeObservation(config, refreshObservation, observationGroup);
-                         return await _client.UpdateAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
+                         existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
                      })
                      .ExecuteAndCaptureAsync(async () =>
                      {
                          var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
                          return await _client.UpdateAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
                      }).ConfigureAwait(false);
+
+                var exception = policyResult.FinalException;
+
+                if (exception != null)
+                {
+                    throw exception;
+                }
 
                 result = policyResult.Result;
             }
@@ -137,7 +142,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var searchParams = identifier.ToSearchParams();
             var result = await _client.SearchAsync<Model.Observation>(searchParams).ConfigureAwait(false);
-            return result.ReadOneFromBundle<Model.Observation>();
+            return await result.ReadOneFromBundleWithContinuationAsync<Model.Observation>(_client);
         }
     }
 }

@@ -12,14 +12,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class CollectionContentTemplateFactoryTests
     {
         [Theory]
-        [FileData(@"TestInput\data_CollectionContentTemplateEmpty.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateEmpty.json")]
         public void GivenEmptyConfig_WhenCreate_ThenInvalidTemplateException_Test(string json)
         {
             Assert.Throws<InvalidTemplateException>(() => CollectionContentTemplateFactory.Default.Create(json));
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionContentTemplateEmptyWithType.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateEmptyWithType.json")]
         public void GivenEmptyTemplateCollection_WhenCreate_ThenTemplateReturned_Test(string json)
         {
             var template = CollectionContentTemplateFactory.Default.Create(json);
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionContentTemplateMultipleMocks.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateMultipleMocks.json")]
         public void GivenInputWithMatchingFactories_WhenCreate_ThenTemplateReturned_Test(string json)
         {
             IContentTemplate nullReturn = null;
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionContentTemplateMultipleMocks.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateMultipleMocks.json")]
         public void GivenInputWithNoMatchingFactories_WhenCreate_ThenException_Test(string json)
         {
             IContentTemplate nullReturn = null;
@@ -67,7 +67,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionFhirTemplateMixed.json")]
+        [FileData(@"TestInput/data_CollectionFhirTemplateMixed.json")]
         public void GivenInputWithMultipleTemplates_WhenCreate_ThenTemplateReturn_Test(string json)
         {
             var template = CollectionContentTemplateFactory.Default.Create(json);

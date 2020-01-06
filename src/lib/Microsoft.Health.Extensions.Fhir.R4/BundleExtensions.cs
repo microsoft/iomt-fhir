@@ -41,21 +41,28 @@ namespace Microsoft.Health.Extensions.Fhir
             }
         }
 
-        public static TResource ReadOneFromBundle<TResource>(this Bundle bundle, bool throwOnMultipleFound = true)
+        public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(this Bundle bundle, IFhirClient fhirClient, bool throwOnMultipleFound = true)
             where TResource : Resource, new()
         {
-            var bundleCount = bundle?.Entry?.Count ?? 0;
-            if (bundleCount == 0)
+            if (bundle == null)
             {
                 return null;
             }
 
-            if (throwOnMultipleFound && bundleCount > 1)
+            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, 2);
+
+            var resourceCount = resources.Count();
+            if (resourceCount == 0)
+            {
+                return null;
+            }
+
+            if (throwOnMultipleFound && resourceCount > 1)
             {
                 throw new MultipleResourceFoundException<TResource>();
             }
 
-            return bundle.Entry.ByResourceType<TResource>().FirstOrDefault();
+            return resources.FirstOrDefault();
         }
 
         /// <summary>

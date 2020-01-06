@@ -12,14 +12,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class CollectionFhirTemplateFactoryTests
     {
         [Theory]
-        [FileData(@"TestInput\data_CollectionFhirTemplateEmpty.json")]
+        [FileData(@"TestInput/data_CollectionFhirTemplateEmpty.json")]
         public void GivenEmptyConfig_WhenCreate_ThenInvalidTemplateException_Test(string json)
         {
             Assert.Throws<InvalidTemplateException>(() => CollectionFhirTemplateFactory.Default.Create(json));
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionFhirTemplateEmptyWithType.json")]
+        [FileData(@"TestInput/data_CollectionFhirTemplateEmptyWithType.json")]
         public void GivenEmptyTemplateCollection_WhenCreate_ThenTemplateReturned_Test(string json)
         {
             var template = CollectionFhirTemplateFactory.Default.Create(json);
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionFhirTemplateMultipleMocks.json")]
+        [FileData(@"TestInput/data_CollectionFhirTemplateMultipleMocks.json")]
         public void GivenInputWithRegisteredFactories_WhenCreate_ThenTemplateReturned_Test(string json)
         {
             IFhirTemplate nullReturn = null;
@@ -56,7 +56,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CollectionFhirTemplateMultipleMocks.json")]
+        [FileData(@"TestInput/data_CollectionFhirTemplateMultipleMocks.json")]
         public void GivenInputWithUnregisteredFactories_WhenCreate_ThenException_Test(string json)
         {
             IFhirTemplate nullReturn = null;

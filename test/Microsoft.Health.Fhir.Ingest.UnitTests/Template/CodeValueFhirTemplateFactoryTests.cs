@@ -12,7 +12,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class CodeValueFhirTemplateFactoryTests
     {
         [Theory]
-        [FileData(@"TestInput\data_CodeValueFhirTemplate_SampledData.json")]
+        [FileData(@"TestInput/data_CodeValueFhirTemplate_SampledData.json")]
         public void GivenValidTemplateJsonWithValueSampledDataType_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CodeValueFhirTemplate_Components.json")]
+        [FileData(@"TestInput/data_CodeValueFhirTemplate_Components.json")]
         public void GivenValidTemplateJsonWithComponentValueSampledDataType_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
@@ -100,7 +100,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CodeValueFhirTemplate_CodeableConceptData.json")]
+        [FileData(@"TestInput/data_CodeValueFhirTemplate_CodeableConceptData.json")]
         public void GivenValidTemplateJsonWithCodeableConceptDataType_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
@@ -141,7 +141,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput\data_CodeValueFhirTemplate_Quantity.json")]
+        [FileData(@"TestInput/data_CodeValueFhirTemplate_Quantity.json")]
         public void GivenValidTemplateJsonWithComponentValueQuantityType_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
