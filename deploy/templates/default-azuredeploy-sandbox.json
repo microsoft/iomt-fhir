@@ -217,8 +217,7 @@
     "iot_central_name": "[parameters('ServiceName')]",
     "fhir_service_name": "[parameters('ServiceName')]",
     "fhir_service_url": "[concat('https://', parameters('ServiceName'),'.azurehealthcareapis.com')]",
-    "fhir_service_cosmos_throughput": 1000,
-    "aad_fhir_server_audience": "[concat('https://', parameters('ServiceName'),'.azurehealthcareapis.com')]"
+    "fhir_service_cosmos_throughput": 1000
   },
   "resources": [
     {
@@ -231,7 +230,7 @@
       "properties": {
         "accessPolicies": "[parameters('FhirServiceAccessPolicies')]",
         "authenticationConfiguration": {
-          "audience": "[variables('aad_fhir_server_audience')]",
+          "audience": "[variables('fhir_service_url')]",
           "authority": "[parameters('FhirServiceAuthority')]",
           "smartProxyEnabled": true
         },
