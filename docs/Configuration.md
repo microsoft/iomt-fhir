@@ -17,7 +17,7 @@ The full normalized model is defined by the [IMeasurement](../src/lib/Microsoft.
 
 Below is a conceptual example of what happens during normalization.
 
- ![alt text](/images/normalizationexample.png "Normalization Example")
+ ![alt text](../images/normalizationexample.png "Normalization Example")
 
  The content payload itself is an event hub message which is composed of three parts: Body, Properties, and SystemProperties.  The `Body` is a byte array representing an UTF-8 encoded string.  During template evaluation the byte array is automatically converted into the string value. `Properties` is a key value collection for use by the message creator.  `SystemProperties` is also a key value collection reserved by the EventHub framework with entries automatically populated by EventHub.
 
@@ -335,6 +335,7 @@ The CodeValueFhirTemplate is currently the only template supported in FHIR mappi
 Below are the currently supported value type templates. In the future further templates may be added.
 ### SampledData
 Represents the [SampledData](http://hl7.org/fhir/datatypes.html#SampledData) FHIR data type. Measurements are written to value stream starting with start of the observations and incrementing forward using the period defined.  If no value is present an `E` will be written into the data stream.  If the period is such that two more values occupy the same position in the data stream the latest value is used.  The same logic is applied when an observation using the SampledData is updated.
+
 | Property | Description 
 | --- | ---
 |**DefaultPeriod**|The default period in milliseconds to use. 
@@ -342,6 +343,7 @@ Represents the [SampledData](http://hl7.org/fhir/datatypes.html#SampledData) FHI
 
 ### Quantity
 Represents the [Quantity](http://hl7.org/fhir/datatypes.html#Quantity) FHIR data type.  If more than one value is present in the grouping only the first value is used.  If new value arrives that maps to the same observation it will overwrite the old value.
+
 | Property | Description 
 | --- | --- 
 |**Unit**| Unit representation.
@@ -350,6 +352,7 @@ Represents the [Quantity](http://hl7.org/fhir/datatypes.html#Quantity) FHIR data
 
 ### CodeableConcept
 Represents the [CodeableConcept](http://hl7.org/fhir/datatypes.html#CodeableConcept) FHIR data type. The actual value isn't used.
+
 | Property | Description 
 | --- | --- 
 |**Text**|Plain text representation. 

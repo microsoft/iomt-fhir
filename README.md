@@ -29,15 +29,13 @@ To get started you can deploy the [IoMT FHIR Connector for Azure](./docs/ARMInst
 To send messages to the connector you can [send events](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-dotnet-standard-getstarted-send) directly to the `devicedata` EventHub deployed or [send events](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks) to one of the Azure IoT solutions and [export messages](./docs/Iot.md) to the connector. 
 
 # Architecture
-<div style="text-align:center">
 
-![alt text](/images/processflow.png "Process Flow")
-</div>
+![alt text](./images/processflow.png "Process Flow")
 
 * **Ingest**: The ingestion point for device data is an Event Hub. [Scale](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-faq#throughput-units) your Event Hub throughput units based on your message volume.
 * **Normalize**: Device data is processed and compared to templates defined in the `devicecontent.json` configuration file.  Types, values, and other important information are extracted.  The output is written to a second Event Hub.
-* **Group & Buffer**: Normalized data is grouped according to device identity, measurement type, and the configured time period.  The time period controls the latency that observations are written to FHIR.
-* **Convert to FHIR**: Output from the group and buffering stage is processed.  Observations are created by matching the types from the grouped normalized data to the templates defined in the `fhirmapping.json` configuration file. It is at this point that the device is retrieved from the FHIR server along with the associated patient.  
+* **Group**: Normalized data is grouped according to device identity, measurement type, and the configured time period.  The time period controls the latency that observations are written to FHIR.
+* **Transform**: Output from the group and buffering stage is processed.  Observations are created by matching the types from the grouped normalized data to the templates defined in the `fhirmapping.json` configuration file. It is at this point that the device is retrieved from the FHIR server along with the associated patient.  
 
     **Note** all identity look ups are cached once resolved to decrease load on the FHIR server.  If you plan on reusing devices with multiple patients it is advised you create a *virtual device* resource that is specific to the patient and the virtual device identifier is what is sent in the message payload. The virtual device can be linked to the actual device resource as a parent.
 * **Persist**: Once the observation is generated in the FHIR conversion step it is created or merged in the configured destination FHIR server.
@@ -49,8 +47,9 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 - [Connecting to Azure IoT](./docs/Iot.md): Describes how to connect the IoMT FHIR Connector for Azure with different Azure IoT solutions like IoT Hub and IoT Central.
 - [Debugging](./docs/Debugging.md): Documents steps for local and cloud debugging.
 
-# Other Resources
+# More Information
 - [Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/)
+- Blog: [Accelerate IoMT on FHIR with new Microsoft OSS Connector](https://azure.microsoft.com/en-us/blog/accelerate-iomt-on-fhir-with-new-microsoft-oss-connector/)
 
 # Contributing
 
