@@ -17,7 +17,11 @@ The full normalized model is defined by the [IMeasurement](../src/lib/Microsoft.
 
 Below is a conceptual example of what happens during normalization.
 
- ![alt text](/images/normalizationexample.png "Normalization Example")
+<p align="center">
+
+ ![alt text](../images/normalizationexample.png "Normalization Example")
+
+ </p>
 
  The content payload itself is an event hub message which is composed of three parts: Body, Properties, and SystemProperties.  The `Body` is a byte array representing an UTF-8 encoded string.  During template evaluation the byte array is automatically converted into the string value. `Properties` is a key value collection for use by the message creator.  `SystemProperties` is also a key value collection reserved by the EventHub framework with entries automatically populated by EventHub.
 
