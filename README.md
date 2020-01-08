@@ -30,11 +30,7 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 
 # Architecture
 
-<p align="center">
-
 ![alt text](./images/processflow.png "Process Flow")
-
-</p>
 
 * **Ingest**: The ingestion point for device data is an Event Hub. [Scale](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-faq#throughput-units) your Event Hub throughput units based on your message volume.
 * **Normalize**: Device data is processed and compared to templates defined in the `devicecontent.json` configuration file.  Types, values, and other important information are extracted.  The output is written to a second Event Hub.
