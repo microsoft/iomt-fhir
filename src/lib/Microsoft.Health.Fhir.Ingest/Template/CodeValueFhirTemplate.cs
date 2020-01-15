@@ -10,6 +10,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class CodeValueFhirTemplate : FhirTemplate
     {
 #pragma warning disable CA2227
+        public virtual IList<FhirCodeableConcept> Category { get; set; }
+#pragma warning restore CA2227
+
+#pragma warning disable CA2227
         public virtual IList<FhirCode> Codes { get; set; }
 #pragma warning restore CA2227
 
