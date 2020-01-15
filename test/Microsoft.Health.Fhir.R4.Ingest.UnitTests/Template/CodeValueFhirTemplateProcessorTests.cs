@@ -542,5 +542,60 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         && v.end == boundary.end
                         && v.values.First().Item2 == "v2"));
         }
+
+        [Fact]
+        public void GivenTemplateWithCategory_ThenCategoryReturned()
+        {
+            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var template = Substitute.For<CodeValueFhirTemplate>()
+                .Mock(m => m.Category.Returns(
+                    new List<FhirCodeableConcept>
+                    {
+                        new FhirCodeableConcept
+                        {
+                            Codes = new List<FhirCode>
+                            {
+                                new FhirCode { Code = "a", Display = "b", System = "c" },
+                                new FhirCode { Code = "d", Display = "e", System = "f" },
+                            },
+                            Text = "category text 1",
+                        },
+                        new FhirCodeableConcept
+                        {
+                            Codes = new List<FhirCode>
+                            {
+                                new FhirCode { Code = "y", System = "z" },
+                            },
+                            Text = "category text 2",
+                        },
+                    }
+                ));
+
+            var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
+
+            var values = new Dictionary<string, IEnumerable<(DateTime, string)>>
+            {
+                { "p1", new[] { (DateTime.UtcNow, "v1") } },
+                { "p2", new[] { (DateTime.UtcNow, "v2") } },
+            };
+
+            (DateTime start, DateTime end) boundary = (new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2019, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var observationGroup = Substitute.For<IObservationGroup>()
+                .Mock(m => m.Boundary.Returns(boundary))
+                .Mock(m => m.Name.Returns("code"))
+                .Mock(m => m.GetValues().Returns(values));
+
+            var observation = processor.CreateObservation(template, observationGroup);
+            Assert.Equal("a", observation.Category[0].Coding[0].Code);
+            Assert.Equal("b", observation.Category[0].Coding[0].Display);
+            Assert.Equal("c", observation.Category[0].Coding[0].System);
+            Assert.Equal("category text 1", observation.Category[0].Text);
+
+            Assert.Equal("y", observation.Category[1].Coding[0].Code);
+            Assert.Equal("z", observation.Category[1].Coding[0].System);
+            Assert.Null(observation.Category[1].Coding[0].Display);
+            Assert.Equal("category text 2", observation.Category[1].Text);
+        }
     }
 }
