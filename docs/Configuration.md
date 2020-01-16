@@ -322,7 +322,7 @@ The CodeValueFhirTemplate is currently the only template supported in FHIR mappi
 | --- | ---
 |**TypeName**| The type of measurement this template should bind to. There should be at least one DeviceContent template that outputs this type.
 |**PeriodInterval**|The period of time the observation created should represent. Supported values are 0 (an instance), 60 (an hour), 1440 (a day).
-|**Category**|Any number of [Codings](http://hl7.org/fhir/datatypes-definitions.html#coding) to classify the type of observation created.
+|**Category**|Any number of [CodeableConcepts](http://hl7.org/fhir/datatypes-definitions.html#codeableconcept) to classify the type of observation created.
 |**Codes**|One or more [Codings](http://hl7.org/fhir/datatypes-definitions.html#coding) to apply to the observation created.
 |**Codes[].Code**|The code for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
 |**Codes[].System**|The system for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
