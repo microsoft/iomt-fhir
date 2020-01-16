@@ -544,7 +544,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Fact]
-        public void GivenTemplateWithCategory_ThenCategoryReturned()
+        public void GivenTemplateWithCategory_WhenCreateObservation_ThenCategoryReturned()
         {
             var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
@@ -558,7 +558,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                                 new FhirCode { Code = "a", Display = "b", System = "c" },
                                 new FhirCode { Code = "d", Display = "e", System = "f" },
                             },
-                            Text = "category text 1",
+                            Text = "category with two codes",
                         },
                         new FhirCodeableConcept
                         {
@@ -566,7 +566,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                             {
                                 new FhirCode { Code = "y", System = "z" },
                             },
-                            Text = "category text 2",
+                            Text = "category with no display",
+                        },
+                        new FhirCodeableConcept
+                        {
+                            Text = "category with no codes",
                         },
                     }
                 ));
@@ -587,15 +591,161 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Mock(m => m.GetValues().Returns(values));
 
             var observation = processor.CreateObservation(template, observationGroup);
-            Assert.Equal("a", observation.Category[0].Coding[0].Code);
-            Assert.Equal("b", observation.Category[0].Coding[0].Display);
-            Assert.Equal("c", observation.Category[0].Coding[0].System);
-            Assert.Equal("category text 1", observation.Category[0].Text);
+            Assert.Collection(
+                observation.Category,
+                category =>
+                {
+                    Assert.Collection(
+                        category.Coding,
+                        code =>
+                        {
+                            Assert.Equal("a", code.Code);
+                            Assert.Equal("b", code.Display);
+                            Assert.Equal("c", code.System);
+                        },
+                        code =>
+                        {
+                            Assert.Equal("d", code.Code);
+                            Assert.Equal("e", code.Display);
+                            Assert.Equal("f", code.System);
+                        });
+                    Assert.Equal("category with two codes", category.Text);
+                },
+                category =>
+                {
+                    Assert.Collection(
+                        category.Coding,
+                        code =>
+                        {
+                            Assert.Equal("y", code.Code);
+                            Assert.Null(code.Display);
+                            Assert.Equal("z", code.System);
+                        });
+                    Assert.Equal("category with no display", category.Text);
+                },
+                category =>
+                {
+                    Assert.False(category.Coding.Any());
+                    Assert.Equal("category with no codes", category.Text);
+                });
+        }
 
-            Assert.Equal("y", observation.Category[1].Coding[0].Code);
-            Assert.Equal("z", observation.Category[1].Coding[0].System);
-            Assert.Null(observation.Category[1].Coding[0].Display);
-            Assert.Equal("category text 2", observation.Category[1].Text);
+        [Fact]
+        public void GivenTemplateWithCategory_WhenMergeObservationWithCategory_ThenCategoryReplaced()
+        {
+            var oldObservation = new Observation() {
+                Category = new List<CodeableConcept>
+                {
+                    new CodeableConcept
+                    {
+                        Coding = new List<Coding>
+                            {
+                                new Coding
+                                {
+                                    Display = "old category display",
+                                    System = "old category system",
+                                    Code = "old category code",
+                                },
+                            },
+                        Text = "old category text",
+                    },
+                },
+            };
+            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var template = Substitute.For<CodeValueFhirTemplate>()
+                .Mock(m => m.Category.Returns(
+                    new List<FhirCodeableConcept>
+                    {
+                        new FhirCodeableConcept
+                        {
+                            Codes = new List<FhirCode>
+                            {
+                                new FhirCode { Code = "new category code", Display = "new category display", System = "new category system" },
+                            },
+                            Text = "new category text",
+                        },
+                    }
+                ));
+
+            var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
+
+            var values = new Dictionary<string, IEnumerable<(DateTime, string)>>
+            {
+                { "p1", new[] { (DateTime.UtcNow, "v1") } },
+                { "p2", new[] { (DateTime.UtcNow, "v2") } },
+            };
+
+            (DateTime start, DateTime end) boundary = (new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2019, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var observationGroup = Substitute.For<IObservationGroup>()
+                .Mock(m => m.Boundary.Returns(boundary))
+                .Mock(m => m.Name.Returns("code"))
+                .Mock(m => m.GetValues().Returns(values));
+
+            var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
+
+            Assert.Collection(
+                newObservation.Category,
+                category =>
+                {
+                    Assert.Collection(
+                        category.Coding,
+                        code =>
+                        {
+                            Assert.Equal("new category system", code.System);
+                            Assert.Equal("new category code", code.Code);
+                            Assert.Equal("new category display", code.Display);
+                        });
+                    Assert.Equal("new category text", category.Text);
+                });
+        }
+
+        [Fact]
+        public void GivenTemplateWithoutCategory_WhenMergeObservationWithCategory_ThenCategoryRemoved()
+        {
+            var oldObservation = new Observation()
+            {
+                Category = new List<CodeableConcept>
+                {
+                    new CodeableConcept
+                    {
+                        Coding = new List<Coding>
+                            {
+                                new Coding
+                                {
+                                    Display = "old category display",
+                                    System = "old category system",
+                                    Code = "old category code",
+                                },
+                            },
+                        Text = "old category text",
+                    },
+                },
+            };
+            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var template = Substitute.For<CodeValueFhirTemplate>()
+                .Mock(m => m.Category.Returns(
+                    new List<FhirCodeableConcept> { }
+                ));
+
+            var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
+
+            var values = new Dictionary<string, IEnumerable<(DateTime, string)>>
+            {
+                { "p1", new[] { (DateTime.UtcNow, "v1") } },
+                { "p2", new[] { (DateTime.UtcNow, "v2") } },
+            };
+
+            (DateTime start, DateTime end) boundary = (new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2019, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var observationGroup = Substitute.For<IObservationGroup>()
+                .Mock(m => m.Boundary.Returns(boundary))
+                .Mock(m => m.Name.Returns("code"))
+                .Mock(m => m.GetValues().Returns(values));
+
+            var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
+
+            Assert.False(newObservation.Category.Any());
         }
     }
 }
