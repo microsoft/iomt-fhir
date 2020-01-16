@@ -159,7 +159,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CodeableConcept
                 {
                     Text = category.Text,
-                    Coding = category.Codes.Select(code => new Coding { System = code.System, Code = code.Code, Display = code.Display })
+                    Coding = category?.Codes?.Select(code => new Coding { System = code.System, Code = code.Code, Display = code.Display })
                     .ToList(),
                 }).ToList();
         }
