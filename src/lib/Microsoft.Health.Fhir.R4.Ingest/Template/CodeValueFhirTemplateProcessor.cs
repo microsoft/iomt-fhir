@@ -46,6 +46,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             };
 
+            if (template?.Category?.Count > 0)
+            {
+                observation.Category = ResolveCategory(template.Category);
+            }
+
             var values = grp.GetValues();
 
             if (!string.IsNullOrWhiteSpace(template?.Value?.ValueName) && values.TryGetValue(template?.Value?.ValueName, out var obValues))
@@ -80,6 +85,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(existingObservation, nameof(existingObservation));
 
             existingObservation.Status = ObservationStatus.Amended;
+
+            existingObservation.Category = null;
+            if (template?.Category?.Count > 0)
+            {
+                existingObservation.Category = ResolveCategory(template.Category);
+            }
 
             var values = grp.GetValues();
 
@@ -140,6 +151,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Append(new Coding { System = FhirImportService.ServiceSystem, Code = type, Display = type })
                 .ToList(),
             };
+        }
+
+        protected static List<CodeableConcept> ResolveCategory(IList<FhirCodeableConcept> categories)
+        {
+            return categories.Select(category =>
+                new CodeableConcept
+                {
+                    Text = category.Text,
+                    Coding = category?.Codes?.Select(code => new Coding { System = code.System, Code = code.Code, Display = code.Display })
+                    .ToList(),
+                }).ToList();
         }
     }
 }
