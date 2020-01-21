@@ -103,7 +103,6 @@
         "UK West",
         "UK South"
       ],
-      "defaultValue": "[resourceGroup().location]",
       "metadata": {
         "description": "The location of the deployed resources."
       }
