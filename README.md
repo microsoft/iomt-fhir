@@ -40,6 +40,9 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
     **Note** all identity look ups are cached once resolved to decrease load on the FHIR server.  If you plan on reusing devices with multiple patients it is advised you create a *virtual device* resource that is specific to the patient and the virtual device identifier is what is sent in the message payload. The virtual device can be linked to the actual device resource as a parent.
 * **Persist**: Once the observation is generated in the FHIR conversion step it is created or merged in the configured destination FHIR server.
 
+## Azure Architecture
+![alt text](./images/iomtfhirconnectorazurearchitecture.png "Azure Architecture")
+
 # Documentation
 - [Configuration](./docs/Configuration.md): Documents the different configurations required for the connector.
 - [Open Source Deployment](./docs/ARMInstallation.md): Describes how to deploy the IoMT FHIR Connector for Azure.
