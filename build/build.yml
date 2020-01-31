@@ -5,8 +5,7 @@ parameters:
 steps:
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk'
-  inputs:
-
+  
 - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
   displayName: 'dotnet build $(buildConfiguration)'
 
