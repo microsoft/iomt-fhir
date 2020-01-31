@@ -17,6 +17,3 @@ steps:
     command: test
     projects: '**/*UnitTests/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
-
-- ${{ if eq(parameters.packageArtifacts, 'true') }}:
-  - template: package.yml
