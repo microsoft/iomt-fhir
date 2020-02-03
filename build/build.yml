@@ -5,7 +5,7 @@ parameters:
 steps:
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk'
-  
+
 - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
   displayName: 'dotnet build $(buildConfiguration)'
 
@@ -15,3 +15,6 @@ steps:
     command: test
     projects: '**/*UnitTests/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
+    
+- ${{ if eq(parameters.packageArtifacts, 'true') }}:
+  - template: package.yml
