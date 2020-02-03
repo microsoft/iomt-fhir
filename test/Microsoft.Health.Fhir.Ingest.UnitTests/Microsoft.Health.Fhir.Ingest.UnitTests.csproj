@@ -69,13 +69,13 @@
     <None Update="TestInput\data_CollectionFhirTemplateMultipleMocks.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestInput\data_IoTHubPayloadExampleMissingCreateTime.json">
+    <None Update="TestInput\data_IotHubPayloadExampleMissingCreateTime.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_IotHubPayloadMultiValueExample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestInput\data_IoTHubPayloadExample.json">
+    <None Update="TestInput\data_IotHubPayloadExample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_IotJsonPathContentTemplateValidWithOptional.json">
