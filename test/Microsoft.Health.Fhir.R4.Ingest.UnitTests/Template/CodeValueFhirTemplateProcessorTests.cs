@@ -572,8 +572,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         {
                             Text = "category with no codes",
                         },
-                    }
-                ));
+                    }));
 
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 
@@ -633,7 +632,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithCategory_WhenMergeObservationWithCategory_ThenCategoryReplaced()
         {
-            var oldObservation = new Observation() {
+            var oldObservation = new Observation()
+            {
                 Category = new List<CodeableConcept>
                 {
                     new CodeableConcept
@@ -664,8 +664,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                             },
                             Text = "new category text",
                         },
-                    }
-                ));
+                    }));
 
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 
@@ -725,8 +724,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
-                    new List<FhirCodeableConcept> { }
-                ));
+                    new List<FhirCodeableConcept> { }));
 
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 

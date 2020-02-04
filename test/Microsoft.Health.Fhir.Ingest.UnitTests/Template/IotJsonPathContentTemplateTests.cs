@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput/data_IoTHubPayloadExampleMissingCreateTime.json")]
+        [FileData(@"TestInput/data_IotHubPayloadExampleMissingCreateTime.json")]
         public void GivenTemplateAndSingleValidTokenWithoutCreationTime_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
             var evt = EventDataTestHelper.BuildEventFromJson(eventJson);
