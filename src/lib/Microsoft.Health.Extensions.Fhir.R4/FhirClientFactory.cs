@@ -5,7 +5,9 @@
 
 using EnsureThat;
 using Hl7.Fhir.Rest;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
+using Microsoft.Health.Extensions.Fhir.Config;
 using Microsoft.Health.Extensions.Host.Auth;
 
 namespace Microsoft.Health.Extensions.Fhir
@@ -19,9 +21,14 @@ namespace Microsoft.Health.Extensions.Fhir
         {
         }
 
-        public FhirClientFactory(bool useManagedIdentity)
+        private FhirClientFactory(bool useManagedIdentity)
         {
             _useManagedIdentity = useManagedIdentity;
+        }
+
+        public FhirClientFactory(IOptions<FhirClientFactoryOptions> options)
+            : this(EnsureArg.IsNotNull(options, nameof(options)).Value.UseManagedIdentity)
+        {
         }
 
         public static IFactory<IFhirClient> Instance { get; } = new FhirClientFactory();

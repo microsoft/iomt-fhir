@@ -6,6 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using Hl7.Fhir.Rest;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using NSubstitute;

@@ -7,11 +7,10 @@ using System;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
-using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Search;
 using Model = Hl7.Fhir.Model;
 
-namespace Microsoft.Health.Fhir.Ingest.Service
+namespace Microsoft.Health.Extensions.Fhir.Service
 {
     public class ResourceManagementService
     {

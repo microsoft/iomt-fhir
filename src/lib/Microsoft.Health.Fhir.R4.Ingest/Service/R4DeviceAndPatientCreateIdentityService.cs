@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Model = Hl7.Fhir.Model;
 
