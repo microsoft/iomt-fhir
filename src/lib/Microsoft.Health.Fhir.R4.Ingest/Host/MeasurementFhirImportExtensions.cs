@@ -11,7 +11,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
+using Microsoft.Health.Extensions.Fhir.Config;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -31,9 +33,11 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 
             // Resolve configurations
             builder.Services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
+            builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
             // Register services
-            builder.Services.AddSingleton<IFhirClient>(FhirClientFactory.Instance.Create());
+            builder.Services.AddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
+            builder.Services.AddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
             builder.Services.AddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
             builder.Services.AddSingleton<IResourceIdentityService>(
                 sp =>
