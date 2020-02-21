@@ -3,6 +3,7 @@
     It can be used for local development to build and run Docker images, and images can be used for cloud deployment.
     By default console logging is turned on, but can be turned off by removing AzureFunctionsJobHost__Logging__Console__IsEnabled
     One caveat with local development is that Docker cannot easily communicate with the Azure Storage Emulator, and it is easiest use a cloud storage container instead.
+    Run this script from the project root .\deploy\docker\DockerRun.ps1
 #>
 
 if(-not (Test-Path .\src\func\Microsoft.Health.Fhir.Ingest.Host\local.settings.json)) {
