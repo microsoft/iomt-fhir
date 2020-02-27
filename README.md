@@ -25,11 +25,11 @@ This open source project is fully backed by the Microsoft Healthcare team, but w
 
 # Getting Started
 To get started, there are a few options:
-1. Deploy the [IoMT FHIR Connector for Azure](./docs/ARMInstallationManagedIdentity.md) by itself for use with Azure API for FHIR and Azure Active directory in the same subscription
-2. Deploy the [IoMT FHIR Connector for Azure](./docs/ARMInstallation.md) by itself for use with another FHIR server or identity provider
+1. Deploy the [IoMT FHIR Connector for Azure](./docs/ARMInstallationManagedIdentity.md) by itself for use with Azure API for FHIR and Azure Active directory in the same subscription. Requests made to the Azure API for FHIR will be authenticated using the Azure Active Directory within this subscription - External identity providers cannot be used if the IoMT FHIR Connector for Azure is deployed with this template.
+2. Deploy the [IoMT FHIR Connector for Azure](./docs/ARMInstallation.md) by itself for use with another FHIR server or identity provider.
 3. Start with a complete [sandbox environment](./docs/Sandbox.md) that includes an instance of [IoT Central](https://azure.microsoft.com/en-us/services/iot-central/) with simulated devices and a deployed instance of the [Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/).
 
-To send messages to the connector you can [send events](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-dotnet-standard-getstarted-send) directly to the `devicedata` EventHub deployed or [send events](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks) to one of the Azure IoT solutions and [export messages](./docs/Iot.md) to the connector. 
+To send messages to the connector you can [send events](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-dotnet-standard-getstarted-send) directly to the `devicedata` EventHub deployed as part of IoMT FHIR Connector for Azure or [send events](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks) to one of the Azure IoT solutions and [export messages](./docs/Iot.md) to the connector. 
 
 # Architecture
 
@@ -48,7 +48,8 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 
 # Documentation
 - [Configuration](./docs/Configuration.md): Documents the different configurations required for the connector.
-- [Open Source Deployment](./docs/ARMInstallation.md): Describes how to deploy the IoMT FHIR Connector for Azure.
+- [Open Source Deployment using Managed Identity](./docs/ARMInstallationManagedIdentity.md): Describes how to deploy the IoMT FHIR Connector for Azure using Azure API for FHIR and Azure Active directory in the same subscription.
+- [Open Source Deployment - Flexible](./docs/ARMInstallation.md): Describes how to deploy the IoMT FHIR Connector for Azure using another FHIR server or identity provider.
 - [Sandbox Deployment](./docs/Sandbox.md): Describes how to deploy an end to end sandbox environment using IoT Central, IoMT FHIR Connector for Azure, and the Azure API for FHIR.
 - [Connecting to Azure IoT](./docs/Iot.md): Describes how to connect the IoMT FHIR Connector for Azure with different Azure IoT solutions like IoT Hub and IoT Central.
 - [Debugging](./docs/Debugging.md): Documents steps for local and cloud debugging.
