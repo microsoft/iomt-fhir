@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
@@ -23,7 +24,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 typeof(ResourceIdentityNotDefinedException),
                 typeof(NotSupportedException),
                 typeof(FhirResourceNotFoundException),
-                typeof(MultipleResourceFoundException<>))
+                typeof(MultipleResourceFoundException<>),
+                typeof(TemplateNotFoundException))
         {
         }
 
