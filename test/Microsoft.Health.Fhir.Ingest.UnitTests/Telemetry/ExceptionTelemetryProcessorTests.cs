@@ -7,6 +7,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.Ingest.Template;
 using NSubstitute;
 using Xunit;
 
@@ -20,6 +21,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         [InlineData(typeof(NotSupportedException))]
         [InlineData(typeof(FhirResourceNotFoundException))]
         [InlineData(typeof(ResourceIdentityNotDefinedException))]
+        [InlineData(typeof(TemplateNotFoundException))]
         public void GivenHandledExceptionTypes_WhenHandleExpection_ThenMetricLoggedAndTrueReturned_Test(Type exType)
         {
             var log = Substitute.For<ILogger>();
