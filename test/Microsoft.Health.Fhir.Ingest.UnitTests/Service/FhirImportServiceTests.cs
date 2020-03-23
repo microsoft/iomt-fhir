@@ -44,6 +44,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 throw new NotImplementedException();
             }
+
+            public override Task<string> CheckHealth()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

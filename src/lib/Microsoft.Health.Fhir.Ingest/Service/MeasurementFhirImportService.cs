@@ -62,6 +62,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await StartWorker(workItems).ConfigureAwait(false);
         }
 
+        public async Task<string> CheckHealth()
+        {
+            return await _fhirImportService.CheckHealth();
+        }
+
         private static async Task<IEnumerable<IMeasurementGroup>> ParseAsync(Stream data, ILogger log)
         {
             IList<IMeasurementGroup> measurementGroups = new List<IMeasurementGroup>();
