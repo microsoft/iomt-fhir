@@ -98,23 +98,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return result.Id;
         }
 
-        public override Task<string> CheckHealth()
-        {
-            SearchParams q = new SearchParams()
-                .ForSubject<Model.Patient>("IoMTHealthCheck")
-                .SetCount(1);
-
-            var result = _client.Search(q);
-            if (result != null && result.GetType() == typeof(Model.Bundle))
-            {
-                return Task.FromResult("Healthy");
-            }
-            else
-            {
-                return Task.FromResult("Unhealthy");
-            }
-        }
-
         protected static Model.Identifier GenerateObservationIdentifier(IObservationGroup grp, IDictionary<ResourceType, string> ids)
         {
             EnsureArg.IsNotNull(grp, nameof(grp));

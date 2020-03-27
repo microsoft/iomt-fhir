@@ -31,7 +31,5 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         public abstract Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null);
-
-        public abstract Task<string> CheckHealth();
     }
 }
