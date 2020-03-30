@@ -8,6 +8,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
@@ -32,9 +33,9 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
             // Register services
-            builder.Services.AddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
-            builder.Services.AddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
-            builder.Services.AddSingleton<FhirHealthService, R4FhirHealthService>();
+            builder.Services.TryAddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
+            builder.Services.TryAddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
+            builder.Services.TryAddSingleton<FhirHealthService, R4FhirHealthService>();
 
             builder.AddExtension<FhirHealthCheckProvider>();
             return builder;

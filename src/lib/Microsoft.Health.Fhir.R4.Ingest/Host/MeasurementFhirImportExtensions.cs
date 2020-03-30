@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
@@ -36,18 +37,18 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
             // Register services
-            builder.Services.AddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
-            builder.Services.AddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
-            builder.Services.AddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            builder.Services.AddSingleton<IResourceIdentityService>(
+            builder.Services.TryAddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
+            builder.Services.TryAddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
+            builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
+            builder.Services.TryAddSingleton<IResourceIdentityService>(
                 sp =>
                 {
                     var fhirClient = sp.GetRequiredService<IFhirClient>();
                     var resourceIdentityOptions = sp.GetRequiredService<IOptions<ResourceIdentityOptions>>();
                     return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
                 });
-            builder.Services.AddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 5000 })));
-            builder.Services.AddSingleton<FhirImportService, R4FhirImportService>();
+            builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 5000 })));
+            builder.Services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
             // Register extensions
             builder.AddExtension<MeasurementFhirImportProvider>()
