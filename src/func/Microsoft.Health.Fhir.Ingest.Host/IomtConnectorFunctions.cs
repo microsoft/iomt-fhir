@@ -21,7 +21,7 @@ using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public static class Functions
+    public static class IomtConnectorFunctions
     {
         [FunctionName("MeasurementCollectionToFhir")]
         public static async Task<IActionResult> MeasurementCollectionToFhir(
