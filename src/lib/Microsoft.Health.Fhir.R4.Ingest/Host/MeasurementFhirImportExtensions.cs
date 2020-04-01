@@ -24,7 +24,6 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 {
     internal static class MeasurementFhirImportExtensions
     {
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public static IWebJobsBuilder AddMeasurementFhirImport(this IWebJobsBuilder builder)
         {
             EnsureArg.IsNotNull(builder, nameof(builder));
