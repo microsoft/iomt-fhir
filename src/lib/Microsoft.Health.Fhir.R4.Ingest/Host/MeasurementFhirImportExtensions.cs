@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Runtime.CompilerServices;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
@@ -36,18 +38,11 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
-            // Register services
             builder.Services.TryAddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
-            builder.Services.TryAddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
+            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
             builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            builder.Services.TryAddSingleton<IResourceIdentityService>(
-                sp =>
-                {
-                    var fhirClient = sp.GetRequiredService<IFhirClient>();
-                    var resourceIdentityOptions = sp.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-                    return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
-                });
-            builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 5000 })));
+            builder.Services.TryAddSingleton(ResolveResourceIdentityService);
+            builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
             builder.Services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
             // Register extensions
@@ -55,6 +50,16 @@ namespace Microsoft.Health.Fhir.Ingest.Host
                 .BindOptions<MeasurementFhirImportOptions>();
 
             return builder;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static IResourceIdentityService ResolveResourceIdentityService(IServiceProvider serviceProvider)
+        {
+            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
+
+            var fhirClient = serviceProvider.GetRequiredService<IFhirClient>();
+            var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
+            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
         }
     }
 }

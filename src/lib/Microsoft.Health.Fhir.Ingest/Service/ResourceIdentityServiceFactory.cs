@@ -14,13 +14,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
     {
-        private static readonly IFactory<IResourceIdentityService, ResourceIdentityOptions> _instance = new ResourceIdentityServiceFactory();
-
         private ResourceIdentityServiceFactory()
         {
         }
 
-        public static IFactory<IResourceIdentityService, ResourceIdentityOptions> Instance => _instance;
+        public static IFactory<IResourceIdentityService, ResourceIdentityOptions> Instance { get; } = new ResourceIdentityServiceFactory();
 
         public IResourceIdentityService Create(ResourceIdentityOptions config, params object[] constructorParams)
         {
