@@ -4,9 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
+using Microsoft.Health.Extensions.Fhir.Search;
+using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -20,25 +23,33 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
         }
 
-        public override Task<FhirHealthCheckStatus> CheckHealth()
+        public override async Task<FhirHealthCheckStatus> CheckHealth(CancellationToken token = default)
         {
             try
             {
-                Hl7.Fhir.Model.Bundle result = _client.Search<Hl7.Fhir.Model.StructureDefinition>();
-                return Task.FromResult(new FhirHealthCheckStatus(string.Empty, 200));
+                while (!token.IsCancellationRequested)
+                {
+                    SearchParams search = new SearchParams().SetCount(1);
+                    Hl7.Fhir.Model.Bundle result = await _client.SearchAsync<Hl7.Fhir.Model.StructureDefinition>(search);
+                    return await Task.FromResult(new FhirHealthCheckStatus(string.Empty, 200));
+                }
+
+                token.ThrowIfCancellationRequested();
+                return await Task.FromResult(new FhirHealthCheckStatus(token.ToString(), 500));
             }
             catch (FhirOperationException ex)
             {
-                return Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.Status));
+                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.Status));
             }
             catch (IdentityModel.Clients.ActiveDirectory.AdalServiceException ex)
             {
-                return Task.FromResult(new FhirHealthCheckStatus(ex.Message, ex.StatusCode));
+                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, ex.StatusCode));
             }
+#pragma warning disable CA1031
             catch (Exception ex)
+#pragma warning restore CA1031
             {
-                return Task.FromResult(new FhirHealthCheckStatus(ex.Message, 500));
-                throw;
+                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, 500));
             }
         }
     }
