@@ -16,6 +16,7 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         public void Configure(IWebJobsBuilder builder)
         {
             builder.AddMeasurementFhirImport();
+            builder.AddFhirHealthCheck();
         }
     }
 }
