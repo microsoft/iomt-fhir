@@ -69,6 +69,87 @@
           }
         ]
       }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "height",
+        "typeMatchExpression": "$..[?(@height)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.height",
+            "valueName": "height"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bodyMass",
+        "typeMatchExpression": "$..[?(@bodyMass)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.bodyMass",
+            "valueName": "bodyMass"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bodyTemperature",
+        "typeMatchExpression": "$..[?(@bodyTemperature)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.bodyTemperature",
+            "valueName": "bodyTemperature"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "oxygenSaturation",
+        "typeMatchExpression": "$..[?(@oxygenSaturation)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.oxygenSaturation",
+            "valueName": "oxygenSaturation"
+          }
+        ]
+      }
+    }
+    ,
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "respiratoryRate",
+        "typeMatchExpression": "$..[?(@respiratoryRate)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.respiratoryRate",
+            "valueName": "respiratoryRate"
+          }
+        ]
+      }
     }
   ]
 }
