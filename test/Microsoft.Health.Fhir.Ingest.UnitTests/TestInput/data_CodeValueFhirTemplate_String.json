@@ -1,0 +1,11 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "periodInterval": 0,
+    "typeName": "stringDetail",
+    "value": {
+      "valueName": "reasonText",
+      "valueType": "String"
+    }
+  }
+}

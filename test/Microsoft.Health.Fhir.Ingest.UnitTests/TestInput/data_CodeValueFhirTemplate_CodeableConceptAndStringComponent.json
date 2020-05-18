@@ -1,0 +1,34 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "codes": [
+      {
+        "code": "deviceEvent",
+        "system": "https://www.contoso.com/events/v1",
+        "display": "Device Event"
+      }
+    ],
+    "periodInterval": 0,
+    "typeName": "alarmEvent",
+    "value": {
+      "text": "Alarm!",
+      "codes": [
+        {
+          "code": "alarmEvent",
+          "system": "https://www.contoso.com/events/v1",
+          "display": "Alarm Event"
+        }
+      ],
+      "valueName": "alarm",
+      "valueType": "CodeableConcept"
+    },
+    "components": [
+      {
+        "value": {
+          "valueName": "reasonText",
+          "valueType": "String"
+        }
+      }
+    ]
+  }
+}

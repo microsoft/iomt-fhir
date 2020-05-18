@@ -45,6 +45,12 @@
     <None Update="TestInput\data_CodeValueFhirTemplate_CodeableConceptData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestInput\data_CodeValueFhirTemplate_CodeableConceptAndStringComponent.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_CodeValueFhirTemplate_String.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestInput\data_CodeValueFhirTemplate_Quantity.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

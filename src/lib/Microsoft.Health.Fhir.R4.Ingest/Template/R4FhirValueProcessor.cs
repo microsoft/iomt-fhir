@@ -15,7 +15,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             : base(
                 new SampledDataFhirValueProcessor(),
                 new CodeableConceptFhirValueProcessor(),
-                new QuantityFhirValueProcessor())
+                new QuantityFhirValueProcessor(),
+                new StringFhirValueProcessor())
         {
         }
     }
