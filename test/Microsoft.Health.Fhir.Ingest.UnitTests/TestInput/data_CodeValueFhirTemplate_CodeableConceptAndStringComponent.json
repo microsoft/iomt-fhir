@@ -24,8 +24,15 @@
     },
     "components": [
       {
+        "codes": [
+          {
+            "code": "reasonText",
+            "display": "Reason Text",
+            "system": "https://www.contoso.com/events/v1"
+          }
+        ],
         "value": {
-          "valueName": "reasonText",
+          "valueName": "reason",
           "valueType": "String"
         }
       }

@@ -267,9 +267,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     var stringValue = c.Value as StringFhirValueType;
                     Assert.NotNull(stringValue);
-                    Assert.Equal("reasonText", stringValue.ValueName);
+                    Assert.Equal("reason", stringValue.ValueName);
 
-                    Assert.Null(c.Codes);
+                    Assert.Collection(
+                        c.Codes,
+                        cd =>
+                        {
+                            Assert.Equal("reasonText", cd.Code);
+                            Assert.Equal("https://www.contoso.com/events/v1", cd.System);
+                            Assert.Equal("Reason Text", cd.Display);
+                        });
                 });
         }
 
