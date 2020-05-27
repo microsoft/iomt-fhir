@@ -196,6 +196,90 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 });
         }
 
+        [Theory]
+        [FileData(@"TestInput/data_CodeValueFhirTemplate_String.json")]
+        public void GivenValidTemplateJsonWithValueStringType_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+
+            var factory = new CodeValueFhirTemplateFactory();
+
+            var template = factory.Create(templateContainer);
+            Assert.NotNull(template);
+
+            var codeValueTemplate = template as CodeValueFhirTemplate;
+            Assert.NotNull(codeValueTemplate);
+
+            Assert.Equal("stringDetail", codeValueTemplate.TypeName);
+            Assert.Equal(ObservationPeriodInterval.Single, codeValueTemplate.PeriodInterval);
+            Assert.NotNull(codeValueTemplate.Value);
+
+            var value = codeValueTemplate.Value as StringFhirValueType;
+            Assert.NotNull(value);
+            Assert.Equal("reasonText", value.ValueName);
+
+            Assert.Null(codeValueTemplate.Codes);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CodeValueFhirTemplate_CodeableConceptAndStringComponent.json")]
+        public void GivenValidTemplateJsonWithMixedMainAndComponentValues_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+
+            var factory = new CodeValueFhirTemplateFactory();
+
+            var template = factory.Create(templateContainer);
+            Assert.NotNull(template);
+
+            var codeValueTemplate = template as CodeValueFhirTemplate;
+            Assert.NotNull(codeValueTemplate);
+
+            Assert.Equal("alarmEvent", codeValueTemplate.TypeName);
+            Assert.Equal(ObservationPeriodInterval.Single, codeValueTemplate.PeriodInterval);
+            Assert.NotNull(codeValueTemplate.Value);
+
+            var value = codeValueTemplate.Value as CodeableConceptFhirValueType;
+            Assert.NotNull(value);
+            Assert.Equal("alarm", value.ValueName);
+            Assert.Equal("Alarm!", value.Text);
+            Assert.Collection(
+                value.Codes,
+                c =>
+                {
+                    Assert.Equal("alarmEvent", c.Code);
+                    Assert.Equal("https://www.contoso.com/events/v1", c.System);
+                    Assert.Equal("Alarm Event", c.Display);
+                });
+
+            Assert.Collection(
+                codeValueTemplate.Codes,
+                c =>
+                {
+                    Assert.Equal("deviceEvent", c.Code);
+                    Assert.Equal("https://www.contoso.com/events/v1", c.System);
+                    Assert.Equal("Device Event", c.Display);
+                });
+
+            Assert.Collection(
+                codeValueTemplate.Components,
+                c =>
+                {
+                    var stringValue = c.Value as StringFhirValueType;
+                    Assert.NotNull(stringValue);
+                    Assert.Equal("reason", stringValue.ValueName);
+
+                    Assert.Collection(
+                        c.Codes,
+                        cd =>
+                        {
+                            Assert.Equal("reasonText", cd.Code);
+                            Assert.Equal("https://www.contoso.com/events/v1", cd.System);
+                            Assert.Equal("Reason Text", cd.Display);
+                        });
+                });
+        }
+
         [Fact]
         public void GivenInvalidTemplateTargetType_WhenFactoryCreate_ThenInvalidTemplateExceptionThrown_Test()
         {

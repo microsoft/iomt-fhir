@@ -333,7 +333,14 @@ The CodeValueFhirTemplate is currently the only template supported in FHIR mappi
 |**Components[].Value**|The value to extract and represent in the component. See [Value Type Templates](#valuetypes) for more information.
 
 ## Value Type Templates <a name="valuetypes"></a>
+Each Value type defines at least the following properties:
+| Property | Description 
+| --- | ---
+|**ValueType**|The type of this value. One of the value type templates below. 
+|**ValueName**|The name of the attribute projected by the normalization phase. 
+
 Below are the currently supported value type templates. In the future further templates may be added.
+
 ### SampledData
 Represents the [SampledData](http://hl7.org/fhir/datatypes.html#SampledData) FHIR data type. Measurements are written to value stream starting with start of the observations and incrementing forward using the period defined.  If no value is present an `E` will be written into the data stream.  If the period is such that two more values occupy the same position in the data stream the latest value is used.  The same logic is applied when an observation using the SampledData is updated.
 
@@ -350,6 +357,11 @@ Represents the [Quantity](http://hl7.org/fhir/datatypes.html#Quantity) FHIR data
 |**Unit**| Unit representation.
 |**Code**| Coded form of the unit.
 |**System**| System that defines the coded unit form.
+
+### String
+Represent the [string](https://www.hl7.org/fhir/datatypes.html#string) FHIR data type. If more than one value is present in the grouping only the first value is used. If new value arrives that maps to the same observation it will overwrite the old value.
+
+No additional properties are defined.
 
 ### CodeableConcept
 Represents the [CodeableConcept](http://hl7.org/fhir/datatypes.html#CodeableConcept) FHIR data type. The actual value isn't used.
