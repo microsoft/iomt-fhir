@@ -8,6 +8,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public enum ObservationPeriodInterval
     {
         /// <summary>
+        /// Do not group according to time, group according to a correlation id supplied in the measurement group.
+        /// </summary>
+        CorrelationId = -1,
+
+        /// <summary>
         /// Do not group measurements. Each measurement will be mapped to one observation.
         /// </summary>
 #pragma warning disable CA1720

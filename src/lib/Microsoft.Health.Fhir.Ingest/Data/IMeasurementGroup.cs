@@ -17,6 +17,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         string EncounterId { get; }
 
+        string CorrelationId { get; }
+
         IEnumerable<IMeasurement> Data { get; }
     }
 }

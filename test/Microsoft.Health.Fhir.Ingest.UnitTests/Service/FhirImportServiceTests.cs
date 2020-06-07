@@ -18,14 +18,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public void GivenObservationGroupDeviceIdAndPatientId_WhenGenerateObservationId_CorrectIdReturned_Test()
         {
-            var startDate = new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var endDate = startDate.AddHours(1).AddTicks(-1);
             var observationGroup = Substitute.For<IObservationGroup>()
-                .Mock(m => m.Boundary.Returns((startDate, endDate)))
-                .Mock(m => m.Name.Returns("heartrate"));
+                .Mock(m => m.Name.Returns("heartrate"))
+                .Mock(m => m.GetIdSegment().ReturnsForAnyArgs("segment"));
 
             var result = TestFhirImportService.TestGenerateObservationId(observationGroup, "deviceId", "patientId");
-            Assert.Equal("patientId.deviceId.heartrate.20190101000000Z.20190101005959Z", result.Identifer);
+            Assert.Equal("patientId.deviceId.heartrate.segment", result.Identifer);
             Assert.Equal(FhirImportService.ServiceSystem, result.System);
         }
 

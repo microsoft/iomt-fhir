@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public class MeasurementObservationGroupFactoryTests
+    public class TimePeriodMeasurementObservationGroupFactoryTests
     {
         [Fact]
         public void GivenSingleBoundaryWithSingleMeasurementSingleValue_WhenBuild_SingleObservationGroupWithSingleValueReturned_Test()
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Mock(mg => mg.MeasureType.Returns("a"))
                 .Mock(mg => mg.Data.Returns(measurement));
 
-            var factory = new MeasurementObservationGroupFactory(ObservationPeriodInterval.Single);
+            var factory = new TimePeriodMeasurementObservationGroupFactory(ObservationPeriodInterval.Single);
 
             var result = factory.Build(measureGroup)?.ToArray();
             Assert.NotNull(result);
@@ -106,7 +106,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Mock(mg => mg.MeasureType.Returns("a"))
                 .Mock(mg => mg.Data.Returns(measurement));
 
-            var factory = new MeasurementObservationGroupFactory(ObservationPeriodInterval.Single);
+            var factory = new TimePeriodMeasurementObservationGroupFactory(ObservationPeriodInterval.Single);
 
             var result = factory.Build(measureGroup)?.ToArray();
             Assert.NotNull(result);
@@ -246,7 +246,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Mock(mg => mg.MeasureType.Returns("a"))
                 .Mock(mg => mg.Data.Returns(measurement));
 
-            var factory = new MeasurementObservationGroupFactory(ObservationPeriodInterval.Hourly);
+            var factory = new TimePeriodMeasurementObservationGroupFactory(ObservationPeriodInterval.Hourly);
 
             var result = factory.Build(measureGroup)?.ToArray();
             Assert.NotNull(result);
@@ -370,7 +370,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Mock(mg => mg.MeasureType.Returns("a"))
                 .Mock(mg => mg.Data.Returns(measurement));
 
-            var factory = new MeasurementObservationGroupFactory(ObservationPeriodInterval.Daily);
+            var factory = new TimePeriodMeasurementObservationGroupFactory(ObservationPeriodInterval.Daily);
 
             var result = factory.Build(measureGroup)?.ToArray();
             Assert.NotNull(result);

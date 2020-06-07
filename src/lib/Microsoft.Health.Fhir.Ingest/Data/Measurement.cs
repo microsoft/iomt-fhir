@@ -27,9 +27,10 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public string EncounterId { get; set; }
 
+        public string CorrelationId { get; set; }
+
 #pragma warning disable CA2227
         public IList<MeasurementProperty> Properties { get; set; }
-
 #pragma warning restore CA2227
 
         IEnumerable<MeasurementProperty> IMeasurement.Properties => Properties;
