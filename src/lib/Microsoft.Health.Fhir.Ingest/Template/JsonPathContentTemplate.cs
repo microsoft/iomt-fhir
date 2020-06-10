@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -26,6 +27,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public virtual string TimestampExpression { get; set; }
 
+        public virtual string CorrelationIdExpression { get; set; }
+
 #pragma warning disable CA2227
         public virtual IList<JsonPathValueExpression> Values { get; set; }
 #pragma warning restore CA2227
@@ -43,10 +46,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected static T EvalExpression<T>(JToken token, params string[] expressions)
         {
             EnsureArg.IsNotNull(token, nameof(token));
+            EnsureArg.IsNotNull(expressions, nameof(expressions));
 
             if (expressions == null)
             {
-                return default(T);
+                return default;
             }
 
             foreach (var expression in expressions)
@@ -66,7 +70,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 return evaluatedToken.Value<T>();
             }
 
-            return default(T);
+            return default;
+        }
+
+        protected static bool IsExpressionDefined(params string[] expressions)
+        {
+            EnsureArg.IsNotNull(expressions, nameof(expressions));
+
+            return expressions.Any(ex => !string.IsNullOrWhiteSpace(ex));
         }
 
         protected virtual DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, TimestampExpression);
@@ -76,6 +87,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected virtual string GetPatientId(JToken token) => EvalExpression<string>(token, PatientIdExpression);
 
         protected virtual string GetEncounterId(JToken token) => EvalExpression<string>(token, EncounterIdExpression);
+
+        protected virtual string GetCorrelationId(JToken token) => EvalExpression<string>(token, CorrelationIdExpression);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<JToken> MatchTypeTokens(JToken token)
@@ -87,11 +100,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             // Current assumption is that the expressions should match a single element and will error otherwise.
 
-            var deviceId = GetDeviceId(token);
+            string deviceId = GetDeviceId(token);
             EnsureArg.IsNotNull(deviceId, nameof(deviceId));
 
-            var timestamp = GetTimestamp(token);
+            DateTime? timestamp = GetTimestamp(token);
             EnsureArg.IsNotNull(timestamp, nameof(timestamp));
+
+            string correlationId = null;
+            if (IsExpressionDefined(CorrelationIdExpression))
+            {
+                correlationId = GetCorrelationId(token);
+                EnsureArg.IsNotNull(correlationId, nameof(correlationId));
+            }
 
             var measurement = new Measurement
             {
@@ -100,6 +120,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Type = TypeName,
                 PatientId = GetPatientId(token),
                 EncounterId = GetEncounterId(token),
+                CorrelationId = correlationId,
             };
 
             if (Values != null)

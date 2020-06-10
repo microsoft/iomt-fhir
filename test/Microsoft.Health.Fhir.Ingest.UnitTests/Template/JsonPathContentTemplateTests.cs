@@ -90,6 +90,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             },
         };
 
+        private static readonly IContentTemplate CorrelationIdTemplate = new JsonPathContentTemplate
+        {
+            TypeName = "heartrate",
+            TypeMatchExpression = "$..[?(@heartrate)]",
+            DeviceIdExpression = "$.device",
+            TimestampExpression = "$.date",
+            CorrelationIdExpression = "$.session",
+            Values = new List<JsonPathValueExpression>
+            {
+              new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
+            },
+        };
+
         [Fact]
         public void GivenMultiValueTemplateAndValidTokenWithMissingValue_WhenGetMeasurements_ThenSingleMeasurementReturned_Test()
         {
@@ -106,6 +119,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);
@@ -130,6 +144,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(
                     m.Properties,
                     p =>
@@ -169,6 +184,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Assert.Equal("abc", m.DeviceId);
                     Assert.Null(m.PatientId);
                     Assert.Null(m.EncounterId);
+                    Assert.Null(m.CorrelationId);
                     Assert.Collection(
                         m.Properties,
                         p =>
@@ -249,6 +265,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(
                     m.Properties,
                     p =>
@@ -280,6 +297,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);
@@ -304,6 +322,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Equal("123", m.PatientId);
                 Assert.Equal("789", m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);
@@ -328,6 +347,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);
@@ -344,6 +364,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("abc", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);
@@ -380,6 +401,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("data", m.DeviceId);
                 Assert.Null(m.PatientId);
                 Assert.Null(m.EncounterId);
+                Assert.Null(m.CorrelationId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("prop", p.Name);
@@ -410,6 +432,42 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             Assert.NotNull(result);
             Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GivenTemplateWithCorrelationIdAndIdPresent_WhenGetMeasurements_ThenCorrelationIdReturn_Test()
+        {
+            var time = DateTime.UtcNow;
+            var session = Guid.NewGuid().ToString();
+            var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time, session });
+
+            var result = CorrelationIdTemplate.GetMeasurements(token).ToArray();
+
+            Assert.NotNull(result);
+            Assert.Collection(result, m =>
+            {
+                Assert.Equal("heartrate", m.Type);
+                Assert.Equal(time, m.OccurrenceTimeUtc);
+                Assert.Equal("abc", m.DeviceId);
+                Assert.Null(m.PatientId);
+                Assert.Null(m.EncounterId);
+                Assert.Equal(session, m.CorrelationId);
+                Assert.Collection(m.Properties, p =>
+                {
+                    Assert.Equal("hr", p.Name);
+                    Assert.Equal("60", p.Value);
+                });
+            });
+        }
+
+        [Fact]
+        public void GivenTemplateWithCorrelationIdAndIdMissing_WhenGetMeasurements_ThenArgumentNullExceptionThrown_Test()
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
+
+            var ex = Assert.Throws<ArgumentNullException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
+            Assert.Contains("correlationId", ex.Message);
         }
 
         public class JsonWidget

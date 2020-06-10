@@ -2,6 +2,7 @@
     DeviceId [DeviceId], 
     PatientId [PatientId],
     EncounterId [EncounterId],
+    CorrelationId [CorrelationId],
     collect() [Data],
     System.Timestamp [WindowTime],
     Type [MeasureType],
@@ -13,6 +14,7 @@ FROM
 GROUP BY PartitionId,
     DeviceId, 
     PatientId, 
-    EncounterId, 
+    EncounterId,
+    CorrelationId,
     Type, 
     TUMBLINGWINDOW(MINUTE, 5)
