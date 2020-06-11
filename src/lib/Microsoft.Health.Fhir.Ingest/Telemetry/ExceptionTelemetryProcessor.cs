@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir;
+using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 
@@ -25,7 +26,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 typeof(NotSupportedException),
                 typeof(FhirResourceNotFoundException),
                 typeof(MultipleResourceFoundException<>),
-                typeof(TemplateNotFoundException))
+                typeof(TemplateNotFoundException),
+                typeof(CorrelationIdNotDefinedException))
         {
         }
 

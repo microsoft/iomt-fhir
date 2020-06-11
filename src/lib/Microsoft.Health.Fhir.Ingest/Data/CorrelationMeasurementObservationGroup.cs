@@ -16,7 +16,12 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public CorrelationMeasurementObservationGroup(string correlationId)
         {
-            _correlationId = EnsureArg.IsNotNullOrWhiteSpace(correlationId, nameof(correlationId));
+            if (string.IsNullOrWhiteSpace(correlationId))
+            {
+                throw new CorrelationIdNotDefinedException();
+            }
+
+            _correlationId = correlationId;
         }
 
         public override (DateTime Start, DateTime End) Boundary => (_start, _end);
