@@ -103,7 +103,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             EnsureArg.IsNotNull(grp, nameof(grp));
             EnsureArg.IsNotNull(ids, nameof(ids));
 
-            var identity = FhirImportService.GenerateObservationId(grp, ids[ResourceType.Device], ids[ResourceType.Patient]);
+            var identity = GenerateObservationId(grp, ids[ResourceType.Device], ids[ResourceType.Patient]);
             return new Model.Identifier
             {
                 System = identity.System,

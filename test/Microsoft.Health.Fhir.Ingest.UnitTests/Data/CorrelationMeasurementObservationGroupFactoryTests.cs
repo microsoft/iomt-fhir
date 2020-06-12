@@ -65,8 +65,11 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     Assert.Equal(seedDate, og.Boundary.Start);
                     Assert.Equal(measurement[1].OccurrenceTimeUtc, og.Boundary.End);
 
+                    Assert.Equal("a", og.Name);
+
                     var properties = og.GetValues().ToArray();
                     Assert.Single(properties);
+
                     Assert.Collection(
                         properties,
                         p =>

@@ -14,7 +14,11 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
             EnsureArg.IsNotNull(input, nameof(input));
 
-            var observationGroup = new CorrelationMeasurementObservationGroup(input.CorrelationId);
+            var observationGroup = new CorrelationMeasurementObservationGroup(input.CorrelationId)
+            {
+                Name = input.MeasureType,
+            };
+
             foreach (var m in input.Data)
             {
                 observationGroup.AddMeasurement(m);
