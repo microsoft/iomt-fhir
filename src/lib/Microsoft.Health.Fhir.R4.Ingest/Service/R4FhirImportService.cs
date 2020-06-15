@@ -23,18 +23,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     {
         private readonly IFhirClient _client;
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
-        private readonly IResourceIdentityService _resourceIdentityService;
         private readonly IMemoryCache _observationCache;
 
         public R4FhirImportService(IResourceIdentityService resourceIdentityService, IFhirClient fhirClient, IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor, IMemoryCache observationCache)
         {
             _fhirTemplateProcessor = EnsureArg.IsNotNull(fhirTemplateProcessor, nameof(fhirTemplateProcessor));
             _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
-            _resourceIdentityService = EnsureArg.IsNotNull(resourceIdentityService, nameof(resourceIdentityService));
             _observationCache = EnsureArg.IsNotNull(observationCache, nameof(observationCache));
+
+            ResourceIdentityService = EnsureArg.IsNotNull(resourceIdentityService, nameof(resourceIdentityService));
         }
 
-        protected IResourceIdentityService ResourceIdentityService => _resourceIdentityService;
+        protected IResourceIdentityService ResourceIdentityService { get; }
 
         public override async Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null)
         {
@@ -63,7 +63,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             if (existingObservation == null)
             {
                 var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
-                result = await _client.CreateAsync<Model.Observation>(newObservation).ConfigureAwait(false);
+                result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
             }
             else
             {

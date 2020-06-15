@@ -5,6 +5,8 @@
 
 using System;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Tests.Common;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -22,7 +24,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Code = "myCode",
             };
 
-            var data = (DateTime.Now, DateTime.UtcNow, new (DateTime, string)[] { (DateTime.UtcNow, "22.4") });
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "22.4") }));
+
             var result = processor.CreateValue(template, data) as Quantity;
             Assert.NotNull(result);
             Assert.Equal("myUnit", result.Unit);
@@ -36,7 +41,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var processor = new QuantityFhirValueProcessor();
             var template = new QuantityFhirValueType();
-            var data = (DateTime.Now, DateTime.UtcNow, new (DateTime, string)[] { (DateTime.UtcNow, "value") });
+
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "value") }));
 
             Assert.Throws<NotSupportedException>(() => processor.MergeValue(template, data, new FhirDateTime()));
         }
@@ -54,7 +62,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var oldQuantity = new Quantity { Value = 1, System = "s", Code = "c", Unit = "u" };
 
-            var data = (DateTime.Now, DateTime.UtcNow, new (DateTime, string)[] { (DateTime.UtcNow, "22.4") });
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "22.4") }));
+
             var result = processor.MergeValue(template, data, oldQuantity) as Quantity;
             Assert.NotNull(result);
             Assert.Equal("myUnit", result.Unit);

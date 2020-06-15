@@ -3,19 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Hl7.Fhir.Model;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class R4FhirValueProcessor : CollectionFhirValueProcessor<IObservationData, Element>
+    public class ObservationData : IObservationData
     {
-        public R4FhirValueProcessor()
-            : base(
-                new SampledDataFhirValueProcessor(),
-                new CodeableConceptFhirValueProcessor(),
-                new QuantityFhirValueProcessor(),
-                new StringFhirValueProcessor())
-        {
-        }
+        public (DateTime start, DateTime end) ObservationPeriod { get; set; }
+
+        public (DateTime start, DateTime end) DataPeriod { get; set; }
+
+        public IEnumerable<(DateTime, string)> Data { get; set; }
     }
 }

@@ -11,16 +11,18 @@ using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class StringFhirValueProcessor : FhirValueProcessor<StringFhirValueType, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>
+    public class StringFhirValueProcessor : FhirValueProcessor<StringFhirValueType, IObservationData, Element>
     {
-        protected override Element CreateValueImpl(StringFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue)
+        protected override Element CreateValueImpl(StringFhirValueType template, IObservationData inValue)
         {
             EnsureArg.IsNotNull(template, nameof(template));
+            EnsureArg.IsNotNull(inValue, nameof(inValue));
+            IEnumerable<(DateTime, string)> values = EnsureArg.IsNotNull(inValue.Data, nameof(IObservationData.Data));
 
-            return new FhirString(inValue.values.Single().Item2);
+            return new FhirString(values.Single().Item2);
         }
 
-        protected override Element MergeValueImpl(StringFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue, Element existingValue)
+        protected override Element MergeValueImpl(StringFhirValueType template, IObservationData inValue, Element existingValue)
         {
             if (!(existingValue is FhirString))
             {

@@ -12,7 +12,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class SampledDataFhirValueProcessor : FhirValueProcessor<SampledDataFhirValueType, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>
+    public class SampledDataFhirValueProcessor : FhirValueProcessor<SampledDataFhirValueType, IObservationData, Element>
     {
         private readonly SampledDataProcessor _sampledDataProcessor;
 
@@ -21,22 +21,30 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             _sampledDataProcessor = sampledDataProcessor ?? SampledDataProcessor.Instance;
         }
 
-        protected override Element CreateValueImpl(SampledDataFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue)
+        protected override Element CreateValueImpl(SampledDataFhirValueType template, IObservationData inValue)
         {
             EnsureArg.IsNotNull(template, nameof(template));
+            EnsureArg.IsNotNull(inValue, nameof(inValue));
+            IEnumerable<(DateTime, string)> values = EnsureArg.IsNotNull(inValue.Data, nameof(IObservationData.Data));
+            DateTime dataStart = inValue.DataPeriod.start;
+            DateTime dataEnd = inValue.DataPeriod.end;
 
             return new SampledData
             {
                 Origin = new SimpleQuantity { Value = 0, Unit = template.Unit },
                 Period = template.DefaultPeriod,
                 Dimensions = 1,
-                Data = _sampledDataProcessor.BuildSampledData(inValue.values.ToArray(), inValue.start, inValue.end, template.DefaultPeriod),
+                Data = _sampledDataProcessor.BuildSampledData(values.ToArray(), dataStart, dataEnd, template.DefaultPeriod),
             };
         }
 
-        protected override Element MergeValueImpl(SampledDataFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue, Element existingValue)
+        protected override Element MergeValueImpl(SampledDataFhirValueType template, IObservationData inValue, Element existingValue)
         {
             EnsureArg.IsNotNull(template, nameof(template));
+            EnsureArg.IsNotNull(inValue, nameof(inValue));
+            IEnumerable<(DateTime, string)> values = EnsureArg.IsNotNull(inValue.Data, nameof(IObservationData.Data));
+            DateTime dataStart = inValue.DataPeriod.start;
+            DateTime dataEnd = inValue.DataPeriod.end;
 
             if (!(existingValue is SampledData sampledData))
             {
@@ -48,9 +56,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new NotSupportedException($"Existing {typeof(SampledData)} value has more than 1 dimension.");
             }
 
-            var existingTimeValues = _sampledDataProcessor.SampledDataToTimeValues(sampledData.Data, inValue.start, template.DefaultPeriod);
-            var mergedTimeValues = _sampledDataProcessor.MergeData(existingTimeValues, inValue.values.ToArray());
-            sampledData.Data = _sampledDataProcessor.BuildSampledData(mergedTimeValues, inValue.start, inValue.end, template.DefaultPeriod);
+            var existingTimeValues = _sampledDataProcessor.SampledDataToTimeValues(sampledData.Data, dataStart, template.DefaultPeriod);
+            var mergedTimeValues = _sampledDataProcessor.MergeData(existingTimeValues, values.ToArray());
+            sampledData.Data = _sampledDataProcessor.BuildSampledData(mergedTimeValues, dataStart, dataEnd, template.DefaultPeriod);
 
             return existingValue;
         }

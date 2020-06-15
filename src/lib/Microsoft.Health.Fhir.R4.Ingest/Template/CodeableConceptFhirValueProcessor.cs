@@ -4,18 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CodeableConceptFhirValueProcessor : FhirValueProcessor<CodeableConceptFhirValueType, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>
+    public class CodeableConceptFhirValueProcessor : FhirValueProcessor<CodeableConceptFhirValueType, IObservationData, Element>
     {
-        protected override Element CreateValueImpl(CodeableConceptFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue)
+        protected override Element CreateValueImpl(CodeableConceptFhirValueType template, IObservationData inValue)
         {
-            // Values for codeable concepts currently have no meaning. The existance of the measurement means the code applies.
+            // Values for codeable concepts currently have no meaning. The existence of the measurement means the code applies.
 
             EnsureArg.IsNotNull(template, nameof(template));
 
@@ -32,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             };
         }
 
-        protected override Element MergeValueImpl(CodeableConceptFhirValueType template, (DateTime start, DateTime end, IEnumerable<(DateTime, string)> values) inValue, Element existingValue)
+        protected override Element MergeValueImpl(CodeableConceptFhirValueType template, IObservationData inValue, Element existingValue)
         {
             if (!(existingValue is CodeableConcept))
             {
