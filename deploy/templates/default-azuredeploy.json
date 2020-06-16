@@ -566,7 +566,7 @@
           "properties": {
             "InputEventHub": "[concat('Endpoint=sb://', variables('app_service_name'), '.servicebus.windows.net/;Authentication=ManagedIdentity;EntityPath=devicedata')]",
             "OutputEventHub": "[concat('Endpoint=sb://', variables('app_service_name'), '.servicebus.windows.net/;Authentication=ManagedIdentity;EntityPath=normalizeddata')]",
-            "FUNCTIONS_EXTENSION_VERSION": "~2",
+            "FUNCTIONS_EXTENSION_VERSION": "~3",
             "FUNCTIONS_EXTENSION_RUNTIME": "dotnet",
             "PROJECT": "src/func/Microsoft.Health.Fhir.Ingest.Host/Microsoft.Health.Fhir.Ingest.Host.csproj",
             "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",

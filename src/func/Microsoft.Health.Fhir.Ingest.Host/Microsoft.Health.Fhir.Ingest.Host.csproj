@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <AzureFunctionsVersion>v2</AzureFunctionsVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest.Host</AssemblyName>
@@ -26,7 +26,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.7" />
     <PackageReference Include="Ensure.That" Version="8.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>
@@ -42,8 +42,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="local.settings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="template_fhirmapping.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
