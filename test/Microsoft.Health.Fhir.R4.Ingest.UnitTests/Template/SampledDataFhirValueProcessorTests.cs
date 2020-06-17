@@ -46,8 +46,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             sdp.Received(1).BuildSampledData(
                 Arg.Is<(DateTime, string)[]>(
                     v => v.Length == 1 && v.All(i => i.Item1 == values[0].Item1 && i.Item2 == values[0].Item2)),
-                data.DataPeriod.start,
-                data.DataPeriod.end,
+                data.ObservationPeriod.start,
+                data.ObservationPeriod.end,
                 template.DefaultPeriod);
         }
 
@@ -97,12 +97,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(result);
             Assert.Equal("merged", result.Data);
 
-            sdp.Received(1).SampledDataToTimeValues("data", data.DataPeriod.start, 100);
+            sdp.Received(1).SampledDataToTimeValues("data", data.ObservationPeriod.start, 100);
             sdp.Received(1).MergeData(
                 existingValues,
                 Arg.Is<(DateTime, string)[]>(
                     v => v.Length == 1 && v.All(i => i.Item1 == values[0].Item1 && i.Item2 == values[0].Item2)));
-            sdp.Received(1).BuildSampledData(mergeData, data.DataPeriod.start, data.DataPeriod.end, 100);
+            sdp.Received(1).BuildSampledData(mergeData, data.ObservationPeriod.start, data.ObservationPeriod.end, 100);
         }
 
         [Fact]

@@ -26,15 +26,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(template, nameof(template));
             EnsureArg.IsNotNull(inValue, nameof(inValue));
             IEnumerable<(DateTime, string)> values = EnsureArg.IsNotNull(inValue.Data, nameof(IObservationData.Data));
-            DateTime dataStart = inValue.DataPeriod.start;
-            DateTime dataEnd = inValue.DataPeriod.end;
+
+            (DateTime observationStart, DateTime observationEnd) = inValue.ObservationPeriod;
 
             return new SampledData
             {
                 Origin = new SimpleQuantity { Value = 0, Unit = template.Unit },
                 Period = template.DefaultPeriod,
                 Dimensions = 1,
-                Data = _sampledDataProcessor.BuildSampledData(values.ToArray(), dataStart, dataEnd, template.DefaultPeriod),
+                Data = _sampledDataProcessor.BuildSampledData(values.ToArray(), observationStart, observationEnd, template.DefaultPeriod),
             };
         }
 

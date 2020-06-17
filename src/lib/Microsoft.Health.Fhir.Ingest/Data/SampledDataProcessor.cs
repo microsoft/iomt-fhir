@@ -25,7 +25,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             var i = 0;
             var sb = new StringBuilder();
 
-            while (currentDateTime < endBoundary)
+            while (currentDateTime <= endBoundary)
             {
                 string value = null;
 
