@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 
@@ -39,11 +40,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Status = ObservationStatus.Final,
                 Code = ResolveCode(grp.Name, template.Codes),
                 Issued = DateTimeOffset.UtcNow,
-                Effective = new Period
-                {
-                    Start = grp.Boundary.Start.ToString("o", CultureInfo.InvariantCulture.DateTimeFormat),
-                    End = grp.Boundary.End.ToString("o", CultureInfo.InvariantCulture.DateTimeFormat),
-                },
+                Effective = grp.Boundary.ToPeriod(),
             };
 
             if (template?.Category?.Count > 0)
@@ -93,12 +90,30 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             var values = grp.GetValues();
-            var observatiobPeriod = GetObservationPeriod(existingObservation);
+
+            (DateTime start, DateTime end) observationPeriod = GetObservationPeriod(existingObservation);
+
+            // Update observation effective period if merge values exist outside the current period
+            if (grp.Boundary.Start < observationPeriod.start)
+            {
+                observationPeriod.start = grp.Boundary.Start;
+            }
+
+            if (grp.Boundary.End > observationPeriod.end)
+            {
+                observationPeriod.end = grp.Boundary.End;
+            }
+
+            existingObservation.Effective = observationPeriod.ToPeriod();
+
+            // Update observation value
 
             if (!string.IsNullOrWhiteSpace(template?.Value?.ValueName) && values.TryGetValue(template?.Value?.ValueName, out var obValues))
             {
-                existingObservation.Value = _valueProcessor.MergeValue(template.Value, CreateMergeData(grp.Boundary, observatiobPeriod, obValues), existingObservation.Value);
+                existingObservation.Value = _valueProcessor.MergeValue(template.Value, CreateMergeData(grp.Boundary, observationPeriod, obValues), existingObservation.Value);
             }
+
+            // Update observation component values
 
             if (template?.Components?.Count > 0)
             {
@@ -121,12 +136,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                                 new Observation.ComponentComponent
                                 {
                                     Code = ResolveCode(component.Value.ValueName, component.Codes),
-                                    Value = _valueProcessor.CreateValue(component.Value, CreateMergeData(grp.Boundary, observatiobPeriod, compValues)),
+                                    Value = _valueProcessor.CreateValue(component.Value, CreateMergeData(grp.Boundary, observationPeriod, compValues)),
                                 });
                         }
                         else
                         {
-                          foundComponent.Value = _valueProcessor.MergeValue(component.Value, CreateMergeData(grp.Boundary, observatiobPeriod, compValues), foundComponent.Value);
+                          foundComponent.Value = _valueProcessor.MergeValue(component.Value, CreateMergeData(grp.Boundary, observationPeriod, compValues), foundComponent.Value);
                         }
                     }
                 }
@@ -183,9 +198,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             switch (effective)
             {
                 case FhirDateTime dt:
-                    return (dt.ToDateTimeOffset(TimeSpan.Zero).UtcDateTime, dt.ToDateTimeOffset(TimeSpan.Zero).UtcDateTime);
+                    return (dt.ToUtcDateTime(), dt.ToUtcDateTime());
                 case Period p:
-                    return (p.StartElement.ToDateTimeOffset(TimeSpan.Zero).UtcDateTime, p.EndElement.ToDateTimeOffset(TimeSpan.Zero).UtcDateTime);
+                    return p.ToUtcDateTimePeriod();
                 default:
                     throw new NotSupportedException($"Observation effective type of {effective.GetType()} is not supported.");
             }
