@@ -29,9 +29,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             };
 
             var values = new (DateTime, string)[] { (new DateTime(2019, 1, 2), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 3));
 
             var data = Substitute.For<IObservationData>()
-                .Mock(m => m.DataPeriod.Returns((new DateTime(2019, 1, 1), new DateTime(2019, 1, 3))))
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(dataPeriod))
                 .Mock(m => m.Data.Returns(values));
 
             var result = processor.CreateValue(template, data) as SampledData;
@@ -58,9 +60,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var template = new SampledDataFhirValueType();
 
             var values = new (DateTime, string)[] { (new DateTime(2019, 1, 2), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 3));
 
             var data = Substitute.For<IObservationData>()
-                .Mock(m => m.DataPeriod.Returns((new DateTime(2019, 1, 1), new DateTime(2019, 1, 3))))
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(dataPeriod))
                 .Mock(m => m.Data.Returns(values));
 
             Assert.Throws<NotSupportedException>(() => processor.MergeValue(template, data, new FhirDateTime()));
@@ -82,9 +86,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var existingSampledData = new SampledData { Data = "data" };
 
             var values = new (DateTime, string)[] { (new DateTime(2019, 1, 2), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 3));
 
             var data = Substitute.For<IObservationData>()
-                .Mock(m => m.DataPeriod.Returns((new DateTime(2019, 1, 1), new DateTime(2019, 1, 3))))
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(dataPeriod))
                 .Mock(m => m.Data.Returns(values));
 
             var result = processor.MergeValue(template, data, existingSampledData) as SampledData;
@@ -108,12 +114,158 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var template = new SampledDataFhirValueType();
 
             var values = new (DateTime, string)[] { (new DateTime(2019, 1, 2), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 3));
 
             var data = Substitute.For<IObservationData>()
-                .Mock(m => m.DataPeriod.Returns((new DateTime(2019, 1, 1), new DateTime(2019, 1, 3))))
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(dataPeriod))
                 .Mock(m => m.Data.Returns(values));
 
             Assert.Throws<NotSupportedException>(() => processor.MergeValue(template, data, new SampledData { Dimensions = 2 }));
+        }
+
+        [Fact]
+        public void GivenObservationWithSmallerEffectivePeriodThanNewData_WhenMergeValue_ThenCorrectDatesUsedWhenBuilding_Test()
+        {
+            var existingValues = new (DateTime Time, string Value)[] { };
+            var mergeData = new (DateTime Time, string Value)[] { };
+
+            var sdp = Substitute.For<SampledDataProcessor>()
+                .Mock(m => m.SampledDataToTimeValues(default, default, default).ReturnsForAnyArgs(existingValues))
+                .Mock(m => m.MergeData(default, default).ReturnsForAnyArgs(mergeData))
+                .Mock(m => m.BuildSampledData(default, default, default, default).ReturnsForAnyArgs("merged"));
+
+            var processor = new SampledDataFhirValueProcessor(sdp);
+            var template = new SampledDataFhirValueType { DefaultPeriod = 100 };
+            var existingSampledData = new SampledData { Data = "data" };
+
+            var values = new (DateTime, string)[] { (new DateTime(2019, 1, 1), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 4));
+            var observationPeriod = (new DateTime(2019, 1, 2), new DateTime(2019, 1, 3));
+
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(observationPeriod))
+                .Mock(m => m.Data.Returns(values));
+
+            var result = processor.MergeValue(template, data, existingSampledData) as SampledData;
+            Assert.NotNull(result);
+            Assert.Equal("merged", result.Data);
+
+            sdp.Received(1).SampledDataToTimeValues("data", data.ObservationPeriod.start, 100);
+            sdp.Received(1).MergeData(
+                existingValues,
+                Arg.Is<(DateTime, string)[]>(
+                    v => v.Length == 1 && v.All(i => i.Item1 == values[0].Item1 && i.Item2 == values[0].Item2)));
+            sdp.Received(1).BuildSampledData(mergeData, data.DataPeriod.start, data.DataPeriod.end, 100);
+        }
+
+        [Fact]
+        public void GivenObservationWithGreaterEffectivePeriodThanNewData_WhenMergeValue_ThenCorrectDatesUsedWhenBuilding_Test()
+        {
+            var existingValues = new (DateTime Time, string Value)[] { };
+            var mergeData = new (DateTime Time, string Value)[] { };
+
+            var sdp = Substitute.For<SampledDataProcessor>()
+                .Mock(m => m.SampledDataToTimeValues(default, default, default).ReturnsForAnyArgs(existingValues))
+                .Mock(m => m.MergeData(default, default).ReturnsForAnyArgs(mergeData))
+                .Mock(m => m.BuildSampledData(default, default, default, default).ReturnsForAnyArgs("merged"));
+
+            var processor = new SampledDataFhirValueProcessor(sdp);
+            var template = new SampledDataFhirValueType { DefaultPeriod = 100 };
+            var existingSampledData = new SampledData { Data = "data" };
+
+            var values = new (DateTime, string)[] { (new DateTime(2019, 1, 1), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 4));
+            var observationPeriod = (new DateTime(2018, 12, 31), new DateTime(2019, 1, 5));
+
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(observationPeriod))
+                .Mock(m => m.Data.Returns(values));
+
+            var result = processor.MergeValue(template, data, existingSampledData) as SampledData;
+            Assert.NotNull(result);
+            Assert.Equal("merged", result.Data);
+
+            sdp.Received(1).SampledDataToTimeValues("data", data.ObservationPeriod.start, 100);
+            sdp.Received(1).MergeData(
+                existingValues,
+                Arg.Is<(DateTime, string)[]>(
+                    v => v.Length == 1 && v.All(i => i.Item1 == values[0].Item1 && i.Item2 == values[0].Item2)));
+            sdp.Received(1).BuildSampledData(mergeData, data.ObservationPeriod.start, data.ObservationPeriod.end, 100);
+        }
+
+        [Fact]
+        public void GivenObservationWithPriorEffectivePeriodThanNewData_WhenMergeValue_ThenCorrectDatesUsedWhenBuilding_Test()
+        {
+            var existingValues = new (DateTime Time, string Value)[] { };
+            var mergeData = new (DateTime Time, string Value)[] { };
+
+            var sdp = Substitute.For<SampledDataProcessor>()
+                .Mock(m => m.SampledDataToTimeValues(default, default, default).ReturnsForAnyArgs(existingValues))
+                .Mock(m => m.MergeData(default, default).ReturnsForAnyArgs(mergeData))
+                .Mock(m => m.BuildSampledData(default, default, default, default).ReturnsForAnyArgs("merged"));
+
+            var processor = new SampledDataFhirValueProcessor(sdp);
+            var template = new SampledDataFhirValueType { DefaultPeriod = 100 };
+            var existingSampledData = new SampledData { Data = "data" };
+
+            var values = new (DateTime, string)[] { (new DateTime(2019, 1, 2), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 4));
+            var observationPeriod = (new DateTime(2018, 12, 31), new DateTime(2019, 1, 1));
+
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(observationPeriod))
+                .Mock(m => m.Data.Returns(values));
+
+            var result = processor.MergeValue(template, data, existingSampledData) as SampledData;
+            Assert.NotNull(result);
+            Assert.Equal("merged", result.Data);
+
+            sdp.Received(1).SampledDataToTimeValues("data", data.ObservationPeriod.start, 100);
+            sdp.Received(1).MergeData(
+                existingValues,
+                Arg.Is<(DateTime, string)[]>(
+                    v => v.Length == 1 && v.All(i => i.Item1 == values[0].Item1 && i.Item2 == values[0].Item2)));
+            sdp.Received(1).BuildSampledData(mergeData, data.ObservationPeriod.start, data.DataPeriod.end, 100);
+        }
+
+        [Fact]
+        public void GivenNewDataBeforeEffectivePeriodThanNewData_WhenMergeValue_ThenCorrectDatesUsedWhenBuilding_Test()
+        {
+            var existingValues = new (DateTime Time, string Value)[] { };
+            var mergeData = new (DateTime Time, string Value)[] { };
+
+            var sdp = Substitute.For<SampledDataProcessor>()
+                .Mock(m => m.SampledDataToTimeValues(default, default, default).ReturnsForAnyArgs(existingValues))
+                .Mock(m => m.MergeData(default, default).ReturnsForAnyArgs(mergeData))
+                .Mock(m => m.BuildSampledData(default, default, default, default).ReturnsForAnyArgs("merged"));
+
+            var processor = new SampledDataFhirValueProcessor(sdp);
+            var template = new SampledDataFhirValueType { DefaultPeriod = 100 };
+            var existingSampledData = new SampledData { Data = "data" };
+
+            var values = new (DateTime, string)[] { (new DateTime(2019, 1, 2), "value") };
+            var dataPeriod = (new DateTime(2019, 1, 1), new DateTime(2019, 1, 4));
+            var observationPeriod = (new DateTime(2019, 1, 5), new DateTime(2019, 1, 6));
+
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns(dataPeriod))
+                .Mock(m => m.ObservationPeriod.Returns(observationPeriod))
+                .Mock(m => m.Data.Returns(values));
+
+            var result = processor.MergeValue(template, data, existingSampledData) as SampledData;
+            Assert.NotNull(result);
+            Assert.Equal("merged", result.Data);
+
+            sdp.Received(1).SampledDataToTimeValues("data", data.ObservationPeriod.start, 100);
+            sdp.Received(1).MergeData(
+                existingValues,
+                Arg.Is<(DateTime, string)[]>(
+                    v => v.Length == 1 && v.All(i => i.Item1 == values[0].Item1 && i.Item2 == values[0].Item2)));
+            sdp.Received(1).BuildSampledData(mergeData, data.DataPeriod.start, data.ObservationPeriod.end, 100);
         }
     }
 }

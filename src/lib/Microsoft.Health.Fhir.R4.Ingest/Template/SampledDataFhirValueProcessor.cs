@@ -43,8 +43,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(template, nameof(template));
             EnsureArg.IsNotNull(inValue, nameof(inValue));
             IEnumerable<(DateTime, string)> values = EnsureArg.IsNotNull(inValue.Data, nameof(IObservationData.Data));
-            DateTime dataStart = inValue.DataPeriod.start;
-            DateTime dataEnd = inValue.DataPeriod.end;
 
             if (!(existingValue is SampledData sampledData))
             {
@@ -56,9 +54,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new NotSupportedException($"Existing {typeof(SampledData)} value has more than 1 dimension.");
             }
 
-            var existingTimeValues = _sampledDataProcessor.SampledDataToTimeValues(sampledData.Data, dataStart, template.DefaultPeriod);
+            (DateTime dataStart, DateTime dataEnd) = inValue.DataPeriod;
+            (DateTime observationStart, DateTime observationEnd) = inValue.ObservationPeriod;
+
+            DateTime mergeStart = dataStart < observationStart ? dataStart : observationStart;
+            DateTime mergeEnd = dataEnd > observationEnd ? dataEnd : observationEnd;
+
+            var existingTimeValues = _sampledDataProcessor.SampledDataToTimeValues(sampledData.Data, observationStart, template.DefaultPeriod);
             var mergedTimeValues = _sampledDataProcessor.MergeData(existingTimeValues, values.ToArray());
-            sampledData.Data = _sampledDataProcessor.BuildSampledData(mergedTimeValues, dataStart, dataEnd, template.DefaultPeriod);
+            sampledData.Data = _sampledDataProcessor.BuildSampledData(mergedTimeValues, mergeStart, mergeEnd, template.DefaultPeriod);
 
             return existingValue;
         }

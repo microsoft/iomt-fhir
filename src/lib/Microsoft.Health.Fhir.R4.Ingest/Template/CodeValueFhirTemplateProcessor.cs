@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Model;
@@ -90,31 +89,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             var values = grp.GetValues();
-
             (DateTime start, DateTime end) observationPeriod = GetObservationPeriod(existingObservation);
 
-            // Update observation effective period if merge values exist outside the current period
-            if (grp.Boundary.Start < observationPeriod.start)
-            {
-                observationPeriod.start = grp.Boundary.Start;
-            }
-
-            if (grp.Boundary.End > observationPeriod.end)
-            {
-                observationPeriod.end = grp.Boundary.End;
-            }
-
-            existingObservation.Effective = observationPeriod.ToPeriod();
-
             // Update observation value
-
             if (!string.IsNullOrWhiteSpace(template?.Value?.ValueName) && values.TryGetValue(template?.Value?.ValueName, out var obValues))
             {
                 existingObservation.Value = _valueProcessor.MergeValue(template.Value, CreateMergeData(grp.Boundary, observationPeriod, obValues), existingObservation.Value);
             }
 
             // Update observation component values
-
             if (template?.Components?.Count > 0)
             {
                 if (existingObservation.Component == null)
@@ -146,6 +129,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     }
                 }
             }
+
+            // Update observation effective period if merge values exist outside the current period.
+            if (grp.Boundary.Start < observationPeriod.start)
+            {
+                observationPeriod.start = grp.Boundary.Start;
+            }
+
+            if (grp.Boundary.End > observationPeriod.end)
+            {
+                observationPeriod.end = grp.Boundary.End;
+            }
+
+            existingObservation.Effective = observationPeriod.ToPeriod();
 
             return existingObservation;
         }

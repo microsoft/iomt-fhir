@@ -827,8 +827,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Arg.Is<IObservationData>(
                          v => v.DataPeriod.start == boundary.start
                         && v.DataPeriod.end == boundary.end
-                        && v.ObservationPeriod.start == boundary.start
-                        && v.ObservationPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == observationStart
+                        && v.ObservationPeriod.end == observationEnd
                         && v.Data.First().Item2 == "v1"),
                     oldValue);
         }
