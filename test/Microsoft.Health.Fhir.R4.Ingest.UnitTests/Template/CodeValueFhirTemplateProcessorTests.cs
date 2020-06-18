@@ -887,6 +887,5 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         && v.Data.First().Item2 == "v1"),
                     oldValue);
         }
-
     }
 }
