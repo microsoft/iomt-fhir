@@ -6,6 +6,7 @@
     "deviceIdExpression": "$.device",
     "timestampExpression": "$.date",
     "patientIdExpression": "$.patient",
+    "correlationIdExpression": "$.sessionid",
     "values": [
       {
         "required": "true",

@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Tests.Common;
@@ -27,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplate_WhenCreateObservationGroups_ThenPeriodIntervalCorrectlyUsed_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
             var template = Substitute.For<CodeValueFhirTemplate>().Mock(m => m.PeriodInterval.Returns(ObservationPeriodInterval.Single));
             var measurementGroup = new MeasurementGroup
             {
@@ -48,7 +50,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenEmptyTemplate_WhenCreateObservation_ThenShellObservationReturned_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
 
             var template = Substitute.For<CodeValueFhirTemplate>();
 
@@ -92,7 +94,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public void GivenTemplateWithValue_WhenCreateObservation_ThenObservationReturned_Test()
         {
             var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>()
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
                 .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
 
             var valueType = Substitute.For<FhirValueType>()
@@ -148,17 +150,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             valueProcessor.Received(1)
                 .CreateValue(
                     valueType,
-                    Arg.Is<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values)>(
-                        v => v.start == boundary.start
-                        && v.end == boundary.end
-                        && v.values.First().Item2 == "v1"));
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == boundary.start
+                        && v.ObservationPeriod.end == boundary.end
+                        && v.Data.First().Item2 == "v1"));
         }
 
         [Fact]
         public void GivenTemplateWithComponent_WhenCreateObservation_ThenObservationReturned_Test()
         {
             var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>()
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
                 .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
 
             var valueType = Substitute.For<FhirValueType>()
@@ -246,18 +250,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             valueProcessor.Received(1)
                 .CreateValue(
                     valueType,
-                    Arg.Is<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values)>(
-                        v => v.start == boundary.start
-                        && v.end == boundary.end
-                        && v.values.First().Item2 == "v2"));
+                    Arg.Is<IObservationData>(
+                        v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == boundary.start
+                        && v.ObservationPeriod.end == boundary.end
+                        && v.Data.First().Item2 == "v2"));
         }
 
         [Fact]
         public void GivenEmptyTemplate_WhenMergObservation_ThenObservationReturned_Test()
         {
-            var oldObservation = new Observation();
-
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
 
             var template = Substitute.For<CodeValueFhirTemplate>();
 
@@ -267,6 +271,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             };
 
             (DateTime start, DateTime end) boundary = (new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2019, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var oldObservation = new Observation
+            {
+                Effective = new Period
+                {
+                    Start = boundary.start.ToString("o", CultureInfo.InvariantCulture.DateTimeFormat),
+                    End = boundary.end.ToString("o", CultureInfo.InvariantCulture.DateTimeFormat),
+                },
+            };
 
             var observationGroup = Substitute.For<IObservationGroup>()
                 .Mock(m => m.Boundary.Returns(boundary))
@@ -285,13 +298,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public void GivenTemplateWithValue_WhenMergObservation_ThenObservationReturned_Test()
         {
             Element oldValue = new Quantity();
-            var oldObservation = new Observation
-            {
-                Value = oldValue,
-            };
 
             var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>()
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
                 .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element));
 
             var valueType = Substitute.For<FhirValueType>()
@@ -316,20 +325,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Mock(m => m.Name.Returns("code"))
                 .Mock(m => m.GetValues().Returns(values));
 
+            var oldObservation = new Observation
+            {
+                Effective = boundary.ToPeriod(),
+                Value = oldValue,
+            };
+
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
             Assert.Equal(element, newObservation.Value);
 
-            // oldObservation.Value
             Assert.Equal(ObservationStatus.Amended, newObservation.Status);
             valueProcessor.Received(1)
                 .MergeValue(
                     valueType,
-                    Arg.Is<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values)>(
-                        v => v.start == boundary.start
-                        && v.end == boundary.end
-                        && v.values.First().Item2 == "v1"),
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == boundary.start
+                        && v.ObservationPeriod.end == boundary.end
+                        && v.Data.First().Item2 == "v1"),
                     oldValue);
         }
 
@@ -337,31 +353,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public void GivenTemplateWithComponent_WhenMergObservation_ThenObservationReturned_Test()
         {
             Element oldValue = new Quantity();
-            var oldObservation = new Observation
-            {
-                Component = new List<Observation.ComponentComponent>
-                {
-                    new Observation.ComponentComponent
-                    {
-                        Code = new CodeableConcept
-                        {
-                            Coding = new List<Coding>
-                            {
-                                new Coding
-                                {
-                                    Display = "p2",
-                                    System = FhirImportService.ServiceSystem,
-                                    Code = "p2",
-                                },
-                            },
-                        },
-                        Value = oldValue,
-                    },
-                },
-            };
 
             var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>()
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
                 .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element))
                 .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
 
@@ -410,6 +404,30 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Mock(m => m.Name.Returns("code"))
                 .Mock(m => m.GetValues().Returns(values));
 
+            var oldObservation = new Observation
+            {
+                Effective = boundary.ToPeriod(),
+                Component = new List<Observation.ComponentComponent>
+                {
+                    new Observation.ComponentComponent
+                    {
+                        Code = new CodeableConcept
+                        {
+                            Coding = new List<Coding>
+                            {
+                                new Coding
+                                {
+                                    Display = "p2",
+                                    System = FhirImportService.ServiceSystem,
+                                    Code = "p2",
+                                },
+                            },
+                        },
+                        Value = oldValue,
+                    },
+                },
+            };
+
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
@@ -446,29 +464,32 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             valueProcessor.Received(1)
                 .MergeValue(
                     valueType1,
-                    Arg.Is<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values)>(
-                        v => v.start == boundary.start
-                        && v.end == boundary.end
-                        && v.values.First().Item2 == "v2"),
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == boundary.start
+                        && v.ObservationPeriod.end == boundary.end
+                        && v.Data.First().Item2 == "v2"),
                     oldValue);
 
             valueProcessor.Received(1)
                 .CreateValue(
                     valueType2,
-                    Arg.Is<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values)>(
-                        v => v.start == boundary.start
-                        && v.end == boundary.end
-                        && v.values.First().Item2 == "v3"));
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == boundary.start
+                        && v.ObservationPeriod.end == boundary.end
+                        && v.Data.First().Item2 == "v3"));
         }
 
         [Fact]
         public void GivenTemplateWithComponentAndObservationWithOutComponent_WhenMergObservation_ThenObservationWithComponentAddedReturned_Test()
         {
             Element oldValue = new Quantity();
-            var oldObservation = new Observation();
 
             var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>()
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
                 .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
 
             var valueType1 = Substitute.For<FhirValueType>()
@@ -505,6 +526,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Mock(m => m.Name.Returns("code"))
                 .Mock(m => m.GetValues().Returns(values));
 
+            var oldObservation = new Observation
+            {
+                Effective = boundary.ToPeriod(),
+            };
+
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
@@ -537,16 +563,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             valueProcessor.Received(1)
                 .CreateValue(
                     valueType1,
-                    Arg.Is<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values)>(
-                        v => v.start == boundary.start
-                        && v.end == boundary.end
-                        && v.values.First().Item2 == "v2"));
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == boundary.start
+                        && v.ObservationPeriod.end == boundary.end
+                        && v.Data.First().Item2 == "v2"));
         }
 
         [Fact]
-        public void GivenTemplateWithCategory_WhenCreateObservation_ThenCategoryReturned()
+        public void GivenTemplateWithCategory_WhenCreateObservation_ThenCategoryReturned_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
                     new List<FhirCodeableConcept>
@@ -630,28 +658,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Fact]
-        public void GivenTemplateWithCategory_WhenMergeObservationWithCategory_ThenCategoryReplaced()
+        public void GivenTemplateWithCategory_WhenMergeObservationWithCategory_ThenCategoryReplaced_Test()
         {
-            var oldObservation = new Observation()
-            {
-                Category = new List<CodeableConcept>
-                {
-                    new CodeableConcept
-                    {
-                        Coding = new List<Coding>
-                            {
-                                new Coding
-                                {
-                                    Display = "old category display",
-                                    System = "old category system",
-                                    Code = "old category code",
-                                },
-                            },
-                        Text = "old category text",
-                    },
-                },
-            };
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
                     new List<FhirCodeableConcept>
@@ -681,6 +690,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Mock(m => m.Name.Returns("code"))
                 .Mock(m => m.GetValues().Returns(values));
 
+            var oldObservation = new Observation()
+            {
+                Effective = boundary.ToPeriod(),
+                Category = new List<CodeableConcept>
+                {
+                    new CodeableConcept
+                    {
+                        Coding = new List<Coding>
+                            {
+                                new Coding
+                                {
+                                    Display = "old category display",
+                                    System = "old category system",
+                                    Code = "old category code",
+                                },
+                            },
+                        Text = "old category text",
+                    },
+                },
+            };
+
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
 
             Assert.Collection(
@@ -702,26 +732,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithoutCategory_WhenMergeObservationWithCategory_ThenCategoryRemoved()
         {
-            var oldObservation = new Observation()
-            {
-                Category = new List<CodeableConcept>
-                {
-                    new CodeableConcept
-                    {
-                        Coding = new List<Coding>
-                            {
-                                new Coding
-                                {
-                                    Display = "old category display",
-                                    System = "old category system",
-                                    Code = "old category code",
-                                },
-                            },
-                        Text = "old category text",
-                    },
-                },
-            };
-            var valueProcessor = Substitute.For<IFhirValueProcessor<(DateTime start, DateTime end, IEnumerable<(DateTime, string)> values), Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
                     new List<FhirCodeableConcept> { }));
@@ -741,9 +752,140 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Mock(m => m.Name.Returns("code"))
                 .Mock(m => m.GetValues().Returns(values));
 
+            var oldObservation = new Observation()
+            {
+                Effective = boundary.ToPeriod(),
+                Category = new List<CodeableConcept>
+                {
+                    new CodeableConcept
+                    {
+                        Coding = new List<Coding>
+                            {
+                                new Coding
+                                {
+                                    Display = "old category display",
+                                    System = "old category system",
+                                    Code = "old category code",
+                                },
+                            },
+                        Text = "old category text",
+                    },
+                },
+            };
+
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
 
             Assert.False(newObservation.Category.Any());
+        }
+
+        [Fact]
+        public void GivenExistingObservation_WhenMergeObservationWithDataOutsideEffectivePeriod_ThenPeriodUpdated_Test()
+        {
+            Element oldValue = new Quantity();
+
+            var element = Substitute.For<Element>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
+                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element));
+
+            var valueType = Substitute.For<FhirValueType>()
+               .Mock(m => m.ValueName.Returns("p1"));
+            var template = Substitute.For<CodeValueFhirTemplate>()
+                .Mock(m => m.Value.Returns(valueType));
+
+            var values = new Dictionary<string, IEnumerable<(DateTime, string)>>
+            {
+                { "p1", new[] { (DateTime.UtcNow, "v1") } },
+            };
+
+            DateTime observationStart = new DateTime(2019, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+            DateTime observationEnd = new DateTime(2019, 1, 3, 0, 0, 0, DateTimeKind.Utc);
+            (DateTime start, DateTime end) boundary = (new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2019, 1, 4, 0, 0, 0, DateTimeKind.Utc));
+
+            var observationGroup = Substitute.For<IObservationGroup>()
+                .Mock(m => m.Boundary.Returns(boundary))
+                .Mock(m => m.GetValues().Returns(values));
+
+            var oldObservation = new Observation
+            {
+                Effective = (observationStart, observationEnd).ToPeriod(),
+                Value = oldValue,
+            };
+
+            var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
+
+            var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
+
+            var (start, end) = Assert.IsType<Period>(newObservation.Effective)
+                .ToUtcDateTimePeriod();
+            Assert.Equal(boundary.start, start);
+            Assert.Equal(boundary.end, end);
+
+            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            valueProcessor.Received(1)
+                .MergeValue(
+                    valueType,
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == observationStart
+                        && v.ObservationPeriod.end == observationEnd
+                        && v.Data.First().Item2 == "v1"),
+                    oldValue);
+        }
+
+        [Fact]
+        public void GivenExistingObservation_WhenMergeObservationWithDataInsideEffectivePeriod_ThenPeriodNotUpdated_Test()
+        {
+            Element oldValue = new Quantity();
+
+            var element = Substitute.For<Element>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
+                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element));
+
+            var valueType = Substitute.For<FhirValueType>()
+               .Mock(m => m.ValueName.Returns("p1"));
+            var template = Substitute.For<CodeValueFhirTemplate>()
+                .Mock(m => m.Value.Returns(valueType));
+
+            var values = new Dictionary<string, IEnumerable<(DateTime, string)>>
+            {
+                { "p1", new[] { (DateTime.UtcNow, "v1") } },
+            };
+
+            DateTime observationStart = new DateTime(2018, 12, 31, 0, 0, 0, DateTimeKind.Utc);
+            DateTime observationEnd = new DateTime(2019, 1, 3, 0, 0, 0, DateTimeKind.Utc);
+            (DateTime start, DateTime end) boundary = (new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2019, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var observationGroup = Substitute.For<IObservationGroup>()
+                .Mock(m => m.Boundary.Returns(boundary))
+                .Mock(m => m.GetValues().Returns(values));
+
+            var oldObservation = new Observation
+            {
+                Effective = (observationStart, observationEnd).ToPeriod(),
+                Value = oldValue,
+            };
+
+            var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
+
+            var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
+
+            var (start, end) = Assert.IsType<Period>(newObservation.Effective)
+                .ToUtcDateTimePeriod();
+            Assert.Equal(observationStart, start);
+            Assert.Equal(observationEnd, end);
+
+            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            valueProcessor.Received(1)
+                .MergeValue(
+                    valueType,
+                    Arg.Is<IObservationData>(
+                         v => v.DataPeriod.start == boundary.start
+                        && v.DataPeriod.end == boundary.end
+                        && v.ObservationPeriod.start == observationStart
+                        && v.ObservationPeriod.end == observationEnd
+                        && v.Data.First().Item2 == "v1"),
+                    oldValue);
         }
     }
 }

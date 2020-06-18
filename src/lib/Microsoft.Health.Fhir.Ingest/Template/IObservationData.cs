@@ -6,24 +6,14 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Fhir.Ingest.Data
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface IMeasurement
+    public interface IObservationData
     {
-        string Type { get; }
+        (DateTime start, DateTime end) ObservationPeriod { get; }
 
-        DateTime OccurrenceTimeUtc { get; }
+        (DateTime start, DateTime end) DataPeriod { get; }
 
-        DateTime? IngestionTimeUtc { get; }
-
-        string DeviceId { get; }
-
-        string PatientId { get; }
-
-        string EncounterId { get; }
-
-        string CorrelationId { get; }
-
-        IEnumerable<MeasurementProperty> Properties { get; }
+        IEnumerable<(DateTime, string)> Data { get; }
     }
 }

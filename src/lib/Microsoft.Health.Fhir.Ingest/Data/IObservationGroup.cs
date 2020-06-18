@@ -17,5 +17,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         void AddMeasurement(IMeasurement measurement);
 
         IDictionary<string, IEnumerable<(DateTime Time, string Value)>> GetValues();
+
+        string GetIdSegment();
     }
 }

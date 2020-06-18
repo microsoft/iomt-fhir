@@ -4,26 +4,23 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public interface IMeasurement
+    public class CorrelationIdNotDefinedException : Exception
     {
-        string Type { get; }
+        public CorrelationIdNotDefinedException(string message)
+            : base(message)
+        {
+        }
 
-        DateTime OccurrenceTimeUtc { get; }
+        public CorrelationIdNotDefinedException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-        DateTime? IngestionTimeUtc { get; }
-
-        string DeviceId { get; }
-
-        string PatientId { get; }
-
-        string EncounterId { get; }
-
-        string CorrelationId { get; }
-
-        IEnumerable<MeasurementProperty> Properties { get; }
+        public CorrelationIdNotDefinedException()
+        {
+        }
     }
 }

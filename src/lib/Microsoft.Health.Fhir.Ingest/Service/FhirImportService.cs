@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -14,7 +13,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public abstract class FhirImportService : IFhirImportService<IMeasurementGroup, ILookupTemplate<IFhirTemplate>>
     {
-        public const string DateFormat = "yyyyMMddHHmmssZ";
         public const string ServiceSystem = @"https://azure.microsoft.com/en-us/services/iomt-fhir-connector/";
 
         protected static (string Identifer, string System) GenerateObservationId(IObservationGroup observationGroup, string deviceId, string patientId)
@@ -23,9 +21,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             EnsureArg.IsNotNullOrWhiteSpace(deviceId, nameof(deviceId));
             EnsureArg.IsNotNullOrWhiteSpace(patientId, nameof(patientId));
 
-            var startToken = observationGroup.Boundary.Start.ToString(DateFormat, CultureInfo.InvariantCulture.DateTimeFormat);
-            var endToken = observationGroup.Boundary.End.ToString(DateFormat, CultureInfo.InvariantCulture.DateTimeFormat);
-            var value = $"{patientId}.{deviceId}.{observationGroup.Name}.{startToken}.{endToken}";
+            var value = $"{patientId}.{deviceId}.{observationGroup.Name}.{observationGroup.GetIdSegment()}";
 
             return (value, ServiceSystem);
         }

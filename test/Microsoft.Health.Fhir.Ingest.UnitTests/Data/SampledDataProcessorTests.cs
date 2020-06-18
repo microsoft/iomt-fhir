@@ -19,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Select(i => (seedDateTime.AddMinutes(i), i.ToString()))
                 .ToArray();
 
-            var result = SampledDataProcessor.Instance.BuildSampledData(values, seedDateTime, seedDateTime.AddMinutes(10), (decimal)TimeSpan.FromMinutes(1).TotalMilliseconds);
+            var result = SampledDataProcessor.Instance.BuildSampledData(values, seedDateTime, seedDateTime.AddMinutes(10).AddMilliseconds(-1), (decimal)TimeSpan.FromMinutes(1).TotalMilliseconds);
             Assert.NotNull(result);
             Assert.Equal("0 1 2 3 4 5 6 7 8 9", result);
         }
@@ -27,16 +27,18 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         [Theory]
         [InlineData(10)]
         [InlineData(100)]
-        public void GivenDataStartingOnBoundary_WhenBuildSampledData_ThenSampledDataPopulated_Test(int totalSamples)
+        public void GivenDataStartingOnBoundaryAndEndingOnBoundary_WhenBuildSampledData_ThenSampledDataPopulated_Test(int totalSamples)
         {
             var period = TimeSpan.FromSeconds(1);
 
             // Normalize endBoundary to seconds being the most significant value
             var endBoundary = NormalizeToSecond(DateTime.UtcNow);
-            var startBoundary = endBoundary.AddSeconds(-1 * totalSamples);
+            var startBoundary = endBoundary.AddSeconds(-1 * (totalSamples - 1));
             var values = Enumerable.Range(1, totalSamples)
                 .Select(i => (startBoundary.AddSeconds(i - 1), i.ToString()))
                 .ToArray();
+
+            Assert.Equal(endBoundary, values.Last().Item1);
 
             var result = SampledDataProcessor.Instance.BuildSampledData(values, startBoundary, endBoundary, (decimal)period.TotalMilliseconds);
             Assert.NotNull(result);
@@ -53,13 +55,46 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         [Theory]
         [InlineData(10)]
         [InlineData(100)]
-        public void GivenDataStartingOnBoundaryAndMissingValues_WhenBuildSampledData_ThenSampledDataPopulatedWithEForMissingValues_Test(int totalSamples)
+        public void GivenDataStartingOnBoundaryAndEndingBeforeBoundary_WhenBuildSampledData_ThenSampledDataPopulatedWithERemaining_Test(int totalSamples)
         {
             var period = TimeSpan.FromSeconds(1);
 
             // Normalize endBoundary to seconds being the most significant value
             var endBoundary = NormalizeToSecond(DateTime.UtcNow);
             var startBoundary = endBoundary.AddSeconds(-1 * totalSamples);
+            var values = Enumerable.Range(1, totalSamples)
+                .Select(i => (startBoundary.AddSeconds(i - 1), i.ToString()))
+                .ToArray();
+
+            var result = SampledDataProcessor.Instance.BuildSampledData(values, startBoundary, endBoundary, (decimal)period.TotalMilliseconds);
+            Assert.NotNull(result);
+
+            var resultValues = result.Split(" ");
+            Assert.Equal(totalSamples + 1, resultValues.Length);
+
+            for (int i = 0; i < resultValues.Length; i++)
+            {
+                if (i < values.Length)
+                {
+                    Assert.Equal(values[i].Item2, resultValues[i]);
+                }
+                else
+                {
+                    Assert.Equal("E", resultValues[i]);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(10)]
+        [InlineData(100)]
+        public void GivenDataStartingOnBoundaryAndMissingValues_WhenBuildSampledData_ThenSampledDataPopulatedWithEForMissingValues_Test(int totalSamples)
+        {
+            var period = TimeSpan.FromSeconds(1);
+
+            // Normalize endBoundary to seconds being the most significant value
+            var endBoundary = NormalizeToSecond(DateTime.UtcNow);
+            var startBoundary = endBoundary.AddSeconds(-1 * (totalSamples - 1));
             var values = Enumerable.Range(1, totalSamples / 2)
                 .Select(i => (startBoundary.AddSeconds((i - 1) * 2), i.ToString()))
                 .ToArray();
@@ -92,7 +127,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
             // Normalize endBoundary to seconds being the most significant value
             var endBoundary = NormalizeToSecond(DateTime.UtcNow);
-            var startBoundary = endBoundary.AddSeconds(-1 * totalSamples);
+            var startBoundary = endBoundary.AddSeconds(-1 * (totalSamples - 1));
             var values = Enumerable.Range(1, totalSamples)
                 .Select(i => (startBoundary.AddSeconds(i - 1).AddMilliseconds(5), i.ToString()))
                 .ToArray();
@@ -116,7 +151,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
             // Normalize endBoundary to seconds being the most significant value
             var endBoundary = NormalizeToSecond(DateTime.UtcNow);
-            var startBoundary = endBoundary.AddSeconds(-1 * 10);
+            var startBoundary = endBoundary.AddSeconds(-1 * 9);
             var values = Enumerable.Range(1, 20)
                 .Select(i => (startBoundary.AddMilliseconds((i * 500) - 499), i.ToString()))
                 .ToArray();

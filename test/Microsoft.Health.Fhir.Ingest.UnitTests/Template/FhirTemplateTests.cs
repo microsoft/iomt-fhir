@@ -3,18 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Hl7.Fhir.Model;
+using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class R4FhirValueProcessor : CollectionFhirValueProcessor<IObservationData, Element>
+    public class FhirTemplateTests
     {
-        public R4FhirValueProcessor()
-            : base(
-                new SampledDataFhirValueProcessor(),
-                new CodeableConceptFhirValueProcessor(),
-                new QuantityFhirValueProcessor(),
-                new StringFhirValueProcessor())
+        [Fact]
+        public void GivenDefaultFhirTemplate_WhenGetPeriodInterval_ThenValueIsSingle_Test()
+        {
+            var template = new TestFhirTemplate();
+
+            Assert.Equal(ObservationPeriodInterval.Single, template.PeriodInterval);
+        }
+
+        private class TestFhirTemplate : FhirTemplate
         {
         }
     }

@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Tests.Common;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -26,7 +28,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             };
 
-            var data = (DateTime.Now, DateTime.UtcNow, new (DateTime, string)[] { (DateTime.UtcNow, "value") });
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "value") }));
+
             var result = processor.CreateValue(template, data) as CodeableConcept;
             Assert.NotNull(result);
             Assert.Equal("myText", result.Text);
@@ -51,9 +56,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var processor = new CodeableConceptFhirValueProcessor();
             var template = new CodeableConceptFhirValueType();
-            var data = (DateTime.Now, DateTime.UtcNow, new (DateTime, string)[] { (DateTime.UtcNow, "value") });
 
-            Assert.Throws<NotSupportedException>(() => processor.MergeValue(template, data, new FhirDateTime()));
+            Assert.Throws<NotSupportedException>(() => processor.MergeValue(template, default, new FhirDateTime()));
         }
 
         [Fact]
@@ -79,7 +83,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             };
 
-            var data = (DateTime.Now, DateTime.UtcNow, new (DateTime, string)[] { (DateTime.UtcNow, "value") });
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "value") }));
+
             var result = processor.MergeValue(template, data, oldValue) as CodeableConcept;
             Assert.NotNull(result);
             Assert.Equal("myText", result.Text);

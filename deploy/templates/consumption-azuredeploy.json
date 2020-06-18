@@ -251,7 +251,7 @@
           "name": "Transformation",
           "properties": {
             "streamingUnits": "[parameters('StreamingUnits')]",
-            "query": "[concat('SELECT \r\n    DeviceId [DeviceId], \r\n    PatientId [PatientId],\r\n    EncounterId [EncounterId],\r\n    collect() [Data],\r\n    System.Timestamp [WindowTime],\r\n    Type [MeasureType],\r\n    count(*) [Count]\r\nINTO\r\n    [FhirImportOutput]\r\nFROM\r\n    [NormalizedData] PARTITION BY PartitionId TIMESTAMP BY OccurrenceTimeUtc\r\nGROUP BY  PartitionId, \r\n    DeviceId, \r\n    PatientId, \r\n    EncounterId, \r\n    Type, \r\n    TUMBLINGWINDOW(', parameters('JobWindowUnit'), ', ', parameters('JobWindowMagnitude'), ')')]"
+            "query": "[concat('SELECT \r\n    DeviceId [DeviceId], \r\n    PatientId [PatientId],\r\n    EncounterId [EncounterId],\r\n    CorrelationId [CorrelationId],\r\n    collect() [Data],\r\n    System.Timestamp [WindowTime],\r\n    Type [MeasureType],\r\n    count(*) [Count]\r\nINTO\r\n    [FhirImportOutput]\r\nFROM\r\n    [NormalizedData] PARTITION BY PartitionId TIMESTAMP BY OccurrenceTimeUtc\r\nGROUP BY  PartitionId, \r\n    DeviceId, \r\n    PatientId, \r\n    EncounterId, \r\n    CorrelationId, \r\n    Type, \r\n    TUMBLINGWINDOW(', parameters('JobWindowUnit'), ', ', parameters('JobWindowMagnitude'), ')')]"
           }
         },
         "functions": [

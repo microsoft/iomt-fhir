@@ -30,6 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("$.device", jsonPathTemplate.DeviceIdExpression);
             Assert.Equal("$.date", jsonPathTemplate.TimestampExpression);
             Assert.Null(jsonPathTemplate.PatientIdExpression);
+            Assert.Null(jsonPathTemplate.CorrelationIdExpression);
             Assert.Collection(jsonPathTemplate.Values, v =>
             {
                 Assert.True(v.Required);
@@ -57,6 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("$.device", jsonPathTemplate.DeviceIdExpression);
             Assert.Equal("$.date", jsonPathTemplate.TimestampExpression);
             Assert.Equal("$.patient", jsonPathTemplate.PatientIdExpression);
+            Assert.Equal("$.sessionid", jsonPathTemplate.CorrelationIdExpression);
             Assert.Collection(jsonPathTemplate.Values, v =>
             {
                 Assert.True(v.Required);
