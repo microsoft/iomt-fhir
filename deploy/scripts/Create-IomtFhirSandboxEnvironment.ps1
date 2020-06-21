@@ -28,6 +28,10 @@ param
     [string]$IotCentralLocation = "Central US",
 
     [Parameter(Mandatory = $false)]
+    [ValidateSet('R4')]
+    [string]$FhirVersion = "R4",
+
+    [Parameter(Mandatory = $false)]
     [string]$FhirApiLocation = "northcentralus",
 
     [Parameter(Mandatory = $false)]
@@ -111,7 +115,7 @@ $accessPolicies += @{ "objectId" = $serviceClientObjectId.ToString() }
 
 # Deploy the template
 Write-Host "Deploying resources..."
-New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirServiceAuthority $aadAuthority -FhirServiceResource $fhirServerUrl -FhirServiceClientId $serviceClientId -FhirServiceClientSecret $serviceClientSecret -FhirServiceAccessPolicies $accessPolicies -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation -IomtConnectorTemplateUrl $iomtConnectorTemplate
+New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirServiceAuthority $aadAuthority -FhirVersion $FhirVersion -FhirServiceResource $fhirServerUrl -FhirServiceClientId $serviceClientId -FhirServiceClientSecret $serviceClientSecret -FhirServiceAccessPolicies $accessPolicies -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation -IomtConnectorTemplateUrl $iomtConnectorTemplate
 
 # Copy the config templates to storage
 Write-Host "Copying templates to storage..."

@@ -36,6 +36,7 @@ The following parameters are provided by the ARM template:
 |**Throughput Units**| The throughput units reserved for the Event Hubs created. For more information see [Throughput units FAQ](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-faq#throughput-units) in the Event Hubs documentation.
 |**App Service Plan SKU**|The app service plan tier to use for hosting the required Azure Functions.
 |**Resource Location**|The location of the deployed resources.
+|**FHIR Version**|The FHIR version used in the connector. It should match the version used in the FHIR service.
 |**FHIR Service URL**|URL of the FHIR server that IoMT data will be written to.
 |**FHIR Service Authority**|Authority of the FHIR to retrieve a token against.
 |**FHIR Service Resource**|Resource/Audience representing the FHIR server on the provided authority.

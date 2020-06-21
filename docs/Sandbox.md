@@ -11,7 +11,7 @@ Once deployment is completed you should see the following Azure components:
 - Stream Analytics job
 - Storage account
 - Key vault (x2)
-- Azure API for FHIR
+- Azure API for FHIR (R4)
 - IoT Central Application
 
 For the ease of using the sandbox, a few steps will be taken for you:
