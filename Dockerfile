@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS installer-env
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS installer-env
 
 COPY ./src/func/Microsoft.Health.Fhir.Ingest.Host/ /src/iomt
 COPY ./src/lib/ /lib
