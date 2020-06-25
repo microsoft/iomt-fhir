@@ -273,7 +273,7 @@
       "location": "[parameters('IotCentralLocation')]",
       "apiVersion": "2018-09-01",
       "sku": {
-        "name": "S1"
+        "name": "ST2"
       },
       "properties": {
         "displayName": "[variables('iot_central_name')]",
