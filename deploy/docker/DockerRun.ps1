@@ -25,6 +25,7 @@ docker run -p 8080:80 `
     -e AzureWebJobsScriptRoot='/home/site/wwwroot' `
     -e AzureWebJobsStorage="$($env."AzureWebJobsStorage")" `
     -e AzureWebJobsSecretStorageType="$($env."AzureWebJobsSecretStorageType")" `
+    -e FhirVersion="$($env."FhirVersion")" `
     -e FhirService:Authority="$($env."FhirService:Authority")" `
     -e FhirService:ClientId="$($env."FhirService:ClientId")" `
     -e FhirService:ClientSecret="$($env."FhirService:ClientSecret")" `
