@@ -4,16 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using EnsureThat;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Config;
+using Microsoft.Health.Fhir.Ingest.Host;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
     {
+        private static readonly IDictionary<ResourceIdentityServiceType, Type> _identityServiceRegistry = GetIdentityServiceRegistry();
+
         private ResourceIdentityServiceFactory()
         {
         }
@@ -24,13 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(config, nameof(config));
 
-            var serviceType = Assembly
-                .GetCallingAssembly()
-                .GetTypes()
-                .Where(t => typeof(IResourceIdentityService).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract && t.Name == config.ResourceIdentityServiceType)
-                .FirstOrDefault();
-
-            if (serviceType == null)
+            if (!_identityServiceRegistry.TryGetValue(config.ResourceIdentityServiceType, out Type serviceType))
             {
                 throw new NotSupportedException($"IResourceIdentityService type {config.ResourceIdentityServiceType} not found.");
             }
@@ -50,6 +47,38 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceIdentityService.Initialize(config);
 
             return resourceIdentityService;
+        }
+
+        private static IDictionary<ResourceIdentityServiceType, Type> GetIdentityServiceRegistry()
+        {
+            IDictionary<ResourceIdentityServiceType, Type> serviceTypeRegistry = new Dictionary<ResourceIdentityServiceType, Type>();
+            AppDomain.CurrentDomain
+                .GetAssemblies()
+                .ToList()
+                .ForEach(assembly =>
+                {
+                    foreach (ResourceIdentityServiceAttribute attribute in assembly.GetCustomAttributes(typeof(ResourceIdentityServiceAttribute), false))
+                    {
+                        Type classType = attribute.ClassType;
+                        if (typeof(IResourceIdentityService).IsAssignableFrom(classType) && classType.IsClass && !classType.IsAbstract)
+                        {
+                            if (!serviceTypeRegistry.TryGetValue(attribute.ServiceType, out Type existClassType))
+                            {
+                                serviceTypeRegistry.Add(attribute.ServiceType, classType);
+                            }
+                            else
+                            {
+                                throw new TypeLoadException($"Duplicate types found for {attribute.ServiceType}: {nameof(existClassType)}, {nameof(classType)}");
+                            }
+                        }
+                        else
+                        {
+                            throw new TypeLoadException($"Type {classType} can not load for IResourceIdentityService.");
+                        }
+                    }
+                });
+
+            return serviceTypeRegistry;
         }
     }
 }

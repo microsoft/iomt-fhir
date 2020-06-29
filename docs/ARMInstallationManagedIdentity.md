@@ -46,9 +46,9 @@ The following parameters are provided by the ARM template:
 
 |Type|Behavior
 |---|---
-|**R4DeviceAndPatientLookupIdentityService**|Default setting.  Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
-|**R4DeviceAndPatientCreateIdentityService**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped in the device content configuration template.
-|**R4DeviceAndPatientWithEncounterLookupIdentityService**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
+|**Lookup**|Default setting.  Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
+|**Create**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped in the device content configuration template.
+|**LookupWithEncounter**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Post Deployment
 After the ARM template is successfully deployed, add the Managed Identity ID output by the ARM deployment to the Allowed Object IDs on the Authentication page of your Azure API for FHIR. This is the identity in Azure Active Directory that the IoMT FHIR Connector for Azure uses to connect to Azure API for FHIR. Also, the Authority on the Authentication page of your Azure API for FHIR should NOT be changed from the Azure Active Directory in your subscription, or this connection will be broken.

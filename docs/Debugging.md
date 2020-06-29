@@ -59,7 +59,7 @@ In addition to the Azure Functions prerequisites the following tasks need to be 
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "InputEventHub": "<<Insert deviceinput reader SharedAccessKey connection string>>",
     "OutputEventHub": "<<Insert normalizeddata writer SharedAccessKey connection string>>",
-    "ResourceIdentity:ResourceIdentityServiceType": "R4DeviceAndPatientLookupIdentityService",
+    "ResourceIdentity:ResourceIdentityServiceType": "Lookup",
     "ResourceIdentity:DefaultDeviceIdentifierSystem": "",
     "Template:DeviceContent": "devicecontent.json",
     "Template:FhirMapping": "fhirmapping.json"

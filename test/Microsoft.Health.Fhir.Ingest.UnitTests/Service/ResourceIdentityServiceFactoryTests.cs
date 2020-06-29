@@ -8,8 +8,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Host;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.Health.Fhir.Ingest.Service.ResourceIdentityServiceFactoryTests;
+
+[assembly: ResourceIdentityService(ResourceIdentityServiceType.Lookup, typeof(TestLookUpResourceIdentityService))]
+[assembly: ResourceIdentityService(ResourceIdentityServiceType.Create, typeof(TestCreateResourceIdentityService))]
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -23,41 +28,41 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public void GivenValidConfigurationAndNoCtorParams_WhenCreate_ThenObjectCreated_Test()
+        public void GivenSupportedConfigurationAndNoCtorParams_WhenLookUp_ThenObjectCreated_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = nameof(Test1ResourceIdentityService) };
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Lookup };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options);
             Assert.NotNull(srv);
-            var typedSrv = Assert.IsType<Test1ResourceIdentityService>(srv);
+            var typedSrv = Assert.IsType<TestLookUpResourceIdentityService>(srv);
             Assert.Equal(options, typedSrv.Options);
         }
 
         [Fact]
-        public void GivenValidConfigurationAndCtorParams_WhenCreate_ThenObjectCreatedWithParam_Test()
+        public void GivenSupportedConfigurationAndValidCtorParams_WhenCreate_ThenObjectCreatedWithParam_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = nameof(Test2ResourceIdentityService) };
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Create };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options, "foo");
             Assert.NotNull(srv);
-            var typedSrv = Assert.IsType<Test2ResourceIdentityService>(srv);
+            var typedSrv = Assert.IsType<TestCreateResourceIdentityService>(srv);
             Assert.Equal("foo", typedSrv.Parameter);
             Assert.Equal(options, typedSrv.Options);
         }
 
         [Fact]
-        public void GivenInValidConfigurationAndCtorParams_WhenCreate_ThenNotSupportedException_Test()
+        public void GivenNotSupportedConfigurationAndInvalidCtorParams_WhenLookUpWithEncounter_ThenNotSupportedException_Test()
         {
-            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = "type1" }));
+            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.LookupWithEncounter }));
             _output.WriteLine(ex.Message);
         }
 
         [Fact]
-        public void GivenValidConfigurationAndInvalidCtorParams_WhenCreate_ThenNotSupportedException_Test()
+        public void GivenSupportedConfigurationAndInvalidCtorParams_WhenCreate_ThenNotSupportedException_Test()
         {
-           var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = nameof(Test2ResourceIdentityService) }, 1));
+           var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Create }, 1));
            _output.WriteLine(ex.Message);
         }
 
-        public class Test1ResourceIdentityService : IResourceIdentityService
+        public class TestLookUpResourceIdentityService : IResourceIdentityService
         {
             public ResourceIdentityOptions Options { get; private set; }
 
@@ -72,9 +77,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        public class Test2ResourceIdentityService : IResourceIdentityService
+        public class TestCreateResourceIdentityService : IResourceIdentityService
         {
-            public Test2ResourceIdentityService(string parameter)
+            public TestCreateResourceIdentityService(string parameter)
             {
                 Parameter = parameter;
             }

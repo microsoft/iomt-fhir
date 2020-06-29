@@ -8,8 +8,13 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Host;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Model = Hl7.Fhir.Model;
+
+[assembly: ResourceIdentityService(ResourceIdentityServiceType.LookupWithEncounter, typeof(R4DeviceAndPatientWithEncounterLookupIdentityService))]
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
