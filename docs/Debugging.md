@@ -50,6 +50,7 @@ In addition to the Azure Functions prerequisites the following tasks need to be 
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FhirVersion": "R4",
     "FhirService:Authority": "<<Insert FHIR server OAuth authority>>",
     "FhirService:ClientId": "<<Insert FHIR server OAuth client credential client id>>",
     "FhirService:ClientSecret": "<<Insert FHIR server OAuth client credential client secret>>",

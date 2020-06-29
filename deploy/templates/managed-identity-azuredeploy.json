@@ -128,6 +128,16 @@
         "description": "The location of the deployed resources."
       }
     },
+    "FhirVersion": {
+      "type": "string",
+      "allowedValues": [
+        "R4"
+      ],
+      "defaultValue": "R4",
+      "metadata": {
+        "description": "The FHIR version used in the connector. It should match the version used in the FHIR service."
+      }
+    },
     "FhirServiceUrl": {
       "type": "string",
       "metadata": {
@@ -542,8 +552,9 @@
             "PROJECT": "src/func/Microsoft.Health.Fhir.Ingest.Host/Microsoft.Health.Fhir.Ingest.Host.csproj",
             "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
             "AzureWebJobsSecretStorageType": "Files",
+            "FhirVersion": "[parameters('FhirVersion')]",
             "FhirService:Url": "[parameters('FhirServiceUrl')]",
-            "FhirService:Resource" : "https://azurehealthcareapis.com",
+            "FhirService:Resource": "https://azurehealthcareapis.com",
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('Microsoft.Insights/components/', variables('app_insights_name'))).InstrumentationKey]",
             "Template:DeviceContent": "devicecontent.json",
             "Template:FhirMapping": "fhirmapping.json",

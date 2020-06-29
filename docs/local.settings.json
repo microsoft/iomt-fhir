@@ -2,6 +2,7 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FhirVersion": "R4",
     "FhirService:Authority": "",
     "FhirService:ClientId": "",
     "FhirService:ClientSecret": "",
