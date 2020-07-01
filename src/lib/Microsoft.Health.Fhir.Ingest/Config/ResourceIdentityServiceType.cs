@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Config
     public enum ResourceIdentityServiceType
     {
         /// <summary>
-        /// Create the identity resources if not existed.
+        /// Create the identity resources if they do not exist.
         /// </summary>
         Create,
 
@@ -21,7 +21,7 @@ namespace Microsoft.Health.Fhir.Ingest.Config
         Lookup,
 
         /// <summary>
-        /// Look up the identity resource with Encounter info.
+        /// Look up the identity resource with the Encounter info.
         /// </summary>
         LookupWithEncounter,
     }
