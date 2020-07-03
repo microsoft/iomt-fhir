@@ -16,7 +16,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
     {
-        private static readonly IDictionary<ResourceIdentityServiceType, Type> _identityServiceRegistry = GetIdentityServiceRegistry();
+        private static readonly IDictionary<ResourceIdentityServiceType, Type> _identityServiceRegistry = GetResourceIdentityServiceRegistry();
 
         private ResourceIdentityServiceFactory()
         {
@@ -50,11 +50,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return resourceIdentityService;
         }
 
-        private static IDictionary<ResourceIdentityServiceType, Type> GetIdentityServiceRegistry()
+        /// <summary>
+        /// Returns the registry of resource identity service classes. The class needs to be declared with the ResourceIdentityServiceAttribute
+        /// explicitly and built in the assembly. There should be only one service class registered for each ResourceIdentityServiceType. The
+        /// dynamic types will not get loaded.
+        /// </summary>
+        /// <returns>The registry of resource identity service class types.</returns>
+        private static IDictionary<ResourceIdentityServiceType, Type> GetResourceIdentityServiceRegistry()
         {
             IDictionary<ResourceIdentityServiceType, Type> serviceTypeRegistry = new Dictionary<ResourceIdentityServiceType, Type>();
             AppDomain.CurrentDomain
                 .GetAssemblies()
+                .Where(assembly => !assembly.IsDynamic)
                 .ToList()
                 .ForEach(assembly =>
                 {
@@ -74,7 +81,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             else
                             {
-                                throw new TypeLoadException($"Duplicate types found for {attribute.Type}: '{existClassType.FullName}', '{classType.FullName}'.");
+                                throw new TypeLoadException($"Duplicate class types found for IResourceIdentityService type '{attribute.Type}': '{existClassType.FullName}', '{classType.FullName}'.");
                             }
                         }
                     }
