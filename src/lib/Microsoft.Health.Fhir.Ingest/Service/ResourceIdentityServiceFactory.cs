@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using EnsureThat;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Config;
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(config, nameof(config));
 
-            if (!_identityServiceRegistry.TryGetValue(config.ResourceIdentityServiceType, out Type serviceType))
+            if (!_identityServiceRegistry.TryGetValue(config.ResourceIdentityServiceType, out Type serviceClassType))
             {
                 throw new NotSupportedException($"IResourceIdentityService type {config.ResourceIdentityServiceType} not found.");
             }
@@ -36,7 +37,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .Select(p => p.GetType())
                 .ToArray();
 
-            var ctor = serviceType.GetConstructor(ctorParamTypes);
+            var ctor = serviceClassType.GetConstructor(ctorParamTypes);
 
             if (ctor == null)
             {
@@ -57,23 +58,24 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .ToList()
                 .ForEach(assembly =>
                 {
-                    foreach (ResourceIdentityServiceAttribute attribute in assembly.GetCustomAttributes(typeof(ResourceIdentityServiceAttribute), false))
+                    foreach (Type classType in assembly.GetTypes())
                     {
-                        Type classType = attribute.ClassType;
                         if (typeof(IResourceIdentityService).IsAssignableFrom(classType) && classType.IsClass && !classType.IsAbstract)
                         {
-                            if (!serviceTypeRegistry.TryGetValue(attribute.ServiceType, out Type existClassType))
+                            ResourceIdentityServiceAttribute attribute = classType.GetCustomAttribute(typeof(ResourceIdentityServiceAttribute), false) as ResourceIdentityServiceAttribute;
+                            if (attribute == null)
                             {
-                                serviceTypeRegistry.Add(attribute.ServiceType, classType);
+                                continue;
+                            }
+
+                            if (!serviceTypeRegistry.TryGetValue(attribute.Type, out Type existClassType))
+                            {
+                                serviceTypeRegistry.Add(attribute.Type, classType);
                             }
                             else
                             {
-                                throw new TypeLoadException($"Duplicate types found for {attribute.ServiceType}: {nameof(existClassType)}, {nameof(classType)}");
+                                throw new TypeLoadException($"Duplicate types found for {attribute.Type}: '{existClassType.FullName}', '{classType.FullName}'.");
                             }
-                        }
-                        else
-                        {
-                            throw new TypeLoadException($"Type {classType} can not load for IResourceIdentityService.");
                         }
                     }
                 });

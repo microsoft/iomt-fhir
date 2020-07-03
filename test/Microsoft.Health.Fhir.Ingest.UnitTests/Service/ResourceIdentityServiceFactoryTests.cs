@@ -11,10 +11,6 @@ using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.Health.Fhir.Ingest.Service.ResourceIdentityServiceFactoryTests;
-
-[assembly: ResourceIdentityService(ResourceIdentityServiceType.Lookup, typeof(TestLookUpResourceIdentityService))]
-[assembly: ResourceIdentityService(ResourceIdentityServiceType.Create, typeof(TestCreateResourceIdentityService))]
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -28,12 +24,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public void GivenSupportedConfigurationAndNoCtorParams_WhenLookUp_ThenObjectCreated_Test()
+        public void GivenSupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test()
         {
             var options = new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Lookup };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options);
             Assert.NotNull(srv);
-            var typedSrv = Assert.IsType<TestLookUpResourceIdentityService>(srv);
+            var typedSrv = Assert.IsType<TestLookupResourceIdentityService>(srv);
             Assert.Equal(options, typedSrv.Options);
         }
 
@@ -49,7 +45,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public void GivenNotSupportedConfigurationAndInvalidCtorParams_WhenLookUpWithEncounter_ThenNotSupportedException_Test()
+        public void GivenNotSupportedConfigurationAndInvalidCtorParams_WhenLookupWithEncounter_ThenNotSupportedException_Test()
         {
             var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.LookupWithEncounter }));
             _output.WriteLine(ex.Message);
@@ -58,11 +54,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public void GivenSupportedConfigurationAndInvalidCtorParams_WhenCreate_ThenNotSupportedException_Test()
         {
-           var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Create }, 1));
-           _output.WriteLine(ex.Message);
+            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Create }, 1));
+            _output.WriteLine(ex.Message);
         }
 
-        public class TestLookUpResourceIdentityService : IResourceIdentityService
+        [ResourceIdentityService(ResourceIdentityServiceType.Lookup)]
+        public class TestLookupResourceIdentityService : IResourceIdentityService
         {
             public ResourceIdentityOptions Options { get; private set; }
 
@@ -77,6 +74,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
+        [ResourceIdentityService(ResourceIdentityServiceType.Create)]
         public class TestCreateResourceIdentityService : IResourceIdentityService
         {
             public TestCreateResourceIdentityService(string parameter)
@@ -86,6 +84,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             public string Parameter { get; private set; }
 
+            public ResourceIdentityOptions Options { get; private set; }
+
+            public void Initialize(ResourceIdentityOptions options)
+            {
+                Options = options;
+            }
+
+            public Task<IDictionary<ResourceType, string>> ResolveResourceIdentitiesAsync(IMeasurementGroup input)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class TestUnregisteredResourceIdentityService : IResourceIdentityService
+        {
             public ResourceIdentityOptions Options { get; private set; }
 
             public void Initialize(ResourceIdentityOptions options)

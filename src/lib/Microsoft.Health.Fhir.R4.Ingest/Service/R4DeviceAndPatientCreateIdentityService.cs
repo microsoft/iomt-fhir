@@ -12,13 +12,11 @@ using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
-using Microsoft.Health.Fhir.Ingest.Service;
 using Model = Hl7.Fhir.Model;
-
-[assembly: ResourceIdentityService(ResourceIdentityServiceType.Create, typeof(R4DeviceAndPatientCreateIdentityService))]
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
+    [ResourceIdentityService(ResourceIdentityServiceType.Create)]
     public class R4DeviceAndPatientCreateIdentityService : R4DeviceAndPatientLookupIdentityService
     {
         public R4DeviceAndPatientCreateIdentityService(IFhirClient fhirClient)
