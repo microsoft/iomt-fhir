@@ -4,18 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Fhir.Ingest.Config;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
     public sealed class ResourceIdentityServiceAttribute : Attribute
     {
-        public ResourceIdentityServiceAttribute(ResourceIdentityServiceType type)
+        public ResourceIdentityServiceAttribute(string type)
         {
             Type = type;
         }
 
-        public ResourceIdentityServiceType Type { get; }
+        public string Type { get; }
     }
 }

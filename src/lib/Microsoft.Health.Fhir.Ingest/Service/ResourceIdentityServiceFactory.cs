@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using EnsureThat;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Config;
@@ -16,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
     {
-        private static readonly IDictionary<ResourceIdentityServiceType, Type> _identityServiceRegistry = GetResourceIdentityServiceRegistry();
+        private static readonly IDictionary<string, Type> _identityServiceRegistry = GetResourceIdentityServiceRegistry();
 
         private ResourceIdentityServiceFactory()
         {
@@ -56,12 +55,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         /// dynamic types will not get loaded.
         /// </summary>
         /// <returns>The registry of resource identity service class types.</returns>
-        private static IDictionary<ResourceIdentityServiceType, Type> GetResourceIdentityServiceRegistry()
+        private static IDictionary<string, Type> GetResourceIdentityServiceRegistry()
         {
-            IDictionary<ResourceIdentityServiceType, Type> serviceTypeRegistry = new Dictionary<ResourceIdentityServiceType, Type>();
+            IDictionary<string, Type> serviceTypeRegistry = new Dictionary<string, Type>();
             AppDomain.CurrentDomain
                 .GetAssemblies()
-                .Where(assembly => !assembly.IsDynamic)
+                .Where(assembly => !assembly.IsDynamic && assembly.GetTypes()?.Length > 0)
                 .ToList()
                 .ForEach(assembly =>
                 {
@@ -69,19 +68,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     {
                         if (typeof(IResourceIdentityService).IsAssignableFrom(classType) && classType.IsClass && !classType.IsAbstract)
                         {
-                            ResourceIdentityServiceAttribute attribute = classType.GetCustomAttribute(typeof(ResourceIdentityServiceAttribute), false) as ResourceIdentityServiceAttribute;
-                            if (attribute == null)
+                            foreach (ResourceIdentityServiceAttribute attribute in classType.GetCustomAttributes(typeof(ResourceIdentityServiceAttribute), false) as ResourceIdentityServiceAttribute[])
                             {
-                                continue;
-                            }
-
-                            if (!serviceTypeRegistry.TryGetValue(attribute.Type, out Type existClassType))
-                            {
-                                serviceTypeRegistry.Add(attribute.Type, classType);
-                            }
-                            else
-                            {
-                                throw new TypeLoadException($"Duplicate class types found for IResourceIdentityService type '{attribute.Type}': '{existClassType.FullName}', '{classType.FullName}'.");
+                                if (!serviceTypeRegistry.TryGetValue(attribute.Type, out Type existClassType))
+                                {
+                                    serviceTypeRegistry.Add(attribute.Type, classType);
+                                }
+                                else
+                                {
+                                    throw new TypeLoadException($"Duplicate class types found for IResourceIdentityService type '{attribute.Type}': '{existClassType.FullName}', '{classType.FullName}'.");
+                                }
                             }
                         }
                     }

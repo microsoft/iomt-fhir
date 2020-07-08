@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public void GivenSupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Lookup };
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "Lookup" };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options);
             Assert.NotNull(srv);
             var typedSrv = Assert.IsType<TestLookupResourceIdentityService>(srv);
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public void GivenSupportedConfigurationAndValidCtorParams_WhenCreate_ThenObjectCreatedWithParam_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Create };
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "Create" };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options, "foo");
             Assert.NotNull(srv);
             var typedSrv = Assert.IsType<TestCreateResourceIdentityService>(srv);
@@ -45,20 +45,31 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
+        public void GivenLegacySupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test()
+        {
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "R4DeviceAndPatientLookupIdentityService" };
+            var srv = ResourceIdentityServiceFactory.Instance.Create(options);
+            Assert.NotNull(srv);
+            var typedSrv = Assert.IsType<TestLookupResourceIdentityService>(srv);
+            Assert.Equal(options, typedSrv.Options);
+        }
+
+        [Fact]
         public void GivenNotSupportedConfigurationAndInvalidCtorParams_WhenLookupWithEncounter_ThenNotSupportedException_Test()
         {
-            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.LookupWithEncounter }));
+            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = "LookupWithEncounter" }));
             _output.WriteLine(ex.Message);
         }
 
         [Fact]
         public void GivenSupportedConfigurationAndInvalidCtorParams_WhenCreate_ThenNotSupportedException_Test()
         {
-            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = ResourceIdentityServiceType.Create }, 1));
+            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = "Create" }, 1));
             _output.WriteLine(ex.Message);
         }
 
-        [ResourceIdentityService(ResourceIdentityServiceType.Lookup)]
+        [ResourceIdentityService("Lookup")]
+        [ResourceIdentityService("R4DeviceAndPatientLookupIdentityService")]
         public class TestLookupResourceIdentityService : IResourceIdentityService
         {
             public ResourceIdentityOptions Options { get; private set; }
@@ -74,7 +85,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        [ResourceIdentityService(ResourceIdentityServiceType.Create)]
+        [ResourceIdentityService("Create")]
         public class TestCreateResourceIdentityService : IResourceIdentityService
         {
             public TestCreateResourceIdentityService(string parameter)
