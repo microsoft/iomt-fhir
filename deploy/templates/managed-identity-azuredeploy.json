@@ -144,6 +144,13 @@
         "description": "Url of the FHIR server that IoMT will be written to."
       }
     },
+    "FhirServiceAudience": {
+      "type": "string",
+      "metadata": {
+        "description": "Audience representing the FHIR server."
+      },
+      "defaultValue": ""
+    },
     "ResourceIdentityServiceType": {
       "type": "string",
       "allowedValues": [
@@ -178,7 +185,8 @@
     "deploy_source_code": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
     "sender_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
     "receiver_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
-    "iomt_fhir_connector_name": "[concat('ResourceIdentity', ':', parameters('ResourceIdentityServiceType'))]"
+    "iomt_fhir_connector_name": "[concat('ResourceIdentity', ':', parameters('ResourceIdentityServiceType'))]",
+    "fhir_service_audience": "[if(or(equals(parameters('FhirServiceAudience'), json('null')), equals(parameters('FhirServiceAudience'), '')), parameters('FhirServiceUrl'), parameters('FhirServiceAudience'))]"
   },
   "resources": [
     {
@@ -560,7 +568,7 @@
             "AzureWebJobsSecretStorageType": "Files",
             "FhirVersion": "[parameters('FhirVersion')]",
             "FhirService:Url": "[parameters('FhirServiceUrl')]",
-            "FhirService:Resource": "https://azurehealthcareapis.com",
+            "FhirService:Resource": "[variables('fhir_service_audience')]",
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('Microsoft.Insights/components/', variables('app_insights_name'))).InstrumentationKey]",
             "Template:DeviceContent": "devicecontent.json",
             "Template:FhirMapping": "fhirmapping.json",
