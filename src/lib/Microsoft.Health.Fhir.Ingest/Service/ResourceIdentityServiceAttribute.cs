@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Fhir.Ingest.Config;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
@@ -13,6 +14,11 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         public ResourceIdentityServiceAttribute(string type)
         {
             Type = type;
+        }
+
+        public ResourceIdentityServiceAttribute(ResourceIdentityServiceType type)
+            : this(type.ToString())
+        {
         }
 
         public string Type { get; }

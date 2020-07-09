@@ -8,14 +8,15 @@ using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    [ResourceIdentityService("Lookup")]
-    [ResourceIdentityService("R4DeviceAndPatientLookupIdentityService")]
+    [ResourceIdentityService(ResourceIdentityServiceType.Lookup)]
+    [ResourceIdentityService(nameof(R4DeviceAndPatientLookupIdentityService))]
     public class R4DeviceAndPatientLookupIdentityService : DeviceAndPatientLookupIdentityService
     {
         private readonly IFhirClient _fhirClient;
