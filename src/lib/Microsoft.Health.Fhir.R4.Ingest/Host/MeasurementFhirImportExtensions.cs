@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Runtime.CompilerServices;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
@@ -52,7 +51,6 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             return builder;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IResourceIdentityService ResolveResourceIdentityService(IServiceProvider serviceProvider)
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));

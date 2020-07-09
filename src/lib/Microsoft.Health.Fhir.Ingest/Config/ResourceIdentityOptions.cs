@@ -7,7 +7,7 @@ namespace Microsoft.Health.Fhir.Ingest.Config
 {
     public class ResourceIdentityOptions
     {
-        public string ResourceIdentityServiceType { get; set; } = "R4DeviceAndPatientLookupIdentityService";
+        public string ResourceIdentityServiceType { get; set; } = Config.ResourceIdentityServiceType.Lookup.ToString();
 
         public string DefaultDeviceIdentifierSystem { get; set; } = null;
     }

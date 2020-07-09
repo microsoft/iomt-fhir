@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Host;
 using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
@@ -17,6 +19,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     /// Supports looking up device, patient, and encounter ids.  Ids are cached by the device identifier in the supplied measurement group.
     /// Assumption is one patient and encounter supported per device.
     /// </summary>
+    [ResourceIdentityService(ResourceIdentityServiceType.LookupWithEncounter)]
+    [ResourceIdentityService(nameof(R4DeviceAndPatientWithEncounterLookupIdentityService))]
     public class R4DeviceAndPatientWithEncounterLookupIdentityService : R4DeviceAndPatientLookupIdentityService
     {
         public R4DeviceAndPatientWithEncounterLookupIdentityService(IFhirClient fhirClient)

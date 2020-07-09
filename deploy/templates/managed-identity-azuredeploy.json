@@ -154,11 +154,11 @@
     "ResourceIdentityServiceType": {
       "type": "string",
       "allowedValues": [
-        "R4DeviceAndPatientLookupIdentityService",
-        "R4DeviceAndPatientCreateIdentityService",
-        "R4DeviceAndPatientWithEncounterLookupIdentityService"
+        "Lookup",
+        "Create",
+        "LookupWithEncounter"
       ],
-      "defaultValue": "R4DeviceAndPatientLookupIdentityService",
+      "defaultValue": "Lookup",
       "metadata": {
         "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
       }
@@ -185,6 +185,7 @@
     "deploy_source_code": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
     "sender_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
     "receiver_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
+    "iomt_fhir_connector_name": "[concat('ResourceIdentity', ':', parameters('ResourceIdentityServiceType'))]",
     "fhir_service_audience": "[if(or(equals(parameters('FhirServiceAudience'), json('null')), equals(parameters('FhirServiceAudience'), '')), parameters('FhirServiceUrl'), parameters('FhirServiceAudience'))]"
   },
   "resources": [
@@ -201,7 +202,8 @@
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'normalizeddata', '$Default')]"
       ],
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "identity": {
         "type": "SystemAssigned"
@@ -279,7 +281,8 @@
       "name": "[variables('eventhub_namespace_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "sku": {
         "name": "Standard",
@@ -435,7 +438,8 @@
       "name": "[variables('storage_account_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "sku": {
         "name": "Standard_RAGRS",
@@ -501,7 +505,8 @@
       "name": "[variables('app_plan_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "sku": {
         "name": "[parameters('AppServicePlanSku')]"
@@ -521,7 +526,8 @@
       "name": "[variables('app_service_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('app_plan_name'))]",
@@ -698,7 +704,8 @@
       "name": "[variables('app_insights_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "kind": "web",
       "properties": {
@@ -713,7 +720,8 @@
       "name": "[variables('key_vault_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
-        "IomtFhirConnector": "[parameters('ResourceIdentityServiceType')]"
+        "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
+        "IomtFhirVersion": "[parameters('FhirVersion')]"
       },
       "dependsOn": [
         "[variables('app_service_resource_id')]"

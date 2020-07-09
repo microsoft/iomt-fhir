@@ -11,7 +11,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "InputEventHub": "",
     "OutputEventHub": "",
-    "ResourceIdentity:ResourceIdentityServiceType": "R4DeviceAndPatientLookupIdentityService",
+    "ResourceIdentity:ResourceIdentityServiceType": "Lookup",
     "ResourceIdentity:DefaultDeviceIdentifierSystem": "",
     "Template:DeviceContent": "devicecontent.json",
     "Template:FhirMapping": "fhirmapping.json"

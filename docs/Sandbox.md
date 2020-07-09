@@ -18,7 +18,7 @@ For the ease of using the sandbox, a few steps will be taken for you:
 
 1. Simulated devices are set up in IoT Central to generate data.
 2. Template files for those devices will be copied to the IoMT FHIR Connector for Azure storage account "Template" blob.
-3. The IoMT FHIR Connector for Azure will be configured with the "R4DeviceAndPatientCreateIdentityService" so that patients will automatically be created for each device.
+3. The IoMT FHIR Connector for Azure will be configured with the Resource Identity Service Type "Create" so that patients will automatically be created for each device.
 
 ## Prerequisites
 
