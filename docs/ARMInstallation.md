@@ -42,10 +42,10 @@ The following parameters are provided by the ARM template:
 |**FHIR Service Resource**|Resource/Audience representing the FHIR server on the provided authority.
 |**FHIR Service Client Id**|Client Id to run services as for access to the FHIR server.
 |**FHIR Service Client Secret**|Client secret of the application for accessing a token.
-|**Resource Identity Service Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
+|**Resource Identity Resolution Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
 |**Default Device Identifier System**|Default system to use when searching for device identities. If empty system is not used in the search.
 
-### Resource Identity Service Type
+### Resource Identity Resolution Type
 **Note** all identity look ups are cached once resolved to decrease load on the FHIR server.  If you plan on reusing devices with multiple patients it is advised you create a *virtual device* resource that is specific to the patient and the virtual device identifier is what is sent in the message payload. The virtual device can be linked to the actual device resource as a parent.
 
 |Type|Behavior
