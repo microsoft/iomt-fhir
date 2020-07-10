@@ -168,7 +168,7 @@
         "description": "Client secret of the application for accessing a token."
       }
     },
-    "ResourceIdentityServiceType": {
+    "ResourceIdentityResolutionType": {
       "type": "string",
       "allowedValues": [
         "Lookup",
@@ -336,8 +336,8 @@
           "FhirServiceClientSecret": {
             "value": "[parameters('FhirServiceClientSecret')]"
           },
-          "ResourceIdentityServiceType": {
-            "value": "[parameters('ResourceIdentityServiceType')]"
+          "ResourceIdentityResolutionType": {
+            "value": "[parameters('ResourceIdentityResolutionType')]"
           },
           "DefaultDeviceIdentifierSystem": {
             "value": "[parameters('DefaultDeviceIdentifierSystem')]"
