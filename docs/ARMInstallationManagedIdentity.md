@@ -38,10 +38,10 @@ The following parameters are provided by the ARM template:
 |**Resource Location**|The location of the deployed resources.
 |**FHIR Version**|The FHIR version used in the connector. It should match the version used in the FHIR service.
 |**FHIR Service URL**|URL of the FHIR server that IoMT data will be written to.
-|**Resource Identity Service Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
+|**Resource Identity Resolution Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
 |**Default Device Identifier System**|Default system to use when searching for device identities. If empty system is not used in the search.
 
-### Resource Identity Service Type
+### Resource Identity Resolution Type
 **Note** all identity look ups are cached once resolved to decrease load on the FHIR server.  If you plan on reusing devices with multiple patients it is advised you create a *virtual device* resource that is specific to the patient and the virtual device identifier is what is sent in the message payload. The virtual device can be linked to the actual device resource as a parent.
 
 |Type|Behavior
