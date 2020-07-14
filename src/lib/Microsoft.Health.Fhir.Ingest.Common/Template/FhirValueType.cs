@@ -10,8 +10,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     [JsonConverter(typeof(AbstractJsonConverter), typeof(FhirValueType), nameof(FhirValueType.ValueType))]
     public abstract class FhirValueType
     {
+        [JsonProperty(Required = Required.Always)]
         public virtual string ValueName { get; set; }
 
+        [JsonProperty(Required = Required.Always)]
         public virtual string ValueType { get; set; }
     }
 }

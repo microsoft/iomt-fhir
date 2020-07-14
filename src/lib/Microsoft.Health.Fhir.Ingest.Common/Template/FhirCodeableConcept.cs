@@ -4,14 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class FhirCodeableConcept
     {
+        [JsonProperty(Required = Required.Always)]
         public string Text { get; set; }
 
 #pragma warning disable CA2227
+        [JsonProperty(Required = Required.Always)]
         public IList<FhirCode> Codes { get; set; }
 #pragma warning restore CA2227
     }

@@ -9,23 +9,28 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JsonPathContentTemplate : IContentTemplate
     {
+        [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
 
+        [JsonProperty(Required = Required.Always)]
         public virtual string TypeMatchExpression { get; set; }
 
+        [JsonProperty(Required = Required.Always)]
         public virtual string DeviceIdExpression { get; set; }
+
+        [JsonProperty(Required = Required.Always)]
+        public virtual string TimestampExpression { get; set; }
 
         public virtual string PatientIdExpression { get; set; }
 
         public virtual string EncounterIdExpression { get; set; }
-
-        public virtual string TimestampExpression { get; set; }
 
         public virtual string CorrelationIdExpression { get; set; }
 

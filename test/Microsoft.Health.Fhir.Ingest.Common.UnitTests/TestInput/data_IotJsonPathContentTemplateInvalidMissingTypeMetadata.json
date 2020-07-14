@@ -1,0 +1,12 @@
+{
+  "templateType": "IotJsonPathContent",
+  "template": {
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.Body.heartrate",
+        "valueName": "hr"
+      }
+    ]
+  }
+}

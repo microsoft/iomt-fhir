@@ -52,6 +52,9 @@
     <None Update="TestInput\data_CodeValueFhirTemplate_Quantity.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestInput\data_CodeValueFhirTemplateInvalid_MissingFields.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestInput\data_CodeValueFhirTemplate_SampledData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -88,10 +91,19 @@
     <None Update="TestInput\data_IotHubPayloadMultiValueExample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestInput\data_IotJsonPathContentTemplateInvalidMissingValueField.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_IotJsonPathContentTemplateInvalidMissingTypeMetadata.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestInput\data_IotJsonPathContentTemplateValid.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_IotJsonPathContentTemplateValidWithOptional.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_JsonPathContentTemplateInvalidMissingExpression.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_JsonPathContentTemplateValid.json">
