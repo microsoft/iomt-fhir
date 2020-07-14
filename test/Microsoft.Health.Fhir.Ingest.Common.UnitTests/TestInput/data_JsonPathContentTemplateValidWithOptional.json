@@ -1,0 +1,18 @@
+{
+  "templateType": "JsonPathContent",
+  "template": {
+    "typeName": "heartrate",
+    "typeMatchExpression": "$..[?(@heartrate)]",
+    "deviceIdExpression": "$.device",
+    "timestampExpression": "$.date",
+    "patientIdExpression": "$.patient",
+    "correlationIdExpression": "$.sessionid",
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.heartrate",
+        "valueName": "hr"
+      }
+    ]
+  }
+}
