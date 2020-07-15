@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {

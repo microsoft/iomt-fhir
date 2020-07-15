@@ -21,7 +21,22 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             get { return _templateErrors; }
         }
 
+        /// <summary>
+        /// Create mapping template for the container of serialzied JSON template.
+        /// Throw exception for template validation errors.
+        /// </summary>
+        /// <param name="jsonTemplate">JSON template container </param>
+        /// <returns>Mapping template object.</returns>
         public abstract TOutput Create(TInput jsonTemplate);
+
+        /// <summary>
+        /// Create mapping template for the container of serialzied JSON template.
+        /// Return the deserialized mapping object with validation errors.
+        /// </summary>
+        /// <param name="jsonTemplate">JSON template container </param>
+        /// <param name="errors">Template validation errors</param>
+        /// <returns>Mapping template object.</returns>
+        public abstract TOutput Create(TInput jsonTemplate, out IList<string> errors);
 
         TOutput IResponsibilityHandler<TInput, TOutput>.Evaluate(TInput request) => Create(request);
 
