@@ -10,30 +10,32 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CodeValueFhirTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IFhirTemplate>
+    public class IotJsonPathContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
-        private const string TargetTypeName = "CodeValueFhirTemplate";
+        private const string TargetTypeName = "IotJsonPathContentTemplate";
 
-        public override IFhirTemplate Create(TemplateContainer jsonTemplate)
+        public override IContentTemplate Create(TemplateContainer jsonTemplate)
         {
-            var codeValueFhirTemplate = Create(jsonTemplate, out IList<string> _);
+            var iotJsonPathContentTemplate = Create(jsonTemplate, out IList<string> _);
             if (TemplateErrors.Any())
             {
                 string aggregatedErrorMessage = string.Join(", \n", TemplateErrors);
                 throw new InvalidTemplateException($"There were errors found for template type {TargetTypeName}: \n{aggregatedErrorMessage}");
             }
 
-            return codeValueFhirTemplate;
+            return iotJsonPathContentTemplate;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Exception message")]
-        public override IFhirTemplate Create(TemplateContainer jsonTemplate, out IList<string> errors)
+
+        public override IContentTemplate Create(TemplateContainer jsonTemplate, out IList<string> errors)
         {
             EnsureArg.IsNotNull(jsonTemplate, nameof(jsonTemplate));
+            errors = TemplateErrors;
 
             if (!jsonTemplate.MatchTemplateName(TargetTypeName))
             {
-                throw new InvalidTemplateException($"Expected {nameof(jsonTemplate.TemplateType)} value {TargetTypeName}, actual {jsonTemplate.TemplateType}.");
+                return null;
             }
 
             if (jsonTemplate.Template?.Type != JTokenType.Object)
@@ -41,10 +43,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {TargetTypeName}.");
             }
 
-            var codeValueFhirTemplate = jsonTemplate.Template.ToObject<CodeValueFhirTemplate>(GetJsonSerializer());
-            errors = TemplateErrors;
+            var iotJsonPathContentTemplate = jsonTemplate.Template.ToObject<IotJsonPathContentTemplate>(GetJsonSerializer());
 
-            return codeValueFhirTemplate;
+            return iotJsonPathContentTemplate;
         }
     }
 }

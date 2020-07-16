@@ -10,20 +10,20 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class IotJsonPathContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
+    public class JsonPathContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
-        private const string TargetTypeName = "IotJsonPathContentTemplate";
+        private const string TargetTypeName = "JsonPathContentTemplate";
 
         public override IContentTemplate Create(TemplateContainer jsonTemplate)
         {
-            var iotJsonPathContentTemplate = Create(jsonTemplate, out IList<string> _);
+            var jsonPathContentTemplate = Create(jsonTemplate, out IList<string> _);
             if (TemplateErrors.Any())
             {
                 string aggregatedErrorMessage = string.Join(", \n", TemplateErrors);
                 throw new InvalidTemplateException($"There were errors found for template type {TargetTypeName}: \n{aggregatedErrorMessage}");
             }
 
-            return iotJsonPathContentTemplate;
+            return jsonPathContentTemplate;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Exception message")]
@@ -31,7 +31,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public override IContentTemplate Create(TemplateContainer jsonTemplate, out IList<string> errors)
         {
             EnsureArg.IsNotNull(jsonTemplate, nameof(jsonTemplate));
-
             errors = TemplateErrors;
 
             if (!jsonTemplate.MatchTemplateName(TargetTypeName))
@@ -44,9 +43,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {TargetTypeName}.");
             }
 
-            var iotJsonPathContentTemplate = jsonTemplate.Template.ToObject<IotJsonPathContentTemplate>(GetJsonSerializer());
+            var jsonPathContentTemplate = jsonTemplate.Template.ToObject<JsonPathContentTemplate>(GetJsonSerializer());
 
-            return iotJsonPathContentTemplate;
+            return jsonPathContentTemplate;
         }
     }
 }

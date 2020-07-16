@@ -12,7 +12,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
 
-        [JsonProperty(Required = Required.Always)]
         public virtual ObservationPeriodInterval PeriodInterval { get; set; }
     }
 }

@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -26,19 +28,45 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override string TargetTemplateTypeName => "CollectionFhirTemplate";
 
-        protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection)
+        protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection, out IList<string> errors)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            List<string> collectionErrors = new List<string>();
 
             var lookupTemplate = new FhirLookupTemplate();
             foreach (var token in templateCollection)
             {
                 var container = token.ToObject<TemplateContainer>();
-                var createdTemplate = TemplateFactories.Evaluate(container);
-                lookupTemplate.RegisterTemplate(createdTemplate);
+                var createdTemplate = TemplateFactories.Evaluate(container, out IList<string> createdTemplateErrors);
+
+                // Validations and error handling.
+                collectionErrors.AddRange(createdTemplateErrors ?? Enumerable.Empty<string>());
+                collectionErrors.AddRange(Validate(createdTemplate, lookupTemplate));
+
+                // Processing the newly created template.
+                if (createdTemplate?.TypeName != null && !lookupTemplate.HasTemplate(createdTemplate.TypeName))
+                {
+                    lookupTemplate.RegisterTemplate(createdTemplate);
+                }
             }
 
+            errors = collectionErrors;
             return lookupTemplate;
+        }
+
+        // Perform collection level validation.
+        private IList<string> Validate(IFhirTemplate createdTemplate, FhirLookupTemplate collectionLookupTemplate)
+        {
+            EnsureArg.IsNotNull(createdTemplate, nameof(createdTemplate));
+
+            IList<string> errors = new List<string>();
+
+            if (!string.IsNullOrEmpty(createdTemplate.TypeName) && collectionLookupTemplate.HasTemplate(createdTemplate.TypeName))
+            {
+                errors.Add($"Duplicate template defined for {createdTemplate.TypeName}");
+            }
+
+            return errors;
         }
     }
 }

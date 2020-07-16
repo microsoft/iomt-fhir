@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public abstract class HandlerProxyTemplateFactory<TInput, TOutput> :
         ITemplateFactory<TInput, TOutput>,
-        IResponsibilityHandler<TInput, TOutput>
+        IResponsibilityHandler<TInput, TOutput, IList<string>>
         where TOutput : class
     {
         private readonly IList<string> _templateErrors = new List<string>();
@@ -33,12 +33,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         /// Create mapping template for the container of serialzied JSON template.
         /// Return the deserialized mapping object with validation errors.
         /// </summary>
+        /// <typeparam name="TContext">The type of context container</typeparam>
         /// <param name="jsonTemplate">JSON template container </param>
         /// <param name="errors">Template validation errors</param>
         /// <returns>Mapping template object.</returns>
         public abstract TOutput Create(TInput jsonTemplate, out IList<string> errors);
 
-        TOutput IResponsibilityHandler<TInput, TOutput>.Evaluate(TInput request) => Create(request);
+        TOutput IResponsibilityHandler<TInput, TOutput, IList<string>>.Evaluate(TInput request) => Create(request);
+
+        TOutput IResponsibilityHandler<TInput, TOutput, IList<string>>.Evaluate(TInput request, out IList<string> errors) => Create(request, out errors);
 
         protected JsonSerializer GetJsonSerializer()
         {

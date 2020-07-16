@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -31,18 +33,23 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override string TargetTemplateTypeName => "CollectionContentTemplate";
 
-        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection)
+        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection, out IList<string> errors)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            List<string> collectionErrors = new List<string>();
 
             var template = new CollectionContentTemplate();
             foreach (var token in templateCollection)
             {
                 var container = token.ToObject<TemplateContainer>();
-                var createdTemplate = TemplateFactories.Evaluate(container);
+                var createdTemplate = TemplateFactories.Evaluate(container, out IList<string> createdTemplateErrors);
                 template.RegisterTemplate(createdTemplate);
+
+                // Error Handling.
+                collectionErrors.AddRange(createdTemplateErrors ?? Enumerable.Empty<string>());
             }
 
+            errors = collectionErrors;
             return template;
         }
     }

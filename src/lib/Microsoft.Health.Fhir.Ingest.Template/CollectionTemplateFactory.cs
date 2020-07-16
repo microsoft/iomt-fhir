@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Common.Handler;
 using Newtonsoft.Json;
@@ -14,16 +15,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         where TInTemplate : class
         where TOutTemplate : class
     {
-        private static readonly IResponsibilityHandler<TemplateContainer, TInTemplate> NotFoundHandler = new TemplateNotFoundHandler<TInTemplate>();
+        private static readonly IResponsibilityHandler<TemplateContainer, TInTemplate, IList<string>> NotFoundHandler = new TemplateNotFoundHandler<TInTemplate>();
 
-        private readonly IResponsibilityHandler<TemplateContainer, TInTemplate> _templateFactories;
+        private readonly IResponsibilityHandler<TemplateContainer, TInTemplate, IList<string>> _templateFactories;
 
         protected CollectionTemplateFactory(params ITemplateFactory<TemplateContainer, TInTemplate>[] factories)
         {
             EnsureArg.IsNotNull(factories, nameof(factories));
             EnsureArg.HasItems(factories, nameof(factories));
 
-            IResponsibilityHandler<TemplateContainer, TInTemplate> handler = new WrappedHandlerTemplateFactory<TemplateContainer, TInTemplate>(factories[0]);
+            IResponsibilityHandler<TemplateContainer, TInTemplate, IList<string>> handler = new WrappedHandlerTemplateFactory<TemplateContainer, TInTemplate>(factories[0]);
             for (int i = 1; i < factories.Length; i++)
             {
                 handler = handler.Chain(new WrappedHandlerTemplateFactory<TemplateContainer, TInTemplate>(factories[i]));
@@ -33,11 +34,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             _templateFactories = handler.Chain(NotFoundHandler);
         }
 
-        protected IResponsibilityHandler<TemplateContainer, TInTemplate> TemplateFactories => _templateFactories;
+        protected IResponsibilityHandler<TemplateContainer, TInTemplate, IList<string>> TemplateFactories => _templateFactories;
 
         protected abstract string TargetTemplateTypeName { get; }
 
-        public TOutTemplate Create(string input)
+        public TOutTemplate Create(string input, out IList<string> errors)
         {
             var rootContainer = JsonConvert.DeserializeObject<TemplateContainer>(input);
             if (!rootContainer.MatchTemplateName(TargetTemplateTypeName))
@@ -50,9 +51,24 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an array for the template property value for template type {TargetTemplateTypeName}.");
             }
 
-            return BuildCollectionTemplate((JArray)rootContainer.Template);
+            var outTemplate = BuildCollectionTemplate((JArray)rootContainer.Template, out IList<string> collectionErrors);
+            errors = collectionErrors;
+
+            return outTemplate;
         }
 
-        protected abstract TOutTemplate BuildCollectionTemplate(JArray templateCollection);
+        public TOutTemplate Create(string input)
+        {
+            var outTemplate = Create(input, out IList<string> templateErrors);
+            if (templateErrors?.Count > 0)
+            {
+                string aggregatedErrorMessage = string.Join(", \n", templateErrors);
+                throw new InvalidTemplateException($"There were errors found for template type {TargetTemplateTypeName}: \n{aggregatedErrorMessage}");
+            }
+
+            return outTemplate;
+        }
+
+        protected abstract TOutTemplate BuildCollectionTemplate(JArray templateCollection, out IList<string> errors);
     }
 }

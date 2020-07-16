@@ -35,7 +35,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Common\Microsoft.Health.Fhir.Ingest.Common.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Tests.Common\Microsoft.Health.Tests.Common.csproj" />
   </ItemGroup>
 
@@ -76,7 +77,13 @@
     <None Update="TestInput\data_CollectionFhirTemplateEmptyWithType.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestInput\data_CollectionFhirTemplateMixed.json">
+    <None Update="TestInput\data_CollectionFhirTemplateInvalid.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_CollectionContentTemplateMixed.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_CollectionFhirTemplateValid.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_CollectionFhirTemplateMultipleMocks.json">

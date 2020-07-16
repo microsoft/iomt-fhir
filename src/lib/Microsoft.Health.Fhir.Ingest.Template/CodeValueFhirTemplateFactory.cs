@@ -10,33 +10,30 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class JsonPathContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
+    public class CodeValueFhirTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IFhirTemplate>
     {
-        private const string TargetTypeName = "JsonPathContentTemplate";
+        private const string TargetTypeName = "CodeValueFhirTemplate";
 
-        public override IContentTemplate Create(TemplateContainer jsonTemplate)
+        public override IFhirTemplate Create(TemplateContainer jsonTemplate)
         {
-            var jsonPathContentTemplate = Create(jsonTemplate, out IList<string> _);
+            var codeValueFhirTemplate = Create(jsonTemplate, out _);
             if (TemplateErrors.Any())
             {
                 string aggregatedErrorMessage = string.Join(", \n", TemplateErrors);
                 throw new InvalidTemplateException($"There were errors found for template type {TargetTypeName}: \n{aggregatedErrorMessage}");
             }
 
-            return jsonPathContentTemplate;
+            return codeValueFhirTemplate;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Exception message")]
-
-        public override IContentTemplate Create(TemplateContainer jsonTemplate, out IList<string> errors)
+        public override IFhirTemplate Create(TemplateContainer jsonTemplate, out IList<string> errors)
         {
             EnsureArg.IsNotNull(jsonTemplate, nameof(jsonTemplate));
 
-            errors = TemplateErrors;
-
             if (!jsonTemplate.MatchTemplateName(TargetTypeName))
             {
-                return null;
+                throw new InvalidTemplateException($"Expected {nameof(jsonTemplate.TemplateType)} value {TargetTypeName}, actual {jsonTemplate.TemplateType}.");
             }
 
             if (jsonTemplate.Template?.Type != JTokenType.Object)
@@ -44,14 +41,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {TargetTypeName}.");
             }
 
-            var jsonPathContentTemplate = jsonTemplate.Template.ToObject<JsonPathContentTemplate>(GetJsonSerializer());
-            if (TemplateErrors.Any())
-            {
-                string aggregatedErrorMessage = string.Join(", \n", TemplateErrors);
-                throw new InvalidTemplateException($"There were errors found for template type {TargetTypeName}: \n{aggregatedErrorMessage}");
-            }
+            var codeValueFhirTemplate = jsonTemplate.Template.ToObject<CodeValueFhirTemplate>(GetJsonSerializer());
 
-            return jsonPathContentTemplate;
+            errors = TemplateErrors;
+            return codeValueFhirTemplate;
         }
     }
 }

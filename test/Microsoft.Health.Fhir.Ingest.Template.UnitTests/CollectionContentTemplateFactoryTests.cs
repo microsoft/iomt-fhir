@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -24,6 +25,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var template = CollectionContentTemplateFactory.Default.Create(json);
             Assert.NotNull(template);
+
+            template = CollectionContentTemplateFactory.Default.Create(json, out IList<string> errors);
+            Assert.NotNull(template);
+            Assert.Empty(errors);
         }
 
         [Theory]
@@ -33,18 +38,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             IContentTemplate nullReturn = null;
 
             var factoryA = Substitute.For<ITemplateFactory<TemplateContainer, IContentTemplate>>();
-            factoryA.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockA"))).Returns(nullReturn);
+            factoryA.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockA")), out Arg.Any<IList<string>>()).Returns(nullReturn);
 
             var factoryB = Substitute.For<ITemplateFactory<TemplateContainer, IContentTemplate>>();
-            factoryB.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockB"))).Returns(nullReturn);
+            factoryB.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockB")), out Arg.Any<IList<string>>()).Returns(nullReturn);
 
             var factory = new CollectionContentTemplateFactory(factoryA, factoryB);
             var template = factory.Create(json);
 
             Assert.NotNull(template);
 
-            factoryA.ReceivedWithAnyArgs().Create(null);
-            factoryB.ReceivedWithAnyArgs().Create(null);
+            factoryA.ReceivedWithAnyArgs().Create(null, out Arg.Any<IList<string>>());
+            factoryB.ReceivedWithAnyArgs().Create(null, out Arg.Any<IList<string>>());
         }
 
         [Theory]
@@ -54,24 +59,28 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             IContentTemplate nullReturn = null;
 
             var factoryA = Substitute.For<ITemplateFactory<TemplateContainer, IContentTemplate>>();
-            factoryA.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockA"))).Returns(nullReturn);
+            factoryA.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockA")), out Arg.Any<IList<string>>()).Returns(nullReturn);
 
             var factoryB = Substitute.For<ITemplateFactory<TemplateContainer, IContentTemplate>>();
-            factoryB.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockC"))).Returns(nullReturn);
+            factoryB.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockC")), out Arg.Any<IList<string>>()).Returns(nullReturn);
 
             var factory = new CollectionContentTemplateFactory(factoryA, factoryB);
             Assert.Throws<InvalidTemplateException>(() => factory.Create(json));
 
-            factoryA.ReceivedWithAnyArgs().Create(null);
-            factoryB.ReceivedWithAnyArgs().Create(null);
+            factoryA.ReceivedWithAnyArgs().Create(null, out Arg.Any<IList<string>>());
+            factoryB.ReceivedWithAnyArgs().Create(null, out Arg.Any<IList<string>>());
         }
 
         [Theory]
-        [FileData(@"TestInput/data_CollectionFhirTemplateMixed.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateMixed.json")]
         public void GivenInputWithMultipleTemplates_WhenCreate_ThenTemplateReturn_Test(string json)
         {
             var template = CollectionContentTemplateFactory.Default.Create(json);
             Assert.NotNull(template);
+
+            template = CollectionContentTemplateFactory.Default.Create(json, out IList<string> errors);
+            Assert.NotNull(template);
+            Assert.Empty(errors);
         }
     }
 }

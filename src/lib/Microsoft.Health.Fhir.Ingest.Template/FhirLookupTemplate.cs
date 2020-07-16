@@ -27,6 +27,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             return this;
         }
 
+        public bool HasTemplate(string type)
+        {
+            return _templates.ContainsKey(type);
+        }
+
         public IFhirTemplate GetTemplate(string type)
         {
             EnsureArg.IsNotNullOrWhiteSpace(type, nameof(type));

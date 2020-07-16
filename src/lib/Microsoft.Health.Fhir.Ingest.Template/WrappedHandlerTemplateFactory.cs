@@ -21,9 +21,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public override TOutput Create(TInput input) => _contentTemplateFactory.Create(input);
 
-        public override TOutput Create(TInput jsonTemplate, out IList<string> errors)
-        {
-            throw new System.NotImplementedException();
-        }
+        public override TOutput Create(TInput input, out IList<string> errors) => _contentTemplateFactory.Create(input, out errors);
     }
 }
