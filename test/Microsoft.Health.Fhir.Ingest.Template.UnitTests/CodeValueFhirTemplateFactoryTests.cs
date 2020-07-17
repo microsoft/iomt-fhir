@@ -290,7 +290,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
             Assert.NotNull(ex);
-            Assert.Contains("Display", ex.Message);
             Assert.Contains("TypeName", ex.Message);
         }
 
