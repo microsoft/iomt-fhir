@@ -5,8 +5,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Tests.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -38,17 +39,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_IotHubPayloadExample.json")]
         public void GivenTemplateAndSingleValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
-            var evt = EventDataTestHelper.BuildEventFromJson(eventJson);
-            var token = new EventDataWithJsonBodyToJTokenConverter().Convert(evt);
-
+            var token = JsonConvert.DeserializeObject<JToken>(eventJson);
             var result = SingleValueTemplate.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Collection(result, m =>
             {
                 Assert.Equal("heartrate", m.Type);
-                Assert.Equal(evt.Properties["iothub-creation-time-utc"], m.OccurrenceTimeUtc);
-                Assert.Equal(evt.SystemProperties["iothub-connection-device-id"], m.DeviceId);
+                Assert.Equal(token["Properties"]["iothub-creation-time-utc"], m.OccurrenceTimeUtc);
+                Assert.Equal(token["SystemProperties"]["iothub-connection-device-id"], m.DeviceId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);
@@ -61,17 +60,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_IotHubPayloadMultiValueExample.json")]
         public void GivenTemplateAndSingleMultiValueValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
-            var evt = EventDataTestHelper.BuildEventFromJson(eventJson);
-            var token = new EventDataWithJsonBodyToJTokenConverter().Convert(evt);
-
+            var token = JsonConvert.DeserializeObject<JToken>(eventJson);
             var result = MultiValueTemplate.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Collection(result, m =>
             {
                 Assert.Equal("bloodpressure", m.Type);
-                Assert.Equal(evt.Properties["iothub-creation-time-utc"], m.OccurrenceTimeUtc);
-                Assert.Equal(evt.SystemProperties["iothub-connection-device-id"], m.DeviceId);
+                Assert.Equal(token["Properties"]["iothub-creation-time-utc"], m.OccurrenceTimeUtc);
+                Assert.Equal(token["SystemProperties"]["iothub-connection-device-id"], m.DeviceId);
                 Assert.Collection(
                     m.Properties,
                     p =>
@@ -91,17 +88,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_IotHubPayloadExampleMissingCreateTime.json")]
         public void GivenTemplateAndSingleValidTokenWithoutCreationTime_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
         {
-            var evt = EventDataTestHelper.BuildEventFromJson(eventJson);
-            var token = new EventDataWithJsonBodyToJTokenConverter().Convert(evt);
-
+            var token = JsonConvert.DeserializeObject<JToken>(eventJson);
             var result = SingleValueTemplate.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Collection(result, m =>
             {
                 Assert.Equal("heartrate", m.Type);
-                Assert.Equal(evt.SystemProperties["iothub-enqueuedtime"], m.OccurrenceTimeUtc);
-                Assert.Equal(evt.SystemProperties["iothub-connection-device-id"], m.DeviceId);
+                Assert.Equal(token["SystemProperties"]["iothub-enqueuedtime"], m.OccurrenceTimeUtc);
+                Assert.Equal(token["SystemProperties"]["iothub-connection-device-id"], m.DeviceId);
                 Assert.Collection(m.Properties, p =>
                 {
                     Assert.Equal("hr", p.Name);

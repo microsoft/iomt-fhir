@@ -1,5 +1,0 @@
-{
-  "Properties": "{\"iothub-creation-time-utc\":\"2019-01-30T22:45:02.6073744Z\",\"tz\":\"America/Los_Angeles\",\"batchid\":\"55b1e26f-9c83-4264-a0dd-3567afd633d6\",\"batchsize\":\"60\"}",
-  "SystemProperties": "{\"iothub-connection-device-id\":\"ev-d795-1d04-55ae\",\"iothub-connection-auth-method\":\"{\\\"scope\\\":\\\"device\\\",\\\"type\\\":\\\"sas\\\",\\\"issuer\\\":\\\"iothub\\\",\\\"acceptingIpFilterRule\\\":null}\",\"iothub-connection-auth-generation-id\":\"636845741198574895\",\"iothub-enqueuedtime\":\"2019-02-01T22:46:01.8750000Z\"}",
-  "Body": "\"eyJzeXN0b2xpYyI6IjExMSIsImRpYXN0b2xpYyI6Ijc1Iiwic3RlcHMiOiIzMCJ9\""
-}
