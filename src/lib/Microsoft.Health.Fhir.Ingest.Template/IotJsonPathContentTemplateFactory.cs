@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var iotJsonPathContentTemplate = jsonTemplate.Template.ToObject<IotJsonPathContentTemplate>(GetJsonSerializer());
             SerializationErrors.ToList()
-                .ForEach(e => iotJsonPathContentTemplate.SerializationErrors.Add(e));
+                .ForEach(e => iotJsonPathContentTemplate.TemplateErrors.Add(e));
 
             return iotJsonPathContentTemplate;
         }

@@ -17,7 +17,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JsonPathContentTemplate : IContentTemplate
     {
-        private readonly IList<string> _serializationErrors = new List<string>();
+        private readonly IList<string> _templateErrors = new List<string>();
 
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public virtual IList<JsonPathValueExpression> Values { get; set; }
 #pragma warning restore CA2227
 
-        public IList<string> SerializationErrors => _serializationErrors;
+        public IList<string> TemplateErrors => _templateErrors;
 
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
@@ -157,7 +157,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            return SerializationErrors
+            return _templateErrors
                 .Select(e => new ValidationResult(e))
                 .ToList();
         }

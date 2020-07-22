@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var codeValueFhirTemplate = jsonTemplate.Template.ToObject<CodeValueFhirTemplate>(GetJsonSerializer());
             SerializationErrors.ToList()
-                .ForEach(e => codeValueFhirTemplate.SerializationErrors.Add(e));
+                .ForEach(e => codeValueFhirTemplate.TemplateErrors.Add(e));
 
             return codeValueFhirTemplate;
         }

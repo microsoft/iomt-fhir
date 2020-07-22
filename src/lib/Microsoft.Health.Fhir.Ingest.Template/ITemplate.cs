@@ -10,6 +10,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public interface ITemplate : IValidatableObject
     {
-        IList<string> SerializationErrors { get; }
+        IList<string> TemplateErrors { get; }
     }
 }

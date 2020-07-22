@@ -12,9 +12,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public abstract class FhirTemplate : IFhirTemplate
     {
-        private readonly IList<string> _serializationErrors = new List<string>();
+        private readonly IList<string> _templateErrors = new List<string>();
 
-        public IList<string> SerializationErrors => _serializationErrors;
+        public IList<string> TemplateErrors => _templateErrors;
 
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
@@ -23,7 +23,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            return SerializationErrors
+            return _templateErrors
                 .Select(e => new ValidationResult(e))
                 .ToList();
         }

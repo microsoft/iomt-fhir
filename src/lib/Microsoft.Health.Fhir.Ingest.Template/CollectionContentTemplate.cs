@@ -14,11 +14,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CollectionContentTemplate : IContentTemplate
     {
-        private readonly IList<string> _serializationErrors = new List<string>();
+        private readonly IList<string> _templateErrors = new List<string>();
 
         private readonly IList<IContentTemplate> _templates = new List<IContentTemplate>(10);
 
-        public IList<string> SerializationErrors => _serializationErrors;
+        public IList<string> TemplateErrors => _templateErrors;
 
         public CollectionContentTemplate RegisterTemplate(IContentTemplate contentTemplate)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             List<ValidationResult> aggregatedResult = new List<ValidationResult>();
-            _serializationErrors.ToList()
+            _templateErrors.ToList()
                 .ForEach(e => aggregatedResult.Add(new ValidationResult(e)));
 
             _templates.ToList()

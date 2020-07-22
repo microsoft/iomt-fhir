@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             template.RegisterTemplate(templateA);
             template.RegisterTemplate(templateB);
 
-            Assert.NotEmpty(template.SerializationErrors);
+            Assert.NotEmpty(template.TemplateErrors);
         }
 
         [Fact]

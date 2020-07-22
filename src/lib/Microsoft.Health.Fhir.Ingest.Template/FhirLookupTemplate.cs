@@ -13,11 +13,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class FhirLookupTemplate : ILookupTemplate<IFhirTemplate>
     {
-        private readonly IList<string> _serializationErrors = new List<string>();
+        private readonly IList<string> _templateErrors = new List<string>();
 
         private readonly IDictionary<string, IFhirTemplate> _templates = new Dictionary<string, IFhirTemplate>(StringComparer.InvariantCultureIgnoreCase);
 
-        public IList<string> SerializationErrors => _serializationErrors;
+        public IList<string> TemplateErrors => _templateErrors;
 
         public FhirLookupTemplate RegisterTemplate(IFhirTemplate fhirTemplate)
         {
@@ -33,18 +33,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 }
                 else
                 {
-                    _serializationErrors.Add($"Duplicate template defined for type name: '{fhirTemplate.TypeName}'");
+                    _templateErrors.Add($"Duplicate template defined for type name: '{fhirTemplate.TypeName}'");
                 }
             }
             else if (fhirTemplate.TypeName?.Trim().Length == 0)
             {
-                _serializationErrors.Add($"Empty type name is not allowed.");
+                _templateErrors.Add($"Empty type name is not allowed.");
             }
 
             if (!hasTemplateRegistered)
             {
-                fhirTemplate.SerializationErrors.ToList()
-                    .ForEach(e => _serializationErrors.Add(e));
+                fhirTemplate.TemplateErrors.ToList()
+                    .ForEach(e => _templateErrors.Add(e));
             }
 
             return this;
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             List<ValidationResult> aggregatedResult = new List<ValidationResult>();
-            _serializationErrors.ToList()
+            _templateErrors.ToList()
                 .ForEach(e => aggregatedResult.Add(new ValidationResult(e)));
 
             _templates.Values.ToList()
