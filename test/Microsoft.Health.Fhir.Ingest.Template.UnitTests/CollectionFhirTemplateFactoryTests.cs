@@ -47,6 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(template);
             Assert.False(template.IsValid(out string aggregatedErrors));
             Assert.Contains("Required property 'TypeName' not found in JSON.", aggregatedErrors);
+            Assert.Contains("Duplicate template defined for type name", aggregatedErrors);
         }
 
         [Theory]

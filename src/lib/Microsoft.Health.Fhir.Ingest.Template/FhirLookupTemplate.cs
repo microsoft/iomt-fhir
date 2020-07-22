@@ -23,18 +23,25 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             EnsureArg.IsNotNull(fhirTemplate, nameof(fhirTemplate));
 
-            if (fhirTemplate?.TypeName != null)
+            bool hasTemplateRegistered = false;
+            if (!string.IsNullOrWhiteSpace(fhirTemplate.TypeName))
             {
                 if (!_templates.ContainsKey(fhirTemplate.TypeName))
                 {
                     _templates.Add(fhirTemplate.TypeName, fhirTemplate);
+                    hasTemplateRegistered = true;
                 }
                 else
                 {
                     _serializationErrors.Add($"Duplicate template defined for type name: '{fhirTemplate.TypeName}'");
                 }
             }
-            else
+            else if (fhirTemplate.TypeName?.Trim().Length == 0)
+            {
+                _serializationErrors.Add($"Empty type name is not allowed.");
+            }
+
+            if (!hasTemplateRegistered)
             {
                 fhirTemplate.SerializationErrors.ToList()
                     .ForEach(e => _serializationErrors.Add(e));

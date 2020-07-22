@@ -12,7 +12,42 @@
         ],
         "value": {
           "defaultPeriod": 1000,
-          "unit": "count/min"
+          "unit": "count/min",
+          "valueName": "steps",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "system": "http://loinc.org",
+            "display": "Number of steps"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "steps",
+        "value": {
+          "defaultPeriod": 1000,
+          "unit": "count"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "system": "http://loinc.org",
+            "display": "Number of steps"
+          }
+        ],
+        "typeName": " ",
+        "value": {
+          "valueName": "steps",
+          "valueType": "SampledData"
         }
       }
     },
@@ -30,22 +65,6 @@
         "value": {
           "defaultPeriod": 1000,
           "unit": "count",
-          "valueName": "steps",
-          "valueType": "SampledData"
-        }
-      }
-    },
-    {
-      "templateType": "CodeValueFhir",
-      "template": {
-        "codes": [
-          {
-            "system": "http://loinc.org",
-            "display": "Number of steps"
-          }
-        ],
-        "typeName": "",
-        "value": {
           "valueName": "steps",
           "valueType": "SampledData"
         }
