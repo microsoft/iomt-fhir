@@ -24,6 +24,29 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var template = CollectionFhirTemplateFactory.Default.Create(json);
             Assert.NotNull(template);
+
+            template = CollectionFhirTemplateFactory.Default.Create(json);
+            Assert.NotNull(template);
+            Assert.True(template.IsValid(out _));
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionFhirTemplateValid.json")]
+        public void GivenValidTemplateCollection_WhenCreate_ThenTemplateReturnedWithoutError_Test(string json)
+        {
+            var template = CollectionFhirTemplateFactory.Default.Create(json);
+            Assert.NotNull(template);
+            Assert.True(template.IsValid(out _));
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionFhirTemplateInvalid.json")]
+        public void GivenInvalidTemplateCollection_WhenCreate_ThenErrorMessageReturned_Test(string json)
+        {
+            var template = CollectionFhirTemplateFactory.Default.Create(json);
+            Assert.NotNull(template);
+            Assert.False(template.IsValid(out string aggregatedErrors));
+            Assert.Contains("Required property 'TypeName' not found in JSON.", aggregatedErrors);
         }
 
         [Theory]

@@ -1,0 +1,168 @@
+{
+  "templateType": "CollectionFhir",
+  "template": [
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "8867-4",
+            "system": "http://loinc.org",
+            "display": "Heart rate"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "heartrate",
+        "value": {
+          "defaultPeriod": 1000,
+          "unit": "count/min",
+          "valueName": "hr",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "55423-8",
+            "system": "http://loinc.org",
+            "display": "Number of steps"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "steps",
+        "value": {
+          "defaultPeriod": 1000,
+          "unit": "count",
+          "valueName": "steps",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "80404-7",
+            "system": "http://loinc.org",
+            "display": "Heart rate variability"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "hrv",
+        "value": {
+          "defaultPeriod": 1000,
+          "unit": "",
+          "valueName": "hrv",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "85354-9",
+            "display": "Blood pressure panel",
+            "system": "http://loinc.org"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "bloodpressure",
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "8867-4",
+                "display": "Diastolic blood pressure",
+                "system": "http://loinc.org"
+              }
+            ],
+            "value": {
+              "defaultPeriod": 1000,
+              "unit": "mmHg",
+              "valueName": "diastolic",
+              "valueType": "SampledData"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "8480-6",
+                "display": "Systolic blood pressure",
+                "system": "http://loinc.org"
+              },
+              {
+                "code": "271649006",
+                "display": "Systolic blood pressure",
+                "system": "http://snomed.info/sct"
+              }
+            ],
+            "value": {
+              "defaultPeriod": 1000,
+              "unit": "mmHg",
+              "valueName": "systolic",
+              "valueType": "SampledData"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "deviceEvent",
+            "system": "https://www.mydevice.com/v1",
+            "display": "Device Event"
+          }
+        ],
+        "periodInterval": 0,
+        "typeName": "deviceWorn",
+        "value": {
+          "text": "Device Worn",
+          "codes": [
+            {
+              "code": "deviceWorn",
+              "system": "https://www.mydevice.com/v1",
+              "display": "Device Worn"
+            }
+          ],
+          "valueName": "deviceWorn",
+          "valueType": "CodeableConcept"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "deviceEvent",
+            "system": "https://www.mydevice.com/v1",
+            "display": "Device Event"
+          }
+        ],
+        "periodInterval": 0,
+        "typeName": "deviceRemoved",
+        "value": {
+          "text": "Device Removed",
+          "codes": [
+            {
+              "code": "Removed",
+              "system": "https://www.mydevice.com/v1",
+              "display": "Device Removed"
+            }
+          ],
+          "valueName": "deviceRemoved",
+          "valueType": "CodeableConcept"
+        }
+      }
+    }
+  ]
+}

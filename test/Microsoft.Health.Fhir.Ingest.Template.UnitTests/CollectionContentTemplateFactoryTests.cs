@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -24,6 +26,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var template = CollectionContentTemplateFactory.Default.Create(json);
             Assert.NotNull(template);
+
+            template = CollectionContentTemplateFactory.Default.Create(json);
+            IEnumerable<ValidationResult> validationResult = template.Validate(new ValidationContext(template));
+            Assert.NotNull(template);
+            Assert.Empty(validationResult);
         }
 
         [Theory]
@@ -57,21 +64,22 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             factoryA.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockA"))).Returns(nullReturn);
 
             var factoryB = Substitute.For<ITemplateFactory<TemplateContainer, IContentTemplate>>();
-            factoryB.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockC"))).Returns(nullReturn);
+            factoryB.Create(Arg.Is<TemplateContainer>(v => !v.MatchTemplateName("mockB"))).Returns(nullReturn);
 
             var factory = new CollectionContentTemplateFactory(factoryA, factoryB);
-            Assert.Throws<InvalidTemplateException>(() => factory.Create(json));
+            factory.Create(json);
 
             factoryA.ReceivedWithAnyArgs().Create(null);
             factoryB.ReceivedWithAnyArgs().Create(null);
         }
 
         [Theory]
-        [FileData(@"TestInput/data_CollectionFhirTemplateMixed.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateMixed.json")]
         public void GivenInputWithMultipleTemplates_WhenCreate_ThenTemplateReturn_Test(string json)
         {
             var template = CollectionContentTemplateFactory.Default.Create(json);
             Assert.NotNull(template);
+            Assert.True(template.IsValid(out _));
         }
     }
 }

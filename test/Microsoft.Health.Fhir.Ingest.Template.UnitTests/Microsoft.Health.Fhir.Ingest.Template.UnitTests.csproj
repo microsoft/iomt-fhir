@@ -104,7 +104,16 @@
     <None Update="TestInput\data_IotJsonPathContentTemplateValid.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestInput\data_IotJsonPathContentTemplateInvalidMissingTypeMetadata.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_IotJsonPathContentTemplateInvalidMissingValueField.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestInput\data_IotJsonPathContentTemplateValidWithOptional.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_JsonPathContentTemplateInvalidMissingExpression.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_JsonPathContentTemplateValid.json">
@@ -113,10 +122,6 @@
     <None Update="TestInput\data_JsonPathContentTemplateValidWithOptional.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="TestInput\" />
   </ItemGroup>
 
 </Project>

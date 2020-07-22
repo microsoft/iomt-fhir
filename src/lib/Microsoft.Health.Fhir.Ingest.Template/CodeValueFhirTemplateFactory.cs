@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -26,7 +27,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
             }
 
-            return jsonTemplate.Template.ToObject<CodeValueFhirTemplate>();
+            var codeValueFhirTemplate = jsonTemplate.Template.ToObject<CodeValueFhirTemplate>(GetJsonSerializer());
+            SerializationErrors.ToList()
+                .ForEach(e => codeValueFhirTemplate.SerializationErrors.Add(e));
+
+            return codeValueFhirTemplate;
         }
     }
 }

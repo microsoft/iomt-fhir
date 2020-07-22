@@ -67,6 +67,22 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             });
         }
 
+        [Theory]
+        [FileData(@"TestInput/data_JsonPathContentTemplateInvalidMissingExpression.json")]
+        public void GivenInvalidTemplateJsonMissingExpressions_WhenFactoryCreate_ThenTemplateErrorReturned_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+
+            var factory = new JsonPathContentTemplateFactory();
+
+            var template = factory.Create(templateContainer);
+            Assert.NotNull(template);
+
+            template.IsValid(out string errors);
+            Assert.Contains("DeviceIdExpression", errors);
+            Assert.Contains("TimestampExpression", errors);
+        }
+
         [Fact]
         public void GivenInvalidTemplateTargetType_WhenFactoryCreate_ThenNullReturned_Test()
         {

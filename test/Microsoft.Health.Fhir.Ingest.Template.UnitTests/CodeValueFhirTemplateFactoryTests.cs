@@ -280,6 +280,20 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 });
         }
 
+        [Theory]
+        [FileData(@"TestInput/data_CodeValueFhirTemplateInvalid_MissingFields.json")]
+        public void GivenInvalidTemplateJsonMissingFields_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+
+            var factory = new CodeValueFhirTemplateFactory();
+
+            var template = factory.Create(templateContainer);
+            Assert.NotNull(template);
+            template.IsValid(out string errors);
+            Assert.Contains("TypeName", errors);
+        }
+
         [Fact]
         public void GivenInvalidTemplateTargetType_WhenFactoryCreate_ThenInvalidTemplateExceptionThrown_Test()
         {

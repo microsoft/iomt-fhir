@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface IContentTemplate
+    public interface IContentTemplate : ITemplate
     {
         IEnumerable<Measurement> GetMeasurements(JToken token);
     }

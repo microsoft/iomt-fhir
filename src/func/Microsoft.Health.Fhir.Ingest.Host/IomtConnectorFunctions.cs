@@ -58,6 +58,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 EnsureArg.IsNotNull(events, nameof(events));
 
                 var template = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
+                if (!template.IsValid(out string error))
+                {
+                    throw new InvalidTemplateException($"The current Device template definition is not valid: {error}");
+                }
 
                 log.LogMetric(Metrics.DeviceEvent, events.Length);
                 IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(log, template);

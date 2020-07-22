@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Newtonsoft.Json.Linq;
 
@@ -12,17 +14,36 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CollectionContentTemplate : IContentTemplate
     {
+        private readonly IList<string> _serializationErrors = new List<string>();
+
         private readonly IList<IContentTemplate> _templates = new List<IContentTemplate>(10);
+
+        public IList<string> SerializationErrors => _serializationErrors;
 
         public CollectionContentTemplate RegisterTemplate(IContentTemplate contentTemplate)
         {
+            EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
+
             _templates.Add(contentTemplate);
+
             return this;
         }
 
         public IEnumerable<Measurement> GetMeasurements(JToken token)
         {
             return _templates.SelectMany(t => t.GetMeasurements(token));
+        }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            List<ValidationResult> aggregatedResult = new List<ValidationResult>();
+            _serializationErrors.ToList()
+                .ForEach(e => aggregatedResult.Add(new ValidationResult(e)));
+
+            _templates.ToList()
+                .ForEach(t => aggregatedResult.AddRange(t.Validate(validationContext)));
+
+            return aggregatedResult;
         }
     }
 }
