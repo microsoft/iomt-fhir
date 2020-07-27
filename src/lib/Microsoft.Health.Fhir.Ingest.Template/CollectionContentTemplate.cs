@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -14,11 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CollectionContentTemplate : IContentTemplate
     {
-        private readonly IList<string> _templateErrors = new List<string>();
-
         private readonly IList<IContentTemplate> _templates = new List<IContentTemplate>(10);
-
-        public IList<string> TemplateErrors => _templateErrors;
 
         public CollectionContentTemplate RegisterTemplate(IContentTemplate contentTemplate)
         {
@@ -32,18 +27,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public IEnumerable<Measurement> GetMeasurements(JToken token)
         {
             return _templates.SelectMany(t => t.GetMeasurements(token));
-        }
-
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            List<ValidationResult> aggregatedResult = new List<ValidationResult>();
-            _templateErrors.ToList()
-                .ForEach(e => aggregatedResult.Add(new ValidationResult(e)));
-
-            _templates.ToList()
-                .ForEach(t => aggregatedResult.AddRange(t.Validate(validationContext)));
-
-            return aggregatedResult;
         }
     }
 }

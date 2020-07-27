@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface IFhirTemplate : ITemplate
+    public interface IFhirTemplate
     {
         string TypeName { get; }
     }

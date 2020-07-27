@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.Health.Fhir.Ingest.Data;
-using Newtonsoft.Json.Linq;
+using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface IContentTemplate
+    public interface ITemplateContext<TTemplate> : IValidatableObject
     {
-        IEnumerable<Measurement> GetMeasurements(JToken token);
+        TTemplate Template { get; }
     }
 }

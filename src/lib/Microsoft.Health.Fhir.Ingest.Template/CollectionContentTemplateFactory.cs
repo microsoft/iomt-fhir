@@ -3,7 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using EnsureThat;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -13,8 +16,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     /// </summary>
     public class CollectionContentTemplateFactory : CollectionTemplateFactory<IContentTemplate, IContentTemplate>
     {
-        private static readonly ITemplateFactory<string, IContentTemplate> DefaultFactory = new CollectionContentTemplateFactory();
-
         private CollectionContentTemplateFactory()
             : base(
                   new JsonPathContentTemplateFactory(),
@@ -27,20 +28,37 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public static ITemplateFactory<string, IContentTemplate> Default => DefaultFactory;
+        public static CollectionContentTemplateFactory Default { get; } = new CollectionContentTemplateFactory();
 
         protected override string TargetTemplateTypeName => "CollectionContentTemplate";
 
-        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection)
+        public ITemplateContext<IContentTemplate> Create(string input)
+        {
+            var context = new TemplateContext<IContentTemplate>();
+
+            context.Template = Create(input, context.Errors);
+
+            return context;
+        }
+
+        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection, ICollection<Exception> errorContext)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            EnsureArg.IsNotNull(errorContext, nameof(errorContext));
 
             var template = new CollectionContentTemplate();
             foreach (var token in templateCollection)
             {
-                var container = token.ToObject<TemplateContainer>();
-                var createdTemplate = TemplateFactories.Evaluate(container);
-                template.RegisterTemplate(createdTemplate);
+                try
+                {
+                    var container = token.ToObject<TemplateContainer>();
+                    var createdTemplate = TemplateFactories.Evaluate(container);
+                    template.RegisterTemplate(createdTemplate);
+                }
+                catch (JsonSerializationException jse)
+                {
+                    errorContext.Add(jse);
+                }
             }
 
             return template;

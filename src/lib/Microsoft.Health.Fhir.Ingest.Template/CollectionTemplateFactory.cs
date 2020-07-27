@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Common.Handler;
 using Newtonsoft.Json;
@@ -10,13 +12,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public abstract class CollectionTemplateFactory<TInTemplate, TOutTemplate> : ITemplateFactory<string, TOutTemplate>
+    public abstract class CollectionTemplateFactory<TInTemplate, TOutTemplate>
         where TInTemplate : class
         where TOutTemplate : class
     {
         private static readonly IResponsibilityHandler<TemplateContainer, TInTemplate> NotFoundHandler = new TemplateNotFoundHandler<TInTemplate>();
-
-        private readonly IResponsibilityHandler<TemplateContainer, TInTemplate> _templateFactories;
 
         protected CollectionTemplateFactory(params ITemplateFactory<TemplateContainer, TInTemplate>[] factories)
         {
@@ -30,15 +30,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             // Attach NotFoundHandler at the end of the chain to throw exception if we reach end with no factory found.
-            _templateFactories = handler.Chain(NotFoundHandler);
+            TemplateFactories = handler.Chain(NotFoundHandler);
         }
 
-        protected IResponsibilityHandler<TemplateContainer, TInTemplate> TemplateFactories => _templateFactories;
+        protected IResponsibilityHandler<TemplateContainer, TInTemplate> TemplateFactories { get; }
 
         protected abstract string TargetTemplateTypeName { get; }
 
-        public TOutTemplate Create(string input)
+        protected TOutTemplate Create(string input, ICollection<Exception> errorContext)
         {
+            EnsureArg.IsNotNull(errorContext, nameof(errorContext));
+
             var rootContainer = JsonConvert.DeserializeObject<TemplateContainer>(input);
             if (!rootContainer.MatchTemplateName(TargetTemplateTypeName))
             {
@@ -50,9 +52,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an array for the template property value for template type {TargetTemplateTypeName}.");
             }
 
-            return BuildCollectionTemplate((JArray)rootContainer.Template);
+            return BuildCollectionTemplate((JArray)rootContainer.Template, errorContext);
         }
 
-        protected abstract TOutTemplate BuildCollectionTemplate(JArray templateCollection);
+        protected abstract TOutTemplate BuildCollectionTemplate(JArray templateCollection, ICollection<Exception> errorContext);
     }
 }
