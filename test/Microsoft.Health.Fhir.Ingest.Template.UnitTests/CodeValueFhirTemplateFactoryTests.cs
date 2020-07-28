@@ -288,10 +288,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new CodeValueFhirTemplateFactory();
 
-            var template = factory.Create(templateContainer);
-            Assert.NotNull(template);
-            template.IsValid(out string errors);
-            Assert.Contains("TypeName", errors);
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("TypeName", ex.Message);
         }
 
         [Fact]

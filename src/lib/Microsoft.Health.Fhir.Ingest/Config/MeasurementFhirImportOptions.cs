@@ -15,6 +15,6 @@ namespace Microsoft.Health.Fhir.Ingest.Config
 
         public virtual ExceptionTelemetryProcessor ExceptionService { get; } = new ExceptionTelemetryProcessor();
 
-        public virtual ITemplateFactory<string, ILookupTemplate<IFhirTemplate>> TemplateFactory { get; } = CollectionFhirTemplateFactory.Default;
+        public virtual ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>> TemplateFactory { get; } = CollectionFhirTemplateFactory.Default;
     }
 }

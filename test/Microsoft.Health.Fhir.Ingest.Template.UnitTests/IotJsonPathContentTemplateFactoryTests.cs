@@ -72,11 +72,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
             var factory = new IotJsonPathContentTemplateFactory();
 
-            var template = factory.Create(templateContainer);
-            Assert.NotNull(template);
-            Assert.False(template.IsValid(out string errors));
-            Assert.Contains("TypeName", errors);
-            Assert.Contains("TypeMatchExpression", errors);
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("TypeName", ex.Message);
+            Assert.Contains("TypeMatchExpression", ex.Message);
         }
 
         [Theory]
@@ -86,10 +85,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
             var factory = new IotJsonPathContentTemplateFactory();
 
-            var template = factory.Create(templateContainer);
-            Assert.NotNull(template);
-            Assert.False(template.IsValid(out string errors));
-            Assert.Contains("ValueName", errors);
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("ValueName", ex.Message);
         }
 
         [Fact]

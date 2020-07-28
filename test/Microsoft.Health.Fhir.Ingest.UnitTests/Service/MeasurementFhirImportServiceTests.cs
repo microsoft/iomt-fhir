@@ -200,7 +200,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private MeasurementFhirImportOptions BuildMockOptions()
         {
             var exceptionProcessor = Substitute.For<ExceptionTelemetryProcessor>();
-            var templateFactory = Substitute.For<ITemplateFactory<string, ILookupTemplate<IFhirTemplate>>>();
+            var templateFactory = Substitute.For<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>();
             var parallelTaskOptions = new ParallelTaskOptions();
 
             var options = Substitute.For<MeasurementFhirImportOptions>();

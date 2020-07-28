@@ -22,9 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             templateB.TypeName.Returns("test");
 
             template.RegisterTemplate(templateA);
-            template.RegisterTemplate(templateB);
-
-            Assert.NotEmpty(template.TemplateErrors);
+            Assert.Throws<InvalidTemplateException>(() => template.RegisterTemplate(templateB));
         }
 
         [Fact]

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface ILookupTemplate<TTemplate> : ITemplate
+    public interface ILookupTemplate<TTemplate>
     {
         TTemplate GetTemplate(string name);
     }

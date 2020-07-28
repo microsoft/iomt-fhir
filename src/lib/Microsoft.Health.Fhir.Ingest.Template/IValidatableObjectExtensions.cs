@@ -12,7 +12,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public static class IValidatableObjectExtensions
     {
-        public static bool IsValid(this ITemplate input, out string error)
+        public static bool IsValid(this IValidatableObject input, out string error)
         {
             EnsureArg.IsNotNull(input, nameof(input));
 
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 return true;
             }
 
-            builder.Append("The template is invalid: ");
+            builder.Append("Validation errors: ");
             foreach (var validationError in validationErrors)
             {
                 builder.AppendLine($"{validationError.ErrorMessage}");
@@ -33,6 +33,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             error = builder.ToString();
             return false;
+        }
+
+        public static void EnsureValid(this IValidatableObject input)
+        {
+            EnsureArg.IsNotNull(input, nameof(input));
+
+            if (!input.IsValid(out string errMessage))
+            {
+                throw new ValidationException(errMessage);
+            }
         }
     }
 }

@@ -16,8 +16,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         private static readonly IResponsibilityHandler<TemplateContainer, TInTemplate> NotFoundHandler = new TemplateNotFoundHandler<TInTemplate>();
 
-        private readonly IResponsibilityHandler<TemplateContainer, TInTemplate> _templateFactories;
-
         protected CollectionTemplateFactory(params ITemplateFactory<TemplateContainer, TInTemplate>[] factories)
         {
             EnsureArg.IsNotNull(factories, nameof(factories));
@@ -30,10 +28,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             // Attach NotFoundHandler at the end of the chain to throw exception if we reach end with no factory found.
-            _templateFactories = handler.Chain(NotFoundHandler);
+            TemplateFactories = handler.Chain(NotFoundHandler);
         }
 
-        protected IResponsibilityHandler<TemplateContainer, TInTemplate> TemplateFactories => _templateFactories;
+        protected IResponsibilityHandler<TemplateContainer, TInTemplate> TemplateFactories { get; }
 
         protected abstract string TargetTemplateTypeName { get; }
 
@@ -50,9 +48,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an array for the template property value for template type {TargetTemplateTypeName}.");
             }
 
-            return BuildCollectionTemplate((JArray)rootContainer.Template);
+            return BuildCollectionTemplateContext((JArray)rootContainer.Template);
         }
 
-        protected abstract TOutTemplate BuildCollectionTemplate(JArray templateCollection);
+        protected abstract TOutTemplate BuildCollectionTemplateContext(JArray templateCollection);
     }
 }

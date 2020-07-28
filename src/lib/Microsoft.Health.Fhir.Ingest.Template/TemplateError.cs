@@ -3,13 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface ITemplate : IValidatableObject
+    public class TemplateError
     {
-        IList<string> TemplateErrors { get; }
+        private readonly string _message;
+
+        public TemplateError(string message)
+        {
+            _message = message;
+        }
+
+        public string Message
+        {
+            get { return _message;  }
+        }
     }
 }

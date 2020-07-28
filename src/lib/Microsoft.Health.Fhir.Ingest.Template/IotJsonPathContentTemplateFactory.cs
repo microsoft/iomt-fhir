@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -28,8 +27,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             var iotJsonPathContentTemplate = jsonTemplate.Template.ToObject<IotJsonPathContentTemplate>(GetJsonSerializer());
-            SerializationErrors.ToList()
-                .ForEach(e => iotJsonPathContentTemplate.TemplateErrors.Add(e));
+            if (SerializationErrors?.Count > 0)
+            {
+                string errorMessage = string.Join(", \n", SerializationErrors);
+                throw new InvalidTemplateException($"Failed to deserialize the template content: {errorMessage}");
+            }
 
             return iotJsonPathContentTemplate;
         }

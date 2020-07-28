@@ -80,7 +80,16 @@
     <None Update="TestInput\data_CollectionFhirTemplateInvalid.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestInput\data_CollectionFhirTemplateMixedValidity.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestInput\data_CollectionContentTemplateMixed.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_CollectionContentTemplateInvalid.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_CollectionContentTemplateMixedValidity.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\data_CollectionFhirTemplateMixed.json">

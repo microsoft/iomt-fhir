@@ -8,10 +8,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CollectionFhirTemplateFactory : CollectionTemplateFactory<IFhirTemplate, ILookupTemplate<IFhirTemplate>>
+    public class CollectionFhirTemplateFactory : CollectionTemplateFactory<IFhirTemplate, ITemplateContext<ILookupTemplate<IFhirTemplate>>>
     {
-        private static readonly ITemplateFactory<string, ILookupTemplate<IFhirTemplate>> DefaultFactory = new CollectionFhirTemplateFactory();
-
         private CollectionFhirTemplateFactory()
             : base(new CodeValueFhirTemplateFactory())
         {
@@ -22,23 +20,31 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public static ITemplateFactory<string, ILookupTemplate<IFhirTemplate>> Default => DefaultFactory;
+        public static CollectionFhirTemplateFactory Default { get; } = new CollectionFhirTemplateFactory();
 
         protected override string TargetTemplateTypeName => "CollectionFhirTemplate";
 
-        protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection)
+        protected override ITemplateContext<ILookupTemplate<IFhirTemplate>> BuildCollectionTemplateContext(JArray templateCollection)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
 
             var lookupTemplate = new FhirLookupTemplate();
+            var lookupTemplateContext = new TemplateContext<ILookupTemplate<IFhirTemplate>>(lookupTemplate);
             foreach (var token in templateCollection)
             {
-                var container = token.ToObject<TemplateContainer>();
-                var createdTemplate = TemplateFactories.Evaluate(container);
-                lookupTemplate.RegisterTemplate(createdTemplate);
+                try
+                {
+                    var container = token.ToObject<TemplateContainer>();
+                    var createdTemplate = TemplateFactories.Evaluate(container);
+                    lookupTemplate.RegisterTemplate(createdTemplate);
+                }
+                catch (InvalidTemplateException ex)
+                {
+                    lookupTemplateContext.Errors.Add(new TemplateError(ex.Message));
+                }
             }
 
-            return lookupTemplate;
+            return lookupTemplateContext;
         }
     }
 }

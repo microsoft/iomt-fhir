@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using EnsureThat;
@@ -17,8 +16,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JsonPathContentTemplate : IContentTemplate
     {
-        private readonly IList<string> _templateErrors = new List<string>();
-
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
 
@@ -40,8 +37,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 #pragma warning disable CA2227
         public virtual IList<JsonPathValueExpression> Values { get; set; }
 #pragma warning restore CA2227
-
-        public IList<string> TemplateErrors => _templateErrors;
 
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
@@ -153,13 +148,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             return measurement;
-        }
-
-        public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            return _templateErrors
-                .Select(e => new ValidationResult(e))
-                .ToList();
         }
     }
 }

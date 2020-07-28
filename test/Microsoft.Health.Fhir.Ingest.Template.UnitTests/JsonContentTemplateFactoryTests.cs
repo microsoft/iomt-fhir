@@ -75,12 +75,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new JsonPathContentTemplateFactory();
 
-            var template = factory.Create(templateContainer);
-            Assert.NotNull(template);
-
-            template.IsValid(out string errors);
-            Assert.Contains("DeviceIdExpression", errors);
-            Assert.Contains("TimestampExpression", errors);
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("DeviceIdExpression", ex.Message);
+            Assert.Contains("TimestampExpression", ex.Message);
         }
 
         [Fact]
