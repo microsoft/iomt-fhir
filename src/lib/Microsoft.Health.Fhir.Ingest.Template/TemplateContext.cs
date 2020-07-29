@@ -13,18 +13,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class TemplateContext<TTemplate> : ITemplateContext<TTemplate>
         where TTemplate : class
     {
-        private readonly TTemplate _template;
         private readonly ICollection<TemplateError> _errors = new Collection<TemplateError>();
 
-        public TemplateContext(TTemplate template)
-        {
-            _template = template;
-        }
-
-        public TTemplate Template
-        {
-            get { return _template; }
-        }
+        public TTemplate Template { get; set; }
 
         public ICollection<TemplateError> Errors
         {

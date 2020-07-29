@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using EnsureThat;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CollectionFhirTemplateFactory : CollectionTemplateFactory<IFhirTemplate, ITemplateContext<ILookupTemplate<IFhirTemplate>>>
+    public class CollectionFhirTemplateFactory : CollectionTemplateFactory<IFhirTemplate, ILookupTemplate<IFhirTemplate>>
     {
         private CollectionFhirTemplateFactory()
             : base(new CodeValueFhirTemplateFactory())
@@ -24,12 +26,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override string TargetTemplateTypeName => "CollectionFhirTemplate";
 
-        protected override ITemplateContext<ILookupTemplate<IFhirTemplate>> BuildCollectionTemplateContext(JArray templateCollection)
+        protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            EnsureArg.IsNotNull(errors, nameof(errors));
 
             var lookupTemplate = new FhirLookupTemplate();
-            var lookupTemplateContext = new TemplateContext<ILookupTemplate<IFhirTemplate>>(lookupTemplate);
             foreach (var token in templateCollection)
             {
                 try
@@ -40,11 +42,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 }
                 catch (InvalidTemplateException ex)
                 {
-                    lookupTemplateContext.Errors.Add(new TemplateError(ex.Message));
+                    errors.Add(new TemplateError(ex.Message));
+                }
+                catch (JsonSerializationException ex)
+                {
+                    errors.Add(new TemplateError(ex.Message));
                 }
             }
 
-            return lookupTemplateContext;
+            return lookupTemplate;
         }
     }
 }

@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using EnsureThat;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -11,7 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     /// <summary>
     /// Creates a single template from a collection a provided templates based on registered factories.
     /// </summary>
-    public class CollectionContentTemplateFactory : CollectionTemplateFactory<IContentTemplate, ITemplateContext<IContentTemplate>>
+    public class CollectionContentTemplateFactory : CollectionTemplateFactory<IContentTemplate, IContentTemplate>
     {
         private CollectionContentTemplateFactory()
             : base(
@@ -29,12 +31,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         protected override string TargetTemplateTypeName => "CollectionContentTemplate";
 
-        protected override ITemplateContext<IContentTemplate> BuildCollectionTemplateContext(JArray templateCollection)
+        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            EnsureArg.IsNotNull(errors, nameof(errors));
 
             var collectionTemplate = new CollectionContentTemplate();
-            var collectionTemplateContext = new TemplateContext<IContentTemplate>(collectionTemplate);
             foreach (var token in templateCollection)
             {
                 try
@@ -45,11 +47,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 }
                 catch (InvalidTemplateException ex)
                 {
-                    collectionTemplateContext.Errors.Add(new TemplateError(ex.Message));
+                    errors.Add(new TemplateError(ex.Message));
+                }
+                catch (JsonSerializationException ex)
+                {
+                    errors.Add(new TemplateError(ex.Message));
                 }
             }
 
-            return collectionTemplateContext;
+            return collectionTemplate;
         }
     }
 }

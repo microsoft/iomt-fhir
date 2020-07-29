@@ -123,5 +123,37 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             factoryA.ReceivedWithAnyArgs().Create(null);
             factoryC.ReceivedWithAnyArgs().Create(null);
         }
+
+        [Theory]
+        [FileData(@"TestInput/data_InvalidJson.txt")]
+        public void GivenBadInputJson_WhenCreate_ThenValidationFailed_Test(string json)
+        {
+            var templateContext = CollectionFhirTemplateFactory.Default.Create(json);
+            Assert.NotNull(templateContext);
+            Assert.False(templateContext.IsValid(out _));
+            Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_InvalidTemplateType.json")]
+        public void GivenMismatchedTemplateTypeInputJson_WhenCreate_ThenValidationFailed_Test(string json)
+        {
+            var templateContext = CollectionFhirTemplateFactory.Default.Create(json);
+            Assert.NotNull(templateContext);
+            Assert.False(templateContext.IsValid(out string error));
+            Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
+            Assert.Contains("Expected TemplateType value CollectionFhirTemplate", error);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_InvalidCollectionFhirTemplateWithNoTemplateArray.json")]
+        public void GivenNoTemplateArrayInputJson_WhenCreate_ThenValidationFailed_Test(string json)
+        {
+            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            Assert.NotNull(templateContext);
+            Assert.False(templateContext.IsValid(out string error));
+            Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
+            Assert.Contains("Expected an array for the template property value for template type CollectionFhirTemplate", error);
+        }
     }
 }
