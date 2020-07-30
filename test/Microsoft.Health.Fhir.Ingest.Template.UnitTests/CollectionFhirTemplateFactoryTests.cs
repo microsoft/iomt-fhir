@@ -16,7 +16,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_CollectionFhirTemplateEmpty.json")]
         public void GivenEmptyConfig_WhenCreate_ThenInvalidTemplateException_Test(string json)
         {
-            Assert.Throws<InvalidTemplateException>(() => CollectionFhirTemplateFactory.Default.Create(json));
+            var templateContext = CollectionFhirTemplateFactory.Default.Create(json);
+            Assert.NotNull(templateContext);
+            Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
         }
 
         [Theory]
@@ -149,7 +151,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_InvalidCollectionFhirTemplateWithNoTemplateArray.json")]
         public void GivenNoTemplateArrayInputJson_WhenCreate_ThenValidationFailed_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = CollectionFhirTemplateFactory.Default.Create(json);
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out string error));
             Assert.Throws<ValidationException>(() => templateContext.EnsureValid());

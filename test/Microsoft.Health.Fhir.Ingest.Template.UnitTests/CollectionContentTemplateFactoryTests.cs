@@ -19,7 +19,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_CollectionContentTemplateEmpty.json")]
         public void GivenEmptyConfig_WhenCreate_ThenInvalidTemplateException_Test(string json)
         {
-            Assert.Throws<InvalidTemplateException>(() => CollectionContentTemplateFactory.Default.Create(json));
+            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            Assert.NotNull(templateContext);
+            Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
         }
 
         [Theory]

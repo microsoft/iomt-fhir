@@ -49,6 +49,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 templateContext.Errors.Add(new TemplateError(ex.Message));
             }
+            catch (JsonReaderException ex)
+            {
+                templateContext.Errors.Add(new TemplateError(ex.Message));
+            }
 
             if (rootContainer != null && IsValid(rootContainer, templateContext.Errors))
             {
