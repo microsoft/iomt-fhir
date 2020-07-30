@@ -26,14 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
             }
 
-            var iotJsonPathContentTemplate = jsonTemplate.Template.ToObject<IotJsonPathContentTemplate>(GetJsonSerializer());
-            if (SerializationErrors?.Count > 0)
-            {
-                string errorMessage = string.Join(", \n", SerializationErrors);
-                throw new InvalidTemplateException($"Failed to deserialize the template content: {errorMessage}");
-            }
-
-            return iotJsonPathContentTemplate;
+            return jsonTemplate.Template.ToValidTemplate<IotJsonPathContentTemplate>();
         }
     }
 }

@@ -26,14 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
             }
 
-            var codeValueFhirTemplate = jsonTemplate.Template.ToObject<CodeValueFhirTemplate>(GetJsonSerializer());
-            if (SerializationErrors?.Count > 0)
-            {
-                string errorMessage = string.Join(", \n", SerializationErrors);
-                throw new InvalidTemplateException($"Failed to deserialize the template content: {errorMessage}");
-            }
-
-            return codeValueFhirTemplate;
+            return jsonTemplate.Template.ToValidTemplate<CodeValueFhirTemplate>();
         }
     }
 }

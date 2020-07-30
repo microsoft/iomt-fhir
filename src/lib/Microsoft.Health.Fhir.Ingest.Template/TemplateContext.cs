@@ -24,12 +24,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            List<ValidationResult> aggregatedResult = new List<ValidationResult>();
-            _errors
-                .ToList()
-                .ForEach(e => aggregatedResult.Add(new ValidationResult(e.Message)));
-
-            return aggregatedResult;
+            return _errors
+                .Select(e => new ValidationResult(e.Message));
         }
     }
 }

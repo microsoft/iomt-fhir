@@ -7,16 +7,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class TemplateError
     {
-        private readonly string _message;
-
         public TemplateError(string message)
         {
-            _message = message;
+            Message = message;
         }
 
-        public string Message
-        {
-            get { return _message;  }
-        }
+        public string Message { get; }
     }
 }
