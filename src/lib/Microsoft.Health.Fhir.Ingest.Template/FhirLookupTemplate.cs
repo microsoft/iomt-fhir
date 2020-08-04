@@ -28,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     throw new InvalidTemplateException($"Duplicate template defined for type name: '{fhirTemplate.TypeName}'");
                 }
             }
-            else if (fhirTemplate.TypeName?.Trim().Length == 0)
+            else
             {
                 throw new InvalidTemplateException($"Empty type name is not allowed: '{fhirTemplate.TypeName}'");
             }
