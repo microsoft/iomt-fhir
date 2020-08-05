@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Newtonsoft.Json.Linq;
 
@@ -16,7 +17,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public CollectionContentTemplate RegisterTemplate(IContentTemplate contentTemplate)
         {
+            EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
+
             _templates.Add(contentTemplate);
+
             return this;
         }
 

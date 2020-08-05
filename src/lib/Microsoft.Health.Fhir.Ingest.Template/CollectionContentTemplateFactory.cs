@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using EnsureThat;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -13,8 +15,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     /// </summary>
     public class CollectionContentTemplateFactory : CollectionTemplateFactory<IContentTemplate, IContentTemplate>
     {
-        private static readonly ITemplateFactory<string, IContentTemplate> DefaultFactory = new CollectionContentTemplateFactory();
-
         private CollectionContentTemplateFactory()
             : base(
                   new JsonPathContentTemplateFactory(),
@@ -27,23 +27,35 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public static ITemplateFactory<string, IContentTemplate> Default => DefaultFactory;
+        public static CollectionContentTemplateFactory Default { get; } = new CollectionContentTemplateFactory();
 
         protected override string TargetTemplateTypeName => "CollectionContentTemplate";
 
-        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection)
+        protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            EnsureArg.IsNotNull(errors, nameof(errors));
 
-            var template = new CollectionContentTemplate();
+            var collectionTemplate = new CollectionContentTemplate();
             foreach (var token in templateCollection)
             {
-                var container = token.ToObject<TemplateContainer>();
-                var createdTemplate = TemplateFactories.Evaluate(container);
-                template.RegisterTemplate(createdTemplate);
+                try
+                {
+                    var container = token.ToObject<TemplateContainer>();
+                    var createdTemplate = TemplateFactories.Evaluate(container);
+                    collectionTemplate.RegisterTemplate(createdTemplate);
+                }
+                catch (InvalidTemplateException ex)
+                {
+                    errors.Add(new TemplateError(ex.Message));
+                }
+                catch (JsonSerializationException ex)
+                {
+                    errors.Add(new TemplateError(ex.Message));
+                }
             }
 
-            return template;
+            return collectionTemplate;
         }
     }
 }

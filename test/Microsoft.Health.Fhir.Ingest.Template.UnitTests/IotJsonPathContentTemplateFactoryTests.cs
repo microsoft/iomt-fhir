@@ -65,6 +65,31 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             });
         }
 
+        [Theory]
+        [FileData(@"TestInput/data_IotJsonPathContentTemplateInvalidMissingTypeMetadata.json")]
+        public void GivenInvalidTemplateJsonMissingTypeMetadata_WhenFactoryCreate_ThenTemplateErrorReturned_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+            var factory = new IotJsonPathContentTemplateFactory();
+
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("TypeName", ex.Message);
+            Assert.Contains("TypeMatchExpression", ex.Message);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_IotJsonPathContentTemplateInvalidMissingValueField.json")]
+        public void GivenInvalidTemplateJsonMissingValueField_WhenFactoryCreate_ThenTemplateErrorReturned_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+            var factory = new IotJsonPathContentTemplateFactory();
+
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("ValueName", ex.Message);
+        }
+
         [Fact]
         public void GivenInvalidTemplateTargetType_WhenFactoryCreate_ThenNullReturned_Test()
         {

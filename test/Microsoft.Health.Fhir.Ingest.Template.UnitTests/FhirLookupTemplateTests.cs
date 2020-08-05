@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using NSubstitute;
 using Xunit;
 
@@ -23,7 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             templateB.TypeName.Returns("test");
 
             template.RegisterTemplate(templateA);
-            Assert.Throws<InvalidOperationException>(() => template.RegisterTemplate(templateB));
+            Assert.Throws<InvalidTemplateException>(() => template.RegisterTemplate(templateB));
         }
 
         [Fact]

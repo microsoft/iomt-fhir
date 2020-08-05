@@ -1,0 +1,14 @@
+{
+  "templateType": "JsonPathContent",
+  "template": {
+    "typeName": "heartrate",
+    "typeMatchExpression": "$..[?(@heartrate)]",
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.heartrate",
+        "valueName": "hr"
+      }
+    ]
+  }
+}
