@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Config;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -26,7 +25,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenEmptyStream_WhenParseStreamAsync_ThenCompleteSuccessfully_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
@@ -47,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenMeasurementStream_WhenParseStreamAsync_ThenProcessAsyncInvokedPerGroupAndCompleteSuccessfully_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
@@ -64,7 +63,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenExceptionDuringParseStreamAsync_WhenParseStreamAsync_ThenProcessAsyncThrowsException_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
 
             var exception = new InvalidOperationException();
@@ -91,9 +90,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenExceptionDuringParseStreamAsync_WhenParseStreamAsyncAndExceptionProcessorHandles_ThenCompleteSuccessfully_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
-            options.ExceptionService.HandleException(null, null).ReturnsForAnyArgs(true);
+            options.ExceptionService.HandleException(null, null, null).ReturnsForAnyArgs(true);
 
             var exception = new InvalidOperationException();
             var fhirService = Substitute.For<FhirImportService>();
@@ -107,13 +106,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-            options.ExceptionService.Received(2).HandleException(exception, log);
+            options.ExceptionService.Received(2).HandleException(exception, log, ConnectorStage.FHIRConversion);
         }
 
         [Fact]
         public async void GivenSameDeviceIdInMeasurementGroup_WhenParseStreamAsync_ThenStartWorkerCountOne_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
@@ -134,7 +133,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenMultipleDeviceIdInMeasurementGroup_WhenParseStreamAsync_ThenStartWorkerCountPerId_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
@@ -157,7 +156,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenMultipleMeasurementsInMeasurementGroup_WhenParseStreamAsync_CorrectTelemetryLogged_Test()
         {
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
