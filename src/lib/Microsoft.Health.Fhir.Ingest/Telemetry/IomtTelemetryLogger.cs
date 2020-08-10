@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Metrics;
@@ -22,10 +21,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             EnsureArg.IsNotNull(_telemetryClient);
         }
 
-        public virtual void LogMetric(string metricName, double metricValue, Dictionary<string, object> dimensions)
+        public virtual void LogMetric(Metrics.Metric metric, double metricValue)
         {
-            EnsureArg.IsNotNull(metricName);
-            LogMetricWithDimensions(metricName, metricValue, dimensions);
+            EnsureArg.IsNotNull(metric);
+            LogMetricWithDimensions(metric, metricValue);
         }
 
         public virtual void LogError(Exception ex)
@@ -38,11 +37,13 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             _telemetryClient.TrackTrace(message);
         }
 
-        public void LogMetricWithDimensions(string metricName, double metricValue, Dictionary<string, object> dimensions)
+        public void LogMetricWithDimensions(Metrics.Metric metric, double metricValue)
         {
-            EnsureArg.IsNotNull(dimensions);
+            EnsureArg.IsNotNull(metric);
 
-            var dimensionNumber = dimensions.Count;
+            var metricName = metric.Name;
+            var dimensions = metric.Dimensions;
+            var dimensionNumber = metric.Dimensions.Count;
 
             if (dimensionNumber > 10)
             {

@@ -4,13 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using Microsoft.Health.Fhir.Ingest.Telemetry.Metrics;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
     public interface ITelemetryLogger
     {
-        void LogMetric(string metricName, double metricValue, Dictionary<string, object> dimensions);
+        void LogMetric(Metric metric, double metricValue);
 
         void LogError(Exception ex);
 

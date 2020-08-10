@@ -79,9 +79,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     try
                     {
                         _log.LogMetric(
-                            IomtMetrics.DeviceEventProcessingLatency,
-                            (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalSeconds,
-                            IomtMetrics.DeviceEventProcessingLatencyDims());
+                            IomtMetrics.DeviceEventProcessingLatency(),
+                            (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalSeconds);
 
                         var token = _converter.Convert(evt);
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
@@ -90,9 +89,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             await collector.AddAsync(measurement).ConfigureAwait(false);
 
                             _log.LogMetric(
-                                IomtMetrics.NormalizedEvent,
-                                1,
-                                IomtMetrics.NormalizedEventDims());
+                                IomtMetrics.NormalizedEvent(),
+                                1);
                         }
                     }
                     catch (OperationCanceledException)

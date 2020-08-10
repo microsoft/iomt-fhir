@@ -181,7 +181,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             // Telemetry logging is async/non-blocking. Ensure enough time has pass so section is hit.
             await Task.Delay(1000);
-            log.ReceivedWithAnyArgs(4).LogMetric(null, 0d, null);
+            log.ReceivedWithAnyArgs(4).LogMetric(null, 0d);
         }
 
         private static Stream ToStream(object obj)

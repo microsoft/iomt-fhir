@@ -30,7 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var handled = exProcessor.HandleException(ex, log, ConnectorStage.FHIRConversion);
             Assert.True(handled);
 
-            log.ReceivedWithAnyArgs(1).LogMetric(null, default(double), IomtMetrics.HandledExceptionDims(ex.GetType().ToString(), ConnectorStage.FHIRConversion));
+            log.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
         }
 
         [Theory]
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var handled = exProcessor.HandleException(ex, log, ConnectorStage.FHIRConversion);
             Assert.False(handled);
 
-            log.DidNotReceiveWithAnyArgs().LogMetric(null, default(double), null);
+            log.DidNotReceiveWithAnyArgs().LogMetric(null, default(double));
         }
     }
 }

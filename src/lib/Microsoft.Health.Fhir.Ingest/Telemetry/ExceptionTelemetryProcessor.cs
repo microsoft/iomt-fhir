@@ -49,16 +49,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 if (ex is ITelemetryEvent evt)
                 {
                     log.LogMetric(
-                        metricName: evt.EventName,
-                        metricValue: 1,
-                        dimensions: IomtMetrics.HandledExceptionDims(evt.EventName, connectorStage));
+                        metric: IomtMetrics.HandledException(evt.EventName, connectorStage),
+                        metricValue: 1);
                 }
                 else
                 {
                     log.LogMetric(
-                        metricName: exType.Name,
-                        metricValue: 1,
-                        dimensions: IomtMetrics.UnhandledExceptionDims(ex, connectorStage));
+                        metric: IomtMetrics.UnhandledException(exType.Name, connectorStage),
+                        metricValue: 1);
                 }
 
                 return true;

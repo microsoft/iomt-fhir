@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
@@ -46,9 +45,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             catch (Exception ex)
             {
                 _logger.LogMetric(
-                    IomtMetrics.UnhandledException,
-                    1,
-                    IomtMetrics.UnhandledExceptionDims(ex, ConnectorStage.FHIRConversion));
+                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorStage.FHIRConversion),
+                    1);
                 throw;
             }
         }
@@ -67,9 +65,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 var template = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
 
                 _logger.LogMetric(
-                    IomtMetrics.DeviceEvent,
-                    events.Length,
-                    IomtMetrics.DeviceEventDims());
+                    IomtMetrics.DeviceEvent(),
+                    events.Length);
 
                 IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
                 await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
@@ -77,9 +74,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             catch (Exception ex)
             {
                 _logger.LogMetric(
-                    IomtMetrics.UnhandledException,
-                    1,
-                    IomtMetrics.UnhandledExceptionDims(ex, ConnectorStage.Normalization));
+                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorStage.Normalization),
+                    1);
                 throw;
             }
         }

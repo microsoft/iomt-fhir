@@ -90,14 +90,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 DateTime nowRef = DateTime.UtcNow;
 
                 log.LogMetric(
-                    IomtMetrics.MeasurementGroup,
-                    1,
-                    IomtMetrics.MeasurementGroupDims());
+                    IomtMetrics.MeasurementGroup(),
+                    1);
 
                 log.LogMetric(
-                    IomtMetrics.Measurement,
-                    measurements.Count,
-                    IomtMetrics.MeasurementDims());
+                    IomtMetrics.Measurement(),
+                    measurements.Count);
 
                 for (int i = 0; i < measurements.Count; i++)
                 {
@@ -110,9 +108,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     var latency = (nowRef - m.IngestionTimeUtc.Value).TotalSeconds;
 
                     log.LogMetric(
-                        IomtMetrics.MeasurementIngestionLatency,
-                        latency,
-                        IomtMetrics.MeasurementIngestionLatencyDims());
+                        IomtMetrics.MeasurementIngestionLatency(),
+                        latency);
                 }
             }).ConfigureAwait(false);
         }
