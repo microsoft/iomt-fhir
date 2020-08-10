@@ -779,7 +779,7 @@
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2016-10-01",
-      "name": "[concat(variables('storage_account_name'), '/blob-storage-cs')]",
+      "name": "[concat(variables('key_vault_name'), '/blob-storage-cs')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
         "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
