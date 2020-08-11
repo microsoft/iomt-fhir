@@ -8,6 +8,11 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     public static class ConnectorStage
     {
         /// <summary>
+        /// The setup stage of the IoMT Connector
+        /// </summary>
+        public static string Setup => nameof(ConnectorStage.Setup);
+
+        /// <summary>
         /// The normalization stage of the IoMT Connector
         /// </summary>
         public static string Normalization => nameof(ConnectorStage.Normalization);
@@ -21,5 +26,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// The FHIR conversion stage of the IoMT Connector
         /// </summary>
         public static string FHIRConversion => nameof(ConnectorStage.FHIRConversion);
+
+        /// <summary>
+        /// If a stage is not determined.
+        /// </summary>
+        public static string Unknown => nameof(ConnectorStage.Unknown);
     }
 }
