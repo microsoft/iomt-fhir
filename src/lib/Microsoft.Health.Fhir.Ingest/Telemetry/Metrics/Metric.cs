@@ -9,18 +9,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry.Metrics
 {
     public class Metric
     {
-        private string _name;
-
-        private IDictionary<string, object> _dimensions;
-
         public Metric(string name, IDictionary<string, object> dimensions)
         {
-            _name = name;
-            _dimensions = dimensions;
+            Name = name;
+            Dimensions = dimensions;
         }
 
-        public string Name => _name;
+        public string Name { get; }
 
-        public IDictionary<string, object> Dimensions => _dimensions;
+        public IDictionary<string, object> Dimensions { get; }
     }
 }
