@@ -25,9 +25,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             builder.Services.AddSingleton<ITelemetryLogger>(sp =>
             {
                 var telemetryConfiguration = new TelemetryConfiguration();
-                telemetryConfiguration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
-                telemetryConfiguration.InstrumentationKey = Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY") ?? string.Empty;
-                telemetryConfiguration.TelemetryProcessorChainBuilder.Build();
+
+                var instrumentationKey = Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY");
+                if (instrumentationKey != null)
+                {
+                    telemetryConfiguration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
+                    telemetryConfiguration.InstrumentationKey = instrumentationKey;
+                    telemetryConfiguration.TelemetryProcessorChainBuilder.Build();
+                }
+
                 TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
                 var telemetryLogger = new IomtTelemetryLogger(telemetryClient);
                 return telemetryLogger;
