@@ -4,10 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class PatientDeviceMismatchException : Exception
+    public class PatientDeviceMismatchException :
+        Exception,
+        ITelemetryMetric
     {
         public PatientDeviceMismatchException(string message)
             : base(message)
@@ -22,5 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public PatientDeviceMismatchException()
         {
         }
+
+        public Metric Metric => IomtMetrics.PatientDeviceMismatchException();
     }
 }
