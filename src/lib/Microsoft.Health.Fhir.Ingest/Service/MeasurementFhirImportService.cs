@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.Service;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;

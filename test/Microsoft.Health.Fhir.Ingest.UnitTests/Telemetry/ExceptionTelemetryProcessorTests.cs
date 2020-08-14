@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;

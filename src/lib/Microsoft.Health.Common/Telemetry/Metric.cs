@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Fhir.Ingest.Telemetry.Metrics
+namespace Microsoft.Health.Common.Telemetry
 {
     public class Metric
     {

@@ -14,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry.Metrics
     {
         private static string _namespace = MetricIdentifier.DefaultMetricNamespace;
 
-        public static void LogMetric(this Metric metric, TelemetryClient telemetryClient, double metricValue)
+        public static void LogMetric(this Common.Telemetry.Metric metric, TelemetryClient telemetryClient, double metricValue)
         {
             EnsureArg.IsNotNull(metric);
             EnsureArg.IsNotNull(telemetryClient);

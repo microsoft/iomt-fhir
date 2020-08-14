@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Fhir.Ingest.Telemetry.Metrics;
+using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
