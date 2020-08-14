@@ -5,9 +5,7 @@
 
 using System.Collections.Generic;
 using EnsureThat;
-using Microsoft.Health.Fhir.Ingest.Data;
-using Microsoft.Health.Fhir.Ingest.Telemetry.Dimensions;
-using Microsoft.Health.Fhir.Ingest.Telemetry.Metrics;
+using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
@@ -98,28 +96,6 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _stageDimension, ConnectorStage.FHIRConversion },
             });
 
-        private static Metric _multipleResourceFoundException = new Metric(
-           "MultipleResourceFoundException",
-           new Dictionary<string, object>
-           {
-                { _nameDimension, "MultipleResourceFoundException" },
-                { _categoryDimension, Category.Errors },
-                { _errorTypeDimension, ErrorType.FHIRResourceError },
-                { _errorSeverityDimension, ErrorSeverity.Warning },
-                { _stageDimension, ConnectorStage.FHIRConversion },
-           });
-
-        private static Metric _templateNotFoundException = new Metric(
-           "TemplateNotFoundException",
-           new Dictionary<string, object>
-           {
-                { _nameDimension, "TemplateNotFoundException" },
-                { _categoryDimension, Category.Errors },
-                { _errorTypeDimension, ErrorType.GeneralError },
-                { _errorSeverityDimension, ErrorSeverity.Critical },
-                { _stageDimension, ConnectorStage.Unknown },
-           });
-
         private static Metric _correlationIdNotDefinedException = new Metric(
            "CorrelationIdNotDefinedException",
            new Dictionary<string, object>
@@ -196,55 +172,11 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         }
 
         /// <summary>
-        /// Multiple FHIR resources were found when only one was expected.
-        /// </summary>
-        public static Metric MultipleResourceFoundException()
-        {
-            return _multipleResourceFoundException;
-        }
-
-        /// <summary>
-        /// The mapping template is not defined.
-        /// </summary>
-        public static Metric TemplateNotFoundException()
-        {
-            return _templateNotFoundException;
-        }
-
-        /// <summary>
         /// An exception recorded when grouping correlation id but the correlation id is null or not found.
         /// </summary>
         public static Metric CorrelationIdNotDefinedException()
         {
             return _correlationIdNotDefinedException;
-        }
-
-        public static Metric FhirResourceNotFoundException(ResourceType resourceType)
-        {
-            return new Metric(
-                $"{resourceType}FhirResourceNotFoundException",
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, $"{resourceType}FhirResourceNotFoundException" },
-                    { _categoryDimension, Category.Errors },
-                    { _errorTypeDimension, ErrorType.FHIRResourceError },
-                    { _errorSeverityDimension, ErrorSeverity.Warning },
-                    { _stageDimension, ConnectorStage.FHIRConversion },
-                });
-        }
-
-        public static Metric ResourceIdentityNotDefinedException(ResourceType resourceType)
-        {
-            return new Metric(
-                $"{resourceType}ResourceIdentityNotDefinedException",
-                new Dictionary<string, object>
-                {
-                            { _nameDimension, $"{resourceType}ResourceIdentityNotDefinedException" },
-                            { _categoryDimension, Category.Errors },
-                            { _errorTypeDimension, ErrorType.FHIRResourceError },
-                            { _errorSeverityDimension, ErrorSeverity.Warning },
-                            { _stageDimension, ConnectorStage.FHIRConversion },
-                });
         }
 
         public static Metric UnhandledException(string exceptionName, string connectorStage)
