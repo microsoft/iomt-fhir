@@ -54,13 +54,22 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 }
                 else
                 {
-                    var metric = IomtMetrics.HandledException(
-                        exType.Name,
-                        connectorStage);
-
-                    log.LogMetric(
-                        metric: metric,
-                        metricValue: 1);
+                    if (ex is NotSupportedException)
+                    {
+                        var metric = IomtMetrics.NotSupported();
+                        log.LogMetric(
+                            metric: metric,
+                            metricValue: 1);
+                    }
+                    else
+                    {
+                        var metric = IomtMetrics.HandledException(
+                            exType.Name,
+                            connectorStage);
+                        log.LogMetric(
+                            metric: metric,
+                            metricValue: 1);
+                    }
                 }
 
                 return true;
