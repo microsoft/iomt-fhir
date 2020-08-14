@@ -74,18 +74,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _stageDimension, ConnectorStage.Normalization },
             });
 
-        private static Metric _patientDeviceMismatch = new Metric(
-            "PatientDeviceMismatchException",
-            new Dictionary<string, object>
-            {
-                { _nameDimension, "PatientDeviceMismatchException" },
-                { _categoryDimension, Category.Errors },
-                { _errorTypeDimension, ErrorType.FHIRResourceError },
-                { _errorSeverityDimension, ErrorSeverity.Warning },
-                { _stageDimension, ConnectorStage.FHIRConversion },
-            });
-
-        private static Metric _notSupportedException = new Metric(
+        private static Metric _notSupported = new Metric(
             "NotSupportedException",
             new Dictionary<string, object>
             {
@@ -95,17 +84,6 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _errorSeverityDimension, ErrorSeverity.Warning },
                 { _stageDimension, ConnectorStage.FHIRConversion },
             });
-
-        private static Metric _correlationIdNotDefinedException = new Metric(
-           "CorrelationIdNotDefinedException",
-           new Dictionary<string, object>
-           {
-                { _nameDimension, "CorrelationIdNotDefinedException" },
-                { _categoryDimension, Category.Errors },
-                { _errorTypeDimension, ErrorType.DeviceMessageError },
-                { _errorSeverityDimension, ErrorSeverity.Critical },
-                { _stageDimension, ConnectorStage.Normalization },
-           });
 
         /// <summary>
         /// The latency between event ingestion and output to FHIR processor.
@@ -156,27 +134,11 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         }
 
         /// <summary>
-        /// An exception thrown when the patient and device references and resources do not match.
+        /// A metric for when FHIR resource does not support the provided type as a value.
         /// </summary>
-        public static Metric PatientDeviceMismatchException()
+        public static Metric NotSupported()
         {
-            return _patientDeviceMismatch;
-        }
-
-        /// <summary>
-        /// An exception thrown when the FHIR resource does not support the provided type as a value.
-        /// </summary>
-        public static Metric NotSupportedException()
-        {
-            return _notSupportedException;
-        }
-
-        /// <summary>
-        /// An exception recorded when grouping correlation id but the correlation id is null or not found.
-        /// </summary>
-        public static Metric CorrelationIdNotDefinedException()
-        {
-            return _correlationIdNotDefinedException;
+            return _notSupported;
         }
 
         public static Metric UnhandledException(string exceptionName, string connectorStage)
