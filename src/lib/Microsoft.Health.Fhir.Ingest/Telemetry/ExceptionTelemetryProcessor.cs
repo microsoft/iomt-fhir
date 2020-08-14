@@ -6,10 +6,10 @@
 using System;
 using System.Collections.Generic;
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
-using Microsoft.Health.Fhir.Ingest.Telemetry.Metrics;
 using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
@@ -54,7 +54,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 }
                 else
                 {
-                    var metric = ConvertExceptionToMetric(lookupType, exType);
+                    var metric = IomtMetrics.HandledException(
+                        exType.Name,
+                        connectorStage);
+
                     log.LogMetric(
                         metric: metric,
                         metricValue: 1);
@@ -64,37 +67,6 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             }
 
             return false;
-        }
-
-        public static Metric ConvertExceptionToMetric(System.Type lookupType, Type exType)
-        {
-            EnsureArg.IsNotNull(lookupType);
-            EnsureArg.IsNotNull(exType);
-
-            if (lookupType == typeof(MultipleResourceFoundException<>))
-            {
-                return IomtMetrics.MultipleResourceFoundException();
-            }
-            else if (lookupType == typeof(PatientDeviceMismatchException))
-            {
-                return IomtMetrics.PatientDeviceMismatchException();
-            }
-            else if (lookupType == typeof(NotSupportedException))
-            {
-                return IomtMetrics.NotSupportedException();
-            }
-            else if (lookupType == typeof(TemplateNotFoundException))
-            {
-                return IomtMetrics.TemplateNotFoundException();
-            }
-            else if (lookupType == typeof(CorrelationIdNotDefinedException))
-            {
-                return IomtMetrics.CorrelationIdNotDefinedException();
-            }
-            else
-            {
-                return IomtMetrics.HandledException(exType.Name, ConnectorStage.Unknown);
-            }
         }
     }
 }
