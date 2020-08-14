@@ -13,17 +13,6 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         Exception,
         ITelemetryMetric
     {
-        private static Metric _correlationIdNotDefined = new Metric(
-            "CorrelationIdNotDefinedException",
-            new Dictionary<string, object>
-           {
-                { DimensionNames.Name, "CorrelationIdNotDefinedException" },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Critical },
-                { DimensionNames.Stage, ConnectorStage.Normalization },
-           });
-
         public CorrelationIdNotDefinedException(string message)
             : base(message)
         {
@@ -38,6 +27,15 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
         }
 
-        public Metric Metric => _correlationIdNotDefined;
+        public Metric Metric => new Metric(
+            "CorrelationIdNotDefinedException",
+            new Dictionary<string, object>
+           {
+                { DimensionNames.Name, "CorrelationIdNotDefinedException" },
+                { DimensionNames.Category, Category.Errors },
+                { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
+                { DimensionNames.ErrorSeverity, ErrorSeverity.Critical },
+                { DimensionNames.Stage, ConnectorStage.Grouping },
+           });
     }
 }
