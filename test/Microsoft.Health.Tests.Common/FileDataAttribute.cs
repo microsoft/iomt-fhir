@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Xunit.Sdk;
 
@@ -12,23 +13,29 @@ namespace Microsoft.Health.Tests.Common
 {
     public class FileDataAttribute : DataAttribute
     {
-        private readonly string _filePath;
+        private readonly string[] _filePaths;
 
-        public FileDataAttribute(string filePath)
+        public FileDataAttribute(params string[] filePaths)
         {
-            _filePath = filePath;
+            _filePaths = filePaths;
         }
 
         public override IEnumerable<object[]> GetData(MethodInfo testMethod)
         {
-            var path = Path.IsPathRooted(_filePath) ? _filePath : Path.Combine(Directory.GetCurrentDirectory(), _filePath);
-
-            if (!File.Exists(path))
+            ICollection<string> fileContents = new List<string>();
+            foreach (string filePath in _filePaths)
             {
-                throw new FileNotFoundException($"File {path} not found.");
+                var path = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException($"File {path} not found.");
+                }
+
+                fileContents.Add(File.ReadAllText(path));
             }
 
-            yield return new[] { File.ReadAllText(path) };
+            yield return fileContents.ToArray();
         }
     }
 }
