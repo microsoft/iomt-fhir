@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 var configDescriptor = builder.Services.SingleOrDefault(tc => tc.ServiceType == typeof(TelemetryConfiguration));
                 if (configDescriptor?.ImplementationFactory == null)
                 {
-                    return;
+                    throw new Exception($"Unable to retrieve TelemetryConfiguration of type {typeof(TelemetryConfiguration)}");
                 }
 
                 var implFactory = configDescriptor.ImplementationFactory;
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 {
                     if (!(implFactory.Invoke(provider) is TelemetryConfiguration config))
                     {
-                        return null;
+                        throw new Exception("Unable to build TelemetryConfiguration");
                     }
 
                     config.TelemetryProcessorChainBuilder.Build();
