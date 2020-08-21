@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class PatientDeviceMismatchException :
         Exception,
-        ITelemetryMetric
+        ITelemetryFormattable
     {
         public PatientDeviceMismatchException(string message)
             : base(message)
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
         }
 
-        public Metric Metric => new Metric(
+        public Metric ToMetric => new Metric(
             "PatientDeviceMismatchException",
             new Dictionary<string, object>
             {

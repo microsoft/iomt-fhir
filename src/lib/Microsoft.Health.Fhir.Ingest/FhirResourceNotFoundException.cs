@@ -12,7 +12,7 @@ namespace Microsoft.Health.Fhir.Ingest
 {
     public class FhirResourceNotFoundException :
         Exception,
-        ITelemetryMetric
+        ITelemetryFormattable
     {
         public FhirResourceNotFoundException(ResourceType resourceType)
            : base($"Fhir resource of type {resourceType} not found.")
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest
 
         public string EventName => $"{FhirResourceType}NotFoundException";
 
-        public Metric Metric => new Metric(
+        public Metric ToMetric => new Metric(
             $"{EventName}",
             new Dictionary<string, object>
             {

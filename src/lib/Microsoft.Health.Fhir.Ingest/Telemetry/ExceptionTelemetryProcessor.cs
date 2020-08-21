@@ -46,10 +46,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 
             if (_handledExceptions.Contains(lookupType))
             {
-                if (ex is ITelemetryMetric met)
+                if (ex is ITelemetryFormattable tel)
                 {
                     log.LogMetric(
-                        metric: met.Metric,
+                        metric: tel.ToMetric,
                         metricValue: 1);
                 }
                 else

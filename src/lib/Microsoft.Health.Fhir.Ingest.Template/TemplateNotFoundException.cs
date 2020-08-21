@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class TemplateNotFoundException :
         Exception,
-        ITelemetryMetric
+        ITelemetryFormattable
     {
         private static Metric _templateNotFound = new Metric(
             "TemplateNotFoundException",
@@ -38,6 +38,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public Metric Metric => _templateNotFound;
+        public Metric ToMetric => _templateNotFound;
     }
 }

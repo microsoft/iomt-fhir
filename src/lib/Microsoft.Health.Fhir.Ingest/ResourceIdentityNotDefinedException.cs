@@ -12,7 +12,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityNotDefinedException :
         Exception,
-        ITelemetryMetric
+        ITelemetryFormattable
     {
         public ResourceIdentityNotDefinedException(ResourceType resourceType)
            : base($"Fhir resource of type {resourceType} not found.")
@@ -38,7 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public string EventName => $"{FhirResourceType}IdentityNotDefinedException";
 
-        public Metric Metric => new Metric(
+        public Metric ToMetric => new Metric(
             $"{EventName}",
             new Dictionary<string, object>
             {

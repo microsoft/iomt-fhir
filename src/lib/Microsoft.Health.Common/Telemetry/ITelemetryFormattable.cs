@@ -5,8 +5,8 @@
 
 namespace Microsoft.Health.Common.Telemetry
 {
-    public interface ITelemetryMetric
+    public interface ITelemetryFormattable
     {
-        Metric Metric { get; }
+        Metric ToMetric { get; }
     }
 }

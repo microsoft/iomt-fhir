@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 {
     public class CorrelationIdNotDefinedException :
         Exception,
-        ITelemetryMetric
+        ITelemetryFormattable
     {
         public CorrelationIdNotDefinedException(string message)
             : base(message)
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
         }
 
-        public Metric Metric => new Metric(
+        public Metric ToMetric => new Metric(
             "CorrelationIdNotDefinedException",
             new Dictionary<string, object>
            {

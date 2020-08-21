@@ -11,7 +11,7 @@ namespace Microsoft.Health.Extensions.Fhir
 {
     public class MultipleResourceFoundException<T> :
         Exception,
-        ITelemetryMetric
+        ITelemetryFormattable
     {
         public MultipleResourceFoundException(int resourceCount)
             : base($"Multiple resources {resourceCount} of type {typeof(T)} found, expected one")
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
         public string EventName => $"Multiple{typeof(T).Name}FoundException";
 
-        public Metric Metric => new Metric(
+        public Metric ToMetric => new Metric(
             $"{EventName}",
             new Dictionary<string, object>
             {
