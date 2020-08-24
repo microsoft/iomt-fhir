@@ -34,8 +34,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(templateDefinition, nameof(templateDefinition));
             EnsureArg.IsNotNull(log, nameof(log));
-            var template = Options.TemplateFactory.Create(templateDefinition);
+            var templateContext = Options.TemplateFactory.Create(templateDefinition);
+            templateContext.EnsureValid();
 
+            var template = templateContext.Template;
             var measurementGroups = await ParseAsync(data, log).ConfigureAwait(false);
 
             // Group work by device to avoid race conditions when resource creation is enabled.

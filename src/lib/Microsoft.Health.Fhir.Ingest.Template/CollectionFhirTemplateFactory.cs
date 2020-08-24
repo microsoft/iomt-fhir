@@ -3,15 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using EnsureThat;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CollectionFhirTemplateFactory : CollectionTemplateFactory<IFhirTemplate, ILookupTemplate<IFhirTemplate>>
     {
-        private static readonly ITemplateFactory<string, ILookupTemplate<IFhirTemplate>> DefaultFactory = new CollectionFhirTemplateFactory();
-
         private CollectionFhirTemplateFactory()
             : base(new CodeValueFhirTemplateFactory())
         {
@@ -22,20 +22,32 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public static ITemplateFactory<string, ILookupTemplate<IFhirTemplate>> Default => DefaultFactory;
+        public static CollectionFhirTemplateFactory Default { get; } = new CollectionFhirTemplateFactory();
 
         protected override string TargetTemplateTypeName => "CollectionFhirTemplate";
 
-        protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection)
+        protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)
         {
             EnsureArg.IsNotNull(templateCollection, nameof(templateCollection));
+            EnsureArg.IsNotNull(errors, nameof(errors));
 
             var lookupTemplate = new FhirLookupTemplate();
             foreach (var token in templateCollection)
             {
-                var container = token.ToObject<TemplateContainer>();
-                var createdTemplate = TemplateFactories.Evaluate(container);
-                lookupTemplate.RegisterTemplate(createdTemplate);
+                try
+                {
+                    var container = token.ToObject<TemplateContainer>();
+                    var createdTemplate = TemplateFactories.Evaluate(container);
+                    lookupTemplate.RegisterTemplate(createdTemplate);
+                }
+                catch (InvalidTemplateException ex)
+                {
+                    errors.Add(new TemplateError(ex.Message));
+                }
+                catch (JsonSerializationException ex)
+                {
+                    errors.Add(new TemplateError(ex.Message));
+                }
             }
 
             return lookupTemplate;

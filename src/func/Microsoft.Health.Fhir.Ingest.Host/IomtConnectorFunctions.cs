@@ -63,7 +63,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 EnsureArg.IsNotNull(templateDefinitions, nameof(templateDefinitions));
                 EnsureArg.IsNotNull(events, nameof(events));
 
-                var template = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
+                var templateContext = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
+                templateContext.EnsureValid();
+                var template = templateContext.Template;
 
                 _logger.LogMetric(
                     IomtMetrics.DeviceEvent(),

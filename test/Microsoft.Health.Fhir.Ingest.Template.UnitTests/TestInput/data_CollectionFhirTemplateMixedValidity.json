@@ -1,0 +1,34 @@
+{
+  "templateType": "CollectionFhir",
+  "template": [
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "85354-9",
+            "display": "Blood pressure panel with all children optional",
+            "system": "http://loinc.org"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "bp"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "85354-9",
+            "display": "Blood pressure panel with all children optional",
+            "system": "http://loinc.org"
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+    

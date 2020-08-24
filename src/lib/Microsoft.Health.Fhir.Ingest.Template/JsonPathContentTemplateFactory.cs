@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
             }
 
-            return jsonTemplate.Template.ToObject<JsonPathContentTemplate>();
+            return jsonTemplate.Template.ToValidTemplate<JsonPathContentTemplate>();
         }
     }
 }
