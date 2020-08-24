@@ -12,8 +12,6 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 
-[assembly: FunctionsStartup(typeof(Microsoft.Health.Fhir.Ingest.Service.Startup))]
-
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class Startup : FunctionsStartup
