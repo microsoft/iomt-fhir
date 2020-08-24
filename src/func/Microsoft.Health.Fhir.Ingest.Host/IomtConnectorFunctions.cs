@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -21,36 +20,43 @@ using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public static class IomtConnectorFunctions
+    public class IomtConnectorFunctions
     {
+        private readonly ITelemetryLogger _logger;
+
+        public IomtConnectorFunctions(ITelemetryLogger logger)
+        {
+            _logger = logger;
+        }
+
         [FunctionName("MeasurementCollectionToFhir")]
-        public static async Task<IActionResult> MeasurementCollectionToFhir(
+        public async Task<IActionResult> MeasurementCollectionToFhir(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             [Blob("template/%Template:FhirMapping%", FileAccess.Read)] string templateDefinition,
-            [MeasurementFhirImport] MeasurementFhirImportService measurementImportService,
-            ILogger log)
+            [MeasurementFhirImport] MeasurementFhirImportService measurementImportService)
         {
             EnsureArg.IsNotNull(measurementImportService, nameof(measurementImportService));
             EnsureArg.IsNotNull(req, nameof(req));
 
             try
             {
-                await measurementImportService.ProcessStreamAsync(req.Body, templateDefinition, log).ConfigureAwait(false);
+                await measurementImportService.ProcessStreamAsync(req.Body, templateDefinition, _logger).ConfigureAwait(false);
                 return new AcceptedResult();
             }
             catch (Exception ex)
             {
-                log.RecordUnhandledExceptionMetrics(ex, nameof(MeasurementCollectionToFhir));
+                _logger.LogMetric(
+                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorStage.FHIRConversion),
+                    1);
                 throw;
             }
         }
 
         [FunctionName("NormalizeDeviceData")]
-        public static async Task NormalizeDeviceData(
+        public async Task NormalizeDeviceData(
             [EventHubTrigger("input", Connection = "InputEventHub")] EventData[] events,
             [EventHubMeasurementCollector("output", Connection = "OutputEventHub")] IAsyncCollector<IMeasurement> output,
-            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions,
-            ILogger log)
+            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions)
         {
             try
             {
@@ -61,13 +67,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 templateContext.EnsureValid();
                 var template = templateContext.Template;
 
-                log.LogMetric(Metrics.DeviceEvent, events.Length);
-                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(log, template);
+                _logger.LogMetric(
+                    IomtMetrics.DeviceEvent(),
+                    events.Length);
+
+                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
                 await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                log.RecordUnhandledExceptionMetrics(ex, nameof(NormalizeDeviceData));
+                _logger.LogMetric(
+                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorStage.Normalization),
+                    1);
                 throw;
             }
         }

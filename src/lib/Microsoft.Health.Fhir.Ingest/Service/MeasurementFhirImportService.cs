@@ -9,8 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _fhirImportService = EnsureArg.IsNotNull(fhirImportService, nameof(fhirImportService));
         }
 
-        public async Task ProcessStreamAsync(Stream data, string templateDefinition, ILogger log)
+        public async Task ProcessStreamAsync(Stream data, string templateDefinition, ITelemetryLogger log)
         {
             EnsureArg.IsNotNull(templateDefinition, nameof(templateDefinition));
             EnsureArg.IsNotNull(log, nameof(log));
@@ -53,9 +53,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             catch (Exception ex)
                             {
-                                if (!Options.ExceptionService.HandleException(ex, log))
+                                if (!Options.ExceptionService.HandleException(ex, log, ConnectorStage.FHIRConversion))
                                 {
-                                    log.LogError(ex, ex.Message);
+                                    log.LogError(ex);
                                     throw;
                                 }
                             }
@@ -65,7 +65,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await StartWorker(workItems).ConfigureAwait(false);
         }
 
-        private static async Task<IEnumerable<IMeasurementGroup>> ParseAsync(Stream data, ILogger log)
+        private static async Task<IEnumerable<IMeasurementGroup>> ParseAsync(Stream data, ITelemetryLogger log)
         {
             IList<IMeasurementGroup> measurementGroups = new List<IMeasurementGroup>();
             using (var reader = new JsonTextReader(new StreamReader(data)))
@@ -87,14 +87,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return measurementGroups;
         }
 
-        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ILogger log)
+        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log)
         {
             await Task.Run(() =>
             {
                 DateTime nowRef = DateTime.UtcNow;
 
-                log.LogMetric(Metrics.MeasurementGroup, 1);
-                log.LogMetric(Metrics.Measurement, measurements.Count);
+                log.LogMetric(
+                    IomtMetrics.MeasurementGroup(),
+                    1);
+
+                log.LogMetric(
+                    IomtMetrics.Measurement(),
+                    measurements.Count);
 
                 for (int i = 0; i < measurements.Count; i++)
                 {
@@ -105,7 +110,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     }
 
                     var latency = (nowRef - m.IngestionTimeUtc.Value).TotalSeconds;
-                    log.LogMetric(Metrics.MeasurementIngestionLatency, latency);
+
+                    log.LogMetric(
+                        IomtMetrics.MeasurementIngestionLatency(),
+                        latency);
                 }
             }).ConfigureAwait(false);
         }

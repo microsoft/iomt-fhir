@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -17,7 +16,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
     public class ExceptionTelemetryProcessor
     {
-        private readonly HashSet<Type> _handledExceptions;
+        private readonly HashSet<System.Type> _handledExceptions;
 
         public ExceptionTelemetryProcessor()
             : this (
@@ -31,27 +30,46 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
         }
 
-        public ExceptionTelemetryProcessor(params Type[] handledExceptionTypes)
+        public ExceptionTelemetryProcessor(params System.Type[] handledExceptionTypes)
         {
-            _handledExceptions = new HashSet<Type>(handledExceptionTypes);
+            _handledExceptions = new HashSet<System.Type>(handledExceptionTypes);
         }
 
-        public virtual bool HandleException(Exception ex, ILogger log)
+        public virtual bool HandleException(Exception ex, ITelemetryLogger log, string connectorStage)
         {
             EnsureArg.IsNotNull(ex, nameof(ex));
+            EnsureArg.IsNotNull(log, nameof(log));
+
             var exType = ex.GetType();
 
             var lookupType = exType.IsGenericType ? exType.GetGenericTypeDefinition() : exType;
 
             if (_handledExceptions.Contains(lookupType))
             {
-                if (ex is ITelemetryEvent evt)
+                if (ex is ITelemetryFormattable tel)
                 {
-                    log.LogMetric(name: evt.EventName, value: 1);
+                    log.LogMetric(
+                        metric: tel.ToMetric,
+                        metricValue: 1);
                 }
                 else
                 {
-                    log.LogMetric(name: exType.Name, value: 1);
+                    if (ex is NotSupportedException)
+                    {
+                        var metric = IomtMetrics.NotSupported();
+                        log.LogMetric(
+                            metric: metric,
+                            metricValue: 1);
+                    }
+                    else
+                    {
+                        var metric = IomtMetrics.HandledException(
+                            exType.Name,
+                            connectorStage);
+                        log.LogMetric(
+                            metric: metric,
+                            metricValue: 1);
+                    }
                 }
 
                 return true;

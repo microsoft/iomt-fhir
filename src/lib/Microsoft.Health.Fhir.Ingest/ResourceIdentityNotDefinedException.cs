@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 
@@ -11,7 +12,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityNotDefinedException :
         Exception,
-        ITelemetryEvent
+        ITelemetryFormattable
     {
         public ResourceIdentityNotDefinedException(ResourceType resourceType)
            : base($"Fhir resource of type {resourceType} not found.")
@@ -36,5 +37,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public ResourceType FhirResourceType { get; private set; }
 
         public string EventName => $"{FhirResourceType}IdentityNotDefinedException";
+
+        public Metric ToMetric => new Metric(
+            $"{EventName}",
+            new Dictionary<string, object>
+            {
+                { DimensionNames.Name, $"{EventName}" },
+                { DimensionNames.Category, Category.Errors },
+                { DimensionNames.ErrorType, ErrorType.FHIRResourceError },
+                { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
+                { DimensionNames.Stage, ConnectorStage.FHIRConversion },
+            });
     }
 }
