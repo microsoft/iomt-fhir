@@ -15,8 +15,16 @@ namespace Microsoft.Health.Common.Telemetry
             Dimensions = dimensions;
         }
 
-        public string Name { get; }
+        public string Name { get; set; }
 
         public IDictionary<string, object> Dimensions { get; }
+
+        public void AddPrefixToName(string prefix)
+        {
+            if (!Name.StartsWith(prefix, System.StringComparison.CurrentCulture))
+            {
+                Name = $"{prefix}{Name}";
+            }
+        }
     }
 }
