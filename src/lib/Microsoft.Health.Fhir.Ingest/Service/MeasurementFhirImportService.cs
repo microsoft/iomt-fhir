@@ -109,7 +109,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         continue;
                     }
 
-                    var latency = (nowRef - m.IngestionTimeUtc.Value).TotalSeconds;
+                    var latency = (nowRef - m.IngestionTimeUtc.Value).TotalMilliseconds;
 
                     log.LogMetric(
                         IomtMetrics.MeasurementIngestionLatency(),
