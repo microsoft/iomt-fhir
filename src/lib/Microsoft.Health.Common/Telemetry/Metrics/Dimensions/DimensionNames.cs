@@ -20,7 +20,7 @@ namespace Microsoft.Health.Common.Telemetry
         /// <summary>
         /// A metric dimension that represents each ingestion stage of the IoMT Connector.
         /// </summary>
-        public static string Stage => nameof(DimensionNames.Stage);
+        public static string Operation => nameof(DimensionNames.Operation);
 
         /// <summary>
         /// A metric dimension for a error type.

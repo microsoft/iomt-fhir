@@ -107,7 +107,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-            options.ExceptionService.Received(2).HandleException(exception, log, ConnectorStage.FHIRConversion);
+            options.ExceptionService.Received(2).HandleException(exception, log, ConnectorOperation.FHIRConversion);
         }
 
         [Fact]

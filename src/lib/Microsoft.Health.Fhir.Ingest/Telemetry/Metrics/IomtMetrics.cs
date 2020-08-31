@@ -18,7 +18,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         private static string _categoryDimension = DimensionNames.Category;
         private static string _errorTypeDimension = DimensionNames.ErrorType;
         private static string _errorSeverityDimension = DimensionNames.ErrorSeverity;
-        private static string _stageDimension = DimensionNames.Stage;
+        private static string _operationDimension = DimensionNames.Operation;
 
         private static Metric _measurementIngestionLatency = new Metric(
             "MeasurementIngestionLatency",
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             {
                 { _nameDimension, "MeasurementIngestionLatency" },
                 { _categoryDimension, Category.Latency },
-                { _stageDimension, ConnectorStage.FHIRConversion },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
             });
 
         private static Metric _measurementGroup = new Metric(
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             {
                 { _nameDimension, "MeasurementGroup" },
                 { _categoryDimension, Category.Traffic },
-                { _stageDimension, ConnectorStage.FHIRConversion },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
             });
 
         private static Metric _measurement = new Metric(
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             {
                 { _nameDimension, "Measurement" },
                 { _categoryDimension, Category.Traffic },
-                { _stageDimension, ConnectorStage.FHIRConversion },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
             });
 
         private static Metric _deviceEvent = new Metric(
@@ -53,7 +53,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             {
                 { _nameDimension, "DeviceEvent" },
                 { _categoryDimension, Category.Traffic },
-                { _stageDimension, ConnectorStage.Normalization },
+                { _operationDimension, ConnectorOperation.Normalization },
             });
 
         private static Metric _normalizedEvent = new Metric(
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             {
                 { _nameDimension, "NormalizedEvent" },
                 { _categoryDimension, Category.Traffic },
-                { _stageDimension, ConnectorStage.Normalization },
+                { _operationDimension, ConnectorOperation.Normalization },
             });
 
         private static Metric _deviceEventProcessingLatency = new Metric(
@@ -71,7 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             {
                 { _nameDimension, "DeviceEventProcessingLatency" },
                 { _categoryDimension, Category.Latency },
-                { _stageDimension, ConnectorStage.Normalization },
+                { _operationDimension, ConnectorOperation.Normalization },
             });
 
         private static Metric _notSupported = new Metric(
@@ -82,7 +82,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _categoryDimension, Category.Errors },
                 { _errorTypeDimension, ErrorType.FHIRResourceError },
                 { _errorSeverityDimension, ErrorSeverity.Warning },
-                { _stageDimension, ConnectorStage.FHIRConversion },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
             });
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                     { _categoryDimension, Category.Errors },
                     { _errorTypeDimension, ErrorType.GeneralError },
                     { _errorSeverityDimension, ErrorSeverity.Critical },
-                    { _stageDimension, connectorStage },
+                    { _operationDimension, connectorStage },
                 });
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                     { _nameDimension, exceptionName },
                     { _categoryDimension, Category.Errors },
                     { _errorTypeDimension, ErrorType.GeneralError },
-                    { _stageDimension, connectorStage },
+                    { _operationDimension, connectorStage },
                 });
         }
     }

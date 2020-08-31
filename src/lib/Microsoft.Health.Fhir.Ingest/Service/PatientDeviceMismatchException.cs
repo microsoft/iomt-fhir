@@ -35,7 +35,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 { DimensionNames.Category, Category.Errors },
                 { DimensionNames.ErrorType, ErrorType.FHIRResourceError },
                 { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                { DimensionNames.Stage, ConnectorStage.FHIRConversion },
+                { DimensionNames.Operation, ConnectorOperation.FHIRConversion },
             });
     }
 }
