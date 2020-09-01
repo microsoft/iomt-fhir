@@ -145,7 +145,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             EnsureArg.IsNotNull(exceptionName);
             return new Metric(
-                exceptionName,
+                "UnhandledException",
                 new Dictionary<string, object>
                 {
                     { _nameDimension, exceptionName },
