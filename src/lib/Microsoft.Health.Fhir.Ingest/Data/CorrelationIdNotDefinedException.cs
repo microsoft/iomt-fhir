@@ -35,7 +35,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 { DimensionNames.Category, Category.Errors },
                 { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
                 { DimensionNames.ErrorSeverity, ErrorSeverity.Critical },
-                { DimensionNames.Stage, ConnectorStage.Grouping },
+                { DimensionNames.Operation, ConnectorOperation.Grouping },
            });
     }
 }

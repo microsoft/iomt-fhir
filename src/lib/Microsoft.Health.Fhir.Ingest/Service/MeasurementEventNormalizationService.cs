@@ -82,6 +82,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             IomtMetrics.DeviceEventProcessingLatency(),
                             (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalSeconds);
 
+                        _log.LogMetric(
+                            IomtMetrics.DeviceEventProcessingLatencyMs(),
+                            (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalMilliseconds);
+
                         var token = _converter.Convert(evt);
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {

@@ -46,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             catch (Exception ex)
             {
                 _logger.LogMetric(
-                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorStage.FHIRConversion),
+                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorOperation.FHIRConversion),
                     1);
                 throw;
             }
@@ -77,7 +77,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             catch (Exception ex)
             {
                 _logger.LogMetric(
-                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorStage.Normalization),
+                    IomtMetrics.UnhandledException(ex.GetType().Name, ConnectorOperation.Normalization),
                     1);
                 throw;
             }

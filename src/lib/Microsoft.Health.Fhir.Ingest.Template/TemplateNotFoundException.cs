@@ -21,7 +21,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 { DimensionNames.Category, Category.Errors },
                 { DimensionNames.ErrorType, ErrorType.GeneralError },
                 { DimensionNames.ErrorSeverity, ErrorSeverity.Critical },
-                { DimensionNames.Stage, ConnectorStage.Unknown },
+                { DimensionNames.Operation, ConnectorOperation.Unknown },
             });
 
         public TemplateNotFoundException(string message)

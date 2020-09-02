@@ -28,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var ex = Activator.CreateInstance(exType) as Exception;
 
             var exProcessor = new ExceptionTelemetryProcessor();
-            var handled = exProcessor.HandleException(ex, log, ConnectorStage.FHIRConversion);
+            var handled = exProcessor.HandleException(ex, log, ConnectorOperation.FHIRConversion);
             Assert.True(handled);
 
             log.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
@@ -42,7 +42,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var ex = Activator.CreateInstance(exType) as Exception;
 
             var exProcessor = new ExceptionTelemetryProcessor();
-            var handled = exProcessor.HandleException(ex, log, ConnectorStage.FHIRConversion);
+            var handled = exProcessor.HandleException(ex, log, ConnectorOperation.FHIRConversion);
             Assert.False(handled);
 
             log.DidNotReceiveWithAnyArgs().LogMetric(null, default(double));

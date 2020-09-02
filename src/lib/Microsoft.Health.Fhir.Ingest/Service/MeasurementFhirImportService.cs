@@ -53,7 +53,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             catch (Exception ex)
                             {
-                                if (!Options.ExceptionService.HandleException(ex, log, ConnectorStage.FHIRConversion))
+                                if (!Options.ExceptionService.HandleException(ex, log, ConnectorOperation.FHIRConversion))
                                 {
                                     log.LogError(ex);
                                     throw;
@@ -109,11 +109,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         continue;
                     }
 
-                    var latency = (nowRef - m.IngestionTimeUtc.Value).TotalSeconds;
-
                     log.LogMetric(
                         IomtMetrics.MeasurementIngestionLatency(),
-                        latency);
+                        (nowRef - m.IngestionTimeUtc.Value).TotalSeconds);
+
+                    log.LogMetric(
+                        IomtMetrics.MeasurementIngestionLatencyMs(),
+                        (nowRef - m.IngestionTimeUtc.Value).TotalMilliseconds);
                 }
             }).ConfigureAwait(false);
         }

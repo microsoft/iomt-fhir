@@ -107,7 +107,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-            options.ExceptionService.Received(2).HandleException(exception, log, ConnectorStage.FHIRConversion);
+            options.ExceptionService.Received(2).HandleException(exception, log, ConnectorOperation.FHIRConversion);
         }
 
         [Fact]
@@ -182,7 +182,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             // Telemetry logging is async/non-blocking. Ensure enough time has pass so section is hit.
             await Task.Delay(1000);
-            log.ReceivedWithAnyArgs(4).LogMetric(null, 0d);
+            log.ReceivedWithAnyArgs(6).LogMetric(null, 0d);
         }
 
         private static Stream ToStream(object obj)
