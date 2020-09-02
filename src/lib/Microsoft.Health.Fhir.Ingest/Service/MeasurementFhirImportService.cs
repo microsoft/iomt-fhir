@@ -109,11 +109,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         continue;
                     }
 
-                    var latency = (nowRef - m.IngestionTimeUtc.Value).TotalMilliseconds;
-
                     log.LogMetric(
                         IomtMetrics.MeasurementIngestionLatency(),
-                        latency);
+                        (nowRef - m.IngestionTimeUtc.Value).TotalSeconds);
+
+                    log.LogMetric(
+                        IomtMetrics.MeasurementIngestionLatencyMs(),
+                        (nowRef - m.IngestionTimeUtc.Value).TotalMilliseconds);
                 }
             }).ConfigureAwait(false);
         }

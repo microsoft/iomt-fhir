@@ -29,6 +29,15 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _operationDimension, ConnectorOperation.FHIRConversion },
             });
 
+        private static Metric _measurementIngestionLatencyMs = new Metric(
+            "MeasurementIngestionLatencyMs",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "MeasurementIngestionLatencyMs" },
+                { _categoryDimension, Category.Latency },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
+            });
+
         private static Metric _measurementGroup = new Metric(
             "MeasurementGroup",
             new Dictionary<string, object>
@@ -74,6 +83,15 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _operationDimension, ConnectorOperation.Normalization },
             });
 
+        private static Metric _deviceEventProcessingLatencyMs = new Metric(
+            "DeviceEventProcessingLatencyMs",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "DeviceEventProcessingLatencyMs" },
+                { _categoryDimension, Category.Latency },
+                { _operationDimension, ConnectorOperation.Normalization },
+            });
+
         private static Metric _notSupported = new Metric(
             "NotSupportedException",
             new Dictionary<string, object>
@@ -91,6 +109,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric MeasurementIngestionLatency()
         {
             return _measurementIngestionLatency;
+        }
+
+        /// <summary>
+        /// The latency between event ingestion and output to FHIR processor, in milliseconds.
+        /// </summary>
+        public static Metric MeasurementIngestionLatencyMs()
+        {
+            return _measurementIngestionLatencyMs;
         }
 
         /// <summary>
@@ -134,6 +160,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         }
 
         /// <summary>
+        /// The latency between the event ingestion time and normalization processing, in milliseconds. An increase here indicates a backlog of messages to process.
+        /// </summary>
+        public static Metric DeviceEventProcessingLatencyMs()
+        {
+            return _deviceEventProcessingLatencyMs;
+        }
+
+        /// <summary>
         /// A metric for when FHIR resource does not support the provided type as a value.
         /// </summary>
         public static Metric NotSupported()
@@ -165,6 +199,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                     { _nameDimension, exceptionName },
                     { _categoryDimension, Category.Errors },
                     { _errorTypeDimension, ErrorType.GeneralError },
+                    { _errorSeverityDimension, ErrorSeverity.Critical },
                     { _operationDimension, connectorStage },
                 });
         }
