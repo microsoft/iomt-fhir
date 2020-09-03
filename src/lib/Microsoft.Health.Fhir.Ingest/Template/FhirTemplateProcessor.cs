@@ -19,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public TObservation CreateObservation(IFhirTemplate template, IObservationGroup observationGroup)
         {
-            return CreateObseravtionImpl(CastTemplate(template), observationGroup);
+            return CreateObservationImpl(CastTemplate(template), observationGroup);
         }
 
         public IEnumerable<IObservationGroup> CreateObservationGroups(IFhirTemplate template, IMeasurementGroup measurementGroup)
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             return castTemplate;
         }
 
-        protected abstract TObservation CreateObseravtionImpl(TTemplate template, IObservationGroup observationGroup);
+        protected abstract TObservation CreateObservationImpl(TTemplate template, IObservationGroup observationGroup);
 
         protected abstract TObservation MergeObservationImpl(TTemplate template, IObservationGroup observationGroup, TObservation existingObservation);
 
