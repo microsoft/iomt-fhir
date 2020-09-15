@@ -73,9 +73,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "healthkitOnFhir", "healthki
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template", "src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj", "{85D653A7-0E63-4751-8904-728156807A14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Schema", "src\lib\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj", "{A85AB6BC-698C-460F-81D4-9D1D2BD14B71}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Schema", "src\lib\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj", "{A85AB6BC-698C-460F-81D4-9D1D2BD14B71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Template.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Template.UnitTests\Microsoft.Health.Fhir.Ingest.Template.UnitTests.csproj", "{EE072537-807D-4FE2-BFEB-424B64DCD7F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Template.UnitTests\Microsoft.Health.Fhir.Ingest.Template.UnitTests.csproj", "{EE072537-807D-4FE2-BFEB-424B64DCD7F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{10EFAC3D-8282-4CD6-AD35-61880CA0BB06}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
