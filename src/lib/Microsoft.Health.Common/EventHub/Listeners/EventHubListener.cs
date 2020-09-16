@@ -126,7 +126,7 @@ namespace Microsoft.Health.Common.EventHubs
             private readonly int _eventQueueSize;
             private readonly Task _timedFlush;
             private readonly TimeSpan _flushTimeSpan;
-            private readonly ConcurrentQueue<EventHubTriggerInput> _pendingEventData;
+            private readonly ConcurrentDictionary<string, PartitionEventData> _pendingEventData;
             private int _batchCounter = 0;
             private bool _disposed = false;
             private int _eventCounter = 0;
@@ -139,7 +139,7 @@ namespace Microsoft.Health.Common.EventHubs
                 _singleDispatch = singleDispatch;
                 _batchCheckpointFrequency = options.BatchCheckpointFrequency;
                 _logger = logger;
-                _pendingEventData = new ConcurrentQueue<EventHubTriggerInput>();
+                _pendingEventData = new ConcurrentDictionary<string, PartitionEventData>();
                 _flushTimeSpan = TimeSpan.FromMinutes(1);
                 _timedFlush = Task.Run(TimedFlush);
                 _eventQueueSize = options.EventQueueSize;
@@ -182,22 +182,22 @@ namespace Microsoft.Health.Common.EventHubs
 
             public async Task ProcessEventsAsync(PartitionContext context, IEnumerable<EventData> messages)
             {
-                var triggerInput = new EventHubTriggerInput
-                {
-                    Events = messages.ToArray(),
-                    PartitionContext = context,
-                };
+                var events = _pendingEventData.AddOrUpdate(
+                    context.PartitionId,
+                    p => new PartitionEventData(context, messages),
+                    (p, d) =>
+                    {
+                        d.Context = context;
+                        foreach (var message in messages)
+                        {
+                            d.Data.Enqueue(message);
+                        }
 
-                int totalEvents;
+                        return d;
+                    });
 
-                lock (_eventLock)
-                {
-                    _pendingEventData.Enqueue(triggerInput);
-                    _eventCounter += triggerInput.Events.Length;
-                    totalEvents = _eventCounter;
-                }
-
-                if (totalEvents >= _eventQueueSize)
+                // Immediately process events queued up if we have reached our queue size
+                if (events.Data.Count >= _eventQueueSize)
                 {
                     await ConsumeEventsAsync();
                 }
@@ -213,6 +213,7 @@ namespace Microsoft.Health.Common.EventHubs
                     // Simple logic for now.  Timer isn't reset if batch flush is triggered since last timed flush.
                     if (!_pendingEventData.IsEmpty)
                     {
+                        _logger.LogInformation("Events queued, timed flush triggered.");
                         await ConsumeEventsAsync();
                     }
 
@@ -226,20 +227,28 @@ namespace Microsoft.Health.Common.EventHubs
 
             private async Task ConsumeEventsAsync()
             {
-                while (_pendingEventData.TryDequeue(out var triggerInput))
+                foreach (var pendingData in _pendingEventData.Values)
                 {
-                    lock (_eventLock)
+                    var batch = new List<EventData>();
+
+                    while (pendingData.Data.TryDequeue(out var eventData))
                     {
-                        _eventCounter -= triggerInput.Events.Length;
+                        batch.Add(eventData);
                     }
 
-                    await ConsumeEventsAsync(triggerInput);
+                    EventHubTriggerInput triggerInput = new EventHubTriggerInput
+                    {
+                        PartitionContext = pendingData.Context,
+                        Events = batch.ToArray(),
+                    };
+
+                    await ConsumeEventsAsync(triggerInput).ConfigureAwait(false);
                 }
             }
 
             private async Task ConsumeEventsAsync(EventHubTriggerInput triggerInput)
             {
-                TriggeredFunctionData input = null;
+                TriggeredFunctionData input;
                 if (_singleDispatch)
                 {
                     // Single dispatch
@@ -459,6 +468,19 @@ namespace Microsoft.Health.Common.EventHubs
                     writer.WritePropertyName(propertyName);
                     writer.WriteValue(propertyValue);
                 }
+            }
+
+            private class PartitionEventData
+            {
+                public PartitionEventData(PartitionContext partitionContext, IEnumerable<EventData> data)
+                {
+                    Context = partitionContext;
+                    Data = new ConcurrentQueue<EventData>(data);
+                }
+
+                public PartitionContext Context { get; set; }
+
+                public ConcurrentQueue<EventData> Data { get; }
             }
         }
 #pragma warning restore CA1303 // Do not pass literals as localized parameters
