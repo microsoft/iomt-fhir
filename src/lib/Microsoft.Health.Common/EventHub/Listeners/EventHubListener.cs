@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -112,6 +113,8 @@ namespace Microsoft.Health.Common.EventHubs
 
         // We get a new instance each time Start() is called.
         // We'll get a listener per partition - so they can potentialy run in parallel even on a single machine.
+
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
         internal class EventProcessor : IEventProcessor, IDisposable, ICheckpointer
         {
             private readonly ITriggeredFunctionExecutor _executor;
@@ -120,8 +123,14 @@ namespace Microsoft.Health.Common.EventHubs
             private readonly CancellationTokenSource _cts = new CancellationTokenSource();
             private readonly ICheckpointer _checkpointer;
             private readonly int _batchCheckpointFrequency;
+            private readonly int _eventQueueSize;
+            private readonly Task _timedFlush;
+            private readonly TimeSpan _flushTimeSpan;
+            private readonly ConcurrentQueue<EventHubTriggerInput> _pendingEventData;
             private int _batchCounter = 0;
             private bool _disposed = false;
+            private int _eventCounter = 0;
+            private object _eventLock = new object();
 
             public EventProcessor(EventHubOptions options, ITriggeredFunctionExecutor executor, ILogger logger, bool singleDispatch, ICheckpointer checkpointer = null)
             {
@@ -130,6 +139,10 @@ namespace Microsoft.Health.Common.EventHubs
                 _singleDispatch = singleDispatch;
                 _batchCheckpointFrequency = options.BatchCheckpointFrequency;
                 _logger = logger;
+                _pendingEventData = new ConcurrentQueue<EventHubTriggerInput>();
+                _flushTimeSpan = TimeSpan.FromMinutes(1);
+                _timedFlush = Task.Run(TimedFlush);
+                _eventQueueSize = options.EventQueueSize;
             }
 
             public Task CloseAsync(PartitionContext context, CloseReason reason)
@@ -137,7 +150,7 @@ namespace Microsoft.Health.Common.EventHubs
                 // signal cancellation for any in progress executions
                 _cts.Cancel();
 
-                _logger.LogDebug(GetOperationDetails(context, $"CloseAsync, {reason.ToString()}"));
+                _logger.LogDebug(GetOperationDetails(context, $"CloseAsync, {reason}"));
                 return Task.CompletedTask;
             }
 
@@ -175,6 +188,57 @@ namespace Microsoft.Health.Common.EventHubs
                     PartitionContext = context,
                 };
 
+                int totalEvents;
+
+                lock (_eventLock)
+                {
+                    _pendingEventData.Enqueue(triggerInput);
+                    _eventCounter += triggerInput.Events.Length;
+                    totalEvents = _eventCounter;
+                }
+
+                if (totalEvents >= _eventQueueSize)
+                {
+                    await ConsumeEventsAsync();
+                }
+            }
+
+            private async Task TimedFlush()
+            {
+                while (!_cts.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Timed flush triggered.");
+                    DateTimeOffset nextReading = DateTimeOffset.UtcNow.Add(_flushTimeSpan);
+
+                    // Simple logic for now.  Timer isn't reset if batch flush is triggered since last timed flush.
+                    if (!_pendingEventData.IsEmpty)
+                    {
+                        await ConsumeEventsAsync();
+                    }
+
+                    var delayTime = nextReading - DateTimeOffset.UtcNow;
+                    if (delayTime.TotalMilliseconds > 0)
+                    {
+                        await Task.Delay(delayTime);
+                    }
+                }
+            }
+
+            private async Task ConsumeEventsAsync()
+            {
+                while (_pendingEventData.TryDequeue(out var triggerInput))
+                {
+                    lock (_eventLock)
+                    {
+                        _eventCounter -= triggerInput.Events.Length;
+                    }
+
+                    await ConsumeEventsAsync(triggerInput);
+                }
+            }
+
+            private async Task ConsumeEventsAsync(EventHubTriggerInput triggerInput)
+            {
                 TriggeredFunctionData input = null;
                 if (_singleDispatch)
                 {
@@ -192,7 +256,7 @@ namespace Microsoft.Health.Common.EventHubs
                         input = new TriggeredFunctionData
                         {
                             TriggerValue = eventHubTriggerInput,
-                            TriggerDetails = eventHubTriggerInput.GetTriggerDetails(context),
+                            TriggerDetails = eventHubTriggerInput.GetTriggerDetails(triggerInput.PartitionContext),
                         };
 
                         Task task = TryExecuteWithLoggingAsync(input, triggerInput.Events[i]);
@@ -211,7 +275,7 @@ namespace Microsoft.Health.Common.EventHubs
                     input = new TriggeredFunctionData
                     {
                         TriggerValue = triggerInput,
-                        TriggerDetails = triggerInput.GetTriggerDetails(context),
+                        TriggerDetails = triggerInput.GetTriggerDetails(triggerInput.PartitionContext),
                     };
 
                     using (_logger.BeginScope(GetLinksScope(triggerInput.Events)))
@@ -222,7 +286,7 @@ namespace Microsoft.Health.Common.EventHubs
 
                 // Dispose all messages to help with memory pressure. If this is missed, the finalizer thread will still get them.
                 bool hasEvents = false;
-                foreach (var message in messages)
+                foreach (var message in triggerInput.Events)
                 {
                     hasEvents = true;
                     message.Dispose();
@@ -237,7 +301,7 @@ namespace Microsoft.Health.Common.EventHubs
                 // code, and capture/log/persist failed events, since they won't be retried.
                 if (hasEvents)
                 {
-                    await CheckpointAsync(context);
+                    await CheckpointAsync(triggerInput.PartitionContext);
                 }
             }
 
@@ -397,5 +461,6 @@ namespace Microsoft.Health.Common.EventHubs
                 }
             }
         }
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
     }
 }

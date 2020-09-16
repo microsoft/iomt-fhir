@@ -66,6 +66,8 @@ namespace Microsoft.Health.Common.EventHubs
             }
         }
 
+        public int EventQueueSize { get; set; } = 1;
+
         public EventProcessorOptions EventProcessorOptions { get; }
 
         public PartitionManagerOptions PartitionManagerOptions { get; }
