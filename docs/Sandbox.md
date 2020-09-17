@@ -1,6 +1,6 @@
 # IoMT FHIR Connector for Azure Sandbox
 
-You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/en-us/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
+You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
 
 Once deployment is completed you should see the following Azure components:
 
@@ -66,10 +66,12 @@ Then deploy the scenario with the Open Source IoMT FHIR Connector for Azure:
 
 ## Post Deployment
 
+**NOTE** The device conversion mapping template provided in this guide is designed to work with Data Export (legacy) within IoT Central.
+
 After successful deployment, your IoT Central application must be connected to the IoMT FHIR Connector for Azure. To do so:
 
-1. Navigate to your IOT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
-2. On the left panel, natigate to "Data export"
+1. Navigate to your IoT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
+2. On the left panel, navigate to "Data export"
 3. Click New > Azure Event Hubs
 4. Under "Event Hubs namespace" choose your environment name.
 5. Under "Event hub" choose "devicedata"
@@ -78,9 +80,9 @@ After successful deployment, your IoT Central application must be connected to t
 
 ## Verification
 
-Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IOMT FHIR Connector for Azure and shouldn't be used on any other production services.')
+Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IoMT FHIR Connector for Azure and shouldn't be used on any other production services.')
 
-After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
+After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
 
 ```
 https://<ENVIRONMENTNAME>.azurehealthcareapis.com/Observation
