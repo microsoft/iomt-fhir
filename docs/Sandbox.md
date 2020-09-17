@@ -1,6 +1,6 @@
 # IoMT FHIR Connector for Azure Sandbox
 
-You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/en-us/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
+You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
 
 Once deployment is completed you should see the following Azure components:
 
@@ -82,7 +82,7 @@ After successful deployment, your IoT Central application must be connected to t
 
 Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IoMT FHIR Connector for Azure and shouldn't be used on any other production services.')
 
-After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
+After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
 
 ```
 https://<ENVIRONMENTNAME>.azurehealthcareapis.com/Observation
