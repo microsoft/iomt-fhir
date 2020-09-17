@@ -66,10 +66,12 @@ Then deploy the scenario with the Open Source IoMT FHIR Connector for Azure:
 
 ## Post Deployment
 
+**NOTE** The device conversion mapping template provided in this guide is designed to work with Data Export (legacy) within IoT Central.
+
 After successful deployment, your IoT Central application must be connected to the IoMT FHIR Connector for Azure. To do so:
 
-1. Navigate to your IOT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
-2. On the left panel, natigate to "Data export"
+1. Navigate to your IoT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
+2. On the left panel, navigate to "Data export"
 3. Click New > Azure Event Hubs
 4. Under "Event Hubs namespace" choose your environment name.
 5. Under "Event hub" choose "devicedata"
@@ -78,7 +80,7 @@ After successful deployment, your IoT Central application must be connected to t
 
 ## Verification
 
-Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IOMT FHIR Connector for Azure and shouldn't be used on any other production services.')
+Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IoMT FHIR Connector for Azure and shouldn't be used on any other production services.')
 
 After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
 
