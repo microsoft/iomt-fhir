@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public static CollectionFhirTemplateFactory Default { get; } = new CollectionFhirTemplateFactory();
 
-        protected override string TargetTemplateTypeName => "CollectionFhirTemplate";
+        protected override string TargetTemplateTypeName => "CollectionFhir";
 
         protected override ILookupTemplate<IFhirTemplate> BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)
         {

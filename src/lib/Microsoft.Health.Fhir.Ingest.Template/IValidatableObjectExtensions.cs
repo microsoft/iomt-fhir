@@ -25,12 +25,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 return true;
             }
 
-            builder.Append("Validation errors: ");
-            foreach (var validationError in validationErrors)
-            {
-                builder.AppendLine($"{validationError.ErrorMessage}");
-            }
-
+            builder.AppendLine("Validation errors:");
+            builder.Append(string.Join("\n", validationErrors.Select(e => e.ErrorMessage)));
             error = builder.ToString();
             return false;
         }

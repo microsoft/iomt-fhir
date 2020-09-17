@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public static CollectionContentTemplateFactory Default { get; } = new CollectionContentTemplateFactory();
 
-        protected override string TargetTemplateTypeName => "CollectionContentTemplate";
+        protected override string TargetTemplateTypeName => "CollectionContent";
 
         protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)
         {

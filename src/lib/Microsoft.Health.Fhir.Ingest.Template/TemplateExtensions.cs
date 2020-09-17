@@ -34,11 +34,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (errors.Any())
             {
-                string errorMessage = string.Join(", \n", errors.Select(e => e.Message));
-                throw new InvalidTemplateException($"Failed to deserialize the template content: {errorMessage}");
+                string errorMessage = string.Join(string.Empty, errors.Select(e => FormatErrorMessage(e.Message)));
+                throw new InvalidTemplateException($"Failed to deserialize the {typeof(T).Name} content: {errorMessage}");
             }
 
             return obj;
+        }
+
+        private static string FormatErrorMessage(string errMessage)
+        {
+            // Remove the path information if it was empty.
+            errMessage = errMessage.Replace("Path ''.", string.Empty);
+            errMessage = "\n  " + errMessage;
+            return errMessage;
         }
     }
 }
