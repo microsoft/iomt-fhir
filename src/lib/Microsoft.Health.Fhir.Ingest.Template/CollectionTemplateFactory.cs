@@ -68,7 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (!rootContainer.MatchTemplateName(TargetTemplateTypeName))
             {
-                errors.Add(new TemplateError($"Expected {nameof(rootContainer.TemplateType)} value {TargetTemplateTypeName}, actual {rootContainer.TemplateType}."));
+                errors.Add(new TemplateError($"Expected {nameof(rootContainer.TemplateType)} value {TargetTemplateTypeName}, actual {rootContainer.TemplateType ?? "Not Found"}."));
                 return false;
             }
 
