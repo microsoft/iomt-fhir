@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             {
                 string value = null;
 
-                while (i < values.Length && values[i].Time >= currentDateTime && values[i].Time < nextDateTime)
+                while (i < values.Length && values[i].Time.ToUniversalTime() >= currentDateTime && values[i].Time.ToUniversalTime() < nextDateTime)
                 {
                     value = values[i].Value;
                     i++;
