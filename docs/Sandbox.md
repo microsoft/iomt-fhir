@@ -71,7 +71,7 @@ Then deploy the scenario with the Open Source IoMT FHIR Connector for Azure:
 After successful deployment, your IoT Central application must be connected to the IoMT FHIR Connector for Azure. To do so:
 
 1. Navigate to your IoT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
-2. On the left panel, navigate to "Data export"
+2. On the left panel, navigate to "Data export (legacy)"
 3. Click New > Azure Event Hubs
 4. Under "Event Hubs namespace" choose your environment name.
 5. Under "Event hub" choose "devicedata"
