@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.EventHubs;
@@ -129,8 +128,6 @@ namespace Microsoft.Health.Common.EventHubs
             private readonly ConcurrentDictionary<string, PartitionEventData> _pendingEventData;
             private int _batchCounter = 0;
             private bool _disposed = false;
-            private int _eventCounter = 0;
-            private object _eventLock = new object();
 
             public EventProcessor(EventHubOptions options, ITriggeredFunctionExecutor executor, ILogger logger, bool singleDispatch, ICheckpointer checkpointer = null)
             {
@@ -182,6 +179,13 @@ namespace Microsoft.Health.Common.EventHubs
 
             public async Task ProcessEventsAsync(PartitionContext context, IEnumerable<EventData> messages)
             {
+                // Queue events as they come in. Track according to partition. Keep last known partition context with queued messages.
+                // Current implementation doesn't taken into account queued time.  A more advanced implementation would batch events
+                // according to how they slot according to the flush time period.  I.E. we receive 2000 events spread across 3 minutes
+                // we would send them according to they slot into 3 minute periods for at least 3 batches (possibly more if one period
+                // contained more than 1000 events.  Using queued time would match what SA does and allow for deterministic replay of
+                // the pipeline.
+
                 var events = _pendingEventData.AddOrUpdate(
                     context.PartitionId,
                     p => new PartitionEventData(context, messages),
@@ -207,20 +211,21 @@ namespace Microsoft.Health.Common.EventHubs
             {
                 while (!_cts.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Timed flush triggered.");
                     DateTimeOffset nextReading = DateTimeOffset.UtcNow.Add(_flushTimeSpan);
-
-                    // Simple logic for now.  Timer isn't reset if batch flush is triggered since last timed flush.
-                    if (!_pendingEventData.IsEmpty)
-                    {
-                        _logger.LogInformation("Events queued, timed flush triggered.");
-                        await ConsumeEventsAsync();
-                    }
 
                     var delayTime = nextReading - DateTimeOffset.UtcNow;
                     if (delayTime.TotalMilliseconds > 0)
                     {
                         await Task.Delay(delayTime);
+                    }
+
+                    _logger.LogInformation("Timed flush triggered.");
+
+                    // Simple logic for now.  Timer isn't reset if batch flush is triggered since last timed flush.
+                    if (!_cts.IsCancellationRequested && !_pendingEventData.IsEmpty)
+                    {
+                        _logger.LogInformation("Events queued, timed flush triggered.");
+                        await ConsumeEventsAsync();
                     }
                 }
             }
@@ -229,6 +234,11 @@ namespace Microsoft.Health.Common.EventHubs
             {
                 foreach (var pendingData in _pendingEventData.Values)
                 {
+                    if (pendingData.Data.IsEmpty)
+                    {
+                        continue;
+                    }
+
                     var batch = new List<EventData>();
 
                     while (pendingData.Data.TryDequeue(out var eventData))
@@ -380,7 +390,7 @@ namespace Microsoft.Health.Common.EventHubs
                 return EmptyScope;
             }
 
-            private Dictionary<string, object> GetLinksScope(EventData[] messages)
+            private static Dictionary<string, object> GetLinksScope(EventData[] messages)
             {
                 List<Activity> links = null;
 

@@ -7,12 +7,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Health.Common.EventHubs;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -31,18 +27,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
-        public async Task<IActionResult> MeasurementCollectionToFhir(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+        public async Task MeasurementCollectionToFhir(
+            [Common.EventHubs.EventHubTrigger("fhir", Connection = "OutputEventHub")] EventData[] events,
             [Blob("template/%Template:FhirMapping%", FileAccess.Read)] string templateDefinition,
             [MeasurementFhirImport] MeasurementFhirImportService measurementImportService)
         {
             EnsureArg.IsNotNull(measurementImportService, nameof(measurementImportService));
-            EnsureArg.IsNotNull(req, nameof(req));
+            EnsureArg.IsNotNull(events, nameof(events));
 
             try
             {
-                await measurementImportService.ProcessStreamAsync(req.Body, templateDefinition, _logger).ConfigureAwait(false);
-                return new AcceptedResult();
+                await measurementImportService.ProcessEventsAync(events, templateDefinition, _logger).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -55,7 +50,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         [FunctionName("NormalizeDeviceData")]
         public async Task NormalizeDeviceData(
-            [EventHubTrigger("input", Connection = "InputEventHub")] EventData[] events,
+            [Azure.WebJobs.EventHubTrigger("input", Connection = "InputEventHub")] EventData[] events,
             [EventHubMeasurementCollector("output", Connection = "OutputEventHub")] IAsyncCollector<IMeasurement> output,
             [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions)
         {
