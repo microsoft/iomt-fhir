@@ -66,7 +66,7 @@ Then deploy the scenario with the Open Source IoMT FHIR Connector for Azure:
 
 ## Post Deployment
 
-**NOTE** The device conversion mapping template provided in this guide is designed to work with Data Export (legacy) within IoT Central.
+**NOTE** The device conversion mapping template provided in this guide is designed to work with Data export (legacy) within IoT Central.
 
 After successful deployment, your IoT Central application must be connected to the IoMT FHIR Connector for Azure. To do so:
 
