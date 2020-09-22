@@ -43,106 +43,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestInput\data_CodeValueFhirTemplate_CodeableConceptAndStringComponent.json">
+    <None Update="TestInput\*.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestInput\data_CodeValueFhirTemplate_CodeableConceptData.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CodeValueFhirTemplate_Components.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CodeValueFhirTemplate_Quantity.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CodeValueFhirTemplateInvalid_MissingFields.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CodeValueFhirTemplate_SampledData.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CodeValueFhirTemplate_String.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionContentTemplateEmpty.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionContentTemplateEmptyWithType.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionContentTemplateMultipleMocks.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateEmpty.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateEmptyWithType.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateInvalid.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateMixedValidity.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionContentTemplateMixed.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionContentTemplateInvalid.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionContentTemplateMixedValidity.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateMixed.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateValid.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_CollectionFhirTemplateMultipleMocks.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotHubPayloadExample.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotHubPayloadExampleMissingCreateTime.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotHubPayloadMultiValueExample.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotJsonPathContentTemplateValid.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotJsonPathContentTemplateInvalidMissingTypeMetadata.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotJsonPathContentTemplateInvalidMissingValueField.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_IotJsonPathContentTemplateValidWithOptional.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_JsonPathContentTemplateInvalidMissingExpression.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_JsonPathContentTemplateValid.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_JsonPathContentTemplateValidWithOptional.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_InvalidJson.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_InvalidTemplateType.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_InvalidCollectionContentTemplateWithNoTemplateArray.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestInput\data_InvalidCollectionFhirTemplateWithNoTemplateArray.json">
+    <None Update="TestInput\*.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
