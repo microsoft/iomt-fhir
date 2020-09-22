@@ -168,14 +168,14 @@
         "description": "Client secret of the application for accessing a token."
       }
     },
-    "ResourceIdentityServiceType": {
+    "ResourceIdentityResolutionType": {
       "type": "string",
       "allowedValues": [
-        "R4DeviceAndPatientLookupIdentityService",
-        "R4DeviceAndPatientCreateIdentityService",
-        "R4DeviceAndPatientWithEncounterLookupIdentityService"
+        "Lookup",
+        "Create",
+        "LookupWithEncounter"
       ],
-      "defaultValue": "R4DeviceAndPatientCreateIdentityService",
+      "defaultValue": "Create",
       "metadata": {
         "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
       }
@@ -336,8 +336,8 @@
           "FhirServiceClientSecret": {
             "value": "[parameters('FhirServiceClientSecret')]"
           },
-          "ResourceIdentityServiceType": {
-            "value": "[parameters('ResourceIdentityServiceType')]"
+          "ResourceIdentityResolutionType": {
+            "value": "[parameters('ResourceIdentityResolutionType')]"
           },
           "DefaultDeviceIdentifierSystem": {
             "value": "[parameters('DefaultDeviceIdentifierSystem')]"

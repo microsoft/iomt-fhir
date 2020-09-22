@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
 
             var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
 
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
             converter.Convert(null).ReturnsForAnyArgs(args => events[args.Arg<EventData>()]);
 
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
 
             var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
 
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
 
             var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
 
@@ -115,7 +115,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
 
             var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new Exception()));
@@ -138,7 +138,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
 
             var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new OperationCanceledException()));
@@ -160,7 +160,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ILogger>();
+            var log = Substitute.For<ITelemetryLogger>();
 
             var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new TaskCanceledException()));

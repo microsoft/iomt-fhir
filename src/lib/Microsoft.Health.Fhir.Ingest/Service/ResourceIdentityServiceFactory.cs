@@ -4,16 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using EnsureThat;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Config;
+using Microsoft.Health.Fhir.Ingest.Host;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
     {
+        private static readonly IDictionary<string, Type> _identityServiceRegistry = GetResourceIdentityServiceRegistry();
+
         private ResourceIdentityServiceFactory()
         {
         }
@@ -24,13 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(config, nameof(config));
 
-            var serviceType = Assembly
-                .GetCallingAssembly()
-                .GetTypes()
-                .Where(t => typeof(IResourceIdentityService).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract && t.Name == config.ResourceIdentityServiceType)
-                .FirstOrDefault();
-
-            if (serviceType == null)
+            if (!_identityServiceRegistry.TryGetValue(config.ResourceIdentityServiceType, out Type serviceClassType))
             {
                 throw new NotSupportedException($"IResourceIdentityService type {config.ResourceIdentityServiceType} not found.");
             }
@@ -39,7 +36,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .Select(p => p.GetType())
                 .ToArray();
 
-            var ctor = serviceType.GetConstructor(ctorParamTypes);
+            var ctor = serviceClassType.GetConstructor(ctorParamTypes);
 
             if (ctor == null)
             {
@@ -50,6 +47,43 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceIdentityService.Initialize(config);
 
             return resourceIdentityService;
+        }
+
+        /// <summary>
+        /// Returns the registry of resource identity service classes. The class needs to be declared with the ResourceIdentityServiceAttribute
+        /// explicitly and built in the assembly. There should be only one service class registered for each ResourceIdentityServiceType. The
+        /// dynamic types will not get loaded.
+        /// </summary>
+        /// <returns>The registry of resource identity service class types.</returns>
+        private static IDictionary<string, Type> GetResourceIdentityServiceRegistry()
+        {
+            IDictionary<string, Type> serviceTypeRegistry = new Dictionary<string, Type>();
+            AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Where(assembly => !assembly.IsDynamic && assembly.GetTypes()?.Length > 0)
+                .ToList()
+                .ForEach(assembly =>
+                {
+                    foreach (Type classType in assembly.GetTypes())
+                    {
+                        if (typeof(IResourceIdentityService).IsAssignableFrom(classType) && classType.IsClass && !classType.IsAbstract)
+                        {
+                            foreach (ResourceIdentityServiceAttribute attribute in classType.GetCustomAttributes(typeof(ResourceIdentityServiceAttribute), false) as ResourceIdentityServiceAttribute[])
+                            {
+                                if (!serviceTypeRegistry.TryGetValue(attribute.Type, out Type existClassType))
+                                {
+                                    serviceTypeRegistry.Add(attribute.Type, classType);
+                                }
+                                else
+                                {
+                                    throw new TypeLoadException($"Duplicate class types found for IResourceIdentityService type '{attribute.Type}': '{existClassType.FullName}', '{classType.FullName}'.");
+                                }
+                            }
+                        }
+                    }
+                });
+
+            return serviceTypeRegistry;
         }
     }
 }

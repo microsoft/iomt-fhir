@@ -19,13 +19,19 @@ if($env.AzureWebJobsStorage -eq "UseDevelopmentStorage=true") {
     Exit
 }
 
-docker build --tag iomt:v1.0.0 .
+$fhirVersion = $env."FhirVersion"
+if(!$fhirVersion) {
+    Write-Output 'The FHIR version not found in local.settings.json, using R4 as default.'
+    $fhirVersion = 'R4'
+}
+
+docker build --tag iomt:v1.0.0 --build-arg FhirVersion=$fhirVersion .
 docker run -p 8080:80 `
     -e AzureFunctionsJobHost__Logging__Console__IsEnabled='true' `
     -e AzureWebJobsScriptRoot='/home/site/wwwroot' `
     -e AzureWebJobsStorage="$($env."AzureWebJobsStorage")" `
     -e AzureWebJobsSecretStorageType="$($env."AzureWebJobsSecretStorageType")" `
-    -e FhirVersion="$($env."FhirVersion")" `
+    -e FhirVersion="$fhirVersion" `
     -e FhirService:Authority="$($env."FhirService:Authority")" `
     -e FhirService:ClientId="$($env."FhirService:ClientId")" `
     -e FhirService:ClientSecret="$($env."FhirService:ClientSecret")" `

@@ -12,7 +12,6 @@ using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -26,14 +25,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly IContentTemplate _contentTemplate = null;
         private readonly Data.IConverter<EventData, JToken> _converter = null;
         private readonly int _maxParallelism;
-        private readonly ILogger _log;
+        private readonly ITelemetryLogger _log;
 
-        public MeasurementEventNormalizationService(ILogger log, IContentTemplate contentTemplate)
+        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate)
             : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 3)
         {
         }
 
-        public MeasurementEventNormalizationService(ILogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism)
+        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism)
         {
             _log = EnsureArg.IsNotNull(log, nameof(log));
             _contentTemplate = EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
@@ -79,13 +78,23 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 {
                     try
                     {
-                        _log.LogMetric(Metrics.DeviceEventProcessingLatency, (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalSeconds);
+                        _log.LogMetric(
+                            IomtMetrics.DeviceEventProcessingLatency(),
+                            (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalSeconds);
+
+                        _log.LogMetric(
+                            IomtMetrics.DeviceEventProcessingLatencyMs(),
+                            (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalMilliseconds);
+
                         var token = _converter.Convert(evt);
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
                             measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
                             await collector.AddAsync(measurement).ConfigureAwait(false);
-                            _log.LogMetric(Metrics.NormalizedEvent, 1);
+
+                            _log.LogMetric(
+                                IomtMetrics.NormalizedEvent(),
+                                1);
                         }
                     }
                     catch (OperationCanceledException)

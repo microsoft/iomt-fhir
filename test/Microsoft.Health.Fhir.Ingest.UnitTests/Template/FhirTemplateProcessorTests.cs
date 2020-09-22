@@ -112,7 +112,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 return null;
             }
 
-            protected override string CreateObseravtionImpl(CodeValueFhirTemplate template, IObservationGroup observationGroup)
+            protected override string CreateObservationImpl(CodeValueFhirTemplate template, IObservationGroup observationGroup)
             {
                 return TestCreateObseravtionImpl(template, observationGroup);
             }

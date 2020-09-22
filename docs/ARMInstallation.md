@@ -42,17 +42,17 @@ The following parameters are provided by the ARM template:
 |**FHIR Service Resource**|Resource/Audience representing the FHIR server on the provided authority.
 |**FHIR Service Client Id**|Client Id to run services as for access to the FHIR server.
 |**FHIR Service Client Secret**|Client secret of the application for accessing a token.
-|**Resource Identity Service Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
+|**Resource Identity Resolution Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
 |**Default Device Identifier System**|Default system to use when searching for device identities. If empty system is not used in the search.
 
-### Resource Identity Service Type
+### Resource Identity Resolution Type
 **Note** all identity look ups are cached once resolved to decrease load on the FHIR server.  If you plan on reusing devices with multiple patients it is advised you create a *virtual device* resource that is specific to the patient and the virtual device identifier is what is sent in the message payload. The virtual device can be linked to the actual device resource as a parent.
 
 |Type|Behavior
 |---|---
-|**R4DeviceAndPatientLookupIdentityService**|Default setting.  Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
-|**R4DeviceAndPatientCreateIdentityService**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped in the device content configuration template.
-|**R4DeviceAndPatientWithEncounterLookupIdentityService**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
+|**Lookup**|Default setting.  Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
+|**Create**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped in the device content configuration template.
+|**LookupWithEncounter**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Post Deployment
 After the ARM template is successfully deployed the mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob.  You can use a tool like [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to easily upload and update the configurations. Navigate to the Azure Storage account deployed by the ARM template (it will be service name you selected) and select the template storage to container.  From there upload the configurations and you are done.
