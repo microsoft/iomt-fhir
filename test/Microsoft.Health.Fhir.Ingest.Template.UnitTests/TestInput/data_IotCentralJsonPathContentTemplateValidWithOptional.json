@@ -1,0 +1,20 @@
+{
+  "templateType": "IotCentralJsonPathContent",
+  "template": {
+    "typeName": "telemetry",
+    "typeMatchExpression": "$..[?(@telemetry)]",
+    "patientIdExpression": "$.messageProperties.patientId",
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.template.Activity",
+        "valueName": "activity"
+      },
+      {
+        "required": "true",
+        "valueExpression": "$.template.BloodPressure.Diastolic",
+        "valueName": "bp_diastolic"
+      }
+    ]
+  }
+}

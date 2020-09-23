@@ -18,7 +18,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         private CollectionContentTemplateFactory()
             : base(
                   new JsonPathContentTemplateFactory(),
-                  new IotJsonPathContentTemplateFactory())
+                  new IotJsonPathContentTemplateFactory(),
+                  new IotCentralJsonPathContentTemplateFactory())
         {
         }
 
