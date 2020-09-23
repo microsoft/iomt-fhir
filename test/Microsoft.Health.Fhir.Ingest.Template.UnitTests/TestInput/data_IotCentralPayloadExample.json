@@ -14,7 +14,7 @@
       "RespiratoryRate": 13
   },
   "enrichments": {
-    "userSpecifiedKey": "sampleValue"
+    "Elevation": "200m"
   },
   "messageProperties": {
     "messageProp": "value"
