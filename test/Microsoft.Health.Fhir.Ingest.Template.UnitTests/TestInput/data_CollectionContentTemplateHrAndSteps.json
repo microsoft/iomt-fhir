@@ -1,0 +1,37 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartrate)]",
+        "deviceIdExpression": "$.device",
+        "timestampExpression": "$.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartrate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "steps",
+        "typeMatchExpression": "$..[?(@steps)]",
+        "deviceIdExpression": "$.device",
+        "timestampExpression": "$.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.steps",
+            "valueName": "steps"
+          }
+        ]
+      }
+    }
+  ]
+}
