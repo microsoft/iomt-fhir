@@ -29,6 +29,20 @@
           }
         ]
       }
+    },
+    {
+      "templateType": "IotCentralJsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@telemetry.HeartRate)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.telemetry.HeartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
     }
   ]
 }

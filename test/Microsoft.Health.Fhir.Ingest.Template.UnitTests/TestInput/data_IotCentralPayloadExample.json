@@ -1,0 +1,22 @@
+{
+  "applicationId": "1dffa667-9bee-4f16-b243-25ad4151475e",
+  "messageSource": "telemetry",
+  "deviceId": "1vzb5ghlsg1",
+  "schema": "default@v1",
+  "templateId": "urn:qugj6vbw5:___qbj_27r",
+  "enqueuedTime": "2020-08-05T22:26:55.455Z",
+  "telemetry": {
+      "Activity": "running",
+      "BloodPressure": {
+          "Diastolic": 7,
+          "Systolic": 71
+      },
+      "RespiratoryRate": 13
+  },
+  "enrichments": {
+    "Elevation": "200m"
+  },
+  "messageProperties": {
+    "messageProp": "value"
+  }
+}

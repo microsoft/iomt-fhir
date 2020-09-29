@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             _valueProcessor = valueProcessor;
         }
 
-        protected override Observation CreateObseravtionImpl(CodeValueFhirTemplate template, IObservationGroup grp)
+        protected override Observation CreateObservationImpl(CodeValueFhirTemplate template, IObservationGroup grp)
         {
             EnsureArg.IsNotNull(template, nameof(template));
             EnsureArg.IsNotNull(grp, nameof(grp));

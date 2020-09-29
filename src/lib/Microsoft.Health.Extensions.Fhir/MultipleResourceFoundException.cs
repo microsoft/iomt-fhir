@@ -42,7 +42,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 { DimensionNames.Category, Category.Errors },
                 { DimensionNames.ErrorType, ErrorType.FHIRResourceError },
                 { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                { DimensionNames.Stage, ConnectorStage.FHIRConversion },
+                { DimensionNames.Operation, ConnectorOperation.FHIRConversion },
             });
     }
 }

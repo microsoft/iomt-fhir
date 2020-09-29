@@ -5,31 +5,31 @@
 
 namespace Microsoft.Health.Common.Telemetry
 {
-    public static class ConnectorStage
+    public static class ConnectorOperation
     {
         /// <summary>
         /// The setup stage of the IoMT Connector
         /// </summary>
-        public static string Setup => nameof(ConnectorStage.Setup);
+        public static string Setup => nameof(ConnectorOperation.Setup);
 
         /// <summary>
         /// The normalization stage of the IoMT Connector
         /// </summary>
-        public static string Normalization => nameof(ConnectorStage.Normalization);
+        public static string Normalization => nameof(ConnectorOperation.Normalization);
 
         /// <summary>
         /// The grouping stage of the IoMT Connector
         /// </summary>
-        public static string Grouping => nameof(ConnectorStage.Grouping);
+        public static string Grouping => nameof(ConnectorOperation.Grouping);
 
         /// <summary>
         /// The FHIR conversion stage of the IoMT Connector
         /// </summary>
-        public static string FHIRConversion => nameof(ConnectorStage.FHIRConversion);
+        public static string FHIRConversion => nameof(ConnectorOperation.FHIRConversion);
 
         /// <summary>
         /// If a stage is not determined.
         /// </summary>
-        public static string Unknown => nameof(ConnectorStage.Unknown);
+        public static string Unknown => nameof(ConnectorOperation.Unknown);
     }
 }
