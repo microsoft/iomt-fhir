@@ -123,11 +123,14 @@ namespace Microsoft.Health.Common.EventHubs
             private readonly ICheckpointer _checkpointer;
             private readonly int _batchCheckpointFrequency;
             private readonly int _eventQueueSize;
-            private readonly Task _timedFlush;
             private readonly TimeSpan _flushTimeSpan;
             private readonly ConcurrentDictionary<string, PartitionEventData> _pendingEventData;
             private int _batchCounter = 0;
             private bool _disposed = false;
+            private DateTime _firstEnqueuedDateTime;
+            private DateTime _currentIntervalStart;
+            private DateTime _currentIntervalEnd;
+            private readonly Task _timeIntervalFlush;
 
             public EventProcessor(EventHubOptions options, ITriggeredFunctionExecutor executor, ILogger logger, bool singleDispatch, ICheckpointer checkpointer = null)
             {
@@ -138,8 +141,11 @@ namespace Microsoft.Health.Common.EventHubs
                 _logger = logger;
                 _pendingEventData = new ConcurrentDictionary<string, PartitionEventData>();
                 _flushTimeSpan = TimeSpan.FromMinutes(1);
-                _timedFlush = Task.Run(TimedFlush);
                 _eventQueueSize = options.EventQueueSize;
+                _firstEnqueuedDateTime = DateTime.MinValue;
+                _currentIntervalStart = DateTime.MinValue;
+                _currentIntervalEnd = DateTime.MinValue;
+                _timeIntervalFlush = Task.Run(TimeIntervalFlush);
             }
 
             public Task CloseAsync(PartitionContext context, CloseReason reason)
@@ -226,6 +232,129 @@ namespace Microsoft.Health.Common.EventHubs
                     {
                         _logger.LogInformation("Events queued, timed flush triggered.");
                         await ConsumeEventsAsync();
+                    }
+                }
+            }
+
+            private async void TimeIntervalFlush()
+            {
+                while (!_cts.IsCancellationRequested)
+                {
+                    if (_currentIntervalEnd == DateTime.MinValue)
+                    {
+                        _currentIntervalEnd = CalculateIntervalEnd(_currentIntervalStart, _flushTimeSpan);
+                    }
+
+                    if (_currentIntervalEnd == DateTime.MinValue)
+                    {
+                        Console.WriteLine("Waiting for an event to establish a time interval");
+                        await Task.Delay(10000);
+                        continue;
+                    }
+
+                    // Wait until interval end is some time in the past
+                    while (_currentIntervalEnd > DateTime.UtcNow.AddSeconds(-5))
+                    {
+                        Console.WriteLine($"Current UTC: {DateTime.UtcNow}");
+                        Console.WriteLine($"Current Interval End: {_currentIntervalEnd} is greater than {DateTime.UtcNow.AddSeconds(-5)}");
+                        Console.WriteLine("Waiting...");
+                        await Task.Delay(5000);
+                    }
+
+                    // Process events within interval
+                    await ConsumeEventsInIntervalAsync();
+                    _currentIntervalStart = _currentIntervalStart.Add(_flushTimeSpan);
+                    _currentIntervalEnd = _currentIntervalEnd.Add(_flushTimeSpan);
+                    Console.WriteLine("Next Interval End: " + _currentIntervalEnd);
+                }
+            }
+
+            private DateTime GetFirstEnqueuedTime()
+            {
+                // TODO - compare across all _pendingEventData.Values?
+                foreach (var pendingData in _pendingEventData.Values)
+                {
+                    if (pendingData.Data.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    pendingData.Data.TryPeek(out var eventData);
+                    eventData.SystemProperties.TryGetValue("x-opt-enqueued-time", out var enqueuedTime);
+                    var enqueuedDateTime = Convert.ToDateTime(enqueuedTime);
+                    eventData.Dispose();
+                    return enqueuedDateTime;
+                }
+
+                // Else return min value
+                return DateTime.MinValue;
+            }
+
+            private DateTime CalculateIntervalEnd(DateTime intervalStart, TimeSpan intervalLength)
+            {
+                if (intervalStart == DateTime.MinValue)
+                {
+                    intervalStart = GetFirstEnqueuedTime();
+                }
+
+                if (intervalStart == DateTime.MinValue)
+                {
+                    return intervalStart;
+                }
+
+                var intervalEnd = intervalStart.Add(intervalLength);
+
+                return intervalEnd;
+            }
+
+            // Consume events within a certain interval
+            private async Task ConsumeEventsInIntervalAsync()
+            {
+                var intervalEnd = _currentIntervalEnd;
+
+                Console.WriteLine($"=======Flushing Events up to: {intervalEnd}=======");
+
+                // find index, then dequeue up to index.
+                foreach (var pendingData in _pendingEventData.Values)
+                {
+                    if (pendingData.Data.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    var batch = new List<EventData>();
+                    while (pendingData.Data.TryPeek(out var eventData))
+                    {
+                        eventData.SystemProperties.TryGetValue("x-opt-enqueued-time", out var enqueuedTime);
+                        var enqueuedDateTime = Convert.ToDateTime(enqueuedTime);
+                        eventData.Dispose();
+
+                        // Stop if enqueuedDateTime greather than intervalEnd
+                        if (enqueuedDateTime > intervalEnd)
+                        {
+                            Console.WriteLine($"Enqueued Time: {enqueuedDateTime} greater than interval end time {intervalEnd}");
+                            break;
+                        }
+                        else
+                        {
+                            pendingData.Data.TryDequeue(out var dequeuedEvent);
+                            Console.WriteLine($"Flushing event with enqueued time: {enqueuedDateTime} less than {intervalEnd}");
+                            batch.Add(dequeuedEvent);
+                        }
+                    }
+
+                    // flush it all
+                    if (batch.Count > 0)
+                    {
+                        EventHubTriggerInput triggerInput = new EventHubTriggerInput
+                        {
+                            PartitionContext = pendingData.Context,
+                            Events = batch.ToArray(),
+                        };
+
+                        Console.WriteLine($"Flushing events: {batch.Count}");
+
+                        await ConsumeEventsAsync(triggerInput).ConfigureAwait(false);
                     }
                 }
             }
