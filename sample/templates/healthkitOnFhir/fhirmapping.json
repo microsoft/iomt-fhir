@@ -282,14 +282,6 @@
                 ]
             }
         },
-        
-        
-        
-        
-        
-        
-        
-        
         {
             "templateType": "CodeValueFhir",
             "template": {
