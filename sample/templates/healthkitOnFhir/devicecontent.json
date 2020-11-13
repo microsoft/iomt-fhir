@@ -133,8 +133,7 @@
           }
         ]
       }
-    }
-    ,
+    },
     {
       "templateType": "JsonPathContent",
       "template": {
@@ -147,6 +146,134 @@
             "required": "true",
             "valueExpression": "$.respiratoryRate",
             "valueName": "respiratoryRate"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "activeEnergyBurned",
+        "typeMatchExpression": "$..[?(@activeEnergyBurned)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.activeEnergyBurned",
+            "valueName": "activeEnergyBurned"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "appleExerciseTime",
+        "typeMatchExpression": "$..[?(@appleExerciseTime)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.appleExerciseTime",
+            "valueName": "appleExerciseTime"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "appleStandTime",
+        "typeMatchExpression": "$..[?(@appleStandTime)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.appleStandTime",
+            "valueName": "appleStandTime"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "dietaryEnergyConsumed",
+        "typeMatchExpression": "$..[?(@dietaryEnergyConsumed)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.dietaryEnergyConsumed",
+            "valueName": "dietaryEnergyConsumed"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "environmentalAudioExposure",
+        "typeMatchExpression": "$..[?(@environmentalAudioExposure)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.environmentalAudioExposure",
+            "valueName": "environmentalAudioExposure"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartRateVariability",
+        "typeMatchExpression": "$..[?(@heartRateVariability)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartRateVariability",
+            "valueName": "heartRateVariability"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "restingHeartRate",
+        "typeMatchExpression": "$..[?(@restingHeartRate)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.restingHeartRate",
+            "valueName": "restingHeartRate"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "walkingHeartRateAverage",
+        "typeMatchExpression": "$..[?(@walkingHeartRateAverage)]",
+        "deviceIdExpression": "$.deviceId",
+        "timestampExpression": "$.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.walkingHeartRateAverage",
+            "valueName": "walkingHeartRateAverage"
           }
         ]
       }
