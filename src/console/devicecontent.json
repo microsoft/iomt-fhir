@@ -1,0 +1,115 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@Body.HeartRate)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.HeartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "respiratoryrate",
+        "typeMatchExpression": "$..[?(@Body.RespiratoryRate)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.RespiratoryRate",
+            "valueName": "respiratoryrate"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "hrv",
+        "typeMatchExpression": "$..[?(@Body.HeartRateVariability)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.HeartRateVariability",
+            "valueName": "hrv"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "bodytemperature",
+        "typeMatchExpression": "$..[?(@Body.BodyTemperature)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.BodyTemperature",
+            "valueName": "temp"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "bp",
+        "typeMatchExpression": "$..[?(@Body.Systolic && @Body.Diastolic)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.Systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.Body.Diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "rangeofmotion",
+        "typeMatchExpression": "$..[?(@Body.RangeOfMotion)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.RangeOfMotion",
+            "valueName": "rangeofmotion"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "kneebend",
+        "typeMatchExpression": "$..[?(@Body.KneeBend)]",
+        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.Body.KneeBend",
+            "valueName": "kneebend"
+          }
+        ]
+      }
+    }
+  ]
+}

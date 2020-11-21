@@ -1,0 +1,176 @@
+{
+  "templateType": "CollectionFhir",
+  "template": [
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "8867-4",
+            "system": "http://loinc.org",
+            "display": "Heart rate"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "heartrate",
+        "value": {
+          "defaultPeriod": 30000,
+          "unit": "count/min",
+          "valueName": "hr",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "9279-1",
+            "system": "http://loinc.org",
+            "display": "Respiratory rate"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "respiratoryrate",
+        "value": {
+          "defaultPeriod": 30000,
+          "unit": "breaths/minute",
+          "valueName": "respiratoryrate",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "80404-7",
+            "system": "http://loinc.org",
+            "display": "Heart rate variability"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "hrv",
+        "value": {
+          "defaultPeriod": 30000,
+          "unit": "",
+          "valueName": "hrv",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "8310-5",
+            "system": "http://loinc.org",
+            "display": "Body temperature"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "bodytemperature",
+        "value": {
+          "defaultPeriod": 30000,
+          "unit": "",
+          "valueName": "temp",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "85354-9",
+            "display": "Blood pressure panel",
+            "system": "http://loinc.org"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "bloodpressure",
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "8867-4",
+                "display": "Diastolic blood pressure",
+                "system": "http://loinc.org"
+              }
+            ],
+            "value": {
+              "defaultPeriod": 30000,
+              "unit": "mmHg",
+              "valueName": "diastolic",
+              "valueType": "SampledData"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "8480-6",
+                "display": "Systolic blood pressure",
+                "system": "http://loinc.org"
+              },
+              {
+                "code": "271649006",
+                "display": "Systolic blood pressure",
+                "system": "http://snomed.info/sct"
+              }
+            ],
+            "value": {
+              "defaultPeriod": 30000,
+              "unit": "mmHg",
+              "valueName": "systolic",
+              "valueType": "SampledData"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "rangeOfMotion",
+            "system": "https://www.mydevice.com/v1",
+            "display": "Range Of Motion"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "rangeofmotion",
+        "value": {
+          "defaultPeriod": 30000,
+          "unit": "",
+          "valueName": "rangeofmotion",
+          "valueType": "SampledData"
+        }
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "kneeBend",
+            "system": "https://www.mydevice.com/v1",
+            "display": "Knee Bend"
+          }
+        ],
+        "periodInterval": 60,
+        "typeName": "kneebend",
+        "value": {
+          "defaultPeriod": 30000,
+          "unit": "",
+          "valueName": "kneebend",
+          "valueType": "SampledData"
+        }
+      }
+    }
+  ]
+}
