@@ -409,7 +409,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-01-01-preview",
+      "apiVersion": "2018-09-01-preview",
       "name": "[concat(variables('devicedata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('devicedata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
@@ -424,7 +424,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-01-01-preview",
+      "apiVersion": "2018-09-01-preview",
       "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('normalizeddata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
