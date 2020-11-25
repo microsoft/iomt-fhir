@@ -418,7 +418,8 @@
       "properties": {
         "roleDefinitionId": "[variables('receiver_role')]",
         "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]"
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]",
+        "principalType": "ServicePrincipal"
       }
     },
     {
@@ -432,7 +433,8 @@
       "properties": {
         "roleDefinitionId": "[variables('sender_role')]",
         "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]"
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]",
+        "principalType": "ServicePrincipal"
       }
     },
     {
