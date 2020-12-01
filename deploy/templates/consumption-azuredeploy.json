@@ -401,7 +401,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-01-01-preview",
+      "apiVersion": "2018-09-01-preview",
       "name": "[concat(variables('devicedata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('devicedata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
@@ -410,12 +410,13 @@
       "properties": {
           "roleDefinitionId": "[variables('receiver_role')]",
           "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-          "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]"
+          "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
+          "principalType": "ServicePrincipal"
       }
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-01-01-preview",
+      "apiVersion": "2018-09-01-preview",
       "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('normalizeddata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
@@ -424,7 +425,8 @@
       "properties": {
           "roleDefinitionId": "[variables('sender_role')]",
           "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-          "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+          "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+          "principalType": "ServicePrincipal"
       }
     },
     {
