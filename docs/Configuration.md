@@ -57,9 +57,9 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 | --- | --- | ---
 |**TypeName**|The type to associate with measurements that match the template.|`heartrate`
 |**TypeMatchExpression**|The JSON Path expression that is evaluated against the EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against the extracted JToken matched here.|`$..[?(@heartRate)]`
-|**TimestampExpression**|The JSON Path expression to extract the timestamp value for the measurement's OccurenceTimeUtc.|`$.endDate`
+|**TimestampExpression**|The JSON Path expression to extract the timestamp value for the measurement's OccurrenceTimeUtc.|`$.endDate`
 |**DeviceIdExpression**|The JSON Path expression to extract the device identifier.|`$.deviceId`
-|**PatientIdExpression**|*Optional*: The JSON Path expression to extract the patient identifier.|`$.patientId`
+|**PatientIdExpression**|*Required* when IdentityResolution is in [Create](ARMInstallation.md#Resource-Identity-Resolution-Type) mode and *Optional* when IdentityResolution is in [Lookup](ARMInstallation.md#Resource-Identity-Resolution-Type) mode. The JSON Path expression to extract the patient identifier.|`$.patientId`
 |**EncounterIdExpression**|*Optional*: The JSON Path expression to extract the encounter identifier.|`$.encounterId`
 |**CorrelationIdExpression**|*Optional*: The JSON Path expression to extract the correlation identifier.  If extracted this value can be used to group values into a single observation in the FHIR mapping template.|`$.correlationId`
 |**Values[].ValueName**|The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template. |`hr`
