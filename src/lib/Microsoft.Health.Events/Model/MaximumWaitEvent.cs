@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.Health.Events.Model
 {
-    public class MaximumWaitEvent : Event
+    public class MaximumWaitEvent : EventMessage
     {
         public MaximumWaitEvent(string partitionId, DateTime dateTime)
             : base(partitionId, dateTime)

@@ -9,9 +9,11 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
-using Microsoft.Health.Events.Storage;
 using Microsoft.Health.Fhir.Ingest.Config;
+using Microsoft.Health.Fhir.Ingest.Console.Storage;
+using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Logger.Telemetry;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -25,7 +27,13 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         {
             var config = GetEnvironmentConfig();
 
-            var eventHub = config.GetSection("Console:EventHub").Value;
+            var eventHub = Environment.GetEnvironmentVariable("WEBJOBS_NAME");
+            if (eventHub == null)
+            {
+                eventHub = config.GetSection("Console:EventHub").Value;
+            }
+
+            System.Console.WriteLine($"reading from event hub: {eventHub}");
             var eventHubOptions = GetEventHubInfo(config, eventHub);
 
             EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubConnectionString);
@@ -34,11 +42,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventBatchingOptions = new EventBatchingOptions();
             config.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
 
-            var storageOptions = new StorageOptions();
-            config.GetSection(StorageOptions.Settings).Bind(storageOptions);
+            var storageOptions = new StorageCheckpointOptions();
+            config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
 
             var serviceProvider = GetRequiredServiceProvider(config, eventHub);
-            var eventConsumers = GetEventConsumers(config, eventHub, serviceProvider);
+            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
+            var eventConsumers = GetEventConsumers(config, eventHub, serviceProvider, logger);
 
             var eventConsumerService = new EventConsumerService(eventConsumers);
             var checkpointClient = new StorageCheckpointClient(storageOptions);
@@ -52,8 +61,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             eventProcessorClientOptions.MaximumWaitTime = TimeSpan.FromSeconds(60);
             EventProcessorClient client = new EventProcessorClient(storageClient, consumerGroup, eventHubOptions.EventHubConnectionString, eventHubOptions.EventHubName, eventProcessorClientOptions);
 
-            var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient);
-            var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient);
+            var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger);
+            var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient, logger);
             await eventHubReader.RunAsync(client, ct);
         }
 
@@ -73,6 +82,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var serviceCollection = new ServiceCollection();
                 Normalize.ProcessorStartup startup = new Normalize.ProcessorStartup(config);
                 startup.ConfigureServices(serviceCollection);
+
+                var loggingService = new IomtLogging(config);
+                loggingService.ConfigureServices(serviceCollection);
+
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 return serviceProvider;
             }
@@ -81,6 +94,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var serviceCollection = new ServiceCollection();
                 MeasurementCollectionToFhir.ProcessorStartup startup = new MeasurementCollectionToFhir.ProcessorStartup(config);
                 startup.ConfigureServices(serviceCollection);
+
+                var loggingService = new IomtLogging(config);
+                loggingService.ConfigureServices(serviceCollection);
+
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 return serviceProvider;
             }
@@ -100,13 +117,24 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventHubOptions(connectionString, eventHubName);
         }
 
-        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp)
+        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
         {
             var eventConsumers = new List<IEventConsumer>();
+            var templateOptions = new TemplateOptions();
+            config.GetSection(TemplateOptions.Settings).Bind(templateOptions);
+
+            EnsureArg.IsNotNull(templateOptions);
+            EnsureArg.IsNotNull(templateOptions.BlobContainerName);
+            EnsureArg.IsNotNull(templateOptions.BlobStorageConnectionString);
+
+            var templateManager = new BlobManager(
+                templateOptions.BlobStorageConnectionString,
+                templateOptions.BlobContainerName);
+
             if (inputEventHub == "devicedata")
             {
                 var template = config.GetSection("Template:DeviceContent").Value;
-                var deviceDataNormalization = new Normalize.Processor(template, config, sp.GetRequiredService<IOptions<EventHubMeasurementCollectorOptions>>());
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, config, sp.GetRequiredService<IOptions<EventHubMeasurementCollectorOptions>>(), logger);
                 eventConsumers.Add(deviceDataNormalization);
             }
 
@@ -114,7 +142,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             {
                 var template = config.GetSection("Template:FhirMapping").Value;
                 var measurementImportService = ResolveMeasurementService(sp);
-                var measurementToFhirConsumer = new MeasurementCollectionToFhir.Processor(template, measurementImportService);
+                var measurementToFhirConsumer = new MeasurementCollectionToFhir.Processor(template, templateManager, measurementImportService, logger);
                 eventConsumers.Add(measurementToFhirConsumer);
             }
 

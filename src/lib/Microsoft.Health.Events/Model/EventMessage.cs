@@ -8,20 +8,21 @@ using System.Collections.Generic;
 
 namespace Microsoft.Health.Events.Model
 {
-    public class Event
+    public class EventMessage : IEventMessage
     {
-        public Event(string partitionId, DateTime dateTime)
+        public EventMessage(string partitionId, DateTime dateTime)
         {
             EnqueuedTime = dateTime;
             PartitionId = partitionId;
         }
 
-        public Event(
+        public EventMessage(
             string partitionId,
             ReadOnlyMemory<byte> body,
             long sequenceNumber,
             long offset,
             DateTimeOffset enqueuedTime,
+            IDictionary<string, object> properties,
             IReadOnlyDictionary<string, object> systemProperties)
         {
             PartitionId = partitionId;
@@ -29,6 +30,7 @@ namespace Microsoft.Health.Events.Model
             SequenceNumber = sequenceNumber;
             Offset = offset;
             EnqueuedTime = enqueuedTime;
+            Properties = new Dictionary<string, object>(properties);
             SystemProperties = new Dictionary<string, object>(systemProperties);
         }
 
@@ -42,6 +44,8 @@ namespace Microsoft.Health.Events.Model
 
         public DateTimeOffset EnqueuedTime { get; }
 
-        public Dictionary<string, object> SystemProperties { get; }
+        public IDictionary<string, object> Properties { get; }
+
+        public IReadOnlyDictionary<string, object> SystemProperties { get; }
     }
 }

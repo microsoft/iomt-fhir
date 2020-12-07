@@ -8,20 +8,23 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
 {
     public class EventQueue
     {
         private string _queueId;
-        private ConcurrentQueue<Event> _queue;
+        private ConcurrentQueue<IEventMessage> _queue;
         private EventQueueWindow _queueWindow;
+        private ITelemetryLogger _logger;
 
-        public EventQueue(string queueId, DateTime initDateTime, TimeSpan flushTimespan)
+        public EventQueue(string queueId, DateTime initDateTime, TimeSpan flushTimespan, ITelemetryLogger logger)
         {
             _queueId = queueId;
-            _queue = new ConcurrentQueue<Event>();
+            _queue = new ConcurrentQueue<IEventMessage>();
             _queueWindow = new EventQueueWindow(initDateTime, flushTimespan);
+            _logger = logger;
         }
 
         public void IncrementQueueWindow(DateTime dateTime)
@@ -39,18 +42,18 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             return _queue.Count;
         }
 
-        public void Enqueue(Event eventArg)
+        public void Enqueue(IEventMessage eventArg)
         {
             _queue.Enqueue(eventArg);
         }
 
         // flush a fixed number of events
-        public Task<List<Event>> Flush(int numEvents)
+        public Task<List<IEventMessage>> Flush(int numEvents)
         {
             Console.WriteLine($"Flushing {numEvents} events");
 
             var count = 0;
-            var events = new List<Event>();
+            var events = new List<IEventMessage>();
 
             while (count < numEvents)
             {
@@ -66,11 +69,9 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
         }
 
         // flush up to a date time
-        public Task<List<Event>> Flush(DateTime dateTime)
+        public Task<List<IEventMessage>> Flush(DateTime dateTime)
         {
-            Console.WriteLine($"Attempt to flush queue up to {dateTime}");
-
-            var events = new List<Event>();
+            var events = new List<IEventMessage>();
             while (_queue.TryPeek(out var eventData))
             {
                 var enqueuedUtc = eventData.EnqueuedTime.UtcDateTime;

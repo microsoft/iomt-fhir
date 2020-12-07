@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Health.Events.Model;
-
-namespace Microsoft.Health.Events.EventConsumers
+namespace Microsoft.Health.Fhir.Ingest.Console.Template
 {
-    public interface IEventConsumer
+    public interface ITemplateManager
     {
-        Task ConsumeAsync(IEnumerable<IEventMessage> events);
+        byte[] GetTemplate(string templateName);
+
+        string GetTemplateAsString(string templateName);
     }
 }

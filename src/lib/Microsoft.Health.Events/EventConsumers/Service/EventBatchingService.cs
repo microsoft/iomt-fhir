@@ -11,26 +11,32 @@ using EnsureThat;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service.Infrastructure;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service
 {
     public class EventBatchingService : IEventConsumerService
     {
         private ConcurrentDictionary<string, EventQueue> _eventQueues;
-        private int _maxEvents = 100;
-        private TimeSpan _flushTimespan = TimeSpan.FromSeconds(300);
+        private int _maxEvents;
+        private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
         private ICheckpointClient _checkpointClient;
+        private ITelemetryLogger _logger;
         private const int _timeBuffer = -5;
 
-        public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient)
+        public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger)
         {
             EnsureArg.IsNotNull(options);
+            EnsureArg.IsInt(options.MaxEvents);
+            EnsureArg.IsInt(options.FlushTimespan);
+
             _eventQueues = new ConcurrentDictionary<string, EventQueue>();
             _eventConsumerService = eventConsumerService;
             _maxEvents = options.MaxEvents;
             _flushTimespan = TimeSpan.FromSeconds(options.FlushTimespan);
             _checkpointClient = checkpointClient;
+            _logger = logger;
         }
 
         public EventQueue GetQueue(string queueId)
@@ -52,10 +58,10 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         private EventQueue CreateQueueIfMissing(string queueId, DateTime initTime, TimeSpan flushTimespan)
         {
-            return _eventQueues.GetOrAdd(queueId, new EventQueue(queueId, initTime, flushTimespan));
+            return _eventQueues.GetOrAdd(queueId, new EventQueue(queueId, initTime, flushTimespan, _logger));
         }
 
-        public Task ConsumeEvent(Event eventArg)
+        public Task ConsumeEvent(IEventMessage eventArg)
         {
             EnsureArg.IsNotNull(eventArg);
 
@@ -95,15 +101,15 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         // todo: fix -"Collection was modified; enumeration operation may not execute."
         private async void ThresholdCountReached(string queueId)
         {
-            Console.WriteLine($"The threshold count {_maxEvents} was reached.");
+            _logger.LogTrace($"Partition {queueId} threshold count {_maxEvents} was reached.");
             var events = await GetQueue(queueId).Flush(_maxEvents);
             await _eventConsumerService.ConsumeEvents(events);
             UpdateCheckpoint(events);
         }
 
-        private async void ThresholdTimeReached(string queueId, Event eventArg, DateTime windowEnd)
+        private async void ThresholdTimeReached(string queueId, IEventMessage eventArg, DateTime windowEnd)
         {
-            Console.WriteLine($"The threshold time {_eventQueues[queueId].GetQueueWindow()} was reached.");
+            _logger.LogTrace($"Partition {queueId} threshold time {_eventQueues[queueId].GetQueueWindow()} was reached.");
             var queue = GetQueue(queueId);
             var events = await queue.Flush(windowEnd);
             await _eventConsumerService.ConsumeEvents(events);
@@ -115,14 +121,14 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         {
             if (windowEnd < DateTime.UtcNow.AddSeconds(_timeBuffer))
             {
-                Console.WriteLine($"Threshold wait reached. Flushing {_eventQueues[queueId].GetQueueCount()} events up to: {windowEnd}");
+                _logger.LogTrace($"Partition {queueId} threshold wait reached. Flushing {_eventQueues[queueId].GetQueueCount()} events up to: {windowEnd}");
                 var events = await GetQueue(queueId).Flush(windowEnd);
                 await _eventConsumerService.ConsumeEvents(events);
                 UpdateCheckpoint(events);
             }
         }
 
-        private async void UpdateCheckpoint(List<Event> events)
+        private async void UpdateCheckpoint(List<IEventMessage> events)
         {
             if (events.Count > 0)
             {
@@ -131,7 +137,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
-        public Task ConsumeEvents(IEnumerable<Event> events)
+        public Task ConsumeEvents(IEnumerable<IEventMessage> events)
         {
             throw new NotImplementedException();
         }

@@ -2,20 +2,25 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-
+using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Health.Events.Model;
 
-namespace Microsoft.Health.Events.EventCheckpointing
+namespace Microsoft.Health.Events.Model
 {
-    public interface ICheckpointClient
+    public interface IEventMessage
     {
-        Task SetCheckpointAsync(IEventMessage eventArg);
+        string PartitionId { get; }
 
-        Task PublishCheckpointsAsync(CancellationToken cancellationToken);
+        ReadOnlyMemory<byte> Body { get; }
 
-        Task<List<Checkpoint>> ListCheckpointsAsync();
+        long SequenceNumber { get; }
+
+        long Offset { get; }
+
+        DateTimeOffset EnqueuedTime { get; }
+
+        IDictionary<string, object> Properties { get; }
+
+        IReadOnlyDictionary<string, object> SystemProperties { get; }
     }
 }

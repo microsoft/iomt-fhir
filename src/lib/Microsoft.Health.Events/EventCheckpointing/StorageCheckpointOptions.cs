@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Events.Storage
+namespace Microsoft.Health.Events.EventCheckpointing
 {
-    public class StorageOptions
+    public class StorageCheckpointOptions
     {
         public const string Settings = "Storage";
 

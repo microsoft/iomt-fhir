@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Health.Events.Model;
 
-namespace Microsoft.Health.Events.EventConsumers
+namespace Microsoft.Health.Fhir.Ingest.Console.Storage
 {
-    public interface IEventConsumer
+    public class TemplateOptions
     {
-        Task ConsumeAsync(IEnumerable<IEventMessage> events);
+        public const string Settings = "TemplateStorage";
+
+        public string BlobStorageConnectionString { get; set; }
+
+        public string BlobContainerName { get; set; }
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logger.Telemetry;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -39,7 +40,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await ProcessMeasurementGroups(measurementGroups, template, log).ConfigureAwait(false);
         }
 
-        public async Task ProcessEventsAsync(IEnumerable<Event> events, string templateDefinition, ITelemetryLogger log)
+        public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log)
         {
             var template = BuildTemplate(templateDefinition, log);
             var measurementGroups = ParseEventData(events);
@@ -107,7 +108,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return measurementGroups;
         }
 
-        private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<Event> data)
+        private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data)
         {
             // Deserialize events into measurements and then group according to the device, type, and other factors
             var body = data.First().Body.ToArray();

@@ -16,7 +16,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using Microsoft.Health.Events.Model;
-using Microsoft.Health.Events.Storage;
 
 namespace Microsoft.Health.Events.EventCheckpointing
 {
@@ -26,9 +25,8 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private BlobContainerClient _storageClient;
         private static System.Timers.Timer _publisherTimer;
         private int _publishTimerInterval = 10000;
-        private bool _canPublish = false;
 
-        public StorageCheckpointClient(StorageOptions options)
+        public StorageCheckpointClient(StorageCheckpointOptions options)
         {
             EnsureArg.IsNotNull(options);
             EnsureArg.IsNotNullOrWhiteSpace(options.BlobPrefix);
@@ -138,18 +136,26 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public Task SetCheckpointAsync(Event eventArgs)
+        public Task SetCheckpointAsync(IEventMessage eventArgs)
         {
             EnsureArg.IsNotNull(eventArgs);
             EnsureArg.IsNotNullOrWhiteSpace(eventArgs.PartitionId);
 
-            _canPublish = true;
-            var checkpoint = new Checkpoint();
-            checkpoint.LastProcessed = eventArgs.EnqueuedTime;
-            checkpoint.Id = eventArgs.PartitionId;
-            checkpoint.Prefix = BlobPrefix;
+            try
+            {
+                var checkpoint = new Checkpoint();
+                checkpoint.LastProcessed = eventArgs.EnqueuedTime;
+                checkpoint.Id = eventArgs.PartitionId;
+                checkpoint.Prefix = BlobPrefix;
 
-            _checkpoints[eventArgs.PartitionId] = checkpoint;
+                _checkpoints[eventArgs.PartitionId] = checkpoint;
+            }
+#pragma warning disable CA1031
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+                Console.WriteLine($"Checkpointing error: {ex.Message}");
+            }
 
             return Task.CompletedTask;
         }
@@ -172,11 +178,15 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
         private async void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            if (_canPublish)
+            try
             {
-                // await PublishCheckpointsAsync(CancellationToken.None);
-                await Task.Delay(1000);
-                _canPublish = false;
+                await PublishCheckpointsAsync(CancellationToken.None);
+            }
+#pragma warning disable CA1031
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

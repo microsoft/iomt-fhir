@@ -11,8 +11,8 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 {
     public interface IEventConsumerService
     {
-        Task ConsumeEvents(IEnumerable<Event> events);
+        Task ConsumeEvents(IEnumerable<IEventMessage> events);
 
-        Task ConsumeEvent(Event eventArg);
+        Task ConsumeEvent(IEventMessage eventArg);
     }
 }

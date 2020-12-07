@@ -13,45 +13,46 @@ using EnsureThat;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class EventProcessor
     {
         private IEventConsumerService _eventConsumerService;
-        private StorageCheckpointClient _checkpointClient;
+        private ICheckpointClient _checkpointClient;
+        private ITelemetryLogger _logger;
 
-        public EventProcessor(IEventConsumerService eventConsumerService, StorageCheckpointClient checkpointClient)
+        public EventProcessor(IEventConsumerService eventConsumerService, ICheckpointClient checkpointClient, ITelemetryLogger logger)
         {
             _eventConsumerService = eventConsumerService;
             _checkpointClient = checkpointClient;
+            _logger = logger;
         }
 
         public async Task RunAsync(EventProcessorClient processor, CancellationToken ct)
         {
             EnsureArg.IsNotNull(processor);
 
+            // Processes two types of events
+            // 1) Event hub events
+            // 2) Maximum wait events. These are generated when we have not received an event hub
+            //    event for a certain time period and this event is used to flush events in the current window.
             Task ProcessEventHandler(ProcessEventArgs eventArgs)
             {
                 try
                 {
+                    IEventMessage evt;
                     if (eventArgs.HasEvent)
                     {
-                        var evt = new Event(
-                            eventArgs.Partition.PartitionId,
-                            eventArgs.Data.Body,
-                            eventArgs.Data.Offset,
-                            eventArgs.Data.SequenceNumber,
-                            eventArgs.Data.EnqueuedTime.UtcDateTime,
-                            eventArgs.Data.SystemProperties);
-
-                        _eventConsumerService.ConsumeEvent(evt);
+                        evt = EventMessageFactory.CreateEvent(eventArgs);
                     }
                     else
                     {
-                        var evt = new MaximumWaitEvent(eventArgs.Partition.PartitionId, DateTime.UtcNow);
-                        _eventConsumerService.ConsumeEvent(evt);
+                        evt = new MaximumWaitEvent(eventArgs.Partition.PartitionId, DateTime.UtcNow);
                     }
+
+                    _eventConsumerService.ConsumeEvent(evt);
                 }
                 catch
                 {
@@ -81,7 +82,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     if (checkpoint.Id == partitionId)
                     {
                         initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
-                        Console.WriteLine($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
+                        _logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
                         break;
                     }
                 }
