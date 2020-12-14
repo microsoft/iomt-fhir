@@ -13,6 +13,7 @@ using EnsureThat;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
@@ -71,20 +72,22 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
             async Task ProcessInitializingHandler(PartitionInitializingEventArgs initArgs)
             {
-                Console.WriteLine($"Initializing partition {initArgs.PartitionId}");
-
                 var partitionId = initArgs.PartitionId;
+                _logger.LogTrace($"Initializing partition {partitionId}");
 
-                // todo: only get checkpoint for partition instead of listing them all
-                var checkpoints = await _checkpointClient.ListCheckpointsAsync();
-                foreach (var checkpoint in checkpoints)
+                try
                 {
-                    if (checkpoint.Id == partitionId)
-                    {
-                        initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
-                        _logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
-                        break;
-                    }
+                    var checkpoint = await _checkpointClient.GetCheckpointForPartitionAsync(partitionId);
+                    initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
+                    _logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
+                    _logger.LogMetric(EventMetrics.EventHubPartitionInitialized(), 1);
+                }
+#pragma warning disable CA1031
+                catch (Exception ex)
+#pragma warning restore CA1031
+                {
+                    _logger.LogTrace($"Failed to initialize partition {partitionId} from checkpoint");
+                    _logger.LogError(ex);
                 }
             }
 

@@ -9,6 +9,7 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
+using Microsoft.Health.Events.Repository;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Console.Storage;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
@@ -27,13 +28,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         {
             var config = GetEnvironmentConfig();
 
+            // determine which event hub to read from
             var eventHub = Environment.GetEnvironmentVariable("WEBJOBS_NAME");
             if (eventHub == null)
             {
                 eventHub = config.GetSection("Console:EventHub").Value;
             }
 
-            System.Console.WriteLine($"reading from event hub: {eventHub}");
+            System.Console.WriteLine($"Reading from event hub: {eventHub}");
+            System.Console.WriteLine($"Logs and Metrics will be written to Application Insights");
             var eventHubOptions = GetEventHubInfo(config, eventHub);
 
             EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubConnectionString);
@@ -44,13 +47,13 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
             var storageOptions = new StorageCheckpointOptions();
             config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
+            var checkpointClient = new StorageCheckpointClient(storageOptions);
 
             var serviceProvider = GetRequiredServiceProvider(config, eventHub);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             var eventConsumers = GetEventConsumers(config, eventHub, serviceProvider, logger);
 
             var eventConsumerService = new EventConsumerService(eventConsumers);
-            var checkpointClient = new StorageCheckpointClient(storageOptions);
 
             var ct = new CancellationToken();
 
@@ -127,9 +130,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             EnsureArg.IsNotNull(templateOptions.BlobContainerName);
             EnsureArg.IsNotNull(templateOptions.BlobStorageConnectionString);
 
-            var templateManager = new BlobManager(
+            var storageManager = new StorageManager(
                 templateOptions.BlobStorageConnectionString,
                 templateOptions.BlobContainerName);
+
+            var templateManager = new TemplateManager(storageManager);
 
             if (inputEventHub == "devicedata")
             {

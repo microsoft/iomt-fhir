@@ -3,33 +3,22 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure.Storage.Blobs;
-using EnsureThat;
-using System.IO;
+using Microsoft.Health.Events.Repository;
 using System.Text;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Template
 {
-    public class BlobManager : ITemplateManager
+    public class TemplateManager : ITemplateManager
     {
-        private BlobContainerClient _blobContainer;
-
-        public BlobManager(string connectionString, string blobContainerName)
+        private IRepositoryManager _respositoryManager;
+        public TemplateManager(IRepositoryManager repositoryManager)
         {
-            EnsureArg.IsNotNull(connectionString);
-            EnsureArg.IsNotNull(blobContainerName);
-
-            _blobContainer = new BlobContainerClient(connectionString, blobContainerName);
+            _respositoryManager = repositoryManager;
         }
+
         public byte[] GetTemplate(string templateName)
         {
-            EnsureArg.IsNotNull(templateName);
-
-            var blockBlob = _blobContainer.GetBlobClient(templateName);
-            var memoryStream = new MemoryStream();
-            blockBlob.DownloadTo(memoryStream);
-            byte[] itemContent = memoryStream.ToArray();
-            return itemContent;
+            return _respositoryManager.GetItem(templateName);
         }
 
         public string GetTemplateAsString(string templateName)

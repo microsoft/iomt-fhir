@@ -17,5 +17,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
         Task PublishCheckpointsAsync(CancellationToken cancellationToken);
 
         Task<List<Checkpoint>> ListCheckpointsAsync();
+
+        Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId);
     }
 }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -21,7 +22,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 {
     public class StorageCheckpointClient : ICheckpointClient
     {
-        private Dictionary<string, Checkpoint> _checkpoints;
+        private ConcurrentDictionary<string, Checkpoint> _checkpoints;
         private BlobContainerClient _storageClient;
         private static System.Timers.Timer _publisherTimer;
         private int _publishTimerInterval = 10000;
@@ -35,7 +36,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             BlobPrefix = options.BlobPrefix;
 
-            _checkpoints = new Dictionary<string, Checkpoint>();
+            _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _storageClient = new BlobContainerClient(options.BlobStorageConnectionString, options.BlobContainerName);
 
             SetPublisherTimer();
@@ -136,6 +137,53 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
+        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier)
+        {
+            var prefix = $"{BlobPrefix}/checkpoint/{partitionIdentifier}";
+
+            Task<Checkpoint> GetCheckpointAsync()
+            {
+                var checkpoint = new Checkpoint();
+
+                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: CancellationToken.None))
+                {
+                    var partitionId = blob.Name.Split('/').Last();
+                    DateTimeOffset lastEventTimestamp = DateTime.MinValue;
+
+                    if (blob.Metadata.TryGetValue("LastProcessed", out var str))
+                    {
+                        DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
+                    }
+
+                    checkpoint.Prefix = BlobPrefix;
+                    checkpoint.Id = partitionId;
+                    checkpoint.LastProcessed = lastEventTimestamp;
+                }
+
+                return Task.FromResult(checkpoint);
+            }
+
+            try
+            {
+                // todo: consider retries
+                return GetCheckpointAsync();
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
+            {
+                // todo: log errors
+                throw;
+            }
+            catch
+            {
+                // todo: log errors
+                throw;
+            }
+            finally
+            {
+                // todo: log complete
+            }
+        }
+
         public Task SetCheckpointAsync(IEventMessage eventArgs)
         {
             EnsureArg.IsNotNull(eventArgs);
@@ -147,7 +195,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 checkpoint.LastProcessed = eventArgs.EnqueuedTime;
                 checkpoint.Id = eventArgs.PartitionId;
                 checkpoint.Prefix = BlobPrefix;
-
                 _checkpoints[eventArgs.PartitionId] = checkpoint;
             }
 #pragma warning disable CA1031

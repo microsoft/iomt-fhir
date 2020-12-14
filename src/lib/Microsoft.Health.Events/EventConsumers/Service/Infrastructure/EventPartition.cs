@@ -8,63 +8,69 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
 {
-    public class EventQueue
+    public class EventPartition
     {
-        private string _queueId;
-        private ConcurrentQueue<IEventMessage> _queue;
-        private EventQueueWindow _queueWindow;
+        private string _partitionId;
+        private ConcurrentQueue<IEventMessage> _partition;
+        private DateTime _partitionWindow;
+        private TimeSpan _flushTimespan;
         private ITelemetryLogger _logger;
 
-        public EventQueue(string queueId, DateTime initDateTime, TimeSpan flushTimespan, ITelemetryLogger logger)
+        public EventPartition(string partitionId, DateTime initDateTime, TimeSpan flushTimespan, ITelemetryLogger logger)
         {
-            _queueId = queueId;
-            _queue = new ConcurrentQueue<IEventMessage>();
-            _queueWindow = new EventQueueWindow(initDateTime, flushTimespan);
+            _partitionId = partitionId;
+            _partition = new ConcurrentQueue<IEventMessage>();
+            _partitionWindow = initDateTime.Add(flushTimespan);
+            _flushTimespan = flushTimespan;
             _logger = logger;
-        }
-
-        public void IncrementQueueWindow(DateTime dateTime)
-        {
-            _queueWindow.IncrementWindow(dateTime);
-        }
-
-        public DateTime GetQueueWindow()
-        {
-            return _queueWindow.GetWindowEnd();
-        }
-
-        public int GetQueueCount()
-        {
-            return _queue.Count;
         }
 
         public void Enqueue(IEventMessage eventArg)
         {
-            _queue.Enqueue(eventArg);
+            _partition.Enqueue(eventArg);
+        }
+
+        public void IncrementPartitionWindow(DateTime dateTime)
+        {
+            // todo: consider computing instead of while loop.
+            while (dateTime >= _partitionWindow)
+            {
+                _partitionWindow = _partitionWindow.Add(_flushTimespan);
+            }
+        }
+
+        public DateTime GetPartitionWindow()
+        {
+            return _partitionWindow;
+        }
+
+        public int GetPartitionBatchCount()
+        {
+            return _partition.Count;
         }
 
         // flush a fixed number of events
         public Task<List<IEventMessage>> Flush(int numEvents)
         {
-            Console.WriteLine($"Flushing {numEvents} events");
-
             var count = 0;
             var events = new List<IEventMessage>();
 
             while (count < numEvents)
             {
-                if (_queue.TryDequeue(out var dequeuedEvent))
+                if (_partition.TryDequeue(out var dequeuedEvent))
                 {
                     events.Add(dequeuedEvent);
                     count++;
                 }
             }
 
-            Console.WriteLine($"Current window {GetQueueWindow()}");
+            _logger.LogTrace($"Flushed {events.Count} events on partition {_partitionId}");
+            _logger.LogMetric(EventMetrics.EventsFlushed(), events.Count);
             return Task.FromResult(events);
         }
 
@@ -72,12 +78,12 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
         public Task<List<IEventMessage>> Flush(DateTime dateTime)
         {
             var events = new List<IEventMessage>();
-            while (_queue.TryPeek(out var eventData))
+            while (_partition.TryPeek(out var eventData))
             {
                 var enqueuedUtc = eventData.EnqueuedTime.UtcDateTime;
                 if (enqueuedUtc <= dateTime)
                 {
-                    _queue.TryDequeue(out var dequeuedEvent);
+                    _partition.TryDequeue(out var dequeuedEvent);
                     events.Add(dequeuedEvent);
                 }
                 else
@@ -86,7 +92,8 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
                 }
             }
 
-            Console.WriteLine($"Flushed {events.Count} events up to {dateTime}");
+            _logger.LogTrace($"Flushed {events.Count} events up to {dateTime} on partition {_partitionId}");
+            _logger.LogMetric(EventMetrics.EventsFlushed(), events.Count);
             return Task.FromResult(events);
         }
     }

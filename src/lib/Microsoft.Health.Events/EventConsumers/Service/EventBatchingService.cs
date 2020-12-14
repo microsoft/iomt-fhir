@@ -17,7 +17,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 {
     public class EventBatchingService : IEventConsumerService
     {
-        private ConcurrentDictionary<string, EventQueue> _eventQueues;
+        private ConcurrentDictionary<string, EventPartition> _eventPartitions;
         private int _maxEvents;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             EnsureArg.IsInt(options.MaxEvents);
             EnsureArg.IsInt(options.FlushTimespan);
 
-            _eventQueues = new ConcurrentDictionary<string, EventQueue>();
+            _eventPartitions = new ConcurrentDictionary<string, EventPartition>();
             _eventConsumerService = eventConsumerService;
             _maxEvents = options.MaxEvents;
             _flushTimespan = TimeSpan.FromSeconds(options.FlushTimespan);
@@ -39,59 +39,59 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             _logger = logger;
         }
 
-        public EventQueue GetQueue(string queueId)
+        public EventPartition GetPartition(string partitionId)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(queueId);
+            EnsureArg.IsNotNullOrWhiteSpace(partitionId);
 
-            if (!_eventQueues.ContainsKey(queueId))
+            if (!_eventPartitions.ContainsKey(partitionId))
             {
-                throw new Exception($"Queue with identifier {queueId} does not exist");
+                throw new Exception($"Partition with identifier {partitionId} does not exist");
             }
 
-            return _eventQueues[queueId];
+            return _eventPartitions[partitionId];
         }
 
-        private bool EventQueueExists(string queueId)
+        private bool EventPartitionExists(string partitionId)
         {
-            return _eventQueues.ContainsKey(queueId);
+            return _eventPartitions.ContainsKey(partitionId);
         }
 
-        private EventQueue CreateQueueIfMissing(string queueId, DateTime initTime, TimeSpan flushTimespan)
+        private EventPartition CreatePartitionIfMissing(string partitionId, DateTime initTime, TimeSpan flushTimespan)
         {
-            return _eventQueues.GetOrAdd(queueId, new EventQueue(queueId, initTime, flushTimespan, _logger));
+            return _eventPartitions.GetOrAdd(partitionId, new EventPartition(partitionId, initTime, flushTimespan, _logger));
         }
 
         public Task ConsumeEvent(IEventMessage eventArg)
         {
             EnsureArg.IsNotNull(eventArg);
 
-            var queueId = eventArg.PartitionId;
+            var partitionId = eventArg.PartitionId;
             var eventEnqueuedTime = eventArg.EnqueuedTime.UtcDateTime;
 
             if (eventArg is MaximumWaitEvent)
             {
-                if (EventQueueExists(queueId))
+                if (EventPartitionExists(partitionId))
                 {
-                    var windowThresholdTime = GetQueue(queueId).GetQueueWindow();
-                    ThresholdWaitReached(queueId, windowThresholdTime);
+                    var windowThresholdTime = GetPartition(partitionId).GetPartitionWindow();
+                    ThresholdWaitReached(partitionId, windowThresholdTime);
                 }
             }
             else
             {
-                var queue = CreateQueueIfMissing(queueId, eventEnqueuedTime, _flushTimespan);
+                var partition = CreatePartitionIfMissing(partitionId, eventEnqueuedTime, _flushTimespan);
 
-                queue.Enqueue(eventArg);
+                partition.Enqueue(eventArg);
 
-                var windowThresholdTime = queue.GetQueueWindow();
+                var windowThresholdTime = partition.GetPartitionWindow();
                 if (eventEnqueuedTime > windowThresholdTime)
                 {
-                    ThresholdTimeReached(queueId, eventArg, windowThresholdTime);
+                    ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
                     return Task.CompletedTask;
                 }
 
-                if (queue.GetQueueCount() >= _maxEvents)
+                if (partition.GetPartitionBatchCount() >= _maxEvents)
                 {
-                    ThresholdCountReached(queueId);
+                    ThresholdCountReached(partitionId);
                 }
             }
 
@@ -99,30 +99,30 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         }
 
         // todo: fix -"Collection was modified; enumeration operation may not execute."
-        private async void ThresholdCountReached(string queueId)
+        private async void ThresholdCountReached(string partitionId)
         {
-            _logger.LogTrace($"Partition {queueId} threshold count {_maxEvents} was reached.");
-            var events = await GetQueue(queueId).Flush(_maxEvents);
+            _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
+            var events = await GetPartition(partitionId).Flush(_maxEvents);
             await _eventConsumerService.ConsumeEvents(events);
             UpdateCheckpoint(events);
         }
 
-        private async void ThresholdTimeReached(string queueId, IEventMessage eventArg, DateTime windowEnd)
+        private async void ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
         {
-            _logger.LogTrace($"Partition {queueId} threshold time {_eventQueues[queueId].GetQueueWindow()} was reached.");
-            var queue = GetQueue(queueId);
+            _logger.LogTrace($"Partition {partitionId} threshold time {_eventPartitions[partitionId].GetPartitionWindow()} was reached.");
+            var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
+            queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
             await _eventConsumerService.ConsumeEvents(events);
-            queue.IncrementQueueWindow(eventArg.EnqueuedTime.UtcDateTime);
             UpdateCheckpoint(events);
         }
 
-        private async void ThresholdWaitReached(string queueId, DateTime windowEnd)
+        private async void ThresholdWaitReached(string partitionId, DateTime windowEnd)
         {
             if (windowEnd < DateTime.UtcNow.AddSeconds(_timeBuffer))
             {
-                _logger.LogTrace($"Partition {queueId} threshold wait reached. Flushing {_eventQueues[queueId].GetQueueCount()} events up to: {windowEnd}");
-                var events = await GetQueue(queueId).Flush(windowEnd);
+                _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
+                var events = await GetPartition(partitionId).Flush(windowEnd);
                 await _eventConsumerService.ConsumeEvents(events);
                 UpdateCheckpoint(events);
             }
