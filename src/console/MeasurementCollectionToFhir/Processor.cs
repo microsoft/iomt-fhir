@@ -45,7 +45,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
                 EnsureArg.IsNotNull(_templateDefinition);
                 var templateContent = _templateManager.GetTemplateAsString(_templateDefinition);
 
-                await _measurementImportService.ProcessEventsAsync(events, _templateDefinition, _logger).ConfigureAwait(false);
+                await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger).ConfigureAwait(false);
             }
             catch
             {
