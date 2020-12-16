@@ -43,7 +43,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log)
         {
             var template = BuildTemplate(templateDefinition, log);
-            var measurementGroups = ParseEventData(events);
+            var measurementGroups = ParseEventData(events, log);
 
             await ProcessMeasurementGroups(measurementGroups, template, log).ConfigureAwait(false);
         }
@@ -108,7 +108,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return measurementGroups;
         }
 
-        private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data)
+        private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
         {
             // Deserialize events into measurements and then group according to the device, type, and other factors
             var body = data.First().Body.ToArray();
@@ -120,6 +120,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .Select(g =>
                 {
                     var measurements = g.ToList();
+                    _ = CalculateMetricsAsync(measurements, log).ConfigureAwait(false);
                     return new MeasurementGroup
                     {
                         Data = measurements,
