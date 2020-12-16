@@ -58,14 +58,13 @@ Function BuildPackage() {
 
 Function Deploy-WebJobs($DeviceDataWebJobName, $NormalizedDataWebJobName) {
     try {
-        Clean-Path -WebJobName $DeviceDataWebJobName
-        Clean-Path -WebJobName $NormalizedDataWebJobName
-
+        $tempPath = "$currentPath\Temp"
         $resourceGroupName = $EnvironmentName
         $webAppName = $EnvironmentName
         $webJobType = "Continuous"
-        $buildPath = "$currentPath\OSS_Deployment"
-        $tempPath = "$currentPath\Temp"
+
+        Clean-Path -WebJobName $DeviceDataWebJobName
+        Clean-Path -WebJobName $NormalizedDataWebJobName
 
         $DeviceWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$DeviceDataWebJobName"
         $NormalizedWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$NormalizedDataWebJobName"
@@ -97,13 +96,14 @@ Set-StrictMode -Version Latest
 if ($EnvironmentDeploy -eq $true) {
     Write-Host "Deploying environment resources..."
     $webjobTemplate = "..\templates\default-azuredeploy-webjobs.json"
-    New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceUrl $fhirServerUrl -FhirServiceAudience $fhirServerUrl -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
+    New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceUrl $fhirServiceUrl -FhirServiceAudience $fhirServiceUrl -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
 }
 
 # deploy the stream analytics replacement webjobs
 Write-Host "Deploying WebJobs..."
 
 $currentPath = (Get-Location).Path
+$buildPath = "$currentPath\OSS_Deployment"
 BuildPackage
 Deploy-WebJobs -DeviceDataWebJobName "devicedata" -NormalizedDataWebJobName "normalizeddata"
 
