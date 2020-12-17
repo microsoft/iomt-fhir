@@ -39,18 +39,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
         {
             EnsureArg.IsNotNull(events);
+            EnsureArg.IsNotNull(_templateDefinition);
 
-            try
-            {
-                EnsureArg.IsNotNull(_templateDefinition);
-                var templateContent = _templateManager.GetTemplateAsString(_templateDefinition);
-
-                await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger).ConfigureAwait(false);
-            }
-            catch
-            {
-                throw;
-            }
+            var templateContent = _templateManager.GetTemplateAsString(_templateDefinition);
+            await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger).ConfigureAwait(false);
         }
     }
 }

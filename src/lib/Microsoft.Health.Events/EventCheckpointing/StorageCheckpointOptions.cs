@@ -14,5 +14,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
         public string BlobContainerName { get; set; }
 
         public string BlobPrefix { get; set; }
+
+        public string CheckpointBatchCount { get; set; }
     }
 }

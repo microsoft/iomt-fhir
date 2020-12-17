@@ -41,24 +41,17 @@ namespace Microsoft.Health.Events.EventHubProcessor
             //    event for a certain time period and this event is used to flush events in the current window.
             Task ProcessEventHandler(ProcessEventArgs eventArgs)
             {
-                try
+                IEventMessage evt;
+                if (eventArgs.HasEvent)
                 {
-                    IEventMessage evt;
-                    if (eventArgs.HasEvent)
-                    {
-                        evt = EventMessageFactory.CreateEvent(eventArgs);
-                    }
-                    else
-                    {
-                        evt = new MaximumWaitEvent(eventArgs.Partition.PartitionId, DateTime.UtcNow);
-                    }
+                    evt = EventMessageFactory.CreateEvent(eventArgs);
+                }
+                else
+                {
+                    evt = new MaximumWaitEvent(eventArgs.Partition.PartitionId, DateTime.UtcNow);
+                }
 
-                    _eventConsumerService.ConsumeEvent(evt);
-                }
-                catch
-                {
-                    throw;
-                }
+                _eventConsumerService.ConsumeEvent(evt);
 
                 return Task.CompletedTask;
             }

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 
@@ -15,6 +16,8 @@ namespace Microsoft.Health.Events.Telemetry
     {
         private static string _nameDimension = DimensionNames.Name;
         private static string _categoryDimension = DimensionNames.Category;
+        private static string _timeDimension = DimensionNames.Timestamp;
+        private static string _partitionDimension = DimensionNames.Identifier;
 
         private static Metric _eventHubPartitionInitialized = new Metric(
             "EventHubPartitionInitialized",
@@ -78,6 +81,24 @@ namespace Microsoft.Health.Events.Telemetry
         public static Metric EventsConsumed()
         {
             return _eventsConsumed;
+        }
+
+        /// <summary>
+        /// Signals that a new watermark was published for a partition.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the event hub</param>
+        /// <param name="dateTime">The datetime of the watermark</param>
+        public static Metric EventWatermark(string partitionId, DateTime dateTime)
+        {
+            return new Metric(
+                "EventsWatermarkUpdated",
+                new Dictionary<string, object>
+                {
+                    { _nameDimension, "EventsWatermarkUpdated" },
+                    { _timeDimension, dateTime },
+                    { _partitionDimension, partitionId },
+                    { _categoryDimension, Category.Latency },
+                });
         }
     }
 }

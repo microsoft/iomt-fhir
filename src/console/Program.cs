@@ -45,13 +45,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventBatchingOptions = new EventBatchingOptions();
             config.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
 
-            var storageOptions = new StorageCheckpointOptions();
-            config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
-            var checkpointClient = new StorageCheckpointClient(storageOptions);
-
             var serviceProvider = GetRequiredServiceProvider(config, eventHub);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             var eventConsumers = GetEventConsumers(config, eventHub, serviceProvider, logger);
+
+            var storageOptions = new StorageCheckpointOptions();
+            config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
+            storageOptions.BlobPrefix = eventHub;
+            var checkpointClient = new StorageCheckpointClient(storageOptions, logger);
 
             var eventConsumerService = new EventConsumerService(eventConsumers);
 
