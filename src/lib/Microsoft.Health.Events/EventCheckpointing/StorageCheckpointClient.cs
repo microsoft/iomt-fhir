@@ -11,35 +11,39 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventCheckpointing
 {
     public class StorageCheckpointClient : ICheckpointClient
     {
         private ConcurrentDictionary<string, Checkpoint> _checkpoints;
+        private ConcurrentDictionary<string, int> _lastCheckpointTracker;
+        private int _lastCheckpointMaxCount;
         private BlobContainerClient _storageClient;
-        private static System.Timers.Timer _publisherTimer;
-        private int _publishTimerInterval = 10000;
+        private ITelemetryLogger _log;
 
-        public StorageCheckpointClient(StorageCheckpointOptions options)
+        public StorageCheckpointClient(StorageCheckpointOptions options, ITelemetryLogger log)
         {
             EnsureArg.IsNotNull(options);
             EnsureArg.IsNotNullOrWhiteSpace(options.BlobPrefix);
             EnsureArg.IsNotNullOrWhiteSpace(options.BlobStorageConnectionString);
             EnsureArg.IsNotNullOrWhiteSpace(options.BlobContainerName);
+            EnsureArg.IsNotNullOrWhiteSpace(options.CheckpointBatchCount);
 
             BlobPrefix = options.BlobPrefix;
 
+            _lastCheckpointMaxCount = int.Parse(options.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
+            _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
             _storageClient = new BlobContainerClient(options.BlobStorageConnectionString, options.BlobContainerName);
-
-            SetPublisherTimer();
+            _log = log;
         }
 
         public string BlobPrefix { get; }
@@ -71,69 +75,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     }
                 }
             }
-            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
+#pragma warning disable CA1031
+            catch (Exception ex)
+#pragma warning restore CA1031
             {
-                // todo: log
-                throw;
-            }
-            catch
-            {
-                // todo: log
-                throw;
-            }
-            finally
-            {
-                // todo: log
-            }
-        }
-
-        public Task<List<Checkpoint>> ListCheckpointsAsync()
-        {
-            var prefix = $"{BlobPrefix}/checkpoint";
-
-            Task<List<Checkpoint>> GetCheckpointsAsync()
-            {
-                var checkpoints = new List<Checkpoint>();
-
-                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: CancellationToken.None))
-                {
-                    var partitionId = blob.Name.Split('/').Last();
-                    DateTimeOffset lastEventTimestamp = DateTime.MinValue;
-
-                    if (blob.Metadata.TryGetValue("LastProcessed", out var str))
-                    {
-                        DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
-                    }
-
-                    checkpoints.Add(new Checkpoint
-                    {
-                        Prefix = BlobPrefix,
-                        Id = partitionId,
-                        LastProcessed = lastEventTimestamp,
-                    });
-                }
-
-                return Task.FromResult(checkpoints);
-            }
-
-            try
-            {
-                // todo: consider retries
-                return GetCheckpointsAsync();
-            }
-            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
-            {
-                // todo: log errors
-                throw;
-            }
-            catch
-            {
-                // todo: log errors
-                throw;
-            }
-            finally
-            {
-                // todo: log complete
+                _log.LogError(new Exception($"Unable to update checkpoint. {ex.Message}"));
             }
         }
 
@@ -168,73 +114,52 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 // todo: consider retries
                 return GetCheckpointAsync();
             }
-            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
+#pragma warning disable CA1031
+            catch (Exception ex)
+#pragma warning restore CA1031
             {
-                // todo: log errors
+                _log.LogError(new Exception($"Unable to get checkpoint for partition. {ex.Message}"));
                 throw;
-            }
-            catch
-            {
-                // todo: log errors
-                throw;
-            }
-            finally
-            {
-                // todo: log complete
             }
         }
 
-        public Task SetCheckpointAsync(IEventMessage eventArgs)
+        public async Task SetCheckpointAsync(IEventMessage eventArgs)
         {
             EnsureArg.IsNotNull(eventArgs);
             EnsureArg.IsNotNullOrWhiteSpace(eventArgs.PartitionId);
 
             try
             {
+                Console.WriteLine(eventArgs.EnqueuedTime);
+
+                var partitionId = eventArgs.PartitionId;
                 var checkpoint = new Checkpoint();
                 checkpoint.LastProcessed = eventArgs.EnqueuedTime;
-                checkpoint.Id = eventArgs.PartitionId;
+                checkpoint.Id = partitionId;
                 checkpoint.Prefix = BlobPrefix;
+
                 _checkpoints[eventArgs.PartitionId] = checkpoint;
+                var count = _lastCheckpointTracker.AddOrUpdate(partitionId, 1, (key, value) => value + 1);
+
+                if (count >= _lastCheckpointMaxCount)
+                {
+                    await PublishCheckpointAsync(partitionId);
+                    _log.LogMetric(EventMetrics.EventWatermark(partitionId, eventArgs.EnqueuedTime.UtcDateTime), 1);
+                    _lastCheckpointTracker[partitionId] = 0;
+                }
             }
 #pragma warning disable CA1031
             catch (Exception ex)
 #pragma warning restore CA1031
             {
-                Console.WriteLine($"Checkpointing error: {ex.Message}");
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public async Task PublishCheckpointsAsync(CancellationToken ct)
-        {
-            foreach (KeyValuePair<string, Checkpoint> checkpoint in _checkpoints)
-            {
-                await UpdateCheckpointAsync(checkpoint.Value);
+                _log.LogError(new Exception($"Unable to set checkpoint. {ex.Message}"));
             }
         }
 
-        private void SetPublisherTimer()
+        public async Task PublishCheckpointAsync(string partitionId)
         {
-            _publisherTimer = new System.Timers.Timer(_publishTimerInterval);
-            _publisherTimer.Elapsed += OnTimedEvent;
-            _publisherTimer.AutoReset = true;
-            _publisherTimer.Enabled = true;
-        }
-
-        private async void OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            try
-            {
-                await PublishCheckpointsAsync(CancellationToken.None);
-            }
-#pragma warning disable CA1031
-            catch (Exception ex)
-#pragma warning restore CA1031
-            {
-                Console.WriteLine(ex.Message);
-            }
+            Checkpoint checkpoint = _checkpoints[partitionId];
+            await UpdateCheckpointAsync(checkpoint);
         }
     }
 }

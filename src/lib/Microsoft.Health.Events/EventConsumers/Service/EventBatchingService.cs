@@ -104,7 +104,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
             var events = await GetPartition(partitionId).Flush(_maxEvents);
             await _eventConsumerService.ConsumeEvents(events);
-            UpdateCheckpoint(events);
+            await UpdateCheckpoint(events);
         }
 
         private async void ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
@@ -114,7 +114,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
             await _eventConsumerService.ConsumeEvents(events);
-            UpdateCheckpoint(events);
+            await UpdateCheckpoint(events);
         }
 
         private async void ThresholdWaitReached(string partitionId, DateTime windowEnd)
@@ -124,11 +124,11 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
                 var events = await GetPartition(partitionId).Flush(windowEnd);
                 await _eventConsumerService.ConsumeEvents(events);
-                UpdateCheckpoint(events);
+                await UpdateCheckpoint(events);
             }
         }
 
-        private async void UpdateCheckpoint(List<IEventMessage> events)
+        private async Task UpdateCheckpoint(List<IEventMessage> events)
         {
             if (events.Count > 0)
             {
