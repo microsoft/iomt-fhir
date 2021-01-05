@@ -6,6 +6,9 @@ Creates a new IoMT FHIR Connector for Azure without using Stream Analytics
 param
 (
     [Parameter(Mandatory = $true)]
+    [string]$ResourceGroup,
+
+    [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [ValidateLength(5,12)]
 	[ValidateScript({
@@ -13,16 +16,15 @@ param
             return $true
         }
         else {
-			throw "Environment name must be lowercase and numbers"
+            throw "Environment name must be lowercase and numbers"
             return $false
         }
     })]
     [string]$EnvironmentName,
 
     [Parameter(Mandatory = $false)]
-    [ValidateSet('Australia East','East US','East US 2', 'West US', 'West US 2','North Central US','South Central US','Southeast Asia','North Europe','West Europe','UK West','UK South')]
+    [ValidateSet('South Africa North', 'South Africa West', 'East Asia', 'Southeast Asia', 'Australia Central', 'Australia Central 2', 'Australia East', 'Australia Southeast', 'Brazil South', 'Brazil Southeast', 'Canada Central', 'Canada East', 'China East', 'China East 2', 'China North', 'China North 2', 'North Europe', 'West Europe', 'France Central', 'France South', 'Germany Central', 'Germany Northeast', 'Germany West Central', 'Central India', 'South India', 'West India', 'Japan East', 'Japan West', 'Korea Central', 'Korea South', 'Norway East', 'Switzerland North', 'Switzerland West', 'UAE Central', 'UAE North', 'UK West', 'UK South', 'Central US', 'East US', 'East US 2', 'North Central US', 'South Central US', 'West Central US', 'West US', 'West US 2')]
     [string]$EnvironmentLocation = "North Central US",
-
     [Parameter(Mandatory = $false)]
     [ValidateSet('R4')]
     [string]$FhirVersion = "R4",
@@ -37,7 +39,13 @@ param
     [string]$FhirServiceUrl,
 
     [Parameter(Mandatory = $true)]
-    [string]$FhirServiceAudience,
+    [string]$FhirServiceAuthority,
+
+    [Parameter(Mandatory = $true)]
+    [string]$FhirServiceClientId,
+
+    [Parameter(Mandatory = $true)]
+    [string]$FhirServiceSecret,
 
     [Parameter(Mandatory = $false)]
     [string]$EnvironmentDeploy = $true
@@ -49,8 +57,6 @@ Function BuildPackage() {
         cd ../../src/console/
         dotnet restore
         dotnet build --output $buildPath /p:DeployOnBuild=true /p:DeployTarget=Package
-    } catch {
-        throw
     } finally {
         Pop-Location
     }
@@ -59,12 +65,11 @@ Function BuildPackage() {
 Function Deploy-WebJobs($DeviceDataWebJobName, $NormalizedDataWebJobName) {
     try {
         $tempPath = "$currentPath\Temp"
-        $resourceGroupName = $EnvironmentName
         $webAppName = $EnvironmentName
         $webJobType = "Continuous"
 
-        Clean-Path -WebJobName $DeviceDataWebJobName
-        Clean-Path -WebJobName $NormalizedDataWebJobName
+        Clear-Path -WebJobName $DeviceDataWebJobName
+        Clear-Path -WebJobName $NormalizedDataWebJobName
 
         $DeviceWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$DeviceDataWebJobName"
         $NormalizedWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$NormalizedDataWebJobName"
@@ -73,15 +78,13 @@ Function Deploy-WebJobs($DeviceDataWebJobName, $NormalizedDataWebJobName) {
 
         Compress-Archive -Path "$tempPath\*" -DestinationPath "$currentPath\iomtwebjobs.zip" -Force
 
-        Publish-AzWebApp -ArchivePath "$currentPath\iomtwebjobs.zip" -ResourceGroupName $resourceGroupName -Name $webAppName
-    } catch {
-        throw
+        Publish-AzWebApp -ArchivePath "$currentPath\iomtwebjobs.zip" -ResourceGroupName $ResourceGroup -Name $webAppName
     } finally {
         Pop-Location
     }
 }
 
-Function Clean-Path($WebJobName) {
+Function Clear-Path($WebJobName) {
     $WebJobPath = "$tempPath\App_Data\jobs\$webJobType\$WebJobName"
     Get-ChildItem -Path $WebJobPath -Recurse | Remove-Item -Force -Recurse
     if( -Not (Test-Path -Path $WebJobPath ) )
@@ -91,12 +94,13 @@ Function Clean-Path($WebJobName) {
 }
 
 Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
 # deploy event hubs, app service, key vaults, storage
 if ($EnvironmentDeploy -eq $true) {
     Write-Host "Deploying environment resources..."
     $webjobTemplate = "..\templates\default-azuredeploy-webjobs.json"
-    New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceUrl $fhirServiceUrl -FhirServiceAudience $fhirServiceUrl -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
+    New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $ResourceGroup -ServiceName $EnvironmentName -FhirServiceUrl $fhirServiceUrl -FhirServiceAuthority $FhirServiceAuthority -FhirServiceResource $fhirServiceUrl -FhirServiceClientId $FhirServiceClientId -FhirServiceClientSecret (ConvertTo-SecureString -String $FhirServiceSecret -AsPlainText -Force) -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
 }
 
 # deploy the stream analytics replacement webjobs
