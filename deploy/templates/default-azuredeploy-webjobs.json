@@ -501,6 +501,9 @@
         "reserved": false,
         "isXenon": false,
         "hyperV": false,
+        "siteConfig": {
+          "alwaysOn":  true
+        },
         "scmSiteAlsoStopped": false,
         "clientAffinityEnabled": true,
         "clientCertEnabled": false,
