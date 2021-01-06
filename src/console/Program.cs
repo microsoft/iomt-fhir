@@ -54,7 +54,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             storageOptions.BlobPrefix = eventHub;
             var checkpointClient = new StorageCheckpointClient(storageOptions, logger);
 
-            var eventConsumerService = new EventConsumerService(eventConsumers);
+            var eventConsumerService = new EventConsumerService(eventConsumers, logger);
 
             var ct = new CancellationToken();
 

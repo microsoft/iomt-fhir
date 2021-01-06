@@ -5,19 +5,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Logger.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service
 {
     public class EventConsumerService : IEventConsumerService
     {
-        private readonly IEnumerable<IEventConsumer> eventConsumers;
+        private readonly IEnumerable<IEventConsumer> _eventConsumers;
         private const int _maximumBackoffMs = 32000;
+        private ITelemetryLogger _logger;
 
-        public EventConsumerService(IEnumerable<IEventConsumer> eventConsumers)
+        public EventConsumerService(IEnumerable<IEventConsumer> eventConsumers, ITelemetryLogger logger)
         {
-            this.eventConsumers = eventConsumers;
+            _eventConsumers = eventConsumers;
+            _logger = logger;
         }
 
         public Task ConsumeEvent(IEventMessage eventArg)
@@ -27,13 +31,16 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         public async Task ConsumeEvents(IEnumerable<IEventMessage> events)
         {
-            foreach (IEventConsumer eventConsumer in eventConsumers)
+            if (events.Any())
             {
-                await OperationWithRetryAsync(eventConsumer, events);
+                foreach (IEventConsumer eventConsumer in _eventConsumers)
+                {
+                    await OperationWithRetryAsync(eventConsumer, events);
+                }
             }
         }
 
-        private static async Task OperationWithRetryAsync(IEventConsumer eventConsumer, IEnumerable<IEventMessage> events)
+        private async Task OperationWithRetryAsync(IEventConsumer eventConsumer, IEnumerable<IEventMessage> events)
         {
             int currentRetry = 0;
             double backoffMs = 0;
@@ -58,7 +65,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 catch (Exception e)
 #pragma warning restore CA1031
                 {
-                    Console.WriteLine(e.Message);
+                    _logger.LogError(e);
                 }
             }
         }

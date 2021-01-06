@@ -95,7 +95,7 @@ namespace Microsoft.Health.Events.Telemetry
                 new Dictionary<string, object>
                 {
                     { _nameDimension, "EventsWatermarkUpdated" },
-                    { _timeDimension, dateTime },
+                    { _timeDimension, dateTime.ToString() },
                     { _partitionDimension, partitionId },
                     { _categoryDimension, Category.Latency },
                 });
