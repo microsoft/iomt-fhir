@@ -111,10 +111,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
         {
             // Deserialize events into measurements and then group according to the device, type, and other factors
-            var body = data.First().Body.ToArray();
-            var text = System.Text.Encoding.Default.GetString(body);
-            var measurement = JsonConvert.DeserializeObject<Measurement>(text);
-
             return data.Select(e => JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray())))
                 .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
                 .Select(g =>
