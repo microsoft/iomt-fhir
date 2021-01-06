@@ -16,7 +16,7 @@ using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

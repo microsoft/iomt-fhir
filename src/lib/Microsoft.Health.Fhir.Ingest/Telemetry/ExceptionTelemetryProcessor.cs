@@ -11,7 +11,7 @@ using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {

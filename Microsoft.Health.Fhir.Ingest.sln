@@ -83,7 +83,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "console", "console", "{1EF3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Console", "src\console\Microsoft.Health.Fhir.Ingest.Console.csproj", "{927BC214-ABD9-4A1B-9F7C-75973513D141}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Logger", "src\lib\Microsoft.Health.Logger\Microsoft.Health.Logger.csproj", "{05123BAE-E96E-4C7E-95CB-C616DF940F17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Logging", "src\lib\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj", "{05123BAE-E96E-4C7E-95CB-C616DF940F17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

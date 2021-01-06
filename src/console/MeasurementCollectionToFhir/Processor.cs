@@ -13,7 +13,7 @@ using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 {

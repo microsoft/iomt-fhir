@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
 {

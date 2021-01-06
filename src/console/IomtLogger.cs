@@ -4,13 +4,13 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
-    public class IomtLogging
+    public class IomtLogger
     {
-        public IomtLogging(IConfiguration configuration)
+        public IomtLogger(IConfiguration configuration)
         {
             Configuration = configuration;
         }

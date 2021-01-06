@@ -11,7 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service.Infrastructure;
 using Microsoft.Health.Events.Model;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service
 {

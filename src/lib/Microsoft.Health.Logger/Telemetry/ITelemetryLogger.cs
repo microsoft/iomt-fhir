@@ -6,7 +6,7 @@
 using Microsoft.Health.Common.Telemetry;
 using System;
 
-namespace Microsoft.Health.Logger.Telemetry
+namespace Microsoft.Health.Logging.Telemetry
 {
     public interface ITelemetryLogger
     {

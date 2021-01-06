@@ -14,7 +14,7 @@ using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Console.Storage;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Service;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 Normalize.ProcessorStartup startup = new Normalize.ProcessorStartup(config);
                 startup.ConfigureServices(serviceCollection);
 
-                var loggingService = new IomtLogging(config);
+                var loggingService = new IomtLogger(config);
                 loggingService.ConfigureServices(serviceCollection);
 
                 var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -100,7 +100,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 MeasurementCollectionToFhir.ProcessorStartup startup = new MeasurementCollectionToFhir.ProcessorStartup(config);
                 startup.ConfigureServices(serviceCollection);
 
-                var loggingService = new IomtLogging(config);
+                var loggingService = new IomtLogger(config);
                 loggingService.ConfigureServices(serviceCollection);
 
                 var serviceProvider = serviceCollection.BuildServiceProvider();

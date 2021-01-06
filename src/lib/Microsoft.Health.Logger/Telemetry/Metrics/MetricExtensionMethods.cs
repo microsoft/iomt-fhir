@@ -8,7 +8,7 @@ using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Metrics;
 
-namespace Microsoft.Health.Fhir.Ingest.Telemetry.Metrics
+namespace Microsoft.Health.Logging.Metrics.Telemetry
 {
     public static class MetricExtensionMethods
     {

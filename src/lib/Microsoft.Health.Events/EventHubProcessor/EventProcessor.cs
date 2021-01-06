@@ -14,7 +14,7 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {

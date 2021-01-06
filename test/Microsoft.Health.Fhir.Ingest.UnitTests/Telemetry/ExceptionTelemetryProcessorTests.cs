@@ -8,7 +8,7 @@ using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
-using Microsoft.Health.Logger.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using Xunit;
 
