@@ -131,15 +131,13 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
-                Console.WriteLine(eventArgs.EnqueuedTime);
-
                 var partitionId = eventArgs.PartitionId;
                 var checkpoint = new Checkpoint();
                 checkpoint.LastProcessed = eventArgs.EnqueuedTime;
                 checkpoint.Id = partitionId;
                 checkpoint.Prefix = BlobPrefix;
 
-                _checkpoints[eventArgs.PartitionId] = checkpoint;
+                _checkpoints[partitionId] = checkpoint;
                 var count = _lastCheckpointTracker.AddOrUpdate(partitionId, 1, (key, value) => value + 1);
 
                 if (count >= _lastCheckpointMaxCount)

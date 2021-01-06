@@ -56,10 +56,10 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 return Task.CompletedTask;
             }
 
+            // todo: consider retry
             Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
             {
-                // todo: add an error processor
-                Console.WriteLine(eventArgs.Exception.Message);
+                _logger.LogError(eventArgs.Exception);
                 return Task.CompletedTask;
             }
 
