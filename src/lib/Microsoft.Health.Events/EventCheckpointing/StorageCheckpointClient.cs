@@ -52,13 +52,14 @@ namespace Microsoft.Health.Events.EventCheckpointing
         {
             EnsureArg.IsNotNull(checkpoint);
             EnsureArg.IsNotNullOrWhiteSpace(checkpoint.Id);
+            var lastProcessed = EnsureArg.IsNotNullOrWhiteSpace(checkpoint.LastProcessed.DateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
 
             var blobName = $"{BlobPrefix}/checkpoint/{checkpoint.Id}";
             var blobClient = _storageClient.GetBlobClient(blobName);
 
             var metadata = new Dictionary<string, string>()
             {
-                { "LastProcessed", checkpoint.LastProcessed.DateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt") },
+                { "LastProcessed",  lastProcessed },
             };
 
             try
