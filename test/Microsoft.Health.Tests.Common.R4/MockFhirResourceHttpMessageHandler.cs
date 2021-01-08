@@ -4,18 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Serialization;
 
-namespace Microsoft.Health.Fhir.Ingest.Template
+namespace Microsoft.Health.Tests.Common
 {
-    public class R4FhirValueProcessor : CollectionFhirValueProcessor<IObservationData, DataType>
+    public class MockFhirResourceHttpMessageHandler : MockHttpMessageHandler<Resource>
     {
-        public R4FhirValueProcessor()
-            : base(
-                new SampledDataFhirValueProcessor(),
-                new CodeableConceptFhirValueProcessor(),
-                new QuantityFhirValueProcessor(),
-                new StringFhirValueProcessor())
+        protected override string GetJsonContent(Resource content)
         {
+            return content?.ToJson();
         }
     }
 }

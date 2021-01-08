@@ -20,12 +20,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     [ResourceIdentityService(nameof(R4DeviceAndPatientCreateIdentityService))]
     public class R4DeviceAndPatientCreateIdentityService : R4DeviceAndPatientLookupIdentityService
     {
-        public R4DeviceAndPatientCreateIdentityService(IFhirClient fhirClient)
+        public R4DeviceAndPatientCreateIdentityService(FhirClient fhirClient)
             : base(fhirClient)
         {
         }
 
-        public R4DeviceAndPatientCreateIdentityService(IFhirClient fhirClient, ResourceManagementService resourceIdService)
+        public R4DeviceAndPatientCreateIdentityService(FhirClient fhirClient, ResourceManagementService resourceIdService)
             : base(fhirClient, resourceIdService)
         {
         }

@@ -21,11 +21,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class R4FhirImportService :
         FhirImportService
     {
-        private readonly IFhirClient _client;
+        private readonly FhirClient _client;
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
         private readonly IMemoryCache _observationCache;
 
-        public R4FhirImportService(IResourceIdentityService resourceIdentityService, IFhirClient fhirClient, IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor, IMemoryCache observationCache)
+        public R4FhirImportService(IResourceIdentityService resourceIdentityService, FhirClient fhirClient, IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor, IMemoryCache observationCache)
         {
             _fhirTemplateProcessor = EnsureArg.IsNotNull(fhirTemplateProcessor, nameof(fhirTemplateProcessor));
             _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
@@ -98,19 +98,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return result.Id;
         }
 
-        protected static Model.Identifier GenerateObservationIdentifier(IObservationGroup grp, IDictionary<ResourceType, string> ids)
-        {
-            EnsureArg.IsNotNull(grp, nameof(grp));
-            EnsureArg.IsNotNull(ids, nameof(ids));
-
-            var identity = GenerateObservationId(grp, ids[ResourceType.Device], ids[ResourceType.Patient]);
-            return new Model.Identifier
-            {
-                System = identity.System,
-                Value = identity.Identifer,
-            };
-        }
-
         public virtual Model.Observation GenerateObservation(ILookupTemplate<IFhirTemplate> config, IObservationGroup grp, Model.Identifier observationId, IDictionary<ResourceType, string> ids)
         {
             EnsureArg.IsNotNull(grp, nameof(grp));
@@ -136,6 +123,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public virtual Model.Observation MergeObservation(ILookupTemplate<IFhirTemplate> config, Model.Observation observation, IObservationGroup grp)
         {
             return _fhirTemplateProcessor.MergeObservation(config, grp, observation);
+        }
+
+        protected static Model.Identifier GenerateObservationIdentifier(IObservationGroup grp, IDictionary<ResourceType, string> ids)
+        {
+            EnsureArg.IsNotNull(grp, nameof(grp));
+            EnsureArg.IsNotNull(ids, nameof(ids));
+
+            var identity = GenerateObservationId(grp, ids[ResourceType.Device], ids[ResourceType.Patient]);
+            return new Model.Identifier
+            {
+                System = identity.System,
+                Value = identity.Identifer,
+            };
         }
 
         protected virtual async Task<Model.Observation> GetObservationFromServerAsync(Model.Identifier identifier)

@@ -12,9 +12,9 @@ using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class QuantityFhirValueProcessor : FhirValueProcessor<QuantityFhirValueType, IObservationData, Element>
+    public class QuantityFhirValueProcessor : FhirValueProcessor<QuantityFhirValueType, IObservationData, DataType>
     {
-        protected override Element CreateValueImpl(QuantityFhirValueType template, IObservationData inValue)
+        protected override DataType CreateValueImpl(QuantityFhirValueType template, IObservationData inValue)
         {
             EnsureArg.IsNotNull(template, nameof(template));
             EnsureArg.IsNotNull(inValue, nameof(inValue));
@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             };
         }
 
-        protected override Element MergeValueImpl(QuantityFhirValueType template, IObservationData inValue, Element existingValue)
+        protected override DataType MergeValueImpl(QuantityFhirValueType template, IObservationData inValue, DataType existingValue)
         {
             if (!(existingValue is Quantity))
             {

@@ -12,7 +12,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class SampledDataFhirValueProcessor : FhirValueProcessor<SampledDataFhirValueType, IObservationData, Element>
+    public class SampledDataFhirValueProcessor : FhirValueProcessor<SampledDataFhirValueType, IObservationData, DataType>
     {
         private readonly SampledDataProcessor _sampledDataProcessor;
 
@@ -21,7 +21,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             _sampledDataProcessor = sampledDataProcessor ?? SampledDataProcessor.Instance;
         }
 
-        protected override Element CreateValueImpl(SampledDataFhirValueType template, IObservationData inValue)
+        protected override DataType CreateValueImpl(SampledDataFhirValueType template, IObservationData inValue)
         {
             EnsureArg.IsNotNull(template, nameof(template));
             EnsureArg.IsNotNull(inValue, nameof(inValue));
@@ -31,14 +31,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             return new SampledData
             {
-                Origin = new SimpleQuantity { Value = 0, Unit = template.Unit },
+                Origin = new Quantity { Value = 0, Unit = template.Unit },
                 Period = template.DefaultPeriod,
                 Dimensions = 1,
                 Data = _sampledDataProcessor.BuildSampledData(values.ToArray(), observationStart, observationEnd, template.DefaultPeriod),
             };
         }
 
-        protected override Element MergeValueImpl(SampledDataFhirValueType template, IObservationData inValue, Element existingValue)
+        protected override DataType MergeValueImpl(SampledDataFhirValueType template, IObservationData inValue, DataType existingValue)
         {
             EnsureArg.IsNotNull(template, nameof(template));
             EnsureArg.IsNotNull(inValue, nameof(inValue));

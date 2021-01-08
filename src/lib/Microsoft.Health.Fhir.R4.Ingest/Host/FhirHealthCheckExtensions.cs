@@ -33,8 +33,8 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
             // Register services
-            builder.Services.TryAddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
-            builder.Services.TryAddSingleton<IFhirClient>(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
+            builder.Services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
+            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
             builder.Services.TryAddSingleton<FhirHealthService, R4FhirHealthService>();
 
             builder.AddExtension<FhirHealthCheckProvider>();

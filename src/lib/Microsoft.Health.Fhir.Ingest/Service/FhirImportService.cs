@@ -15,6 +15,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     {
         public const string ServiceSystem = @"https://azure.microsoft.com/en-us/services/iomt-fhir-connector/";
 
+        public abstract Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null);
+
         protected static (string Identifer, string System) GenerateObservationId(IObservationGroup observationGroup, string deviceId, string patientId)
         {
             EnsureArg.IsNotNull(observationGroup, nameof(observationGroup));
@@ -25,7 +27,5 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             return (value, ServiceSystem);
         }
-
-        public abstract Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null);
     }
 }
