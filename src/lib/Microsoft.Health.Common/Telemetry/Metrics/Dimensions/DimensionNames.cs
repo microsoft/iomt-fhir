@@ -23,6 +23,16 @@ namespace Microsoft.Health.Common.Telemetry
         public static string Operation => nameof(DimensionNames.Operation);
 
         /// <summary>
+        /// A metric dimension that represents a timestamp property of a metric.
+        /// </summary>
+        public static string Timestamp => nameof(DimensionNames.Timestamp);
+
+        /// <summary>
+        /// A metric dimension that represents an identifier related to the metric emitted.
+        /// </summary>
+        public static string Identifier => nameof(DimensionNames.Identifier);
+
+        /// <summary>
         /// A metric dimension for a error type.
         /// </summary>
         public static string ErrorType => nameof(DimensionNames.ErrorType);

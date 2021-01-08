@@ -6,9 +6,9 @@
 using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
-using Microsoft.Health.Fhir.Ingest.Telemetry.Metrics;
+using Microsoft.Health.Logging.Metrics.Telemetry;
 
-namespace Microsoft.Health.Fhir.Ingest.Telemetry
+namespace Microsoft.Health.Logging.Telemetry
 {
     public class IomtTelemetryLogger : ITelemetryLogger
     {

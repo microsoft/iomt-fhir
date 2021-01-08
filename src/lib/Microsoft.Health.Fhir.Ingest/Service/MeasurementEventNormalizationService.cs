@@ -15,6 +15,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Service

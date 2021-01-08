@@ -3,17 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using Microsoft.Health.Common.Telemetry;
+using System.Threading.Tasks;
+using Microsoft.Health.Events.Model;
 
-namespace Microsoft.Health.Fhir.Ingest.Telemetry
+namespace Microsoft.Health.Events.EventCheckpointing
 {
-    public interface ITelemetryLogger
+    public interface ICheckpointClient
     {
-        void LogMetric(Metric metric, double metricValue);
+        Task SetCheckpointAsync(IEventMessage eventArg);
 
-        void LogError(Exception ex);
+        Task PublishCheckpointAsync(string partitionId);
 
-        void LogTrace(string message);
+        Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId);
     }
 }
