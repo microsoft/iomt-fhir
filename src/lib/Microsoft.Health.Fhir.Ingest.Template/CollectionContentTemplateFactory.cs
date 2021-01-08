@@ -15,16 +15,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     /// </summary>
     public class CollectionContentTemplateFactory : CollectionTemplateFactory<IContentTemplate, IContentTemplate>
     {
+        public CollectionContentTemplateFactory(params ITemplateFactory<TemplateContainer, IContentTemplate>[] factories)
+            : base(factories)
+        {
+        }
+
         private CollectionContentTemplateFactory()
             : base(
                   new JsonPathContentTemplateFactory(),
                   new IotJsonPathContentTemplateFactory(),
                   new IotCentralJsonPathContentTemplateFactory())
-        {
-        }
-
-        public CollectionContentTemplateFactory(params ITemplateFactory<TemplateContainer, IContentTemplate>[] factories)
-            : base(factories)
         {
         }
 

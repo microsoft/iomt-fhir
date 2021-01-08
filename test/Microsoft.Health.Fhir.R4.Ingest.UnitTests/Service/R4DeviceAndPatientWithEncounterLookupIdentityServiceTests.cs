@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
 using Model = Hl7.Fhir.Model;
@@ -18,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidEncounterIdentifier_WhenResolveResourceIdentitiesAsync_ThenEncounterIdReturned_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
             var resourceService = Substitute.For<ResourceManagementService>();
             var device = new Model.Device
             {
@@ -35,10 +36,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             mg.DeviceId.Returns("deviceId");
             mg.EncounterId.Returns("eId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            resourceService.GetResourceByIdentityAsync<Model.Encounter>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Encounter>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(encounter));
 
             using (var idSrv = new R4DeviceAndPatientWithEncounterLookupIdentityService(fhirClient, resourceService))
@@ -57,7 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenInValidEncounterIdentifier_WhenResolveResourceIdentitiesAsync_ThenFhirResourceNotFoundExceptionThrown_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
             var resourceService = Substitute.For<ResourceManagementService>();
             var device = new Model.Device
             {
@@ -69,10 +70,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             mg.DeviceId.Returns("deviceId");
             mg.EncounterId.Returns("eId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            resourceService.GetResourceByIdentityAsync<Model.Encounter>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Encounter>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult((Model.Encounter)null));
 
             using (var idSrv = new R4DeviceAndPatientWithEncounterLookupIdentityService(fhirClient, resourceService))
@@ -88,7 +89,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenNoEncounterIdentifier_WhenResolveResourceIdentitiesAsync_ThenResourceIdentityNotDefinedExceptionThrown_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
             var resourceService = Substitute.For<ResourceManagementService>();
             var device = new Model.Device
             {
@@ -100,7 +101,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             mg.DeviceId.Returns("deviceId");
             mg.EncounterId.Returns((string)null);
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
             using (var idSrv = new R4DeviceAndPatientWithEncounterLookupIdentityService(fhirClient, resourceService))

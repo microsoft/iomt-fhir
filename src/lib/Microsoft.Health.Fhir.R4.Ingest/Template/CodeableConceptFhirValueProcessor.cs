@@ -10,9 +10,9 @@ using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CodeableConceptFhirValueProcessor : FhirValueProcessor<CodeableConceptFhirValueType, IObservationData, Element>
+    public class CodeableConceptFhirValueProcessor : FhirValueProcessor<CodeableConceptFhirValueType, IObservationData, DataType>
     {
-        protected override Element CreateValueImpl(CodeableConceptFhirValueType template, IObservationData inValue)
+        protected override DataType CreateValueImpl(CodeableConceptFhirValueType template, IObservationData inValue)
         {
             // Values for codeable concepts currently have no meaning. The existence of the measurement means the code applies.
 
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             };
         }
 
-        protected override Element MergeValueImpl(CodeableConceptFhirValueType template, IObservationData inValue, Element existingValue)
+        protected override DataType MergeValueImpl(CodeableConceptFhirValueType template, IObservationData inValue, DataType existingValue)
         {
             if (!(existingValue is CodeableConcept))
             {

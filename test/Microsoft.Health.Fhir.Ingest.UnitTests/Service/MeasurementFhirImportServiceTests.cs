@@ -220,7 +220,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
             }
 
-            public int WorkItemCount { get; private set; } = 0;
+            public int WorkItemCount { get; private set; }
 
             protected override Task StartWorker(IEnumerable<Func<Task>> workItems)
             {

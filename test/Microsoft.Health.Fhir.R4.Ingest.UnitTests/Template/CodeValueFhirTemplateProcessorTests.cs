@@ -29,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplate_WhenCreateObservationGroups_ThenPeriodIntervalCorrectlyUsed_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>();
             var template = Substitute.For<CodeValueFhirTemplate>().Mock(m => m.PeriodInterval.Returns(ObservationPeriodInterval.Single));
             var measurementGroup = new MeasurementGroup
             {
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenEmptyTemplate_WhenCreateObservation_ThenShellObservationReturned_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>();
 
             var template = Substitute.For<CodeValueFhirTemplate>();
 
@@ -93,9 +93,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithValue_WhenCreateObservation_ThenObservationReturned_Test()
         {
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(dataType));
 
             var valueType = Substitute.For<FhirValueType>()
                 .Mock(m => m.ValueName.Returns("p1"));
@@ -145,7 +145,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(period);
             Assert.Equal(boundary.start, period.StartElement.ToDateTimeOffset(TimeSpan.Zero).UtcDateTime);
             Assert.Equal(boundary.end, period.EndElement.ToDateTimeOffset(TimeSpan.Zero).UtcDateTime);
-            Assert.Equal(element, observation.Value);
+            Assert.Equal(dataType, observation.Value);
 
             valueProcessor.Received(1)
                 .CreateValue(
@@ -161,9 +161,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithComponent_WhenCreateObservation_ThenObservationReturned_Test()
         {
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(dataType));
 
             var valueType = Substitute.For<FhirValueType>()
                 .Mock(m => m.ValueName.Returns("p2"));
@@ -244,7 +244,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                             Assert.Equal("p2", code.Code);
                             Assert.Equal("p2", code.Display);
                         });
-                    Assert.Equal(element, c.Value);
+                    Assert.Equal(dataType, c.Value);
                 });
 
             valueProcessor.Received(1)
@@ -261,7 +261,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenEmptyTemplate_WhenMergObservation_ThenObservationReturned_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>();
 
             var template = Substitute.For<CodeValueFhirTemplate>();
 
@@ -297,11 +297,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithValue_WhenMergObservation_ThenObservationReturned_Test()
         {
-            Element oldValue = new Quantity();
+            DataType oldValue = new Quantity();
 
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(dataType));
 
             var valueType = Substitute.For<FhirValueType>()
                .Mock(m => m.ValueName.Returns("p1"));
@@ -334,7 +334,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var processor = new CodeValueFhirTemplateProcessor(valueProcessor);
 
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
-            Assert.Equal(element, newObservation.Value);
+            Assert.Equal(dataType, newObservation.Value);
 
             Assert.Equal(ObservationStatus.Amended, newObservation.Status);
             valueProcessor.Received(1)
@@ -352,12 +352,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithComponent_WhenMergObservation_ThenObservationReturned_Test()
         {
-            Element oldValue = new Quantity();
+            DataType oldValue = new Quantity();
 
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element))
-                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(dataType))
+                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(dataType));
 
             var valueType1 = Substitute.For<FhirValueType>()
                 .Mock(m => m.ValueName.Returns("p2"));
@@ -438,7 +438,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 c =>
                 {
                     // Existing component value in observation that was merged
-                    Assert.Equal(element, c.Value);
+                    Assert.Equal(dataType, c.Value);
                 },
                 c =>
                 {
@@ -457,7 +457,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                             Assert.Equal("p3", code.Code);
                             Assert.Equal("p3", code.Display);
                         });
-                    Assert.Equal(element, c.Value);
+                    Assert.Equal(dataType, c.Value);
                 });
 
             Assert.Equal(ObservationStatus.Amended, newObservation.Status);
@@ -486,11 +486,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithComponentAndObservationWithOutComponent_WhenMergObservation_ThenObservationWithComponentAddedReturned_Test()
         {
-            Element oldValue = new Quantity();
+            DataType oldValue = new Quantity();
 
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.CreateValue(null, default).ReturnsForAnyArgs(dataType));
 
             var valueType1 = Substitute.For<FhirValueType>()
                 .Mock(m => m.ValueName.Returns("p2"));
@@ -555,7 +555,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                             Assert.Equal("p2", code.Code);
                             Assert.Equal("p2", code.Display);
                         });
-                    Assert.Equal(element, c.Value);
+                    Assert.Equal(dataType, c.Value);
                 });
 
             Assert.Equal(ObservationStatus.Amended, newObservation.Status);
@@ -574,7 +574,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithCategory_WhenCreateObservation_ThenCategoryReturned_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
                     new List<FhirCodeableConcept>
@@ -660,7 +660,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithCategory_WhenMergeObservationWithCategory_ThenCategoryReplaced_Test()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
                     new List<FhirCodeableConcept>
@@ -732,7 +732,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenTemplateWithoutCategory_WhenMergeObservationWithCategory_ThenCategoryRemoved()
         {
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>();
             var template = Substitute.For<CodeValueFhirTemplate>()
                 .Mock(m => m.Category.Returns(
                     new List<FhirCodeableConcept> { }));
@@ -781,11 +781,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenExistingObservation_WhenMergeObservationWithDataOutsideEffectivePeriod_ThenPeriodUpdated_Test()
         {
-            Element oldValue = new Quantity();
+            DataType oldValue = new Quantity();
 
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(dataType));
 
             var valueType = Substitute.For<FhirValueType>()
                .Mock(m => m.ValueName.Returns("p1"));
@@ -836,11 +836,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void GivenExistingObservation_WhenMergeObservationWithDataInsideEffectivePeriod_ThenPeriodNotUpdated_Test()
         {
-            Element oldValue = new Quantity();
+            DataType oldValue = new Quantity();
 
-            var element = Substitute.For<Element>();
-            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, Element>>()
-                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(element));
+            var dataType = Substitute.For<DataType>();
+            var valueProcessor = Substitute.For<IFhirValueProcessor<IObservationData, DataType>>()
+                .Mock(m => m.MergeValue(default, default, default).ReturnsForAnyArgs(dataType));
 
             var valueType = Substitute.For<FhirValueType>()
                .Mock(m => m.ValueName.Returns("p1"));

@@ -8,6 +8,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
 using Model = Hl7.Fhir.Model;
@@ -19,7 +20,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidDeviceIdentifier_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientIdReturned_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
             var resourceService = Substitute.For<ResourceManagementService>();
             var device = new Model.Device
             {
@@ -30,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
             using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidDeviceIdentifierWhenDefaultSystemSet_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientIdReturned_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
             var resourceService = Substitute.For<ResourceManagementService>();
             var device = new Model.Device
             {
@@ -63,7 +64,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 DefaultDeviceIdentifierSystem = "mySystem",
             };
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
             using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
@@ -81,14 +82,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenDeviceWithNotPatientReference_WhenResolveResourceIdentitiesAsync_ThenFhirResourceNotFoundExceptionThrown_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
             var resourceService = Substitute.For<ResourceManagementService>();
             Model.Device device = new Model.Device();
 
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<IFhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
             using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
