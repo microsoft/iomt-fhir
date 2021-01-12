@@ -37,8 +37,8 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
-            builder.Services.TryAddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
-            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
+            builder.Services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
+            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
             builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
             builder.Services.TryAddSingleton(ResolveResourceIdentityService);
             builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
@@ -55,7 +55,7 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            var fhirClient = serviceProvider.GetRequiredService<IFhirClient>();
+            var fhirClient = serviceProvider.GetRequiredService<FhirClient>();
             var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
             return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
         }

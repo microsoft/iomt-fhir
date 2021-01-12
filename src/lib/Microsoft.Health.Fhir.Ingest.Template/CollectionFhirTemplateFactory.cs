@@ -12,13 +12,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CollectionFhirTemplateFactory : CollectionTemplateFactory<IFhirTemplate, ILookupTemplate<IFhirTemplate>>
     {
-        private CollectionFhirTemplateFactory()
-            : base(new CodeValueFhirTemplateFactory())
+        public CollectionFhirTemplateFactory(params ITemplateFactory<TemplateContainer, IFhirTemplate>[] factories)
+            : base(factories)
         {
         }
 
-        public CollectionFhirTemplateFactory(params ITemplateFactory<TemplateContainer, IFhirTemplate>[] factories)
-            : base(factories)
+        private CollectionFhirTemplateFactory()
+            : base(new CodeValueFhirTemplateFactory())
         {
         }
 

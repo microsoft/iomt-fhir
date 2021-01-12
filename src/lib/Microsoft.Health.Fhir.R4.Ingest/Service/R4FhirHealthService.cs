@@ -16,9 +16,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class R4FhirHealthService :
         FhirHealthService
     {
-        private readonly IFhirClient _client;
+        private readonly FhirClient _client;
 
-        public R4FhirHealthService(IFhirClient fhirClient)
+        public R4FhirHealthService(FhirClient fhirClient)
         {
             _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
         }

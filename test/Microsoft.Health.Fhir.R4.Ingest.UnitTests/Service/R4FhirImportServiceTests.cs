@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
@@ -22,7 +23,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidData_WhenProcessAsync_ThenSaveObservationInvokedForEachObservationGroup_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -57,8 +58,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenNotFoundObservation_WhenSaveObservationAsync_ThenCreateInvoked_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>()
-                .Mock(m => m.CreateAsync<Model.Observation>(default).ReturnsForAnyArgs(new Model.Observation()));
+            // Mock search and update request
+            var handler = Utilities.CreateMockMessageHandler()
+                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(new Model.Bundle()))
+                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Post)).Returns(new Model.Observation()));
+
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -75,14 +80,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
-            await fhirClient.ReceivedWithAnyArgs(1).CreateAsync<Model.Observation>(default);
-            await fhirClient.ReceivedWithAnyArgs(1).SearchAsync<Model.Observation>(default);
+            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
+            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Post));
         }
 
         [Fact]
         public async void GivenFoundObservation_WhenSaveObservationAsync_ThenUpdateInvoked_Test()
         {
-            var foundObservation = new Model.Observation();
+            var foundObservation = new Model.Observation { Id = "1" };
             var foundBundle = new Model.Bundle
             {
                 Entry = new List<Model.Bundle.EntryComponent>
@@ -96,9 +101,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            var fhirClient = Substitute.For<IFhirClient>()
-                .Mock(m => m.UpdateAsync<Model.Observation>(default, default).ReturnsForAnyArgs(savedObservation))
-                .Mock(m => m.SearchAsync<Model.Observation>(default).ReturnsForAnyArgs(foundBundle));
+            // Mock search and update request
+            var handler = Utilities.CreateMockMessageHandler()
+                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(foundBundle))
+                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put)).Returns(savedObservation));
+
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -107,7 +115,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var observationGroup = Substitute.For<IObservationGroup>();
 
             var templateProcessor = Substitute.For<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation>>()
-                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Model.Observation()));
+                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Model.Observation()))
+                .Mock(m => m.MergeObservation(default, default, default).ReturnsForAnyArgs(foundObservation));
+
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
@@ -116,14 +126,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
             templateProcessor.ReceivedWithAnyArgs(1).MergeObservation(default, default, default);
-            await fhirClient.ReceivedWithAnyArgs(1).UpdateAsync<Model.Observation>(default);
-            await fhirClient.ReceivedWithAnyArgs(1).SearchAsync<Model.Observation>(default);
+            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
+            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put));
         }
 
         [Fact]
         public async void GivenFoundObservationAndConflictOnSave_WhenSaveObservationAsync_ThenGetAndUpdateInvoked_Test()
         {
-            var foundObservation1 = new Model.Observation();
+            var foundObservation1 = new Model.Observation { Id = "1" };
             var foundBundle1 = new Model.Bundle
             {
                 Entry = new List<Model.Bundle.EntryComponent>
@@ -135,7 +145,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 },
             };
 
-            var foundObservation2 = new Model.Observation();
+            var foundObservation2 = new Model.Observation { Id = "2" };
             var foundBundle2 = new Model.Bundle
             {
                 Entry = new List<Model.Bundle.EntryComponent>
@@ -149,10 +159,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            var fhirClient = Substitute.For<IFhirClient>()
-                .Mock(m => m.UpdateAsync<Model.Observation>(default, default)
-                    .ReturnsForAnyArgs(x => ThrowConflictException(), x => savedObservation))
-                .Mock(m => m.SearchAsync<Model.Observation>(default).ReturnsForAnyArgs(foundBundle1, foundBundle2));
+            // Mock search and update request
+            var handler = Utilities.CreateMockMessageHandler()
+                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(foundBundle1, foundBundle2))
+                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put)).Returns(x => ThrowConflictException(), x => savedObservation));
+
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -161,7 +173,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var observationGroup = Substitute.For<IObservationGroup>();
 
             var templateProcessor = Substitute.For<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation>>()
-                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Model.Observation()));
+                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Model.Observation()))
+                .Mock(m => m.MergeObservation(default, default, default).ReturnsForAnyArgs(foundObservation2));
+
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
@@ -170,14 +184,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
             templateProcessor.ReceivedWithAnyArgs(2).MergeObservation(default, default, default);
-            await fhirClient.ReceivedWithAnyArgs(2).UpdateAsync<Model.Observation>(default);
-            await fhirClient.ReceivedWithAnyArgs(2).SearchAsync<Model.Observation>(default);
+            handler.Received(2).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
+            handler.Received(2).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put));
         }
 
         [Fact]
         public void GivenValidTemplate_WhenGenerateObservation_ExpectedReferencesSet_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClient = Utilities.CreateMockFhirClient();
 
             var ids = BuildIdCollection();
             ids[ResourceType.Encounter] = "encounterId";
