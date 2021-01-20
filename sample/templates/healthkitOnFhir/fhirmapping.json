@@ -9,6 +9,11 @@
                         "code": "8867-4",
                         "system": "http://loinc.org",
                         "display": "Heart rate"
+                    },
+                    {
+                        "system" : "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierHeartRate",
+                        "display": "Heart rate"
                     }
                 ],
                 "periodInterval": 60,
@@ -29,6 +34,11 @@
                         "code": "55423-8",
                         "system": "http://loinc.org",
                         "display": "Number of steps"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierStepCount",
+                        "display": "Number of steps"
                     }
                 ],
                 "periodInterval": 60,
@@ -48,6 +58,11 @@
                     {
                         "code": "41653-7",
                         "system": "http://loinc.org",
+                        "display": "Glucose Glucometer (BldC) [Mass/Vol]"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierBloodGlucose",
                         "display": "Glucose Glucometer (BldC) [Mass/Vol]"
                     }
                 ],
@@ -73,6 +88,11 @@
                     {
                         "system": "http://loinc.org",
                         "code": "59408-5",
+                        "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierOxygenSaturation",
                         "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
                     }
                 ],
@@ -104,6 +124,11 @@
                         "system": "http://snomed.info/sct",
                         "code": "27113001",
                         "display": "Body weight"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierBodyMass",
+                        "display": "Body weight"
                     }
                 ],
                 "typeName": "bodyMass",
@@ -123,6 +148,11 @@
                     {
                         "system": "http://loinc.org",
                         "code": "8310-5",
+                        "display": "Body temperature"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierBodyTemperature",
                         "display": "Body temperature"
                     }
                 ],
@@ -144,6 +174,11 @@
                         "system": "http://loinc.org",
                         "code": "9279-1",
                         "display": "Respiratory rate"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierRespiratoryRate",
+                        "display": "Respiratory rate"
                     }
                 ],
                 "periodInterval": 60,
@@ -163,6 +198,11 @@
                     {
                         "system": "http://loinc.org",
                         "code": "8302-2",
+                        "display": "Body height"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierHeight",
                         "display": "Body height"
                     }
                 ],
@@ -184,6 +224,11 @@
                         "code": "85354-9",
                         "display": "Blood pressure panel",
                         "system": "http://loinc.org"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKCorrelationTypeIdentifierBloodPressure",
+                        "display": "Blood pressure panel"
                     }
                 ],
                 "periodInterval": 60,
@@ -195,6 +240,11 @@
                                 "code": "8867-4",
                                 "display": "Diastolic blood pressure",
                                 "system": "http://loinc.org"
+                            },
+                            {
+                                "system": "com.apple.health",
+                                "code": "HKQuantityTypeIdentifierBloodPressureDiastolic",
+                                "display": "Diastolic blood pressure"
                             }
                         ],
                         "value": {
@@ -215,6 +265,11 @@
                                 "code": "271649006",
                                 "display": "Systolic blood pressure",
                                 "system": "http://snomed.info/sct"
+                            },
+                            {
+                                "system": "com.apple.health",
+                                "code": "HKQuantityTypeIdentifierBloodPressureSystolic",
+                                "display": "Systolic blood pressure"
                             }
                         ],
                         "value": {
@@ -225,6 +280,186 @@
                         }
                     }
                 ]
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "41981-2",
+                        "display": "Calories burned"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierActiveEnergyBurned",
+                        "display": "Calories burned"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "activeEnergyBurned",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "kcal",
+                    "valueName": "activeEnergyBurned",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierAppleExerciseTime",
+                        "display": "Apple Exercise Time"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "appleExerciseTime",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "ms",
+                    "valueName": "appleExerciseTime",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierAppleStandTime",
+                        "display": "Apple Stand Time"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "appleStandTime",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "ms",
+                    "valueName": "appleStandTime",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "9052-2",
+                        "display": "Calorie intake total"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierDietaryEnergyConsumed",
+                        "display": "Calorie intake total"
+                    }
+                ],
+                "typeName": "dietaryEnergyConsumed",
+                "value": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "kcal",
+                    "unit": "kcal",
+                    "valueName": "dietaryEnergyConsumed",
+                    "valueType": "Quantity"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierEnvironmentalAudioExposure",
+                        "display": "Environmental Audio Exposure"
+                    }
+                ],
+                "typeName": "environmentalAudioExposure",
+                "value": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "dB(SPL)",
+                    "unit": "dB(SPL)",
+                    "valueName": "environmentalAudioExposure",
+                    "valueType": "Quantity"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "80404-7",
+                        "display": "R-R interval.standard deviation (Heart rate variability)"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+                        "display": "Heart rate variability"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "heartRateVariability",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "ms",
+                    "valueName": "heartRateVariability",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "40443-4",
+                        "display": "Heart rate --resting"
+                    },
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierRestingHeartRate",
+                        "display": "Resting Heart Rate"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "restingHeartRate",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "count/min",
+                    "valueName": "restingHeartRate",
+                    "valueType": "SampledData"
+                }
+            }
+        },
+        {
+            "templateType": "CodeValueFhir",
+            "template": {
+                "codes": [
+                    {
+                        "system": "com.apple.health",
+                        "code": "HKQuantityTypeIdentifierWalkingHeartRateAverage",
+                        "display": "Walking Heart Rate Average"
+                    }
+                ],
+                "periodInterval": 60,
+                "typeName": "walkingHeartRateAverage",
+                "value": {
+                    "defaultPeriod": 5000,
+                    "unit": "count/min",
+                    "valueName": "walkingHeartRateAverage",
+                    "valueType": "SampledData"
+                }
             }
         }
     ]

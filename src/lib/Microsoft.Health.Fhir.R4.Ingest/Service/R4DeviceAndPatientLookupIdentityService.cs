@@ -19,35 +19,35 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     [ResourceIdentityService(nameof(R4DeviceAndPatientLookupIdentityService))]
     public class R4DeviceAndPatientLookupIdentityService : DeviceAndPatientLookupIdentityService
     {
-        private readonly IFhirClient _fhirClient;
-        private readonly ResourceManagementService _resourceManagementService = null;
+        private readonly FhirClient _fhirClient;
+        private readonly ResourceManagementService _resourceManagementService;
 
-        public R4DeviceAndPatientLookupIdentityService(IFhirClient fhirClient)
+        public R4DeviceAndPatientLookupIdentityService(FhirClient fhirClient)
             : this(fhirClient, new ResourceManagementService())
         {
         }
 
-        public R4DeviceAndPatientLookupIdentityService(IFhirClient fhirClient, ResourceManagementService resourceManagementService)
+        public R4DeviceAndPatientLookupIdentityService(FhirClient fhirClient, ResourceManagementService resourceManagementService)
         {
             _fhirClient = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
             _resourceManagementService = EnsureArg.IsNotNull(resourceManagementService, nameof(resourceManagementService));
         }
 
-        protected IFhirClient FhirClient => _fhirClient;
+        protected FhirClient FhirClient => _fhirClient;
 
         protected ResourceManagementService ResourceManagementService => _resourceManagementService;
-
-        protected async override Task<(string DeviceId, string PatientId)> LookUpDeviceAndPatientIdAsync(string value, string system = null)
-        {
-            var device = await ResourceManagementService.GetResourceByIdentityAsync<Model.Device>(FhirClient, value, system).ConfigureAwait(false) ?? throw new FhirResourceNotFoundException(ResourceType.Device);
-            return (device.Id, GetPatientIdFromDevice(device));
-        }
 
         protected static string GetPatientIdFromDevice(Model.Device device)
         {
             EnsureArg.IsNotNull(device, nameof(device));
 
             return device.Patient?.GetId<Model.Patient>() ?? throw new FhirResourceNotFoundException(ResourceType.Patient);
+        }
+
+        protected async override Task<(string DeviceId, string PatientId)> LookUpDeviceAndPatientIdAsync(string value, string system = null)
+        {
+            var device = await ResourceManagementService.GetResourceByIdentityAsync<Model.Device>(FhirClient, value, system).ConfigureAwait(false) ?? throw new FhirResourceNotFoundException(ResourceType.Device);
+            return (device.Id, GetPatientIdFromDevice(device));
         }
     }
 }

@@ -7,7 +7,7 @@ using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class R4FhirValueProcessor : CollectionFhirValueProcessor<IObservationData, Element>
+    public class R4FhirValueProcessor : CollectionFhirValueProcessor<IObservationData, DataType>
     {
         public R4FhirValueProcessor()
             : base(

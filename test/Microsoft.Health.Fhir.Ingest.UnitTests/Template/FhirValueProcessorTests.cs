@@ -63,24 +63,24 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public class TestFhirValueProcessor : FhirValueProcessor<QuantityFhirValueType, string, string>
         {
-            protected override string CreateValueImpl(QuantityFhirValueType template, string inValue)
-            {
-                return TestCreateValueImpl(template, inValue);
-            }
-
             public virtual string TestCreateValueImpl(QuantityFhirValueType template, string inValue)
             {
                 return null;
             }
 
-            protected override string MergeValueImpl(QuantityFhirValueType template, string inValue, string existingValue)
-            {
-                return TestMergeValueImpl(template, inValue, existingValue);
-            }
-
             public virtual string TestMergeValueImpl(QuantityFhirValueType template, string inValue, string existingValue)
             {
                 return null;
+            }
+
+            protected override string CreateValueImpl(QuantityFhirValueType template, string inValue)
+            {
+                return TestCreateValueImpl(template, inValue);
+            }
+
+            protected override string MergeValueImpl(QuantityFhirValueType template, string inValue, string existingValue)
+            {
+                return TestMergeValueImpl(template, inValue, existingValue);
             }
         }
     }

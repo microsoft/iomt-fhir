@@ -8,6 +8,7 @@ using System.Net;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 using Model = Hl7.Fhir.Model;
 
@@ -18,7 +19,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidFhirClientConfig_WhenCheckHealthAsync_ThenRespondWithSuccess_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var handler = Utilities.CreateMockMessageHandler()
+                .Mock(m => m.GetReturnContent(default).ReturnsForAnyArgs(new Model.Bundle()));
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
+
             var service = new R4FhirHealthService(fhirClient);
             var response = await service.CheckHealth();
 
@@ -29,9 +33,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenInvalidOAuthToken_WhenCheckHealthAsync_ThenRespondWithFhirOperationException_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
-            fhirClient.Mock(m => m.SearchAsync<Model.StructureDefinition>(default)
-                    .ReturnsForAnyArgs(x => ThrowHttpUnauthorizedException()));
+            var handler = Utilities.CreateMockMessageHandler()
+                .Mock(m => m.GetReturnContent(default).ThrowsForAnyArgs(new FhirOperationException("Unauthorized", HttpStatusCode.Unauthorized)));
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
 
             var service = new R4FhirHealthService(fhirClient);
             var response = await service.CheckHealth();
@@ -43,9 +47,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenInvalidClientSecret_WhenCheckHealthAsync_ThenRespondWithAADException_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
-            fhirClient.Mock(m => m.SearchAsync<Model.StructureDefinition>(default)
-                    .ReturnsForAnyArgs(x => ThrowAadUnauthorizedException()));
+            var handler = Utilities.CreateMockMessageHandler()
+               .Mock(m => m.GetReturnContent(default).ThrowsForAnyArgs(new IdentityModel.Clients.ActiveDirectory.AdalServiceException("AADSTS123", "Unauthorized") { StatusCode = 401 }));
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
 
             var service = new R4FhirHealthService(fhirClient);
             var response = await service.CheckHealth();
@@ -57,32 +61,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenInvalidUrl_WhenCheckHealthAsync_ThenRespondWithGenericException_Test()
         {
-            var fhirClient = Substitute.For<IFhirClient>();
-            fhirClient.Mock(m => m.SearchAsync<Model.StructureDefinition>(default)
-                    .ReturnsForAnyArgs(x => ThrowUnknownHostException()));
+            var handler = Utilities.CreateMockMessageHandler()
+               .Mock(m => m.GetReturnContent(default).ThrowsForAnyArgs(new Exception("No such host is known")));
+            var fhirClient = Utilities.CreateMockFhirClient(handler);
 
             var service = new R4FhirHealthService(fhirClient);
             var response = await service.CheckHealth();
 
             Assert.Equal(500, response.StatusCode);
             Assert.Equal("No such host is known", response.Message);
-        }
-
-        private static Model.Bundle ThrowHttpUnauthorizedException()
-        {
-            throw new FhirOperationException("Unauthorized", HttpStatusCode.Unauthorized);
-        }
-
-        private static Model.Bundle ThrowAadUnauthorizedException()
-        {
-            var ex = new IdentityModel.Clients.ActiveDirectory.AdalServiceException("AADSTS123", "Unauthorized");
-            ex.StatusCode = 401;
-            throw ex;
-        }
-
-        private static Model.Bundle ThrowUnknownHostException()
-        {
-            throw new Exception("No such host is known");
         }
     }
 }

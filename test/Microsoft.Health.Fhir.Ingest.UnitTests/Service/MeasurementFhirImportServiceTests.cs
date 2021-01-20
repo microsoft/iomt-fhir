@@ -14,6 +14,7 @@ using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -219,7 +220,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
             }
 
-            public int WorkItemCount { get; private set; } = 0;
+            public int WorkItemCount { get; private set; }
 
             protected override Task StartWorker(IEnumerable<Func<Task>> workItems)
             {

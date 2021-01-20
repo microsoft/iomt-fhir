@@ -174,8 +174,11 @@
   "variables": {
     "asa_job_name": "[parameters('ServiceName')]",
     "eventhub_namespace_name": "[parameters('ServiceName')]",
-    "normalizeddata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata')]",
-    "devicedata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/devicedata')]",
+    "eventhub_hostname": "[concat(variables('eventhub_namespace_name'), '.servicebus.windows.net')]",
+    "normalizeddata_name": "normalizeddata",
+    "devicedata_name": "devicedata",
+    "normalizeddata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/', variables('normalizeddata_name'))]",
+    "devicedata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/', variables('devicedata_name'))]",
     "storage_account_name": "[parameters('ServiceName')]",
     "app_plan_name": "[concat(parameters('ServiceName'), 'plan')]",
     "app_service_name": "[parameters('ServiceName')]",
@@ -195,11 +198,11 @@
       "name": "[variables('asa_job_name')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'reader')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), variables('normalizeddata_name'), 'reader')]",
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
         "[resourceId('Microsoft.Web/sites/config', variables('app_service_name'), 'web')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'devicedata', '$Default')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'normalizeddata', '$Default')]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), variables('devicedata_name'), '$Default')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), variables('normalizeddata_name'), '$Default')]"
       ],
       "tags": {
         "IomtFhirConnector": "[variables('iomt_fhir_connector_name')]",
@@ -222,17 +225,17 @@
         "compatibilityLevel": "1.0",
         "inputs": [
           {
-            "name": "normalizeddata",
+            "name": "[variables('normalizeddata_name')]",
             "properties": {
               "type": "Stream",
               "datasource": {
                 "type": "Microsoft.ServiceBus/EventHub",
                 "properties": {
                   "serviceBusNamespace": "[variables('eventhub_namespace_name')]",
-                  "eventHubName": "normalizeddata",
+                  "eventHubName": "[variables('normalizeddata_name')]",
                   "consumerGroupName": null,
                   "sharedAccessPolicyName": "reader",
-                  "sharedAccessPolicyKey": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'reader'), '2017-04-01').primaryKey]"
+                  "sharedAccessPolicyKey": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), variables('normalizeddata_name'), 'reader'), '2017-04-01').primaryKey]"
                 }
               },
               "compression": {
@@ -303,8 +306,8 @@
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]"
       ],
       "properties": {
         "rights": [
@@ -345,11 +348,11 @@
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
       "apiVersion": "2017-04-01",
-      "name": "[concat(variables('eventhub_namespace_name'), '/devicedata/writer')]",
+      "name": "[concat(variables('eventhub_namespace_name'), '/', variables('devicedata_name'), '/writer')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]",
         "[resourceId('Microsoft.EventHub/namespaces/AuthorizationRules', variables('eventhub_namespace_name'), 'RootManageSharedAccessKey')]"
       ],
@@ -362,11 +365,11 @@
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
       "apiVersion": "2017-04-01",
-      "name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata/reader')]",
+      "name": "[concat(variables('eventhub_namespace_name'), '/', variables('normalizeddata_name'), '/reader')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]",
         "[resourceId('Microsoft.EventHub/namespaces/AuthorizationRules', variables('eventhub_namespace_name'), 'RootManageSharedAccessKey')]"
       ],
@@ -379,13 +382,13 @@
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
       "apiVersion": "2017-04-01",
-      "name": "[concat(variables('eventhub_namespace_name'), '/devicedata/$Default')]",
+      "name": "[concat(variables('eventhub_namespace_name'), '/', variables('devicedata_name'), '/$Default')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'devicedata', 'writer')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'reader')]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), variables('devicedata_name'), 'writer')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), variables('normalizeddata_name'), 'reader')]"
       ],
       "properties": {
       }
@@ -393,13 +396,13 @@
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
       "apiVersion": "2017-04-01",
-      "name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata/$Default')]",
+      "name": "[concat(variables('eventhub_namespace_name'), '/', variables('normalizeddata_name'), '/$Default')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub_namespace_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'devicedata', 'writer')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'reader')]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), variables('devicedata_name'), 'writer')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), variables('normalizeddata_name'), 'reader')]"
       ],
       "properties": {
       }
@@ -410,12 +413,12 @@
       "name": "[concat(variables('devicedata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('devicedata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]"
       ],
       "properties": {
         "roleDefinitionId": "[variables('receiver_role')]",
         "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]"
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('devicedata_name'))]"
       }
     },
     {
@@ -424,12 +427,12 @@
       "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('normalizeddata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]"
       ],
       "properties": {
         "roleDefinitionId": "[variables('sender_role')]",
         "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), variables('normalizeddata_name'))]"
       }
     },
     {
@@ -559,8 +562,8 @@
             "[resourceId('Microsoft.Insights/components/', variables('app_insights_name'))]"
           ],
           "properties": {
-            "InputEventHub": "[concat('Endpoint=sb://', variables('app_service_name'), '.servicebus.windows.net/;Authentication=ManagedIdentity;EntityPath=devicedata')]",
-            "OutputEventHub": "[concat('Endpoint=sb://', variables('app_service_name'), '.servicebus.windows.net/;Authentication=ManagedIdentity;EntityPath=normalizeddata')]",
+            "InputEventHub": "[concat('Endpoint=sb://', variables('eventhub_hostname'), '/;Authentication=ManagedIdentity;EntityPath=', variables('devicedata_name'))]",
+            "OutputEventHub": "[concat('Endpoint=sb://', variables('eventhub_hostname'), '/;Authentication=ManagedIdentity;EntityPath=', variables('normalizeddata_name'))]",
             "FUNCTIONS_EXTENSION_VERSION": "~3",
             "FUNCTIONS_EXTENSION_RUNTIME": "dotnet",
             "PROJECT": "src/func/Microsoft.Health.Fhir.Ingest.Host/Microsoft.Health.Fhir.Ingest.Host.csproj",
@@ -772,6 +775,18 @@
     }
   ],
   "outputs": {
+    "deviceDataEventHubName": {
+      "type": "string",
+      "value": "[variables('devicedata_name')]"
+    },
+    "normalizedDataEventHubName": {
+      "type": "string",
+      "value": "[variables('normalizeddata_name')]"
+    },
+    "eventHubHostName": {
+      "type": "string",
+      "value": "[variables('eventhub_hostname')]"
+    },
     "managedIdentityId": {
       "type": "string",
       "value": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]"

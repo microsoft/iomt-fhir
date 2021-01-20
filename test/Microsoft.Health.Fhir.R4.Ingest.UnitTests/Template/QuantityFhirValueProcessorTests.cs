@@ -37,7 +37,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Fact]
-        public void GivenInvalidElementType_WhenMergeValue_ThenNotSupportedExceptionThrown_Test()
+        public void GivenInvalidDataTypeType_WhenMergeValue_ThenNotSupportedExceptionThrown_Test()
         {
             var processor = new QuantityFhirValueProcessor();
             var template = new QuantityFhirValueType();

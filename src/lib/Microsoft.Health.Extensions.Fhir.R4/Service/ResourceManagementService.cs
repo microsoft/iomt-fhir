@@ -23,7 +23,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         /// <param name="system">The system the identifier belongs to.</param>
         /// <param name="propertySetter">Optional setter to provide property values if the resource needs to be created.</param>
         /// <returns>Reource that was found or created.</returns>
-        public virtual async Task<TResource> EnsureResourceByIdentityAsync<TResource>(IFhirClient client, string value, string system, Action<TResource, Model.Identifier> propertySetter = null)
+        public virtual async Task<TResource> EnsureResourceByIdentityAsync<TResource>(FhirClient client, string value, string system, Action<TResource, Model.Identifier> propertySetter = null)
             where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(client, nameof(client));
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
                 ?? await CreateResourceByIdentityAsync<TResource>(client, identifier, propertySetter).ConfigureAwait(false);
         }
 
-        public virtual async Task<TResource> GetResourceByIdentityAsync<TResource>(IFhirClient client, string value, string system)
+        public virtual async Task<TResource> GetResourceByIdentityAsync<TResource>(FhirClient client, string value, string system)
             where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(client, nameof(client));
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             return await GetResourceByIdentityAsync<TResource>(client, identifier).ConfigureAwait(false);
         }
 
-        protected static async Task<TResource> GetResourceByIdentityAsync<TResource>(IFhirClient client, Model.Identifier identifier)
+        protected static async Task<TResource> GetResourceByIdentityAsync<TResource>(FhirClient client, Model.Identifier identifier)
             where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(client, nameof(client));
@@ -54,7 +54,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(client);
         }
 
-        protected static async Task<TResource> CreateResourceByIdentityAsync<TResource>(IFhirClient client, Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)
+        protected static async Task<TResource> CreateResourceByIdentityAsync<TResource>(FhirClient client, Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)
             where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(client, nameof(client));

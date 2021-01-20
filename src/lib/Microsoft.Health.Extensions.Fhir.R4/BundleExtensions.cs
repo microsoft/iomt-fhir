@@ -41,7 +41,7 @@ namespace Microsoft.Health.Extensions.Fhir
             }
         }
 
-        public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(this Bundle bundle, IFhirClient fhirClient, bool throwOnMultipleFound = true)
+        public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(this Bundle bundle, FhirClient fhirClient, bool throwOnMultipleFound = true)
             where TResource : Resource, new()
         {
             if (bundle == null)
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Extensions.Fhir
             return bundle?.Entry?.Count ?? 0;
         }
 
-        public static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(this Bundle bundle, IFhirClient fhirClient, int? count = null)
+        public static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(this Bundle bundle, FhirClient fhirClient, int? count = null)
             where TResource : Resource
         {
             EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
@@ -103,17 +103,17 @@ namespace Microsoft.Health.Extensions.Fhir
             return resources;
         }
 
-        public static async Task<IEnumerable<TResource>> SearchWithContinuationAsync<TResource>(this IFhirClient fhirClient, SearchParams searchParams)
+        public static async Task<IEnumerable<TResource>> SearchWithContinuationAsync<TResource>(this FhirClient fhirClient, SearchParams searchParams)
             where TResource : Resource
         {
             EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
             EnsureArg.IsNotNull(searchParams, nameof(searchParams));
 
-            var result = await fhirClient.SearchAsync<TResource>(searchParams).ConfigureAwait(false) as Bundle;
+            var result = await fhirClient.SearchAsync<TResource>(searchParams).ConfigureAwait(false);
             return await result.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, searchParams.Count).ConfigureAwait(false);
         }
 
-        public static async Task<IEnumerable<TResource>> GetWithContinuationAsync<TResource>(this IFhirClient fhirClient, Uri resourceUri, int? count = null)
+        public static async Task<IEnumerable<TResource>> GetWithContinuationAsync<TResource>(this FhirClient fhirClient, Uri resourceUri, int? count = null)
             where TResource : Resource
         {
             EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
