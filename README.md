@@ -56,7 +56,7 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 
 # Additional tools
 
-## Maping Manager
+## Mapping Manager
 
 The IoMT Mapping Manager is a tool to visualize the mapping configuration for normalizing the device input data and transform it to the FHIR resources. Developers can use this tool to edit and test the mappings, device mapping and FHIR mapping, and export them for uploading to the IoT Connector in the Azure portal. The tool also gives tutorials for developers to understand the mapping configuration.
 [Click here for additional details](./tools/mapping-manager/)
