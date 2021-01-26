@@ -205,7 +205,8 @@
     "app_service_resource_id": "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
     "deploy_source_code": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
     "sender_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
-    "receiver_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]"
+    "receiver_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
+    "storage_blob_contributor_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
   },
   "resources": [
     {
@@ -410,7 +411,22 @@
           "keySource": "Microsoft.Storage"
         },
         "accessTier": "Hot"
-      }
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+          "apiVersion": "2020-03-01-preview",
+          "name": "[concat(variables('storage_account_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('storage_account_name'))))]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name'))]"
+
+          ],
+          "properties": {
+            "roleDefinitionId": "[variables('storage_blob_contributor_role')]",
+            "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]"
+          }
+        }
+      ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices",
@@ -502,7 +518,7 @@
         "isXenon": false,
         "hyperV": false,
         "siteConfig": {
-          "alwaysOn":  true
+          "alwaysOn": true
         },
         "scmSiteAlsoStopped": false,
         "clientAffinityEnabled": true,
@@ -529,11 +545,11 @@
           "properties": {
             "EventBatching:FlushTimespan": "[parameters('JobWindowMagnitude')]",
             "EventBatching:MaxEvents": "[parameters('JobMaxEvents')]",
-            "Storage:BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
+            "Storage:BlobStorageAccountName": "[variables('storage_account_name')]",
             "Storage:BlobContainerName": "checkpoint",
             "Storage:BlobPrefix": "",
             "Storage:CheckpointBatchCount": 5,
-            "TemplateStorage:BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
+            "TemplateStorage:BlobStorageAccountName": "[variables('storage_account_name')]",
             "TemplateStorage:BlobContainerName": "template",
             "InputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-input-connection'), '2018-02-14').secretUriWithVersion, ')')]",
             "OutputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-output-connection'), '2018-02-14').secretUriWithVersion, ')')]",
@@ -603,23 +619,6 @@
         "enabledForDeployment": false,
         "enabledForDiskEncryption": false,
         "enabledForTemplateDeployment": false
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
-      "name": "[concat(variables('storage_account_name'), '/blob-storage-cs')]",
-      "location": "[parameters('ResourceLocation')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storage_account_name'), 'default')]"
-      ],
-      "properties": {
-        "contentType": "text/plain",
-        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage_account_name'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name')), '2019-04-01').keys[0].value)]",
-        "attributes": {
-          "enabled": true
-        }
       }
     },
     {

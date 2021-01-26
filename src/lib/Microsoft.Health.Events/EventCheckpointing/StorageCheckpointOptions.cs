@@ -9,7 +9,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
     {
         public const string Settings = "Storage";
 
-        public string BlobStorageConnectionString { get; set; }
+        public string BlobStorageAccountName { get; set; }
 
         public string BlobContainerName { get; set; }
 

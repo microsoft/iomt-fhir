@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.IO;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using EnsureThat;
 
@@ -13,12 +15,14 @@ namespace Microsoft.Health.Events.Repository
     {
         private BlobContainerClient _blobContainer;
 
-        public StorageManager(string connectionString, string blobContainerName)
+        public StorageManager(string storageAccountName, string blobContainerName)
         {
-            EnsureArg.IsNotNull(connectionString);
+            EnsureArg.IsNotNull(storageAccountName);
             EnsureArg.IsNotNull(blobContainerName);
 
-            _blobContainer = new BlobContainerClient(connectionString, blobContainerName);
+            var credential = new DefaultAzureCredential();
+            Uri uri = new Uri($"https://{storageAccountName}.blob.core.windows.net/{blobContainerName}");
+            _blobContainer = new BlobContainerClient(uri, credential);
         }
 
         public byte[] GetItem(string itemName)

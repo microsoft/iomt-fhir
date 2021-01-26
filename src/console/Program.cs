@@ -2,8 +2,11 @@
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Storage.Blobs;
 using EnsureThat;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
@@ -27,47 +30,95 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public static async Task Main()
         {
             var config = GetEnvironmentConfig();
+            var eventHubName = GetEventHubName(config);
 
-            // determine which event hub to read from
+            var eventHubOptions = GetEventHubInfo(config, eventHubName);
+
+            EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubConnectionString);
+            EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubName);
+
+            var serviceProvider = GetRequiredServiceProvider(config, eventHubName);
+            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
+
+            var eventConsumers = GetEventConsumers(config, eventHubName, serviceProvider, logger);
+
+            var storageOptions = new StorageCheckpointOptions();
+            config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
+
+            var storageCheckpointClient = GetStorageCheckpointClient(storageOptions, logger, eventHubName);
+            var eventConsumerService = new EventConsumerService(eventConsumers, logger);
+
+            var incomingEventReader = GetEventProcessorClient(storageCheckpointClient.GetBlobContainerClient(), eventHubOptions);
+            var eventHubReader = GetEventProcessor(config, eventConsumerService, storageCheckpointClient, logger);
+
+            System.Console.WriteLine($"Reading from event hub: {eventHubName}");
+            System.Console.WriteLine($"Logs and Metrics will be written to Application Insights");
+            var ct = new CancellationToken();
+            await eventHubReader.RunAsync(incomingEventReader, ct);
+        }
+
+        public static string GetEventHubName(IConfiguration config)
+        {
             var eventHub = Environment.GetEnvironmentVariable("WEBJOBS_NAME");
             if (eventHub == null)
             {
                 eventHub = config.GetSection("Console:EventHub").Value;
             }
 
-            System.Console.WriteLine($"Reading from event hub: {eventHub}");
-            System.Console.WriteLine($"Logs and Metrics will be written to Application Insights");
-            var eventHubOptions = GetEventHubInfo(config, eventHub);
+            return eventHub;
+        }
 
-            EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubConnectionString);
-            EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubName);
-
-            var eventBatchingOptions = new EventBatchingOptions();
-            config.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
-
+        public static EventConsumerService GetEventConsumerService(IConfiguration config, ITelemetryLogger logger, string eventHub)
+        {
             var serviceProvider = GetRequiredServiceProvider(config, eventHub);
-            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             var eventConsumers = GetEventConsumers(config, eventHub, serviceProvider, logger);
 
-            var storageOptions = new StorageCheckpointOptions();
-            config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
-            storageOptions.BlobPrefix = eventHub;
-            var checkpointClient = new StorageCheckpointClient(storageOptions, logger);
-
             var eventConsumerService = new EventConsumerService(eventConsumers, logger);
+            return eventConsumerService;
+        }
 
-            var ct = new CancellationToken();
+        public static StorageCheckpointClient GetStorageCheckpointClient(StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
+        {
+            options.BlobPrefix = prefix;
+            var checkpointClient = new StorageCheckpointClient(options, logger);
+            return checkpointClient;
+        }
 
+        public static TemplateManager GetMappingTemplateManager(IConfiguration config)
+        {
+            var templateOptions = new TemplateOptions();
+            config.GetSection(TemplateOptions.Settings).Bind(templateOptions);
+
+            EnsureArg.IsNotNull(templateOptions);
+            var accountName = EnsureArg.IsNotNull(templateOptions.BlobStorageAccountName);
+            var containerName = EnsureArg.IsNotNull(templateOptions.BlobContainerName);
+
+            var storageManager = new StorageManager(accountName, containerName);
+            var templateManager = new TemplateManager(storageManager);
+            return templateManager;
+        }
+
+
+        public static EventProcessorClient GetEventProcessorClient(BlobContainerClient blobContainerClient, EventHubOptions eventHubOptions)
+        {
             string consumerGroup = EventHubConsumerClient.DefaultConsumerGroupName;
-            BlobContainerClient storageClient = new BlobContainerClient(storageOptions.BlobStorageConnectionString, storageOptions.BlobContainerName);
-
             var eventProcessorClientOptions = new EventProcessorClientOptions();
             eventProcessorClientOptions.MaximumWaitTime = TimeSpan.FromSeconds(60);
-            EventProcessorClient client = new EventProcessorClient(storageClient, consumerGroup, eventHubOptions.EventHubConnectionString, eventHubOptions.EventHubName, eventProcessorClientOptions);
+            EventProcessorClient client = new EventProcessorClient(blobContainerClient, consumerGroup, eventHubOptions.EventHubConnectionString, eventHubOptions.EventHubName, eventProcessorClientOptions);
+            return client;
+        }
 
+        public static EventProcessor GetEventProcessor(
+            IConfiguration config,
+            IEventConsumerService eventConsumerService,
+            ICheckpointClient checkpointClient,
+            ITelemetryLogger logger)
+        {
+            var eventBatchingOptions = new EventBatchingOptions();
+            config.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
             var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger);
             var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient, logger);
-            await eventHubReader.RunAsync(client, ct);
+            return eventHubReader;
         }
 
         public static IConfiguration GetEnvironmentConfig()
@@ -88,8 +139,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 Normalize.ProcessorStartup startup = new Normalize.ProcessorStartup(config);
                 startup.ConfigureServices(serviceCollection);
 
-                var loggingService = new IomtLogger(config);
-                loggingService.ConfigureServices(serviceCollection);
+                ConfigureLogging(config, serviceCollection);
 
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 return serviceProvider;
@@ -100,8 +150,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 MeasurementCollectionToFhir.ProcessorStartup startup = new MeasurementCollectionToFhir.ProcessorStartup(config);
                 startup.ConfigureServices(serviceCollection);
 
-                var loggingService = new IomtLogger(config);
-                loggingService.ConfigureServices(serviceCollection);
+                ConfigureLogging(config, serviceCollection);
 
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 return serviceProvider;
@@ -110,6 +159,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             {
                 throw new Exception("No valid event hub type was found");
             }
+        }
+
+        public static void ConfigureLogging(IConfiguration config, IServiceCollection serviceCollection)
+        {
+            var instrumentationKey = config.GetSection("APPINSIGHTS_INSTRUMENTATIONKEY").Value;
+            var telemetryConfig = new TelemetryConfiguration(instrumentationKey);
+            var telemetryClient = new TelemetryClient(telemetryConfig);
+            var logger = new IomtTelemetryLogger(telemetryClient);
+            serviceCollection.TryAddSingleton<ITelemetryLogger>(logger);
         }
 
         public static EventHubOptions GetEventHubInfo(IConfiguration config, string eventHub)
@@ -125,18 +183,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
         {
             var eventConsumers = new List<IEventConsumer>();
-            var templateOptions = new TemplateOptions();
-            config.GetSection(TemplateOptions.Settings).Bind(templateOptions);
 
-            EnsureArg.IsNotNull(templateOptions);
-            EnsureArg.IsNotNull(templateOptions.BlobContainerName);
-            EnsureArg.IsNotNull(templateOptions.BlobStorageConnectionString);
-
-            var storageManager = new StorageManager(
-                templateOptions.BlobStorageConnectionString,
-                templateOptions.BlobContainerName);
-
-            var templateManager = new TemplateManager(storageManager);
+            var templateManager = GetMappingTemplateManager(config);
 
             if (inputEventHub == "devicedata")
             {

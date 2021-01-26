@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
@@ -33,20 +34,29 @@ namespace Microsoft.Health.Events.EventCheckpointing
         {
             EnsureArg.IsNotNull(options);
             EnsureArg.IsNotNullOrWhiteSpace(options.BlobPrefix);
-            EnsureArg.IsNotNullOrWhiteSpace(options.BlobStorageConnectionString);
-            EnsureArg.IsNotNullOrWhiteSpace(options.BlobContainerName);
             EnsureArg.IsNotNullOrWhiteSpace(options.CheckpointBatchCount);
+
+            var accountName = EnsureArg.IsNotNullOrWhiteSpace(options.BlobStorageAccountName);
+            var containerName = EnsureArg.IsNotNullOrWhiteSpace(options.BlobContainerName);
 
             BlobPrefix = options.BlobPrefix;
 
             _lastCheckpointMaxCount = int.Parse(options.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
-            _storageClient = new BlobContainerClient(options.BlobStorageConnectionString, options.BlobContainerName);
+
+            var checkpointUri = new Uri($"https://{accountName}.blob.core.windows.net/{containerName}");
+            var credential = new DefaultAzureCredential();
+            _storageClient = new BlobContainerClient(checkpointUri, credential);
             _log = log;
         }
 
         public string BlobPrefix { get; }
+
+        public BlobContainerClient GetBlobContainerClient()
+        {
+            return _storageClient;
+        }
 
         public async Task UpdateCheckpointAsync(Checkpoint checkpoint)
         {

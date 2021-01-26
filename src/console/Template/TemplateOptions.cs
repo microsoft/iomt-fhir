@@ -10,7 +10,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Storage
     {
         public const string Settings = "TemplateStorage";
 
-        public string BlobStorageConnectionString { get; set; }
+        public string BlobStorageAccountName { get; set; }
 
         public string BlobContainerName { get; set; }
     }
