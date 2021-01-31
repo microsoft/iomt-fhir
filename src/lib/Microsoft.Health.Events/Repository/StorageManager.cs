@@ -5,9 +5,9 @@
 
 using System;
 using System.IO;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using EnsureThat;
+using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Events.Repository
 {
@@ -15,14 +15,33 @@ namespace Microsoft.Health.Events.Repository
     {
         private BlobContainerClient _blobContainer;
 
-        public StorageManager(string storageAccountName, string blobContainerName)
+        public StorageManager(Uri containerUri, IAzureCredentialService credentialService)
         {
-            EnsureArg.IsNotNull(storageAccountName);
-            EnsureArg.IsNotNull(blobContainerName);
+            EnsureArg.IsNotNull(containerUri);
+            _blobContainer = CreateStorageClient(credentialService, containerUri);
+        }
 
-            var credential = new DefaultAzureCredential();
-            Uri uri = new Uri($"https://{storageAccountName}.blob.core.windows.net/{blobContainerName}");
-            _blobContainer = new BlobContainerClient(uri, credential);
+        public static BlobContainerClient CreateStorageClient(IAzureCredentialService credentialService, Uri containerUri)
+        {
+            EnsureArg.IsNotNull(credentialService);
+
+            var blobUri = new BlobUriBuilder(containerUri);
+            var tokenCredential = credentialService.GetCredential().TokenCredential;
+            var connectionString = credentialService.GetCredential().ConnectionString;
+
+            if (tokenCredential != null)
+            {
+                return new BlobContainerClient(containerUri, tokenCredential);
+            }
+            else if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                return new BlobContainerClient(connectionString, blobUri.BlobContainerName);
+            }
+            else
+            {
+                var ex = new Exception($"Unable to create blob container client for {blobUri}");
+                throw ex;
+            }
         }
 
         public byte[] GetItem(string itemName)

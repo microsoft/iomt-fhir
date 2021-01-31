@@ -12,10 +12,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
+using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
@@ -30,28 +30,47 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private BlobContainerClient _storageClient;
         private ITelemetryLogger _log;
 
-        public StorageCheckpointClient(StorageCheckpointOptions options, ITelemetryLogger log)
+        public StorageCheckpointClient(IAzureCredentialService credentialService, StorageCheckpointOptions options, ITelemetryLogger log)
         {
             EnsureArg.IsNotNull(options);
-            EnsureArg.IsNotNullOrWhiteSpace(options.BlobPrefix);
-            EnsureArg.IsNotNullOrWhiteSpace(options.CheckpointBatchCount);
-
-            var accountName = EnsureArg.IsNotNullOrWhiteSpace(options.BlobStorageAccountName);
-            var containerName = EnsureArg.IsNotNullOrWhiteSpace(options.BlobContainerName);
-
             BlobPrefix = options.BlobPrefix;
 
             _lastCheckpointMaxCount = int.Parse(options.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
-
-            var checkpointUri = new Uri($"https://{accountName}.blob.core.windows.net/{containerName}");
-            var credential = new DefaultAzureCredential();
-            _storageClient = new BlobContainerClient(checkpointUri, credential);
+            _storageClient = CreateStorageClient(credentialService, options, log);
             _log = log;
         }
 
         public string BlobPrefix { get; }
+
+        public static BlobContainerClient CreateStorageClient(IAzureCredentialService credentialService, StorageCheckpointOptions options, ITelemetryLogger log)
+        {
+            EnsureArg.IsNotNull(credentialService);
+            EnsureArg.IsNotNull(options);
+            EnsureArg.IsNotNull(log);
+
+            var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri);
+
+            var blobUri = new BlobUriBuilder(containerUri);
+            var tokenCredential = credentialService.GetCredential().TokenCredential;
+            var connectionString = credentialService.GetCredential().ConnectionString;
+
+            if (tokenCredential != null)
+            {
+                return new BlobContainerClient(containerUri, tokenCredential);
+            }
+            else if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                return new BlobContainerClient(connectionString, blobUri.BlobContainerName);
+            }
+            else
+            {
+                var ex = new Exception($"Unable to create blob container client for {blobUri}");
+                log.LogError(ex);
+                throw ex;
+            }
+        }
 
         public BlobContainerClient GetBlobContainerClient()
         {

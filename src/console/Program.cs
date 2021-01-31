@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
@@ -37,22 +38,28 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubConnectionString);
             EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubName);
 
-            var serviceProvider = GetRequiredServiceProvider(config, eventHubName);
+            var serviceCollection = GetRequiredServiceCollection(config, eventHubName);
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var credentialOptions = new CredentialOptions();
+            credentialOptions.SystemAssignedManagedIdentity = true;
+            var azureCredentialProvider = new AzureCredentialProvider(credentialOptions);
+            var managedIdentityCredentialService = new AzureCredentialService(azureCredentialProvider);
+
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            var eventConsumers = GetEventConsumers(config, eventHubName, serviceProvider, logger);
+            var eventConsumers = GetEventConsumers(config, managedIdentityCredentialService, eventHubName, serviceProvider, logger);
 
             var storageOptions = new StorageCheckpointOptions();
             config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
 
-            var storageCheckpointClient = GetStorageCheckpointClient(storageOptions, logger, eventHubName);
+            var storageCheckpointClient = GetStorageCheckpointClient(managedIdentityCredentialService, storageOptions, logger, eventHubName);
             var eventConsumerService = new EventConsumerService(eventConsumers, logger);
 
             var incomingEventReader = GetEventProcessorClient(storageCheckpointClient.GetBlobContainerClient(), eventHubOptions);
             var eventHubReader = GetEventProcessor(config, eventConsumerService, storageCheckpointClient, logger);
 
             System.Console.WriteLine($"Reading from event hub: {eventHubName}");
-            System.Console.WriteLine($"Logs and Metrics will be written to Application Insights");
             var ct = new CancellationToken();
             await eventHubReader.RunAsync(incomingEventReader, ct);
         }
@@ -60,7 +67,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public static string GetEventHubName(IConfiguration config)
         {
             var eventHub = Environment.GetEnvironmentVariable("WEBJOBS_NAME");
-            if (eventHub == null)
+            if (string.IsNullOrWhiteSpace(eventHub))
             {
                 eventHub = config.GetSection("Console:EventHub").Value;
             }
@@ -68,32 +75,22 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return eventHub;
         }
 
-        public static EventConsumerService GetEventConsumerService(IConfiguration config, ITelemetryLogger logger, string eventHub)
-        {
-            var serviceProvider = GetRequiredServiceProvider(config, eventHub);
-            var eventConsumers = GetEventConsumers(config, eventHub, serviceProvider, logger);
-
-            var eventConsumerService = new EventConsumerService(eventConsumers, logger);
-            return eventConsumerService;
-        }
-
-        public static StorageCheckpointClient GetStorageCheckpointClient(StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
+        public static StorageCheckpointClient GetStorageCheckpointClient(IAzureCredentialService credentialService, StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
         {
             options.BlobPrefix = prefix;
-            var checkpointClient = new StorageCheckpointClient(options, logger);
+            var checkpointClient = new StorageCheckpointClient(credentialService, options, logger);
             return checkpointClient;
         }
 
-        public static TemplateManager GetMappingTemplateManager(IConfiguration config)
+        public static TemplateManager GetMappingTemplateManager(IConfiguration config, IAzureCredentialService credentialService)
         {
             var templateOptions = new TemplateOptions();
             config.GetSection(TemplateOptions.Settings).Bind(templateOptions);
 
             EnsureArg.IsNotNull(templateOptions);
-            var accountName = EnsureArg.IsNotNull(templateOptions.BlobStorageAccountName);
-            var containerName = EnsureArg.IsNotNull(templateOptions.BlobContainerName);
+            var containerUri = EnsureArg.IsNotNull(templateOptions.BlobStorageContainerUri);
+            var storageManager = new StorageManager(containerUri, credentialService);
 
-            var storageManager = new StorageManager(accountName, containerName);
             var templateManager = new TemplateManager(storageManager);
             return templateManager;
         }
@@ -131,7 +128,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return config;
         }
 
-        public static ServiceProvider GetRequiredServiceProvider(IConfiguration config, string eventHub)
+        public static ServiceCollection GetRequiredServiceCollection(IConfiguration config, string eventHub)
         {
             if (eventHub == "devicedata")
             {
@@ -141,8 +138,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
                 ConfigureLogging(config, serviceCollection);
 
-                var serviceProvider = serviceCollection.BuildServiceProvider();
-                return serviceProvider;
+                return serviceCollection;
             }
             else if (eventHub == "normalizeddata")
             {
@@ -152,8 +148,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
                 ConfigureLogging(config, serviceCollection);
 
-                var serviceProvider = serviceCollection.BuildServiceProvider();
-                return serviceProvider;
+                return serviceCollection;
             }
             else
             {
@@ -164,8 +159,21 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public static void ConfigureLogging(IConfiguration config, IServiceCollection serviceCollection)
         {
             var instrumentationKey = config.GetSection("APPINSIGHTS_INSTRUMENTATIONKEY").Value;
-            var telemetryConfig = new TelemetryConfiguration(instrumentationKey);
-            var telemetryClient = new TelemetryClient(telemetryConfig);
+
+            TelemetryConfiguration telemetryConfig;
+            TelemetryClient telemetryClient;
+
+            if (string.IsNullOrWhiteSpace(instrumentationKey))
+            {
+                telemetryConfig = new TelemetryConfiguration();
+                telemetryClient = new TelemetryClient(telemetryConfig);
+            }
+            else
+            {
+                telemetryConfig = new TelemetryConfiguration(instrumentationKey);
+                telemetryClient = new TelemetryClient(telemetryConfig);
+            }
+
             var logger = new IomtTelemetryLogger(telemetryClient);
             serviceCollection.TryAddSingleton<ITelemetryLogger>(logger);
         }
@@ -180,11 +188,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventHubOptions(connectionString, eventHubName);
         }
 
-        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
+        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, IAzureCredentialService credentialService, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
         {
             var eventConsumers = new List<IEventConsumer>();
 
-            var templateManager = GetMappingTemplateManager(config);
+            var templateManager = GetMappingTemplateManager(config, credentialService);
 
             if (inputEventHub == "devicedata")
             {

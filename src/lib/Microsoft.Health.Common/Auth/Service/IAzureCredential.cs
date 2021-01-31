@@ -3,18 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.Health.Events.EventCheckpointing
+namespace Microsoft.Health.Common.Auth
 {
-    public class StorageCheckpointOptions
+    public interface IAzureCredential
     {
-        public const string Settings = "Storage";
+        Azure.Core.TokenCredential TokenCredential { get; set; }
 
-        public Uri BlobStorageContainerUri { get; set; }
-
-        public string BlobPrefix { get; set; }
-
-        public string CheckpointBatchCount { get; set; }
+        string ConnectionString { get; set; }
     }
 }
