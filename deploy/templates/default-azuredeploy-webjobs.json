@@ -424,7 +424,7 @@
       "resources": [
         {
           "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
-          "apiVersion": "2020-04-08",
+          "apiVersion": "2018-07-01",
           "name": "[concat(variables('storage_account_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('storage_account_name'))))]",
           "dependsOn": [
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name'))]"
