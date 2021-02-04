@@ -31,6 +31,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
         public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions options, ITelemetryLogger log)
         {
+            EnsureArg.IsNotNull(containerClient);
             EnsureArg.IsNotNull(options);
             BlobPrefix = options.BlobPrefix;
 
