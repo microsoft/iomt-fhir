@@ -13,6 +13,9 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup>
     <FhirVersion Condition="'$(FhirVersion)' == ''">R4</FhirVersion>
   </PropertyGroup>  
   <ItemGroup>
