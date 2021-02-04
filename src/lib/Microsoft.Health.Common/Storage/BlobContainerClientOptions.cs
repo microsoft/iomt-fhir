@@ -3,15 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 
-namespace Microsoft.Health.Fhir.Ingest.Console.Storage
+namespace Microsoft.Health.Common.Storage
 {
-    public class TemplateOptions
+    public class BlobContainerClientOptions
     {
-        public const string Settings = "TemplateStorage";
+        public Uri BlobStorageContainerUri { get; set; }
 
-        public string BlobStorageConnectionString { get; set; }
+        public string ConnectionString { get; set; }
 
-        public string BlobContainerName { get; set; }
+        public bool ServiceManagedIdentityAuth { get; set; }
+
+        public bool CustomizedAuth { get; set; }
     }
 }
