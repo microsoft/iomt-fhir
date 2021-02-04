@@ -8,6 +8,9 @@
     <langversion>7.3</langversion>
   </PropertyGroup>
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
