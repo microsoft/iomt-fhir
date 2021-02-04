@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using Azure.Storage.Blobs;
 using EnsureThat;
@@ -14,10 +13,9 @@ namespace Microsoft.Health.Events.Repository
     {
         private BlobContainerClient _blobContainer;
 
-        public StorageManager(Uri containerUri, BlobContainerClient containerClient)
+        public StorageManager(BlobContainerClient containerClient)
         {
-            EnsureArg.IsNotNull(containerUri);
-            _blobContainer = containerClient;
+            _blobContainer = EnsureArg.IsNotNull(containerClient, nameof(containerClient));
         }
 
         public byte[] GetItem(string itemName)

@@ -11,9 +11,9 @@ using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Common.Storage
 {
-    public static class BlobContainerClientFactory
+    public class BlobContainerClientFactory
     {
-        public static BlobContainerClient CreateStorageClient(BlobContainerClientOptions options)
+        public BlobContainerClient CreateStorageClient(BlobContainerClientOptions options)
         {
             EnsureArg.IsNotNull(options);
             var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri);
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Common.Storage
             }
         }
 
-        public static BlobContainerClient CreateStorageClient(BlobContainerClientOptions options, IAzureCredentialProvider provider)
+        public BlobContainerClient CreateStorageClient(BlobContainerClientOptions options, IAzureCredentialProvider provider)
         {
             EnsureArg.IsNotNull(options);
             var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri);

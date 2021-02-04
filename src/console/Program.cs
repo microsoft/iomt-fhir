@@ -4,6 +4,7 @@ using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Mvc.Formatters.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -42,14 +43,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            var eventConsumers = GetEventConsumers(config, eventHubName, serviceProvider, logger);
+            var blobContainerClientFactory = new BlobContainerClientFactory();
+            var eventConsumers = GetEventConsumers(config, eventHubName, serviceProvider, blobContainerClientFactory, logger);
 
             var storageOptions = new StorageCheckpointOptions();
             config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
             var checkpointContainerOptions = new BlobContainerClientOptions();
             config.GetSection("CheckpointStorage").Bind(checkpointContainerOptions);
 
-            var storageCheckpointClient = GetStorageCheckpointClient(checkpointContainerOptions, storageOptions, logger, eventHubName);
+            var storageCheckpointClient = GetStorageCheckpointClient(blobContainerClientFactory, checkpointContainerOptions, storageOptions, logger, eventHubName);
             var eventConsumerService = new EventConsumerService(eventConsumers, logger);
 
             var incomingEventReader = GetEventProcessorClient(storageCheckpointClient.GetBlobContainerClient(), eventHubOptions);
@@ -71,22 +73,21 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return eventHub;
         }
 
-        public static StorageCheckpointClient GetStorageCheckpointClient(BlobContainerClientOptions containerOptions, StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
+        public static StorageCheckpointClient GetStorageCheckpointClient(BlobContainerClientFactory factory, BlobContainerClientOptions containerOptions, StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
         {
-            var checkpointBlobClient = BlobContainerClientFactory.CreateStorageClient(containerOptions);
+            var checkpointBlobClient = factory.CreateStorageClient(containerOptions);
 
             options.BlobPrefix = prefix;
             var checkpointClient = new StorageCheckpointClient(checkpointBlobClient, options, logger);
             return checkpointClient;
         }
 
-        public static TemplateManager GetMappingTemplateManager(IConfiguration config)
+        public static TemplateManager GetMappingTemplateManager(IConfiguration config, BlobContainerClientFactory blobClientFactory)
         {
             var containerOptions = new BlobContainerClientOptions();
             config.GetSection("TemplateStorage").Bind(containerOptions);
-            var containerUri = EnsureArg.IsNotNull(containerOptions.BlobStorageContainerUri);
-            var containerClient = BlobContainerClientFactory.CreateStorageClient(containerOptions);
-            var storageManager = new StorageManager(containerUri, containerClient);
+            var containerClient = blobClientFactory.CreateStorageClient(containerOptions);
+            var storageManager = new StorageManager(containerClient);
             var templateManager = new TemplateManager(storageManager);
             return templateManager;
         }
@@ -184,11 +185,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventHubOptions(connectionString, eventHubName);
         }
 
-        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
+        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, BlobContainerClientFactory blobClientFactory, ITelemetryLogger logger)
         {
             var eventConsumers = new List<IEventConsumer>();
 
-            var templateManager = GetMappingTemplateManager(config);
+            var templateManager = GetMappingTemplateManager(config, blobClientFactory);
 
             if (inputEventHub == "devicedata")
             {
