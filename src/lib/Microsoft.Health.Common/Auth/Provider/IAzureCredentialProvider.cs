@@ -7,6 +7,6 @@ namespace Microsoft.Health.Common.Auth
 {
     public interface IAzureCredentialProvider
     {
-        IAzureCredential GetCredential();
+        Azure.Core.TokenCredential GetCredential();
     }
 }

@@ -3,15 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.Health.Events.EventCheckpointing
 {
     public class StorageCheckpointOptions
     {
-        public const string Settings = "Storage";
-
-        public Uri BlobStorageContainerUri { get; set; }
+        public const string Settings = "Checkpoint";
 
         public string BlobPrefix { get; set; }
 

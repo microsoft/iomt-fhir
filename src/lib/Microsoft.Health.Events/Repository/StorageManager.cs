@@ -7,7 +7,6 @@ using System;
 using System.IO;
 using Azure.Storage.Blobs;
 using EnsureThat;
-using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Events.Repository
 {
@@ -15,33 +14,10 @@ namespace Microsoft.Health.Events.Repository
     {
         private BlobContainerClient _blobContainer;
 
-        public StorageManager(Uri containerUri, IAzureCredentialService credentialService)
+        public StorageManager(Uri containerUri, BlobContainerClient containerClient)
         {
             EnsureArg.IsNotNull(containerUri);
-            _blobContainer = CreateStorageClient(credentialService, containerUri);
-        }
-
-        public static BlobContainerClient CreateStorageClient(IAzureCredentialService credentialService, Uri containerUri)
-        {
-            EnsureArg.IsNotNull(credentialService);
-
-            var blobUri = new BlobUriBuilder(containerUri);
-            var tokenCredential = credentialService.GetCredential().TokenCredential;
-            var connectionString = credentialService.GetCredential().ConnectionString;
-
-            if (tokenCredential != null)
-            {
-                return new BlobContainerClient(containerUri, tokenCredential);
-            }
-            else if (!string.IsNullOrWhiteSpace(connectionString))
-            {
-                return new BlobContainerClient(connectionString, blobUri.BlobContainerName);
-            }
-            else
-            {
-                var ex = new Exception($"Unable to create blob container client for {blobUri}");
-                throw ex;
-            }
+            _blobContainer = containerClient;
         }
 
         public byte[] GetItem(string itemName)

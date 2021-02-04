@@ -8,14 +8,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Common.Auth;
+using Microsoft.Health.Common.Storage;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.Repository;
 using Microsoft.Health.Fhir.Ingest.Config;
-using Microsoft.Health.Fhir.Ingest.Console.Storage;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
@@ -41,19 +40,16 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var serviceCollection = GetRequiredServiceCollection(config, eventHubName);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var credentialOptions = new CredentialOptions();
-            credentialOptions.SystemAssignedManagedIdentity = true;
-            var azureCredentialProvider = new AzureCredentialProvider(credentialOptions);
-            var managedIdentityCredentialService = new AzureCredentialService(azureCredentialProvider);
-
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            var eventConsumers = GetEventConsumers(config, managedIdentityCredentialService, eventHubName, serviceProvider, logger);
+            var eventConsumers = GetEventConsumers(config, eventHubName, serviceProvider, logger);
 
             var storageOptions = new StorageCheckpointOptions();
             config.GetSection(StorageCheckpointOptions.Settings).Bind(storageOptions);
+            var checkpointContainerOptions = new BlobContainerClientOptions();
+            config.GetSection("CheckpointStorage").Bind(checkpointContainerOptions);
 
-            var storageCheckpointClient = GetStorageCheckpointClient(managedIdentityCredentialService, storageOptions, logger, eventHubName);
+            var storageCheckpointClient = GetStorageCheckpointClient(checkpointContainerOptions, storageOptions, logger, eventHubName);
             var eventConsumerService = new EventConsumerService(eventConsumers, logger);
 
             var incomingEventReader = GetEventProcessorClient(storageCheckpointClient.GetBlobContainerClient(), eventHubOptions);
@@ -75,22 +71,22 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return eventHub;
         }
 
-        public static StorageCheckpointClient GetStorageCheckpointClient(IAzureCredentialService credentialService, StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
+        public static StorageCheckpointClient GetStorageCheckpointClient(BlobContainerClientOptions containerOptions, StorageCheckpointOptions options, ITelemetryLogger logger, string prefix)
         {
+            var checkpointBlobClient = BlobContainerClientFactory.CreateStorageClient(containerOptions);
+
             options.BlobPrefix = prefix;
-            var checkpointClient = new StorageCheckpointClient(credentialService, options, logger);
+            var checkpointClient = new StorageCheckpointClient(checkpointBlobClient, options, logger);
             return checkpointClient;
         }
 
-        public static TemplateManager GetMappingTemplateManager(IConfiguration config, IAzureCredentialService credentialService)
+        public static TemplateManager GetMappingTemplateManager(IConfiguration config)
         {
-            var templateOptions = new TemplateOptions();
-            config.GetSection(TemplateOptions.Settings).Bind(templateOptions);
-
-            EnsureArg.IsNotNull(templateOptions);
-            var containerUri = EnsureArg.IsNotNull(templateOptions.BlobStorageContainerUri);
-            var storageManager = new StorageManager(containerUri, credentialService);
-
+            var containerOptions = new BlobContainerClientOptions();
+            config.GetSection("TemplateStorage").Bind(containerOptions);
+            var containerUri = EnsureArg.IsNotNull(containerOptions.BlobStorageContainerUri);
+            var containerClient = BlobContainerClientFactory.CreateStorageClient(containerOptions);
+            var storageManager = new StorageManager(containerUri, containerClient);
             var templateManager = new TemplateManager(storageManager);
             return templateManager;
         }
@@ -188,11 +184,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventHubOptions(connectionString, eventHubName);
         }
 
-        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, IAzureCredentialService credentialService, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
+        public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, ITelemetryLogger logger)
         {
             var eventConsumers = new List<IEventConsumer>();
 
-            var templateManager = GetMappingTemplateManager(config, credentialService);
+            var templateManager = GetMappingTemplateManager(config);
 
             if (inputEventHub == "devicedata")
             {
