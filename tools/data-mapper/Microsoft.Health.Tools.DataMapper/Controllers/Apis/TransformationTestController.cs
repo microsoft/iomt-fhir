@@ -13,10 +13,10 @@ using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
-using Microsoft.Health.Tools.MappingManager.Models;
+using Microsoft.Health.Tools.DataMapper.Models;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Tools.MappingManager.Controllers.Apis
+namespace Microsoft.Health.Tools.DataMapper.Controllers.Apis
 {
     /// <summary>
     /// Test FHIR transformation.

@@ -1,8 +1,8 @@
-﻿# IoMT Mapping Manager
+﻿# IoMT Connector Data Mapper
 
 ## Introduction
 
-The IoMT Mapping Manager is a tool to visualize the mapping configuration for normalizing the device input data and transform it to the FHIR resources. Developers can use this tool to edit and test the mappings, device mapping and FHIR mapping, and export them for uploading to the IoT Connector in the Azure portal. The tool also gives tutorials for developers to understand the mapping configuration.
+The IoMT Connector Data Mapper is a tool to visualize the mapping configuration for normalizing the device input data and transform it to the FHIR resources. Developers can use this tool to edit and test the mappings, device mapping and FHIR mapping, and export them for uploading to the IoT Connector in the Azure portal. The tool also gives tutorials for developers to understand the mapping configuration.
 
 ## Setup and Requirement
 
@@ -49,12 +49,12 @@ Here is the official resource for installing .NET Core: <https://dotnet.microsof
 
 ## Getting Started
 
-### Start the IoMT Mapping Manager
+### Start the IoMT Connector Data Mapper
 
 1. Clone the repository. Go to the directory of this tool from the root of the repository.
 
    ```console
-   cd tools/mapping-manager/Microsoft.Health.Tools.MappingManager
+   cd tools/data-mapper/Microsoft.Health.Tools.DataMapper
    ```
 
 2. Build the client code.
@@ -66,7 +66,7 @@ Here is the official resource for installing .NET Core: <https://dotnet.microsof
 3. Build and start the .NET Webapp.
 
    ```console
-   dotnet run --project ./Microsoft.Health.Tools.MappingManager.csproj
+   dotnet run --project ./Microsoft.Health.Tools.DataMapper.csproj
    ```
 
 4. The webapp should start now. Open the endpoint printed in the console in your browser for trying the tool.

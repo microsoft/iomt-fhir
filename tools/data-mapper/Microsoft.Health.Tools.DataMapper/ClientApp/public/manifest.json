@@ -1,6 +1,6 @@
 {
-  "short_name": "Microsoft.Health.Tools.MappingManager",
-  "name": "Microsoft.Health.Tools.MappingManager",
+  "short_name": "Microsoft.Health.Tools.DataMapper",
+  "name": "Microsoft.Health.Tools.DataMapper",
   "icons": [
     {
       "src": "favicon.ico",

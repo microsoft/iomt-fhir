@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Tools.MappingManager", "Microsoft.Health.Tools.MappingManager\Microsoft.Health.Tools.MappingManager.csproj", "{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Tools.DataMapper", "Microsoft.Health.Tools.DataMapper\Microsoft.Health.Tools.DataMapper.csproj", "{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DFE63A18-CCEF-4415-AA76-E22184E66A82} = {DFE63A18-CCEF-4415-AA76-E22184E66A82}
 		{A393CF63-7D29-4E6B-B5F2-63EC99A326BE} = {A393CF63-7D29-4E6B-B5F2-63EC99A326BE}

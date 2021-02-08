@@ -6,7 +6,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Tools.MappingManager.Controllers.Apis
+namespace Microsoft.Health.Tools.DataMapper.Controllers.Apis
 {
     /// <summary>
     /// Utilities.
