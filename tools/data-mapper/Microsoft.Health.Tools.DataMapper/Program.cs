@@ -6,7 +6,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Health.Tools.MappingManager
+namespace Microsoft.Health.Tools.DataMapper
 {
     /// <summary>
     /// The promgram to start up.

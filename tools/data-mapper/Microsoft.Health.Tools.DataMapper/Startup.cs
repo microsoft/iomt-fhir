@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Health.Tools.MappingManager
+namespace Microsoft.Health.Tools.DataMapper
 {
     /// <summary>
     /// Start up definition.

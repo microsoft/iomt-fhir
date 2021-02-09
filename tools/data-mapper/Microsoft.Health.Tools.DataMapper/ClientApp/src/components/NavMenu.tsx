@@ -13,7 +13,7 @@ const NavMenu = (props: {}) => {
         <header>
             <Navbar className="navbar-expand-sm border-bottom box-shadow mb-1" light>
                 <NavbarBrand tag={Link} to="/">
-                    IoMT Mapping Manager
+                    IoMT Connector Data Mapper
                 </NavbarBrand>
             </Navbar>
         </header>
