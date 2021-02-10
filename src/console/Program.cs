@@ -1,21 +1,20 @@
-﻿using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Consumer;
-using Azure.Storage.Blobs;
-using EnsureThat;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using Azure.Messaging.EventHubs;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Mvc.Formatters.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Storage;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.Repository;
-using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
@@ -33,11 +32,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var config = GetEnvironmentConfig();
             var eventHubName = GetEventHubName(config);
 
-            var eventHubOptions = GetEventHubInfo(config, eventHubName);
-
-            EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubConnectionString);
-            EnsureArg.IsNotNullOrWhiteSpace(eventHubOptions.EventHubName);
-
             var serviceCollection = GetRequiredServiceCollection(config, eventHubName);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -54,7 +48,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var storageCheckpointClient = GetStorageCheckpointClient(blobContainerClientFactory, checkpointContainerOptions, storageOptions, logger, eventHubName);
             var eventConsumerService = new EventConsumerService(eventConsumers, logger);
 
-            var incomingEventReader = GetEventProcessorClient(storageCheckpointClient.GetBlobContainerClient(), eventHubOptions);
+            var eventProcessorOptions = GetEventProcessorFactoryOptions(config);
+            var eventProcessorClientFactory = new EventProcessorClientFactory(storageCheckpointClient.GetBlobContainerClient());
+            var eventProcessorClientOptions = new EventProcessorClientOptions();
+            eventProcessorClientOptions.MaximumWaitTime = TimeSpan.FromSeconds(60);
+            var incomingEventReader = eventProcessorClientFactory.CreateProcessorClient(eventProcessorOptions, eventProcessorClientOptions);
             var eventHubReader = GetEventProcessor(config, eventConsumerService, storageCheckpointClient, logger);
 
             System.Console.WriteLine($"Reading from event hub: {eventHubName}");
@@ -92,16 +90,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return templateManager;
         }
 
-
-        public static EventProcessorClient GetEventProcessorClient(BlobContainerClient blobContainerClient, EventHubOptions eventHubOptions)
-        {
-            string consumerGroup = EventHubConsumerClient.DefaultConsumerGroupName;
-            var eventProcessorClientOptions = new EventProcessorClientOptions();
-            eventProcessorClientOptions.MaximumWaitTime = TimeSpan.FromSeconds(60);
-            EventProcessorClient client = new EventProcessorClient(blobContainerClient, consumerGroup, eventHubOptions.EventHubConnectionString, eventHubOptions.EventHubName, eventProcessorClientOptions);
-            return client;
-        }
-
         public static EventProcessor GetEventProcessor(
             IConfiguration config,
             IEventConsumerService eventConsumerService,
@@ -113,6 +101,26 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger);
             var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient, logger);
             return eventHubReader;
+        }
+
+        public static EventProcessorClientFactoryOptions GetEventProcessorFactoryOptions(IConfiguration config)
+        {
+            var eventHubName = GetEventHubName(config);
+            var eventProcessorOptions = new EventProcessorClientFactoryOptions();
+
+            switch (eventHubName)
+            {
+                case "devicedata":
+                    config.GetSection("InputEventHub").Bind(eventProcessorOptions);
+                    break;
+                case "normalizeddata":
+                    config.GetSection("OutputEventHub").Bind(eventProcessorOptions);
+                    break;
+                default:
+                    throw new Exception("Unable to create EventProcessorClientFactoryOptions from configuration");
+            }
+
+            return eventProcessorOptions;
         }
 
         public static IConfiguration GetEnvironmentConfig()
@@ -130,11 +138,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             if (eventHub == "devicedata")
             {
                 var serviceCollection = new ServiceCollection();
-                Normalize.ProcessorStartup startup = new Normalize.ProcessorStartup(config);
-                startup.ConfigureServices(serviceCollection);
-
                 ConfigureLogging(config, serviceCollection);
-
                 return serviceCollection;
             }
             else if (eventHub == "normalizeddata")
@@ -175,16 +179,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             serviceCollection.TryAddSingleton<ITelemetryLogger>(logger);
         }
 
-        public static EventHubOptions GetEventHubInfo(IConfiguration config, string eventHub)
-        {
-            var connectionString = eventHub == "devicedata"
-                ? config.GetSection("InputEventHub").Value
-                : config.GetSection("OutputEventHub").Value;
-
-            var eventHubName = connectionString.Substring(connectionString.LastIndexOf('=') + 1);
-            return new EventHubOptions(connectionString, eventHubName);
-        }
-
         public static List<IEventConsumer> GetEventConsumers(IConfiguration config, string inputEventHub, ServiceProvider sp, BlobContainerClientFactory blobClientFactory, ITelemetryLogger logger)
         {
             var eventConsumers = new List<IEventConsumer>();
@@ -194,7 +188,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             if (inputEventHub == "devicedata")
             {
                 var template = config.GetSection("Template:DeviceContent").Value;
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, config, sp.GetRequiredService<IOptions<EventHubMeasurementCollectorOptions>>(), logger);
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, config, logger);
                 eventConsumers.Add(deviceDataNormalization);
             }
 

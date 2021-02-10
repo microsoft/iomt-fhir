@@ -3,20 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Events.EventHubProcessor
+namespace Microsoft.Health.Events.EventProducers
 {
-    public class EventHubOptions
+    public class EventHubProducerClientOptions
     {
-        public const string Settings = "EventHub";
+        public string EventHubNamespaceFQDN { get; set; }
 
-        public EventHubOptions(string connectionString, string name)
-        {
-            EventHubConnectionString = connectionString;
-            EventHubName = name;
-        }
-
-        public string EventHubConnectionString { get; set; }
+        public string EventHubConsumerGroup { get; set; }
 
         public string EventHubName { get; set; }
+
+        public string ConnectionString { get; set; }
+
+        public bool ServiceManagedIdentityAuth { get; set; }
+
+        public bool CustomizedAuth { get; set; }
     }
 }

@@ -86,7 +86,7 @@ Function Deploy-WebJobs($DeviceDataWebJobName, $NormalizedDataWebJobName) {
 
 Function Clear-Path($WebJobName) {
     $WebJobPath = "$tempPath\App_Data\jobs\$webJobType\$WebJobName"
-    Get-ChildItem -Path $WebJobPath -Recurse | Remove-Item -Force -Recurse
+    Get-ChildItem -Path $WebJobPath -Recurse -ErrorAction Ignore | Remove-Item -Force -Recurse -ErrorAction Ignore
     if( -Not (Test-Path -Path $WebJobPath ) )
     {
         New-Item $WebJobPath -ItemType Directory
