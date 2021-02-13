@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Events.EventProducers
 {
-    public class EventHubProducerClientOptions
+    public class EventProducerClientOptions
     {
         public string EventHubNamespaceFQDN { get; set; }
 

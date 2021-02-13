@@ -205,12 +205,12 @@
         "description": "The domain of the Azure Event Hubs."
       }
     }
-
   },
   "variables": {
     "asa_job_name": "[parameters('ServiceName')]",
     "eventhub_namespace_name": "[parameters('ServiceName')]",
     "eventhub_fqdn": "[concat(variables('eventhub_namespace_name'), '.', parameters('EventHubsDomain'))]",
+    "eventhub_role_assignment_api_version": "2018-07-01",
     "normalizeddata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata')]",
     "devicedata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/devicedata')]",
     "storage_account_name": "[parameters('ServiceName')]",
@@ -366,7 +366,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-07-01",
+      "apiVersion": "[variables('eventhub_role_assignment_api_version')]",
       "name": "[concat(variables('devicedata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString('devicedatareceiver')))]",
       "dependsOn": [
         "[variables('app_service_resource_id')]",
@@ -380,7 +380,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-07-01",
+      "apiVersion": "[variables('eventhub_role_assignment_api_version')]",
       "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString('normalizeddatasender')))]",
       "dependsOn": [
         "[variables('app_service_resource_id')]",
@@ -394,7 +394,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-07-01",
+      "apiVersion": "[variables('eventhub_role_assignment_api_version')]",
       "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString('normalizeddatareceiver')))]",
       "dependsOn": [
         "[variables('app_service_resource_id')]",

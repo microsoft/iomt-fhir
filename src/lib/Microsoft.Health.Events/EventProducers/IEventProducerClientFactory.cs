@@ -7,8 +7,8 @@ using Azure.Messaging.EventHubs.Producer;
 
 namespace Microsoft.Health.Events.EventProducers
 {
-    public interface IEventHubProducerFactory
+    public interface IEventProducerClientFactory
     {
-        EventHubProducerClient GetEventHubProducerClient(EventHubProducerClientOptions options);
+        EventHubProducerClient GetEventHubProducerClient(EventProducerClientOptions options);
     }
 }

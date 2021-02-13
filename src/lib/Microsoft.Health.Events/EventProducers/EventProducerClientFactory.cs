@@ -10,9 +10,9 @@ using EnsureThat;
 
 namespace Microsoft.Health.Events.EventProducers
 {
-    public class EventHubProducerFactory : IEventHubProducerFactory
+    public class EventProducerClientFactory : IEventProducerClientFactory
     {
-        public EventHubProducerClient GetEventHubProducerClient(EventHubProducerClientOptions options)
+        public EventHubProducerClient GetEventHubProducerClient(EventProducerClientOptions options)
         {
             EnsureArg.IsNotNull(options);
             if (options.ServiceManagedIdentityAuth)

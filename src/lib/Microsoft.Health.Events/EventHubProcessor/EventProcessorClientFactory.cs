@@ -12,27 +12,22 @@ using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
-    public class EventProcessorClientFactory
+    public class EventProcessorClientFactory : IEventProcessorClientFactory
     {
-        private BlobContainerClient _blobContainerClient;
-
-        public EventProcessorClientFactory(BlobContainerClient blobContainerClient)
+        public EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions)
         {
-            _blobContainerClient = EnsureArg.IsNotNull(blobContainerClient, nameof(blobContainerClient));
-        }
-
-        public EventProcessorClient CreateProcessorClient(EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions)
-        {
+            EnsureArg.IsNotNull(blobContainerClient);
             EnsureArg.IsNotNull(options);
+            EnsureArg.IsNotNull(eventProcessorClientOptions);
 
             if (options.ServiceManagedIdentityAuth)
             {
                 var tokenCredential = new DefaultAzureCredential();
-                return new EventProcessorClient(_blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
+                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
             }
             else if (!string.IsNullOrEmpty(options.ConnectionString))
             {
-                return new EventProcessorClient(_blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, options.EventHubName, eventProcessorClientOptions);
+                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, options.EventHubName, eventProcessorClientOptions);
             }
             else
             {
@@ -40,13 +35,15 @@ namespace Microsoft.Health.Events.EventHubProcessor
             }
         }
 
-        public EventProcessorClient CreateProcessorClient(IAzureCredentialProvider provider, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions)
+        public EventProcessorClient CreateProcessorClient(IAzureCredentialProvider provider, BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions)
         {
-            EnsureArg.IsNotNull(options);
             EnsureArg.IsNotNull(provider);
+            EnsureArg.IsNotNull(blobContainerClient);
+            EnsureArg.IsNotNull(options);
+            EnsureArg.IsNotNull(eventProcessorClientOptions);
 
             var tokenCredential = provider.GetCredential();
-            return new EventProcessorClient(_blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
+            return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
         }
     }
 }
