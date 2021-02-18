@@ -62,19 +62,19 @@ Function BuildPackage() {
     }
 }
 
-Function Deploy-WebJobs($DeviceDataWebJobName, $NormalizedDataWebJobName) {
+Function Deploy-WebJobs($NormalizationWebJobName, $MeasurementToFhirWebJobName) {
     try {
         $tempPath = "$currentPath\Temp"
         $webAppName = $EnvironmentName
         $webJobType = "Continuous"
 
-        Clear-Path -WebJobName $DeviceDataWebJobName
-        Clear-Path -WebJobName $NormalizedDataWebJobName
+        Clear-Path -WebJobName $NormalizationWebJobName
+        Clear-Path -WebJobName $MeasurementToFhirWebJobName
 
-        $DeviceWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$DeviceDataWebJobName"
-        $NormalizedWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$NormalizedDataWebJobName"
-        Copy-Item "$buildPath\*" -Destination $DeviceWebJobPath -Recurse
-        Copy-Item "$buildPath\*" -Destination $NormalizedWebJobPath -Recurse
+        $NormalizationWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$NormalizationWebJobName"
+        $MeasurementToFhirWebJobPath = "$tempPath\App_Data\jobs\$webJobType\$MeasurementToFhirWebJobName"
+        Copy-Item "$buildPath\*" -Destination $NormalizationWebJobPath -Recurse
+        Copy-Item "$buildPath\*" -Destination $MeasurementToFhirWebJobPath -Recurse
 
         Compress-Archive -Path "$tempPath\*" -DestinationPath "$currentPath\iomtwebjobs.zip" -Force
 
@@ -109,5 +109,5 @@ Write-Host "Deploying WebJobs..."
 $currentPath = (Get-Location).Path
 $buildPath = "$currentPath\OSS_Deployment"
 BuildPackage
-Deploy-WebJobs -DeviceDataWebJobName "devicedata" -NormalizedDataWebJobName "normalizeddata"
+Deploy-WebJobs -NormalizationWebJobName "Normalization" -MeasurementToFhirWebJobName "MeasurementToFhir"
 

@@ -25,8 +25,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 {
     public class Startup
     {
-        private const string _deviceDataEventHubType = "devicedata";
-        private const string _normalizedDataEventHubType = "normalizeddata";
+        private const string _deviceDataEventHubType = ApplicationType.Normalization;
+        private const string _normalizedDataEventHubType = ApplicationType.MeasurementToFhir;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public IConfiguration Configuration { get; }
 
-        public void ConfigureServices(IServiceCollection services)
+        public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(ConfigureLogging);
             services.AddSingleton<IEventProcessorClientFactory, EventProcessorClientFactory>();
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             services.AddSingleton(ResolveEventProcessorClient);
             services.AddSingleton(ResolveEventProcessor);
         }
-        public TemplateManager ResolveTemplateManager(IServiceProvider serviceProvider)
+        public virtual TemplateManager ResolveTemplateManager(IServiceProvider serviceProvider)
         {
             var blobClientFactory = serviceProvider.GetRequiredService<BlobContainerClientFactory>();
             var containerOptions = new BlobContainerClientOptions();
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return templateManager;
         }
 
-        public List<IEventConsumer> ResolveEventConsumers(IServiceProvider serviceProvider)
+        public virtual List<IEventConsumer> ResolveEventConsumers(IServiceProvider serviceProvider)
         {
             var applicationType = GetConsoleApplicationType();
 
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return eventConsumers;
         }
 
-        public StorageCheckpointClient ResolveCheckpointClient(IServiceProvider serviceProvider)
+        public virtual StorageCheckpointClient ResolveCheckpointClient(IServiceProvider serviceProvider)
         {
             var applicationType = GetConsoleApplicationType();
 
@@ -106,14 +106,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return checkpointClient;
         }
 
-        public IEventConsumerService ResolveEventConsumerService(IServiceProvider serviceProvider)
+        public virtual IEventConsumerService ResolveEventConsumerService(IServiceProvider serviceProvider)
         {
             var eventConsumers = serviceProvider.GetRequiredService<List<IEventConsumer>>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             return new EventConsumerService(eventConsumers, logger);
         }
 
-        public EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
+        public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
         {
             var eventProcessorOptions = new EventProcessorClientFactoryOptions();
             var applicationType = GetConsoleApplicationType();
@@ -124,7 +124,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             }
             else if (applicationType == _normalizedDataEventHubType)
             {
-                Configuration.GetSection("OutputEventHub").Bind(eventProcessorOptions);
+                Configuration.GetSection("NormalizationEventHub").Bind(eventProcessorOptions);
             }
             else
             {
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return incomingEventReader;
         }
 
-        public EventProcessor ResolveEventProcessor(IServiceProvider serviceProvider)
+        public virtual EventProcessor ResolveEventProcessor(IServiceProvider serviceProvider)
         {
             var eventConsumerService = serviceProvider.GetRequiredService<IEventConsumerService>();
             var checkpointClient = serviceProvider.GetRequiredService<StorageCheckpointClient>();
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return applicationType;
         }
 
-        public ITelemetryLogger ConfigureLogging(IServiceProvider serviceProvider)
+        public virtual ITelemetryLogger ConfigureLogging(IServiceProvider serviceProvider)
         {
             var instrumentationKey = Configuration.GetSection("APPINSIGHTS_INSTRUMENTATIONKEY").Value;
 

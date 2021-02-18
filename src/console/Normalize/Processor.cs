@@ -79,7 +79,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private IAsyncCollector<IMeasurement> CreateCollector()
         {
             var eventHubProducerOptions = new EventProducerClientOptions();
-            _env.GetSection("OutputEventHub").Bind(eventHubProducerOptions);
+            _env.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
 
             var eventHubProducerFactory = new EventProducerClientFactory();
             var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);

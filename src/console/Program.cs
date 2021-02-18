@@ -54,17 +54,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public static ServiceCollection GetRequiredServiceCollection(IConfiguration config, string applicationType)
         {
-            const string DeviceDataApplicationType = "devicedata";
-            const string NormalizedDataApplicationType = "normalizeddata";
-
-            if (applicationType == DeviceDataApplicationType)
+            if (applicationType == ApplicationType.Normalization)
             {
                 var serviceCollection = new ServiceCollection();
                 Startup startup = new Startup(config);
                 startup.ConfigureServices(serviceCollection);
                 return serviceCollection;
             }
-            else if (applicationType == NormalizedDataApplicationType)
+            else if (applicationType == ApplicationType.MeasurementToFhir)
             {
                 var serviceCollection = new ServiceCollection();
                 MeasurementCollectionToFhir.ProcessorStartup measurementStartup = new MeasurementCollectionToFhir.ProcessorStartup(config);
