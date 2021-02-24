@@ -7,11 +7,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 {
     public class StorageCheckpointOptions
     {
-        public const string Settings = "Storage";
-
-        public string BlobStorageConnectionString { get; set; }
-
-        public string BlobContainerName { get; set; }
+        public const string Settings = "Checkpoint";
 
         public string BlobPrefix { get; set; }
 

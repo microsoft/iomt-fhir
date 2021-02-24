@@ -1,0 +1,40 @@
+html {
+    font-size: 14px;
+}
+.iomt-theme {
+    background: #0078D4;
+    color: white;
+}
+
+.iomt-cm-btn {
+    padding: 2px 15px;
+    border-radius: 0;
+    background-color: #0078D4;
+    color: white;
+    font-size: 14px;
+}
+
+.iomt-cm-btn-link {
+    color: #0078D4;
+    padding: 0px;
+    box-shadow: none !important;
+}
+
+.iomt-cm-btn-link:hover {
+    background-color: rgba(236,236,236,0.7);
+}
+
+.iomt-cm-btn-inverse {
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.iomt-cm-btn svg,
+.iomt-cm-btn-inverse svg {
+    font-size: 24px;
+}
+
+.iomt-cm-btn:hover {
+    background-color: #175a8e;
+    color: #fff;
+}

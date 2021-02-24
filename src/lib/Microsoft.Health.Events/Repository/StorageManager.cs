@@ -13,12 +13,9 @@ namespace Microsoft.Health.Events.Repository
     {
         private BlobContainerClient _blobContainer;
 
-        public StorageManager(string connectionString, string blobContainerName)
+        public StorageManager(BlobContainerClient containerClient)
         {
-            EnsureArg.IsNotNull(connectionString);
-            EnsureArg.IsNotNull(blobContainerName);
-
-            _blobContainer = new BlobContainerClient(connectionString, blobContainerName);
+            _blobContainer = EnsureArg.IsNotNull(containerClient, nameof(containerClient));
         }
 
         public byte[] GetItem(string itemName)

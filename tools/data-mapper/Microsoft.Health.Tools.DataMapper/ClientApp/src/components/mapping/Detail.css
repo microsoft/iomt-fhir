@@ -1,0 +1,85 @@
+﻿
+.iomt-cm-test-area {
+    width: calc(100vw - 30px);
+    height: 380px;
+}
+
+.iomt-cm-test-area textarea {
+    height: 280px;
+}
+
+.iomt-cm-test {
+    background-color: #f8f9fa;
+}
+
+.iomt-cm-test-result {
+    height: 280px;
+    background-color: #fff;
+    overflow-y: scroll;
+}
+
+.iomt-cm-editor {
+    background-color: #f8f9fa;
+    height: calc(100vh - 560px);
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.iomt-cm-editor-title {
+    position: relative;
+    display: block;
+    background-color: #f8f9fa;
+}
+
+.iomt-cm-editor .form-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.iomt-cm-editor .form-group label {
+    flex: 0 0 35%;
+    max-width: 35%;
+}
+
+.iomt-cm-editor .form-group input {
+    flex: 0 0 65%;
+    max-width: 65%;
+}
+
+.iomt-cm-editor .form-group select {
+    flex: 0 0 65%;
+    max-width: 65%;
+}
+
+.iomt-cm-editor .iomt-cm-btn-link {
+    position: absolute;
+    right: 0px;
+}
+
+.iomt-cm-editor .iomt-cm-btn {
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.iomt-cm-editor svg {
+    font-size: 18px;
+}
+
+.iomt-cm-editor .form-control {
+    flex: 0 0 65%;
+    max-width: 65%;
+    padding: 2px 10px;
+    height: 32px;
+    border-radius: 0;
+}
+
+.iomt-cm-editor .card {
+    border-radius: 0;
+    margin-left: 20px;
+    box-shadow: 1px 1px 1px rgba(182, 182, 182, 0.8);
+}
+
+.iomt-cm-right {
+    position: absolute;
+    right: 0px;
+}

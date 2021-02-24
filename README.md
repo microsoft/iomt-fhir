@@ -54,6 +54,13 @@ To send messages to the connector you can [send events](https://docs.microsoft.c
 - [Connecting to Azure IoT](./docs/Iot.md): Describes how to connect the IoMT FHIR Connector for Azure with different Azure IoT solutions like IoT Hub and IoT Central.
 - [Debugging](./docs/Debugging.md): Documents steps for local and cloud debugging.
 
+# Additional tools
+
+## IoMT Connector Data Mapper
+
+The IoMT Connector Data Mapper is a tool to visualize the mapping configuration for normalizing the device input data and transform it to the FHIR resources. Developers can use this tool to edit and test the mappings, device mapping and FHIR mapping, and export them for uploading to the IoT Connector in the Azure portal. The tool also gives tutorials for developers to understand the mapping configuration.
+[Click here for additional details](./tools/data-mapper/)
+
 # More Information
 - [Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/)
 - Blog: [Accelerate IoMT on FHIR with new Microsoft OSS Connector](https://azure.microsoft.com/en-us/blog/accelerate-iomt-on-fhir-with-new-microsoft-oss-connector/)

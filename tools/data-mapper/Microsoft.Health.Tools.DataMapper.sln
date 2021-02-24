@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Tools.DataMapper", "Microsoft.Health.Tools.DataMapper\Microsoft.Health.Tools.DataMapper.csproj", "{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DFE63A18-CCEF-4415-AA76-E22184E66A82} = {DFE63A18-CCEF-4415-AA76-E22184E66A82}
+		{A393CF63-7D29-4E6B-B5F2-63EC99A326BE} = {A393CF63-7D29-4E6B-B5F2-63EC99A326BE}
+		{BA4D59AE-F094-46C8-961D-8CCF50FBA6CF} = {BA4D59AE-F094-46C8-961D-8CCF50FBA6CF}
+		{5C5DCDE7-1A20-4200-9E90-51CA4AC281D7} = {5C5DCDE7-1A20-4200-9E90-51CA4AC281D7}
+		{BC4491EF-B1EA-4F29-AF9E-B6601EB6B664} = {BC4491EF-B1EA-4F29-AF9E-B6601EB6B664}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Common", "..\..\src\lib\Microsoft.Health.Common\Microsoft.Health.Common.csproj", "{BC4491EF-B1EA-4F29-AF9E-B6601EB6B664}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Schema", "..\..\src\lib\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj", "{DFE63A18-CCEF-4415-AA76-E22184E66A82}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template", "..\..\src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj", "{A393CF63-7D29-4E6B-B5F2-63EC99A326BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest", "..\..\src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj", "{BA4D59AE-F094-46C8-961D-8CCF50FBA6CF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.R4.Ingest", "..\..\src\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj", "{5C5DCDE7-1A20-4200-9E90-51CA4AC281D7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir.R4", "..\..\src\lib\Microsoft.Health.Extensions.Fhir.R4\Microsoft.Health.Extensions.Fhir.R4.csproj", "{093ACEBC-B195-4D36-AB6B-BF51B0151F0F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Host", "..\..\src\lib\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj", "{CFAD266D-826F-45CF-A261-D177E116AA70}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir", "..\..\src\lib\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj", "{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55D36FA8-DA68-45D2-B3A2-333F7130D3B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC4491EF-B1EA-4F29-AF9E-B6601EB6B664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC4491EF-B1EA-4F29-AF9E-B6601EB6B664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC4491EF-B1EA-4F29-AF9E-B6601EB6B664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC4491EF-B1EA-4F29-AF9E-B6601EB6B664}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFE63A18-CCEF-4415-AA76-E22184E66A82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFE63A18-CCEF-4415-AA76-E22184E66A82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFE63A18-CCEF-4415-AA76-E22184E66A82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFE63A18-CCEF-4415-AA76-E22184E66A82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A393CF63-7D29-4E6B-B5F2-63EC99A326BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A393CF63-7D29-4E6B-B5F2-63EC99A326BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A393CF63-7D29-4E6B-B5F2-63EC99A326BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A393CF63-7D29-4E6B-B5F2-63EC99A326BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA4D59AE-F094-46C8-961D-8CCF50FBA6CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA4D59AE-F094-46C8-961D-8CCF50FBA6CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA4D59AE-F094-46C8-961D-8CCF50FBA6CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA4D59AE-F094-46C8-961D-8CCF50FBA6CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C5DCDE7-1A20-4200-9E90-51CA4AC281D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C5DCDE7-1A20-4200-9E90-51CA4AC281D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C5DCDE7-1A20-4200-9E90-51CA4AC281D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C5DCDE7-1A20-4200-9E90-51CA4AC281D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{093ACEBC-B195-4D36-AB6B-BF51B0151F0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{093ACEBC-B195-4D36-AB6B-BF51B0151F0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{093ACEBC-B195-4D36-AB6B-BF51B0151F0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{093ACEBC-B195-4D36-AB6B-BF51B0151F0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFAD266D-826F-45CF-A261-D177E116AA70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFAD266D-826F-45CF-A261-D177E116AA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFAD266D-826F-45CF-A261-D177E116AA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFAD266D-826F-45CF-A261-D177E116AA70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {319CDA1D-E8BF-49F7-99E5-16625A82540E}
+	EndGlobalSection
+EndGlobal

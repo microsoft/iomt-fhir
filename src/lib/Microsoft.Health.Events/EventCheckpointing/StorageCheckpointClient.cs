@@ -29,24 +29,25 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private BlobContainerClient _storageClient;
         private ITelemetryLogger _log;
 
-        public StorageCheckpointClient(StorageCheckpointOptions options, ITelemetryLogger log)
+        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions options, ITelemetryLogger log)
         {
+            EnsureArg.IsNotNull(containerClient);
             EnsureArg.IsNotNull(options);
-            EnsureArg.IsNotNullOrWhiteSpace(options.BlobPrefix);
-            EnsureArg.IsNotNullOrWhiteSpace(options.BlobStorageConnectionString);
-            EnsureArg.IsNotNullOrWhiteSpace(options.BlobContainerName);
-            EnsureArg.IsNotNullOrWhiteSpace(options.CheckpointBatchCount);
-
             BlobPrefix = options.BlobPrefix;
 
             _lastCheckpointMaxCount = int.Parse(options.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
-            _storageClient = new BlobContainerClient(options.BlobStorageConnectionString, options.BlobContainerName);
+            _storageClient = containerClient;
             _log = log;
         }
 
         public string BlobPrefix { get; }
+
+        public BlobContainerClient GetBlobContainerClient()
+        {
+            return _storageClient;
+        }
 
         public async Task UpdateCheckpointAsync(Checkpoint checkpoint)
         {

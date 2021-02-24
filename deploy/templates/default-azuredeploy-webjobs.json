@@ -190,22 +190,43 @@
       "metadata": {
         "description": "Default system to use when searching for device identities. If empty system is not used in the search."
       }
+    },
+    "StorageAccountDomain": {
+      "type": "string",
+      "defaultValue": "blob.core.windows.net",
+      "metadata": {
+        "description": "The domain of the Azure Storage Account."
+      }
+    },
+    "EventHubsDomain": {
+      "type": "string",
+      "defaultValue": "servicebus.windows.net",
+      "metadata": {
+        "description": "The domain of the Azure Event Hubs."
+      }
     }
   },
   "variables": {
     "asa_job_name": "[parameters('ServiceName')]",
     "eventhub_namespace_name": "[parameters('ServiceName')]",
+    "eventhub_fqdn": "[concat(variables('eventhub_namespace_name'), '.', parameters('EventHubsDomain'))]",
+    "eventhub_role_assignment_api_version": "2018-07-01",
     "normalizeddata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/normalizeddata')]",
     "devicedata_eventhub_name": "[concat(variables('eventhub_namespace_name'), '/devicedata')]",
     "storage_account_name": "[parameters('ServiceName')]",
+    "checkpoint_storage_uri": "[concat('https://', parameters('ServiceName'), '.', parameters('StorageAccountDomain'), '/checkpoint')]",
+    "template_storage_uri": "[concat('https://', parameters('ServiceName'), '.', parameters('StorageAccountDomain'), '/template')]",
     "app_plan_name": "[concat(parameters('ServiceName'), 'plan')]",
     "app_service_name": "[parameters('ServiceName')]",
     "app_insights_name": "[parameters('ServiceName')]",
     "key_vault_name": "[parameters('ServiceName')]",
     "app_service_resource_id": "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
     "deploy_source_code": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
-    "sender_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
-    "receiver_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]"
+    "sender_role_guid": "2b629674-e913-4c01-ae53-ef4638d8f975",
+    "receiver_role_guid": "a638d3c7-ab3a-418d-83e6-5f17a39d4fde",
+    "sender_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
+    "receiver_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
+    "storage_blob_contributor_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
   },
   "resources": [
     {
@@ -344,6 +365,48 @@
       }
     },
     {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
+      "apiVersion": "[variables('eventhub_role_assignment_api_version')]",
+      "name": "[concat(variables('devicedata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString('devicedatareceiver')))]",
+      "dependsOn": [
+        "[variables('app_service_resource_id')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('receiver_role')]",
+        "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'devicedata')]"
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
+      "apiVersion": "[variables('eventhub_role_assignment_api_version')]",
+      "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString('normalizeddatasender')))]",
+      "dependsOn": [
+        "[variables('app_service_resource_id')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('sender_role')]",
+        "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
+      "apiVersion": "[variables('eventhub_role_assignment_api_version')]",
+      "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString('normalizeddatareceiver')))]",
+      "dependsOn": [
+        "[variables('app_service_resource_id')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('receiver_role')]",
+        "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
+        "scope": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventhub_namespace_name'), 'normalizeddata')]"
+      }
+    },
+    {
       "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
       "apiVersion": "2017-04-01",
       "name": "[concat(variables('eventhub_namespace_name'), '/devicedata/$Default')]",
@@ -410,7 +473,21 @@
           "keySource": "Microsoft.Storage"
         },
         "accessTier": "Hot"
-      }
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+          "apiVersion": "2018-07-01",
+          "name": "[concat(variables('storage_account_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('storage_account_name'))))]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name'))]"
+          ],
+          "properties": {
+            "roleDefinitionId": "[variables('storage_blob_contributor_role')]",
+            "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]"
+          }
+        }
+      ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices",
@@ -478,6 +555,9 @@
       "type": "Microsoft.Web/sites",
       "apiVersion": "2018-11-01",
       "name": "[variables('app_service_name')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('app_plan_name'))]"
+      ],
       "location": "[parameters('ResourceLocation')]",
       "kind": "app",
       "identity": {
@@ -502,7 +582,7 @@
         "isXenon": false,
         "hyperV": false,
         "siteConfig": {
-          "alwaysOn":  true
+          "alwaysOn": true
         },
         "scmSiteAlsoStopped": false,
         "clientAffinityEnabled": true,
@@ -529,14 +609,20 @@
           "properties": {
             "EventBatching:FlushTimespan": "[parameters('JobWindowMagnitude')]",
             "EventBatching:MaxEvents": "[parameters('JobMaxEvents')]",
-            "Storage:BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
-            "Storage:BlobContainerName": "checkpoint",
-            "Storage:BlobPrefix": "",
-            "Storage:CheckpointBatchCount": 5,
-            "TemplateStorage:BlobStorageConnectionString": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",
-            "TemplateStorage:BlobContainerName": "template",
-            "InputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-input-connection'), '2018-02-14').secretUriWithVersion, ')')]",
-            "OutputEventHub": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'device-output-connection'), '2018-02-14').secretUriWithVersion, ')')]",
+            "Checkpoint:BlobPrefix": "",
+            "Checkpoint:CheckpointBatchCount": 5,
+            "CheckpointStorage:ServiceManagedIdentityAuth": true,
+            "CheckpointStorage:BlobStorageContainerUri": "[variables('checkpoint_storage_uri')]",
+            "TemplateStorage:ServiceManagedIdentityAuth": true,
+            "TemplateStorage:BlobStorageContainerUri": "[variables('template_storage_uri')]",
+            "InputEventHub:EventHubNamespaceFQDN": "[variables('eventhub_fqdn')]",
+            "InputEventHub:EventHubConsumerGroup": "$Default",
+            "InputEventHub:EventHubName": "devicedata",
+            "InputEventHub:ServiceManagedIdentityAuth": true,
+            "NormalizationEventHub:EventHubNamespaceFQDN": "[variables('eventhub_fqdn')]",
+            "NormalizationEventHub:EventHubConsumerGroup": "$Default",
+            "NormalizationEventHub:EventHubName": "normalizeddata",
+            "NormalizationEventHub:ServiceManagedIdentityAuth": true,
             "FhirVersion": "[parameters('FhirVersion')]",
             "FhirService:Url": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-url'), '2018-02-14').secretUriWithVersion, ')')]",
             "FhirService:Authority": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-authority'), '2018-02-14').secretUriWithVersion, ')')]",
@@ -603,23 +689,6 @@
         "enabledForDeployment": false,
         "enabledForDiskEncryption": false,
         "enabledForTemplateDeployment": false
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
-      "name": "[concat(variables('storage_account_name'), '/blob-storage-cs')]",
-      "location": "[parameters('ResourceLocation')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storage_account_name'), 'default')]"
-      ],
-      "properties": {
-        "contentType": "text/plain",
-        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage_account_name'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage_account_name')), '2019-04-01').keys[0].value)]",
-        "attributes": {
-          "enabled": true
-        }
       }
     },
     {
@@ -697,44 +766,6 @@
       "properties": {
         "contentType": "text/plain",
         "value": "[parameters('FhirServiceUrl')]",
-        "attributes": {
-          "enabled": true
-        }
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
-      "name": "[concat(variables('key_vault_name'), '/device-input-connection')]",
-      "location": "[parameters('ResourceLocation')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'devicedata', 'reader')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'devicedata', '$Default')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'normalizeddata', '$Default')]"
-      ],
-      "properties": {
-        "contentType": "text/plain",
-        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'devicedata', 'reader'), '2017-04-01').primaryConnectionString]",
-        "attributes": {
-          "enabled": true
-        }
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
-      "name": "[concat(variables('key_vault_name'), '/device-output-connection')]",
-      "location": "[parameters('ResourceLocation')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'writer')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'devicedata', '$Default')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', variables('eventhub_namespace_name'), 'normalizeddata', '$Default')]"
-      ],
-      "properties": {
-        "contentType": "text/plain",
-        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhub_namespace_name'), 'normalizeddata', 'writer'), '2017-04-01').primaryConnectionString]",
         "attributes": {
           "enabled": true
         }

@@ -186,8 +186,8 @@
     "key_vault_name": "[parameters('ServiceName')]",
     "app_service_resource_id": "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
     "deploy_source_code": "[and(not(empty(parameters('repositoryUrl'))),not(empty(parameters('repositoryBranch'))))]",
-    "sender_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
-    "receiver_role": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
+    "sender_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
+    "receiver_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
     "iomt_fhir_connector_name": "[concat('ResourceIdentity', ':', parameters('ResourceIdentityResolutionType'))]",
     "fhir_service_audience": "[if(or(equals(parameters('FhirServiceAudience'), json('null')), equals(parameters('FhirServiceAudience'), '')), parameters('FhirServiceUrl'), parameters('FhirServiceAudience'))]"
   },
