@@ -28,8 +28,8 @@
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="9.2.0" />
     <PackageReference Include="Hl7.Fhir.R4" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.8.0">
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.9.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -42,7 +42,6 @@
     <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />

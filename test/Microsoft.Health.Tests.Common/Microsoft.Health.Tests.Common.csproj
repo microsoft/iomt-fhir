@@ -13,11 +13,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="9.2.0" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.8.0">
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.9.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
