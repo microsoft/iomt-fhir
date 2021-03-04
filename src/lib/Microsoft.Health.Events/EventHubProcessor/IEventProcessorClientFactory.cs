@@ -11,8 +11,6 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public interface IEventProcessorClientFactory
     {
-        EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions);
-
-        EventProcessorClient CreateProcessorClient(IAzureCredentialProvider provider, BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions);
+        EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions, IAzureCredentialProvider provider = null);
     }
 }

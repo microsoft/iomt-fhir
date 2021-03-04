@@ -25,15 +25,18 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private ITemplateManager _templateManager;
         private ITelemetryLogger _logger;
         private IConfiguration _env;
+        private IAsyncCollector<IMeasurement> _collector;
 
         public Processor(
             [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinition,
             ITemplateManager templateManager,
+            IAsyncCollector<IMeasurement> collector,
             IConfiguration configuration,
             ITelemetryLogger logger)
         {
             _templateDefinition = templateDefinition;
             _templateManager = templateManager;
+            _collector = collector;
             _logger = logger;
             _env = configuration;
         }
@@ -70,21 +73,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                 });
 
             var dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
-            
-            var collector = CreateCollector();
 
-            await dataNormalizationService.ProcessAsync(eventHubEvents, collector).ConfigureAwait(false);
-        }
-
-        private IAsyncCollector<IMeasurement> CreateCollector()
-        {
-            var eventHubProducerOptions = new EventProducerClientOptions();
-            _env.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
-
-            var eventHubProducerFactory = new EventProducerClientFactory();
-            var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);
-
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient));
+            await dataNormalizationService.ProcessAsync(eventHubEvents, _collector).ConfigureAwait(false);
         }
     }
 }

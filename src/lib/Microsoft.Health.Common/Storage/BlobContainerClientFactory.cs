@@ -13,7 +13,7 @@ namespace Microsoft.Health.Common.Storage
 {
     public class BlobContainerClientFactory
     {
-        public BlobContainerClient CreateStorageClient(BlobContainerClientOptions options)
+        public BlobContainerClient CreateStorageClient(BlobContainerClientOptions options, IAzureCredentialProvider provider = null)
         {
             EnsureArg.IsNotNull(options);
             var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri);
@@ -28,19 +28,15 @@ namespace Microsoft.Health.Common.Storage
             {
                 return new BlobContainerClient(containerUri.ToString(), blobUri.BlobContainerName);
             }
+            else if (provider != null)
+            {
+                var tokenCredential = provider.GetCredential();
+                return new BlobContainerClient(containerUri, tokenCredential);
+            }
             else
             {
                 throw new Exception($"Unable to create blob container client for {blobUri}");
             }
-        }
-
-        public BlobContainerClient CreateStorageClient(BlobContainerClientOptions options, IAzureCredentialProvider provider)
-        {
-            EnsureArg.IsNotNull(options);
-            var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri);
-
-            var tokenCredential = provider.GetCredential();
-            return new BlobContainerClient(containerUri, tokenCredential);
         }
     }
 }

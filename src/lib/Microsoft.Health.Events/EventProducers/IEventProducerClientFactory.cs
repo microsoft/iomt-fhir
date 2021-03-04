@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Messaging.EventHubs.Producer;
+using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Events.EventProducers
 {
     public interface IEventProducerClientFactory
     {
-        EventHubProducerClient GetEventHubProducerClient(EventProducerClientOptions options);
+        EventHubProducerClient GetEventHubProducerClient(EventProducerClientOptions options, IAzureCredentialProvider provider = null);
     }
 }
