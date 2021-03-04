@@ -15,6 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
     {
+        private const string TargetAssemblyPrefix = "Microsoft.Health";
         private static readonly IDictionary<string, Type> _identityServiceRegistry = GetResourceIdentityServiceRegistry();
 
         private ResourceIdentityServiceFactory()
@@ -58,9 +59,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private static IDictionary<string, Type> GetResourceIdentityServiceRegistry()
         {
             IDictionary<string, Type> serviceTypeRegistry = new Dictionary<string, Type>();
+
             AppDomain.CurrentDomain
                 .GetAssemblies()
-                .Where(assembly => !assembly.IsDynamic && assembly.GetTypes()?.Length > 0)
+                .Where(assembly => assembly.FullName.StartsWith(TargetAssemblyPrefix) && !assembly.IsDynamic)
                 .ToList()
                 .ForEach(assembly =>
                 {
