@@ -35,7 +35,9 @@ namespace Microsoft.Health.Events.EventProducers
             }
             else
             {
-                throw new Exception($"Unable to create Event Hub producer client for {options.EventHubName}");
+                var ex = $"Unable to create Event Hub producer client for {options.EventHubName}";
+                var message = "No valid authentication configuration options were found. ServiceManagedIdentityAuth is not enabled, No ConnectionString specified, No Token Provider provided.";
+                throw new Exception($"{ex} {message}");
             }
         }
     }

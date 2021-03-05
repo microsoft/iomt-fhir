@@ -26,7 +26,7 @@ namespace Microsoft.Health.Common.Storage
             }
             else if (!string.IsNullOrEmpty(options.ConnectionString))
             {
-                return new BlobContainerClient(containerUri.ToString(), blobUri.BlobContainerName);
+                return new BlobContainerClient(options.ConnectionString, blobUri.BlobContainerName);
             }
             else if (provider != null)
             {
@@ -35,7 +35,9 @@ namespace Microsoft.Health.Common.Storage
             }
             else
             {
-                throw new Exception($"Unable to create blob container client for {blobUri}");
+                var ex = $"Unable to create blob container client for {blobUri}.";
+                var message = "No valid authentication configuration options were found. ServiceManagedIdentityAuth is not enabled, No ConnectionString specified, No Token Provider provided.";
+                throw new Exception($"{ex} {message}");
             }
         }
     }

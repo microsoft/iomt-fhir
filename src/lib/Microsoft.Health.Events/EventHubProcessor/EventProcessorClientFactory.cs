@@ -29,7 +29,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             }
             else if (!string.IsNullOrEmpty(options.ConnectionString))
             {
-                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, options.EventHubName, eventProcessorClientOptions);
+                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, eventProcessorClientOptions);
             }
             else if (provider != null)
             {
@@ -38,7 +38,9 @@ namespace Microsoft.Health.Events.EventHubProcessor
             }
             else
             {
-                throw new Exception($"Unable to create Event Hub processor client for {options.EventHubName}");
+                var ex = $"Unable to create Event Hub processor client for {options.EventHubName}.";
+                var message = "No valid authentication configuration options were found. ServiceManagedIdentityAuth is not enabled, No ConnectionString specified, No Token Provider provided.";
+                throw new Exception($"{ex} {message}");
             }
         }
     }
