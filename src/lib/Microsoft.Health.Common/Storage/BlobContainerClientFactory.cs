@@ -16,27 +16,32 @@ namespace Microsoft.Health.Common.Storage
         public BlobContainerClient CreateStorageClient(BlobContainerClientOptions options, IAzureCredentialProvider provider = null)
         {
             EnsureArg.IsNotNull(options);
-            var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri);
+            var containerUri = EnsureArg.IsNotNull(options.BlobStorageContainerUri, nameof(options.BlobStorageContainerUri));
             var blobUri = new BlobUriBuilder(containerUri);
 
-            if (options.ServiceManagedIdentityAuth)
+            if (options.AuthenticationType == AuthenticationType.ManagedIdentity)
             {
                 var tokenCredential = new DefaultAzureCredential();
                 return new BlobContainerClient(containerUri, tokenCredential);
             }
-            else if (!string.IsNullOrEmpty(options.ConnectionString))
+            else if (options.AuthenticationType == AuthenticationType.ConnectionString)
             {
+                EnsureArg.IsNotNull(options.ConnectionString, nameof(options.ConnectionString));
+                EnsureArg.IsNotNull(blobUri.BlobContainerName);
+
                 return new BlobContainerClient(options.ConnectionString, blobUri.BlobContainerName);
             }
-            else if (provider != null)
+            else if (options.AuthenticationType == AuthenticationType.Custom)
             {
+                EnsureArg.IsNotNull(provider);
+
                 var tokenCredential = provider.GetCredential();
                 return new BlobContainerClient(containerUri, tokenCredential);
             }
             else
             {
                 var ex = $"Unable to create blob container client for {blobUri}.";
-                var message = "No valid authentication configuration options were found. ServiceManagedIdentityAuth is not enabled, No ConnectionString specified, No Token Provider provided.";
+                var message = "No authentication type was specified for BlobContainerClientOptions";
                 throw new Exception($"{ex} {message}");
             }
         }

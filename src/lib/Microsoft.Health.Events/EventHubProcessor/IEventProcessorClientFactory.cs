@@ -6,11 +6,12 @@
 using Azure.Messaging.EventHubs;
 using Azure.Storage.Blobs;
 using Microsoft.Health.Common.Auth;
+using Microsoft.Health.Events.Common;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
     public interface IEventProcessorClientFactory
     {
-        EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions, IAzureCredentialProvider provider = null);
+        EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventHubClientOptions options, EventProcessorClientOptions eventProcessorClientOptions, IAzureCredentialProvider provider = null);
     }
 }

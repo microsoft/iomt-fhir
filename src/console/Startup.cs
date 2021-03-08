@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.Storage;
+using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
@@ -118,7 +119,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public virtual IAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
         {
-            var eventHubProducerOptions = new EventProducerClientOptions();
+            var eventHubProducerOptions = new EventHubClientOptions();
             Configuration.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
 
             var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
@@ -129,7 +130,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
         {
-            var eventProcessorOptions = new EventProcessorClientFactoryOptions();
+            var eventProcessorOptions = new EventHubClientOptions();
             var applicationType = GetConsoleApplicationType();
 
             if (applicationType == _normalizationAppType)

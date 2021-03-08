@@ -15,31 +15,40 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class EventProcessorClientFactory : IEventProcessorClientFactory
     {
-        public EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions, IAzureCredentialProvider provider = null)
+        public EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventHubClientOptions options, EventProcessorClientOptions eventProcessorClientOptions, IAzureCredentialProvider provider = null)
         {
             EnsureArg.IsNotNull(blobContainerClient);
-            EnsureArg.IsNotNull(options);
             EnsureArg.IsNotNull(eventProcessorClientOptions);
+            EnsureArg.IsNotNull(options);
+            EnsureArg.IsNotNull(options.EventHubConsumerGroup, nameof(options.EventHubConsumerGroup));
 
-            if (options.ServiceManagedIdentityAuth)
+            if (options.AuthenticationType == AuthenticationType.ManagedIdentity)
             {
+                EnsureArg.IsNotNull(options.EventHubNamespaceFQDN);
+                EnsureArg.IsNotNull(options.EventHubName);
+
                 var tokenCredential = new DefaultAzureCredential();
                 var eventHubFQDN = EventHubFormatter.GetEventHubFQDN(options.EventHubNamespaceFQDN);
                 return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, eventHubFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
             }
-            else if (!string.IsNullOrEmpty(options.ConnectionString))
+            else if (options.AuthenticationType == AuthenticationType.ConnectionString)
             {
+                EnsureArg.IsNotNull(options.ConnectionString);
                 return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, eventProcessorClientOptions);
             }
-            else if (provider != null)
+            else if (options.AuthenticationType == AuthenticationType.Custom)
             {
+                EnsureArg.IsNotNull(options.EventHubNamespaceFQDN);
+                EnsureArg.IsNotNull(options.EventHubName);
+                EnsureArg.IsNotNull(provider);
+
                 var eventHubFQDN = EventHubFormatter.GetEventHubFQDN(options.EventHubNamespaceFQDN);
                 return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, eventHubFQDN, options.EventHubName, provider.GetCredential(), eventProcessorClientOptions);
             }
             else
             {
                 var ex = $"Unable to create Event Hub processor client for {options.EventHubName}.";
-                var message = "No valid authentication configuration options were found. ServiceManagedIdentityAuth is not enabled, No ConnectionString specified, No Token Provider provided.";
+                var message = "No authentication type was specified for EventHubClientOptions";
                 throw new Exception($"{ex} {message}");
             }
         }

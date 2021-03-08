@@ -14,29 +14,38 @@ namespace Microsoft.Health.Events.EventProducers
 {
     public class EventProducerClientFactory : IEventProducerClientFactory
     {
-        public EventHubProducerClient GetEventHubProducerClient(EventProducerClientOptions options, IAzureCredentialProvider provider = null)
+        public EventHubProducerClient GetEventHubProducerClient(EventHubClientOptions options, IAzureCredentialProvider provider = null)
         {
             EnsureArg.IsNotNull(options);
 
-            if (options.ServiceManagedIdentityAuth)
+            if (options.AuthenticationType == AuthenticationType.ManagedIdentity)
             {
+                EnsureArg.IsNotNull(options.EventHubName);
+                EnsureArg.IsNotNull(options.EventHubNamespaceFQDN);
+
                 var tokenCredential = new DefaultAzureCredential();
                 var eventHubFQDN = EventHubFormatter.GetEventHubFQDN(options.EventHubNamespaceFQDN);
                 return new EventHubProducerClient(eventHubFQDN, options.EventHubName, tokenCredential);
             }
-            else if (!string.IsNullOrEmpty(options.ConnectionString))
+            else if (options.AuthenticationType == AuthenticationType.ConnectionString)
             {
+                EnsureArg.IsNotNull(options.ConnectionString);
+
                 return new EventHubProducerClient(options.ConnectionString);
             }
-            else if (provider != null)
+            else if (options.AuthenticationType == AuthenticationType.Custom)
             {
+                EnsureArg.IsNotNull(options.EventHubName);
+                EnsureArg.IsNotNull(options.EventHubNamespaceFQDN);
+                EnsureArg.IsNotNull(provider);
+
                 var eventHubFQDN = EventHubFormatter.GetEventHubFQDN(options.EventHubNamespaceFQDN);
                 return new EventHubProducerClient(eventHubFQDN, options.EventHubName, provider.GetCredential());
             }
             else
             {
                 var ex = $"Unable to create Event Hub producer client for {options.EventHubName}";
-                var message = "No valid authentication configuration options were found. ServiceManagedIdentityAuth is not enabled, No ConnectionString specified, No Token Provider provided.";
+                var message = "No authentication type was specified for EventHubClientOptions.";
                 throw new Exception($"{ex} {message}");
             }
         }

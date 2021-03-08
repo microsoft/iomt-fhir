@@ -7,14 +7,24 @@ using System;
 
 namespace Microsoft.Health.Common.Storage
 {
+    public enum AuthenticationType
+    {
+        /// <summary>A managed identity is used to connect to Storage.</summary>
+        ManagedIdentity,
+
+        /// <summary>A connection string is used to connect to Storage.</summary>
+        ConnectionString,
+
+        /// <summary>A custom authentication method is used to connect to Storage.</summary>
+        Custom,
+    }
+
     public class BlobContainerClientOptions
     {
+        public AuthenticationType AuthenticationType { get; set; }
+
         public Uri BlobStorageContainerUri { get; set; }
 
         public string ConnectionString { get; set; }
-
-        public bool ServiceManagedIdentityAuth { get; set; }
-
-        public bool CustomizedAuth { get; set; }
     }
 }
