@@ -9,41 +9,48 @@ using Azure.Messaging.EventHubs;
 using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Health.Common.Auth;
+using Microsoft.Health.Events.Common;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class EventProcessorClientFactory : IEventProcessorClientFactory
     {
-        public EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions)
+        public EventProcessorClient CreateProcessorClient(BlobContainerClient blobContainerClient, EventHubClientOptions options, EventProcessorClientOptions eventProcessorClientOptions, IAzureCredentialProvider provider = null)
         {
             EnsureArg.IsNotNull(blobContainerClient);
-            EnsureArg.IsNotNull(options);
             EnsureArg.IsNotNull(eventProcessorClientOptions);
+            EnsureArg.IsNotNull(options);
+            EnsureArg.IsNotNull(options.EventHubConsumerGroup, nameof(options.EventHubConsumerGroup));
 
-            if (options.ServiceManagedIdentityAuth)
+            if (options.AuthenticationType == AuthenticationType.ManagedIdentity)
             {
+                EnsureArg.IsNotNull(options.EventHubNamespaceFQDN);
+                EnsureArg.IsNotNull(options.EventHubName);
+
                 var tokenCredential = new DefaultAzureCredential();
-                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
+                var eventHubFQDN = EventHubFormatter.GetEventHubFQDN(options.EventHubNamespaceFQDN);
+                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, eventHubFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
             }
-            else if (!string.IsNullOrEmpty(options.ConnectionString))
+            else if (options.AuthenticationType == AuthenticationType.ConnectionString)
             {
-                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, options.EventHubName, eventProcessorClientOptions);
+                EnsureArg.IsNotNull(options.ConnectionString);
+                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.ConnectionString, eventProcessorClientOptions);
+            }
+            else if (options.AuthenticationType == AuthenticationType.Custom)
+            {
+                EnsureArg.IsNotNull(options.EventHubNamespaceFQDN);
+                EnsureArg.IsNotNull(options.EventHubName);
+                EnsureArg.IsNotNull(provider);
+
+                var eventHubFQDN = EventHubFormatter.GetEventHubFQDN(options.EventHubNamespaceFQDN);
+                return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, eventHubFQDN, options.EventHubName, provider.GetCredential(), eventProcessorClientOptions);
             }
             else
             {
-                throw new Exception($"Unable to create Event Hub processor client for {options.EventHubName}");
+                var ex = $"Unable to create Event Hub processor client for {options.EventHubName}.";
+                var message = "No authentication type was specified for EventHubClientOptions";
+                throw new Exception($"{ex} {message}");
             }
-        }
-
-        public EventProcessorClient CreateProcessorClient(IAzureCredentialProvider provider, BlobContainerClient blobContainerClient, EventProcessorClientFactoryOptions options, EventProcessorClientOptions eventProcessorClientOptions)
-        {
-            EnsureArg.IsNotNull(provider);
-            EnsureArg.IsNotNull(blobContainerClient);
-            EnsureArg.IsNotNull(options);
-            EnsureArg.IsNotNull(eventProcessorClientOptions);
-
-            var tokenCredential = provider.GetCredential();
-            return new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceFQDN, options.EventHubName, tokenCredential, eventProcessorClientOptions);
         }
     }
 }

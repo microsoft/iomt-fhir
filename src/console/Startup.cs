@@ -6,9 +6,11 @@
 using Azure.Messaging.EventHubs;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.Storage;
+using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
@@ -16,6 +18,7 @@ using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.EventProducers;
 using Microsoft.Health.Events.Repository;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
+using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
 using System;
@@ -25,8 +28,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 {
     public class Startup
     {
-        private const string _deviceDataEventHubType = ApplicationType.Normalization;
-        private const string _normalizedDataEventHubType = ApplicationType.MeasurementToFhir;
+        private const string _normalizationAppType = ApplicationType.Normalization;
+        private const string _measurementToFhirAppType = ApplicationType.MeasurementToFhir;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -67,13 +70,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var templateManager = serviceProvider.GetRequiredService<TemplateManager>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            if (applicationType == _deviceDataEventHubType)
+            if (applicationType == _normalizationAppType)
             {
                 template = Configuration.GetSection("Template:DeviceContent").Value;
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, Configuration, logger);
+                var collector = ResolveEventCollector(serviceProvider);
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, Configuration, logger);
                 eventConsumers.Add(deviceDataNormalization);
             }
-            else if (applicationType == _normalizedDataEventHubType)
+            else if (applicationType == _measurementToFhirAppType)
             {
                 template = Configuration.GetSection("Template:FhirMapping").Value;
                 var importService = serviceProvider.GetRequiredService<MeasurementFhirImportService>();
@@ -113,16 +117,27 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventConsumerService(eventConsumers, logger);
         }
 
+        public virtual IAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
+        {
+            var eventHubProducerOptions = new EventHubClientOptions();
+            Configuration.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
+
+            var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
+            var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);
+
+            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient));
+        }
+
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
         {
-            var eventProcessorOptions = new EventProcessorClientFactoryOptions();
+            var eventProcessorOptions = new EventHubClientOptions();
             var applicationType = GetConsoleApplicationType();
 
-            if (applicationType == _deviceDataEventHubType)
+            if (applicationType == _normalizationAppType)
             {
                 Configuration.GetSection("InputEventHub").Bind(eventProcessorOptions);
             }
-            else if (applicationType == _normalizedDataEventHubType)
+            else if (applicationType == _measurementToFhirAppType)
             {
                 Configuration.GetSection("NormalizationEventHub").Bind(eventProcessorOptions);
             }
@@ -131,7 +146,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 throw new Exception($"Unable to determine event processor options from application type {applicationType}");
             }
 
-            var eventProcessorClientFactory = new EventProcessorClientFactory();
+            var eventProcessorClientFactory = serviceProvider.GetRequiredService<IEventProcessorClientFactory>();
             var eventProcessorClientOptions = new EventProcessorClientOptions();
             eventProcessorClientOptions.MaximumWaitTime = TimeSpan.FromSeconds(60);
 
