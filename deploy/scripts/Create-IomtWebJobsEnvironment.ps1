@@ -38,17 +38,11 @@ param
     [Parameter(Mandatory = $true)]
     [string]$FhirServiceUrl,
 
-    [Parameter(Mandatory = $true)]
-    [string]$FhirServiceAuthority,
-
-    [Parameter(Mandatory = $true)]
-    [string]$FhirServiceClientId,
-
-    [Parameter(Mandatory = $true)]
-    [string]$FhirServiceSecret,
+    [Parameter(Mandatory = $false)]
+    [string]$EnvironmentDeploy = $true,
 
     [Parameter(Mandatory = $false)]
-    [string]$EnvironmentDeploy = $true
+    [string]$UseManagedIdentity = $true
 )
 
 Function BuildPackage() {
@@ -98,9 +92,20 @@ $ErrorActionPreference = "Stop"
 
 # deploy event hubs, app service, key vaults, storage
 if ($EnvironmentDeploy -eq $true) {
-    Write-Host "Deploying environment resources..."
     $webjobTemplate = "..\templates\default-azuredeploy-webjobs.json"
-    New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $ResourceGroup -ServiceName $EnvironmentName -FhirServiceUrl $fhirServiceUrl -FhirServiceAuthority $FhirServiceAuthority -FhirServiceResource $fhirServiceUrl -FhirServiceClientId $FhirServiceClientId -FhirServiceClientSecret (ConvertTo-SecureString -String $FhirServiceSecret -AsPlainText -Force) -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
+
+    if ($UseManagedIdentity -eq $true) {
+        Write-Host "Deploying environment resources..."
+        New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $ResourceGroup -ServiceName $EnvironmentName -FhirServiceUrl $fhirServiceUrl -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
+    }
+    else {
+        $FhirServiceAuthority = Read-Host -Prompt 'Input your fhir service authority'
+        $FhirServiceClientId = Read-Host -Prompt 'Input your fhir service client id'
+        $FhirServiceSecret = Read-Host -Prompt 'Input your fhir service sercret'
+
+        Write-Host "Deploying environment resources..."
+        New-AzResourceGroupDeployment -TemplateFile $webjobTemplate -ResourceGroupName $ResourceGroup -ServiceName $EnvironmentName -FhirClientUseManagedIdentity $false -FhirServiceUrl $fhirServiceUrl -FhirServiceAuthority $FhirServiceAuthority -FhirServiceResource $fhirServiceUrl -FhirServiceClientId $FhirServiceClientId -FhirServiceClientSecret (ConvertTo-SecureString -String $FhirServiceSecret -AsPlainText -Force) -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -ResourceLocation $EnvironmentLocation
+    }
 }
 
 # deploy the stream analytics replacement webjobs

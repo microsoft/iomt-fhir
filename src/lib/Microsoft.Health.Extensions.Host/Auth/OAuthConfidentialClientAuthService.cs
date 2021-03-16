@@ -3,18 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
 using EnsureThat;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Microsoft.Health.Extensions.Host.Auth
 {
     /// <summary>
-    /// https://github.com/AzureAD/azure-activedirectory-library-for-dotnet/wiki/Confidential-client-applications-flows
+    /// https://docs.microsoft.com/en-us/dotnet/api/overview/azure/app-auth-migration
     /// </summary>
-    public class OAuthConfidentialClientAuthService : IAuthService
+    public class OAuthConfidentialClientAuthService : TokenCredential
     {
-        public async Task<string> GetAccessTokenAsync()
+        public static async Task<string> GetAccessTokenAsync()
         {
             var authResult = await AquireServiceTokenAsync().ConfigureAwait(false);
             return authResult.AccessToken;
@@ -51,6 +53,19 @@ namespace Microsoft.Health.Extensions.Host.Auth
                     default: throw;
                 }
             }
+        }
+
+        public async override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var authResult = await AquireServiceTokenAsync().ConfigureAwait(false);
+            var accessToken = new AccessToken(authResult.AccessToken, authResult.ExpiresOn);
+            return accessToken;
+        }
+
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            ValueTask<AccessToken> valueTask = Task.Run(() => GetTokenAsync(requestContext, cancellationToken)).GetAwaiter().GetResult();
+            return valueTask.Result;
         }
     }
 }
