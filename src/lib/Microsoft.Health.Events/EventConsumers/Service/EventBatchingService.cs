@@ -61,7 +61,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             return _eventPartitions.GetOrAdd(partitionId, new EventPartition(partitionId, initTime, flushTimespan, _logger));
         }
 
-        public Task ConsumeEvent(IEventMessage eventArg)
+        public async Task ConsumeEvent(IEventMessage eventArg)
         {
             EnsureArg.IsNotNull(eventArg);
 
@@ -73,7 +73,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 if (EventPartitionExists(partitionId))
                 {
                     var windowThresholdTime = GetPartition(partitionId).GetPartitionWindow();
-                    ThresholdWaitReached(partitionId, windowThresholdTime);
+                    await ThresholdWaitReached(partitionId, windowThresholdTime);
                 }
             }
             else
@@ -85,21 +85,17 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 var windowThresholdTime = partition.GetPartitionWindow();
                 if (eventEnqueuedTime > windowThresholdTime)
                 {
-                    ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
-                    return Task.CompletedTask;
+                    await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
                 }
 
                 if (partition.GetPartitionBatchCount() >= _maxEvents)
                 {
-                    ThresholdCountReached(partitionId);
+                    await ThresholdCountReached(partitionId);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
-        // todo: fix -"Collection was modified; enumeration operation may not execute."
-        private async void ThresholdCountReached(string partitionId)
+        private async Task ThresholdCountReached(string partitionId)
         {
             _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
             var events = await GetPartition(partitionId).Flush(_maxEvents);
@@ -107,9 +103,10 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             await UpdateCheckpoint(events);
         }
 
-        private async void ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
+        private async Task ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
         {
             _logger.LogTrace($"Partition {partitionId} threshold time {_eventPartitions[partitionId].GetPartitionWindow()} was reached.");
+
             var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
@@ -117,7 +114,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             await UpdateCheckpoint(events);
         }
 
-        private async void ThresholdWaitReached(string partitionId, DateTime windowEnd)
+        private async Task ThresholdWaitReached(string partitionId, DateTime windowEnd)
         {
             if (windowEnd < DateTime.UtcNow.AddSeconds(_timeBuffer))
             {
