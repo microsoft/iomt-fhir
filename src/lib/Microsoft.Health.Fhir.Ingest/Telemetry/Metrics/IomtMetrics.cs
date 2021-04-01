@@ -177,7 +177,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         }
 
         /// <summary>
-        /// A metric that measures the amount of data (in megabytes) ingested by normalization processing.
+        /// A metric that measures the amount of data (in bytes) ingested by normalization processing.
         /// </summary>
         public static Metric DeviceEventIngress()
         {

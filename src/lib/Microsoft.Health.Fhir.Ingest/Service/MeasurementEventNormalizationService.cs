@@ -91,11 +91,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                         var token = _converter.Convert(evt);
                         var tokenString = JsonConvert.SerializeObject(token);
-                        var megabytes = Encoding.Unicode.GetBytes(tokenString).Length / Math.Pow(1000, 3); // Base 10 definition of MB;
+                        var bytes = Encoding.Unicode.GetBytes(tokenString).Length;
 
                         _log.LogMetric(
                             IomtMetrics.DeviceEventIngress(),
-                            megabytes);
+                            bytes);
 
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
