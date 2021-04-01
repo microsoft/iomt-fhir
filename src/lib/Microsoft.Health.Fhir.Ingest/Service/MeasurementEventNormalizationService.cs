@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -16,6 +17,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
@@ -88,6 +90,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalMilliseconds);
 
                         var token = _converter.Convert(evt);
+                        var tokenString = JsonConvert.SerializeObject(token);
+                        var megabytes = Encoding.Unicode.GetBytes(tokenString).Length / Math.Pow(1000, 3); // Base 10 definition of MB;
+
+                        _log.LogMetric(
+                            IomtMetrics.DeviceEventIngress(),
+                            megabytes);
+
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
                             measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
