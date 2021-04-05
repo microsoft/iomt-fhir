@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public IomtConnectorFunctions(ITelemetryLogger logger)
         {
-            _logger = logger;
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
@@ -57,7 +58,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async Task NormalizeDeviceData(
             [EventHubTrigger("input", Connection = "InputEventHub")] EventData[] events,
             [EventHubMeasurementCollector("output", Connection = "OutputEventHub")] IAsyncCollector<IMeasurement> output,
-            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions)
+            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions,
+            [DeviceDataNormalization] IOptions<NormalizationServiceOptions> normalizationSettings)
         {
             try
             {
@@ -72,7 +74,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     IomtMetrics.DeviceEvent(),
                     events.Length);
 
-                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
+                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template, normalizationSettings);
                 await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
             }
             catch (Exception ex)

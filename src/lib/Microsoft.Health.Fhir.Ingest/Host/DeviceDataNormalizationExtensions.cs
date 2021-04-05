@@ -5,7 +5,10 @@
 
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Fhir.Ingest.Config;
+using Microsoft.Health.Fhir.Ingest.Service;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
@@ -17,6 +20,19 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 
             builder.AddExtension<EventHubMeasurementCollectorProvider>()
                 .BindOptions<EventHubMeasurementCollectorOptions>();
+
+            return builder;
+        }
+
+        public static IWebJobsBuilder AddDeviceIngressLogging(this IWebJobsBuilder builder)
+        {
+            EnsureArg.IsNotNull(builder, nameof(builder));
+
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            IConfiguration config = serviceProvider.GetService<IConfiguration>();
+
+            builder.Services.Configure<NormalizationServiceOptions>(config.GetSection(NormalizationServiceOptions.Settings));
+            builder.AddExtension<DeviceDataNormalizationSettingsProvider>();
 
             return builder;
         }

@@ -13,6 +13,7 @@ using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -29,15 +30,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly Data.IConverter<EventData, JToken> _converter = null;
         private readonly int _maxParallelism;
         private readonly ITelemetryLogger _log;
+        private readonly IOptions<NormalizationServiceOptions> _options;
 
-        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate)
-            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 3)
+        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, IOptions<NormalizationServiceOptions> options)
+            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 3, options)
         {
         }
 
-        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism)
+        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism, IOptions<NormalizationServiceOptions> options)
         {
             _log = EnsureArg.IsNotNull(log, nameof(log));
+            _options = EnsureArg.IsNotNull(options, nameof(options));
             _contentTemplate = EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _maxParallelism = maxParallelism;
@@ -90,12 +93,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalMilliseconds);
 
                         var token = _converter.Convert(evt);
-                        var tokenString = JsonConvert.SerializeObject(token);
-                        var bytes = Encoding.Unicode.GetBytes(tokenString).Length;
 
-                        _log.LogMetric(
-                            IomtMetrics.DeviceEventIngress(),
-                            bytes);
+                        if (_options.Value.LogDeviceIngressSizeBytes)
+                        {
+                            var tokenString = JsonConvert.SerializeObject(token);
+                            var bytes = Encoding.Unicode.GetBytes(tokenString).Length;
+
+                            _log.LogMetric(
+                                IomtMetrics.DeviceIngressSizeBytes(),
+                                bytes);
+                        }
 
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
