@@ -3,18 +3,36 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Core;
+using Azure.Identity;
+using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Extensions.Host.Auth
 {
-    public class ManagedIdentityAuthService : IAuthService
+    public class ManagedIdentityAuthService : TokenCredential
     {
-        public async Task<string> GetAccessTokenAsync()
+        private TokenCredential _tokenCredential;
+
+        public ManagedIdentityAuthService()
         {
-            var resource = System.Environment.GetEnvironmentVariable("FhirService:Resource");
-            var tokenProvider = new AzureServiceTokenProvider();
-            return await tokenProvider.GetAccessTokenAsync(resource).ConfigureAwait(false);
+            _tokenCredential = new DefaultAzureCredential();
+        }
+
+        public ManagedIdentityAuthService(IAzureCredentialProvider azureCredentialProvider)
+        {
+            _tokenCredential = azureCredentialProvider.GetCredential();
+        }
+
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            return _tokenCredential.GetToken(requestContext, cancellationToken);
+        }
+
+        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            return _tokenCredential.GetTokenAsync(requestContext, cancellationToken);
         }
     }
 }
