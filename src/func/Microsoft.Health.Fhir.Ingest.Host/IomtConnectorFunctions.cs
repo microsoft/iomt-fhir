@@ -65,6 +65,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 EnsureArg.IsNotNull(templateDefinitions, nameof(templateDefinitions));
                 EnsureArg.IsNotNull(events, nameof(events));
+                EnsureArg.IsNotNull(normalizationSettings, nameof(normalizationSettings));
 
                 var templateContext = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
                 templateContext.EnsureValid();
@@ -74,8 +75,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     IomtMetrics.DeviceEvent(),
                     events.Length);
 
-                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template, normalizationSettings);
+                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
                 await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
+
+                if (normalizationSettings.Value.LogDeviceIngressSizeBytes)
+                {
+                    IEventProcessingMeter meter = new EventProcessingMeter();
+                    var eventStats = await meter.CalculateEventStats(events);
+                    _logger.LogMetric(
+                        IomtMetrics.DeviceIngressSizeBytes(),
+                        eventStats.TotalEventsProcessedBytes);
+                }
             }
             catch (Exception ex)
             {
