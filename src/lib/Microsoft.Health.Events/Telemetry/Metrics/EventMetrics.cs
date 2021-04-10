@@ -18,6 +18,9 @@ namespace Microsoft.Health.Events.Telemetry
         private static string _categoryDimension = DimensionNames.Category;
         private static string _timeDimension = DimensionNames.Timestamp;
         private static string _partitionDimension = DimensionNames.Identifier;
+        private static string _errorTypeDimension = DimensionNames.ErrorType;
+        private static string _errorSeverityDimension = DimensionNames.ErrorSeverity;
+        private static string _operationDimension = DimensionNames.Operation;
 
         private static Metric _eventHubPartitionInitialized = new Metric(
             "EventHubPartitionInitialized",
@@ -98,6 +101,25 @@ namespace Microsoft.Health.Events.Telemetry
                     { _timeDimension, dateTime.ToString() },
                     { _partitionDimension, partitionId },
                     { _categoryDimension, Category.Latency },
+                });
+        }
+
+        /// <summary>
+        /// A metric recorded when there is an error reading from or connecting with an Event Hub.
+        /// </summary>
+        /// <param name="exceptionName">The name of the exception</param>
+        /// <param name="connectorStage">The stage of the connector</param>
+        public static Metric HandledException(string exceptionName, string connectorStage)
+        {
+            return new Metric(
+                exceptionName,
+                new Dictionary<string, object>
+                {
+                    { _nameDimension, exceptionName },
+                    { _categoryDimension, Category.Errors },
+                    { _errorTypeDimension, ErrorType.GeneralError },
+                    { _errorSeverityDimension, ErrorSeverity.Critical },
+                    { _operationDimension, connectorStage },
                 });
         }
     }

@@ -4,9 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Messaging.EventHubs;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Events.EventHubProcessor;
+using Microsoft.Health.Logging.Telemetry;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +21,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public static async Task Main()
         {
             var config = GetEnvironmentConfig();
-            var applicationType = GetConsoleApplicationType(config);
 
+            var applicationType = GetConsoleApplicationType(config);
             var serviceCollection = GetRequiredServiceCollection(config, applicationType);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -54,16 +57,17 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public static ServiceCollection GetRequiredServiceCollection(IConfiguration config, string applicationType)
         {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<ITelemetryLogger>(ConfigureLogging(config));
+
             if (applicationType == ApplicationType.Normalization)
             {
-                var serviceCollection = new ServiceCollection();
                 Startup startup = new Startup(config);
                 startup.ConfigureServices(serviceCollection);
                 return serviceCollection;
             }
             else if (applicationType == ApplicationType.MeasurementToFhir)
             {
-                var serviceCollection = new ServiceCollection();
                 MeasurementCollectionToFhir.ProcessorStartup measurementStartup = new MeasurementCollectionToFhir.ProcessorStartup(config);
                 measurementStartup.ConfigureServices(serviceCollection);
                 Startup startup = new Startup(config);
@@ -74,6 +78,28 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             {
                 throw new Exception($"An invalid application type type was provided: {applicationType}");
             }
+        }
+
+        public static ITelemetryLogger ConfigureLogging(IConfiguration configuration)
+        {
+            var instrumentationKey = configuration.GetSection("APPINSIGHTS_INSTRUMENTATIONKEY").Value;
+
+            TelemetryConfiguration telemetryConfig;
+            TelemetryClient telemetryClient;
+
+            if (string.IsNullOrWhiteSpace(instrumentationKey))
+            {
+                telemetryConfig = new TelemetryConfiguration();
+                telemetryClient = new TelemetryClient(telemetryConfig);
+            }
+            else
+            {
+                telemetryConfig = new TelemetryConfiguration(instrumentationKey);
+                telemetryClient = new TelemetryClient(telemetryConfig);
+            }
+
+            var logger = new IomtTelemetryLogger(telemetryClient);
+            return logger;
         }
     }
 }

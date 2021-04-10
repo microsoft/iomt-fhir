@@ -1,9 +1,7 @@
 ﻿using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Events.EventConsumers;
-using Microsoft.Health.Events.EventProducers;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -24,21 +22,18 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private string _templateDefinition;
         private ITemplateManager _templateManager;
         private ITelemetryLogger _logger;
-        private IConfiguration _env;
         private IAsyncCollector<IMeasurement> _collector;
 
         public Processor(
             [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinition,
             ITemplateManager templateManager,
             IAsyncCollector<IMeasurement> collector,
-            IConfiguration configuration,
             ITelemetryLogger logger)
         {
             _templateDefinition = templateDefinition;
             _templateManager = templateManager;
             _collector = collector;
             _logger = logger;
-            _env = configuration;
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
@@ -67,6 +62,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                     foreach (KeyValuePair<string, object> entry in x.SystemProperties)
                     {
                         eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
+                    }
+
+                    foreach (KeyValuePair<string, object> entry in x.Properties)
+                    {
+                        eventData.Properties[entry.Key] = entry.Value;
                     }
 
                     return eventData;

@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------	
 
 using Azure.Messaging.EventHubs;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +37,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public virtual void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(ConfigureLogging);
             services.AddSingleton<IEventProcessorClientFactory, EventProcessorClientFactory>();
             services.AddSingleton<IEventProducerClientFactory, EventProducerClientFactory>();
             services.AddSingleton<BlobContainerClientFactory>();
@@ -74,7 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             {
                 template = Configuration.GetSection("Template:DeviceContent").Value;
                 var collector = ResolveEventCollector(serviceProvider);
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, Configuration, logger);
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)
@@ -176,28 +173,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             }
 
             return applicationType;
-        }
-
-        public virtual ITelemetryLogger ConfigureLogging(IServiceProvider serviceProvider)
-        {
-            var instrumentationKey = Configuration.GetSection("APPINSIGHTS_INSTRUMENTATIONKEY").Value;
-
-            TelemetryConfiguration telemetryConfig;
-            TelemetryClient telemetryClient;
-
-            if (string.IsNullOrWhiteSpace(instrumentationKey))
-            {
-                telemetryConfig = new TelemetryConfiguration();
-                telemetryClient = new TelemetryClient(telemetryConfig);
-            }
-            else
-            {
-                telemetryConfig = new TelemetryConfiguration(instrumentationKey);
-                telemetryClient = new TelemetryClient(telemetryConfig);
-            }
-
-            var logger = new IomtTelemetryLogger(telemetryClient);
-            return logger;
         }
     }
 }

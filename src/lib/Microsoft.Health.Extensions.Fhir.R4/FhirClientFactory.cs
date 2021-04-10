@@ -14,8 +14,11 @@ using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Common.Auth;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir.Telemetry.Metrics;
 using Microsoft.Health.Extensions.Host.Auth;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
@@ -23,25 +26,28 @@ namespace Microsoft.Health.Extensions.Fhir
     {
         private readonly bool _useManagedIdentity = false;
         private readonly IAzureCredentialProvider _tokenCredentialProvider;
+        private readonly ITelemetryLogger _logger;
 
-        public FhirClientFactory(IOptions<FhirClientFactoryOptions> options)
-            : this(EnsureArg.IsNotNull(options, nameof(options)).Value.UseManagedIdentity)
+        public FhirClientFactory(IOptions<FhirClientFactoryOptions> options, ITelemetryLogger logger)
+            : this(EnsureArg.IsNotNull(options, nameof(options)).Value.UseManagedIdentity, logger)
         {
         }
 
         private FhirClientFactory()
-            : this(useManagedIdentity: false)
+            : this(useManagedIdentity: false, logger: null)
         {
         }
 
-        private FhirClientFactory(bool useManagedIdentity)
+        private FhirClientFactory(bool useManagedIdentity, ITelemetryLogger logger)
         {
             _useManagedIdentity = useManagedIdentity;
+            _logger = logger;
         }
 
-        public FhirClientFactory(IAzureCredentialProvider provider)
+        public FhirClientFactory(IAzureCredentialProvider provider, ITelemetryLogger logger)
         {
             _tokenCredentialProvider = provider;
+            _logger = logger;
         }
 
         public static IFactory<FhirClient> Instance { get; } = new FhirClientFactory();
@@ -50,13 +56,13 @@ namespace Microsoft.Health.Extensions.Fhir
         {
             if (_tokenCredentialProvider != null)
             {
-                return CreateClient(_tokenCredentialProvider.GetCredential());
+                return CreateClient(_tokenCredentialProvider.GetCredential(), _logger);
             }
 
-            return _useManagedIdentity ? CreateManagedIdentityClient() : CreateConfidentialApplicationClient();
+            return _useManagedIdentity ? CreateManagedIdentityClient(_logger) : CreateConfidentialApplicationClient(_logger);
         }
 
-        private static FhirClient CreateClient(TokenCredential tokenCredential)
+        private static FhirClient CreateClient(TokenCredential tokenCredential, ITelemetryLogger logger)
         {
             var url = Environment.GetEnvironmentVariable("FhirService:Url");
             EnsureArg.IsNotNullOrEmpty(url, nameof(url));
@@ -69,29 +75,32 @@ namespace Microsoft.Health.Extensions.Fhir
                 PreferredFormat = ResourceFormat.Json,
             };
 
-            var client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(uri, tokenCredential));
+            var client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(uri, tokenCredential, logger));
 
             return client;
         }
 
-        private static FhirClient CreateManagedIdentityClient()
+        private static FhirClient CreateManagedIdentityClient(ITelemetryLogger logger)
         {
-            return CreateClient(new ManagedIdentityAuthService());
+            return CreateClient(new ManagedIdentityAuthService(), logger);
         }
 
-        private static FhirClient CreateConfidentialApplicationClient()
+        private static FhirClient CreateConfidentialApplicationClient(ITelemetryLogger logger)
         {
-            return CreateClient(new OAuthConfidentialClientAuthService());
+            return CreateClient(new OAuthConfidentialClientAuthService(), logger);
         }
 
         private class BearerTokenAuthorizationMessageHandler : HttpClientHandler
         {
-            public BearerTokenAuthorizationMessageHandler(Uri uri, TokenCredential tokenCredentialProvider)
+            public BearerTokenAuthorizationMessageHandler(Uri uri, TokenCredential tokenCredentialProvider, ITelemetryLogger logger)
             {
                 TokenCredential = EnsureArg.IsNotNull(tokenCredentialProvider, nameof(tokenCredentialProvider));
                 Uri = EnsureArg.IsNotNull(uri);
                 Scopes = new string[] { Uri + ".default" };
+                Logger = logger;
             }
+
+            private ITelemetryLogger Logger { get; }
 
             private TokenCredential TokenCredential { get; }
 
@@ -105,6 +114,13 @@ namespace Microsoft.Health.Extensions.Fhir
                 var accessToken = await TokenCredential.GetTokenAsync(requestContext, CancellationToken.None);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
                 var response = await base.SendAsync(request, cancellationToken);
+
+                if (Logger != null && !response.IsSuccessStatusCode)
+                {
+                    var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
+                    Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ConnectorOperation.FHIRConversion), 1);
+                }
+
                 return response;
             }
         }
