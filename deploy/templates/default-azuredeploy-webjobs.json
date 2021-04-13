@@ -135,6 +135,13 @@
         "description": "The location of the deployed resources."
       }
     },
+    "FhirClientUseManagedIdentity": {
+      "type": "bool",
+      "metadata": {
+        "description": "Use managed identity to connect to fhir service"
+      },
+      "defaultValue": true
+    },
     "FhirServiceUrl": {
       "type": "string",
       "metadata": {
@@ -143,24 +150,28 @@
     },
     "FhirServiceAuthority": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Authority of the FHIR to retrieve a token against."
       }
     },
     "FhirServiceResource": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Resource/Audience representing the FHIR server on the provided authority."
       }
     },
     "FhirServiceClientId": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Client Id to run services as for access to the FHIR server."
       }
     },
     "FhirServiceClientSecret": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Client secret of the application for accessing a token."
       }
@@ -624,6 +635,7 @@
             "NormalizationEventHub:EventHubName": "normalizeddata",
             "NormalizationEventHub:AuthenticationType": "ManagedIdentity",
             "FhirVersion": "[parameters('FhirVersion')]",
+            "FhirClient:UseManagedIdentity": "[parameters('FhirClientUseManagedIdentity')]",
             "FhirService:Url": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-url'), '2018-02-14').secretUriWithVersion, ')')]",
             "FhirService:Authority": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-authority'), '2018-02-14').secretUriWithVersion, ')')]",
             "FhirService:Resource": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'fhirserver-resource'), '2018-02-14').secretUriWithVersion, ')')]",
