@@ -12,7 +12,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Search;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 using Polly;
 using Model = Hl7.Fhir.Model;
 
@@ -24,12 +26,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly FhirClient _client;
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
         private readonly IMemoryCache _observationCache;
+        private readonly ITelemetryLogger _logger;
 
-        public R4FhirImportService(IResourceIdentityService resourceIdentityService, FhirClient fhirClient, IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor, IMemoryCache observationCache)
+        public R4FhirImportService(IResourceIdentityService resourceIdentityService, FhirClient fhirClient, IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor, IMemoryCache observationCache, ITelemetryLogger logger)
         {
             _fhirTemplateProcessor = EnsureArg.IsNotNull(fhirTemplateProcessor, nameof(fhirTemplateProcessor));
             _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
             _observationCache = EnsureArg.IsNotNull(observationCache, nameof(observationCache));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
             ResourceIdentityService = EnsureArg.IsNotNull(resourceIdentityService, nameof(resourceIdentityService));
         }
@@ -64,6 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
                 result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
+                _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created), 1);
             }
             else
             {
@@ -87,6 +92,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
 
                 result = policyResult.Result;
+                _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Updated), 1);
             }
 
             _observationCache.CreateEntry(cacheKey)
