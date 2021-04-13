@@ -39,7 +39,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // 1) Event hub events
             // 2) Maximum wait events. These are generated when we have not received an event hub
             //    event for a certain time period and this event is used to flush events in the current window.
-            Task ProcessEventHandler(ProcessEventArgs eventArgs)
+            async Task ProcessEventHandler(ProcessEventArgs eventArgs)
             {
                 IEventMessage evt;
                 if (eventArgs.HasEvent)
@@ -51,9 +51,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     evt = new MaximumWaitEvent(eventArgs.Partition.PartitionId, DateTime.UtcNow);
                 }
 
-                _eventConsumerService.ConsumeEvent(evt);
-
-                return Task.CompletedTask;
+                await _eventConsumerService.ConsumeEvent(evt);
             }
 
             // todo: consider retry

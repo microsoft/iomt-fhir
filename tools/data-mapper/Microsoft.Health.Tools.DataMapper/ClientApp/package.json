@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "axe-core": "4.1.1",
     "bootstrap": "^4.3.1",
     "connected-react-router": "6.5.2",
     "history": "4.10.1",
