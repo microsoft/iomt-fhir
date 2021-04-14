@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class EventProcessingMeter : IEventProcessingMeter
     {
-        public Task<EventStats> CalculateEventStats(EventData[] events)
+        public Task<EventStats> CalculateEventStats(IEnumerable<EventData> events)
         {
             double ingressSizeBytes = 0;
 
@@ -20,8 +21,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 var bodySizeBytes = e.Body.Array.Length;
                 ingressSizeBytes = ingressSizeBytes + bodySizeBytes;
-                ingressSizeBytes = e.Properties.Aggregate(ingressSizeBytes, (current, entry) => current + Encoding.UTF8.GetBytes(entry.Key + entry.Value).Length);
-                ingressSizeBytes = e.SystemProperties.Aggregate(ingressSizeBytes, (current, entry) => current + Encoding.UTF8.GetBytes(entry.Key + entry.Value).Length);
+                ingressSizeBytes = e.Properties.Aggregate(ingressSizeBytes, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
+                ingressSizeBytes = e.SystemProperties.Aggregate(ingressSizeBytes, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
             }
 
             var eventStats = new EventStats()

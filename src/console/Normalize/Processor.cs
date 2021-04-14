@@ -13,7 +13,6 @@ using Microsoft.Health.Logging.Telemetry;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.Azure.EventHubs.EventData;
 
@@ -54,14 +53,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                 IomtMetrics.DeviceEvent(),
                     events.Count());
 
-            var eventBatchSizeBytes = 0;
-
             IEnumerable<EventData> eventHubEvents = events
                 .Select(x =>
                 {
                     var eventData = new EventData(x.Body.ToArray());
-                    var bodySizeBytes = eventData.Body.Array.Length;
-                    eventBatchSizeBytes = eventBatchSizeBytes + bodySizeBytes;
 
                     eventData.SystemProperties = new SystemPropertiesCollection(
                         x.SequenceNumber,
@@ -72,13 +67,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                     foreach (KeyValuePair<string, object> entry in x.Properties)
                     {
                         eventData.Properties[entry.Key] = entry.Value;
-                        eventBatchSizeBytes = eventBatchSizeBytes + Encoding.UTF8.GetBytes(entry.Key + entry.Value).Length;
                     }
 
                     foreach (KeyValuePair<string, object> entry in x.SystemProperties)
                     {
                         eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
-                        eventBatchSizeBytes = eventBatchSizeBytes + Encoding.UTF8.GetBytes(entry.Key + entry.Value).Length;
                     }
 
                     return eventData;
@@ -89,9 +82,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 
             if (_normalizationOptions.Value.LogDeviceIngressSizeBytes)
             {
+                IEventProcessingMeter meter = new EventProcessingMeter();
+                var eventStats = await meter.CalculateEventStats(eventHubEvents);
+
                 _logger.LogMetric(
                     IomtMetrics.DeviceIngressSizeBytes(),
-                    eventBatchSizeBytes);
+                    eventStats.TotalEventsProcessedBytes);
             }
         }
     }
