@@ -118,7 +118,15 @@ namespace Microsoft.Health.Extensions.Fhir
                 if (Logger != null && !response.IsSuccessStatusCode)
                 {
                     var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
-                    Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ConnectorOperation.FHIRConversion), 1);
+
+                    if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    {
+                        Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ErrorSeverity.Informational, ConnectorOperation.FHIRConversion), 1);
+                    }
+                    else
+                    {
+                        Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ErrorSeverity.Critical, ConnectorOperation.FHIRConversion), 1);
+                    }
                 }
 
                 return response;
