@@ -25,6 +25,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private ITelemetryLogger _logger;
         private IAsyncCollector<IMeasurement> _collector;
         private IOptions<NormalizationServiceOptions> _normalizationOptions;
+        private IEventProcessingMeter _eventProcessingMeter = new EventProcessingMeter();
 
         public Processor(
             [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinition,
@@ -82,8 +83,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 
             if (_normalizationOptions.Value.LogDeviceIngressSizeBytes)
             {
-                IEventProcessingMeter meter = new EventProcessingMeter();
-                var eventStats = await meter.CalculateEventStats(eventHubEvents);
+                var eventStats = await _eventProcessingMeter.CalculateEventStats(eventHubEvents);
 
                 _logger.LogMetric(
                     IomtMetrics.DeviceIngressSizeBytes(),
