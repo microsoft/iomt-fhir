@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -27,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public IomtConnectorFunctions(ITelemetryLogger logger)
         {
-            _logger = logger;
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
@@ -57,12 +58,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async Task NormalizeDeviceData(
             [EventHubTrigger("input", Connection = "InputEventHub")] EventData[] events,
             [EventHubMeasurementCollector("output", Connection = "OutputEventHub")] IAsyncCollector<IMeasurement> output,
-            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions)
+            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinitions,
+            [DeviceDataNormalization] IOptions<NormalizationServiceOptions> normalizationSettings)
         {
             try
             {
                 EnsureArg.IsNotNull(templateDefinitions, nameof(templateDefinitions));
                 EnsureArg.IsNotNull(events, nameof(events));
+                EnsureArg.IsNotNull(normalizationSettings, nameof(normalizationSettings));
 
                 var templateContext = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
                 templateContext.EnsureValid();
@@ -74,6 +77,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                 IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
                 await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
+
+                if (normalizationSettings.Value.LogDeviceIngressSizeBytes)
+                {
+                    IEventProcessingMeter meter = new EventProcessingMeter();
+                    var eventStats = await meter.CalculateEventStats(events);
+                    _logger.LogMetric(
+                        IomtMetrics.DeviceIngressSizeBytes(),
+                        eventStats.TotalEventsProcessedBytes);
+                }
             }
             catch (Exception ex)
             {
