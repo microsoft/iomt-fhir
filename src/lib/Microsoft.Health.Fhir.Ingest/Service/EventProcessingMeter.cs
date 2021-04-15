@@ -20,9 +20,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             foreach (var e in events)
             {
                 var bodySizeBytes = e.Body.Array.Length;
-                ingressSizeBytes = ingressSizeBytes + bodySizeBytes;
-                ingressSizeBytes = e.Properties.Aggregate(ingressSizeBytes, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
-                ingressSizeBytes = e.SystemProperties.Aggregate(ingressSizeBytes, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
+                ingressSizeBytes = ingressSizeBytes + bodySizeBytes + CalculateDictionarySizeBytes(e.Properties) + CalculateDictionarySizeBytes(e.SystemProperties);
             }
 
             var eventStats = new EventStats()
@@ -31,6 +29,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             };
 
             return Task.FromResult(eventStats);
+        }
+
+        private double CalculateDictionarySizeBytes(IDictionary<string, object> dictionary)
+        {
+            double bytes = dictionary.Aggregate(0, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
+            return bytes;
         }
     }
 }
