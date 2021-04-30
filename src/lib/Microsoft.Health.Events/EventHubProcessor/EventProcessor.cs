@@ -91,7 +91,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 Console.WriteLine($"Starting event hub processor at {DateTime.UtcNow}");
                 await processor.StartProcessingAsync(ct);
 
-                // Wait indefinitely until cancelation is requested
+                // Wait indefinitely until cancellation is requested
                 ct.WaitHandle.WaitOne();
 
                 await processor.StopProcessingAsync();
