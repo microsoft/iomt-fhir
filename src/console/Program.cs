@@ -46,6 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile("local.appsettings.json", true, true)
                 .AddEnvironmentVariables()
                 .Build();
 
