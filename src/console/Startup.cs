@@ -7,6 +7,7 @@ using Azure.Messaging.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Storage;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
@@ -71,7 +72,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             {
                 template = Configuration.GetSection("Template:DeviceContent").Value;
                 var collector = ResolveEventCollector(serviceProvider);
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger);
+                var options = new NormalizationServiceOptions();
+                Configuration.GetSection(NormalizationServiceOptions.Settings).Bind(options);
+                IOptions<NormalizationServiceOptions> normalizationServiceOptions = Options.Create(options);
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, normalizationServiceOptions);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)

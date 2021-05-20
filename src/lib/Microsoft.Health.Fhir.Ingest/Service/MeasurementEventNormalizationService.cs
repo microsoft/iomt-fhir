@@ -88,6 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             (DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc).TotalMilliseconds);
 
                         var token = _converter.Convert(evt);
+
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
                             measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;

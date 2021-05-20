@@ -92,6 +92,15 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _operationDimension, ConnectorOperation.Normalization },
             });
 
+        private static Metric _deviceIngressSizeBytes = new Metric(
+            "DeviceIngressSizeBytes",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "DeviceIngressSizeBytes" },
+                { _categoryDimension, Category.Traffic },
+                { _operationDimension, ConnectorOperation.Normalization },
+            });
+
         private static Metric _notSupported = new Metric(
             "NotSupportedException",
             new Dictionary<string, object>
@@ -165,6 +174,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric DeviceEventProcessingLatencyMs()
         {
             return _deviceEventProcessingLatencyMs;
+        }
+
+        /// <summary>
+        /// A metric that measures the amount of data (in bytes) ingested by normalization processing.
+        /// </summary>
+        public static Metric DeviceIngressSizeBytes()
+        {
+            return _deviceIngressSizeBytes;
         }
 
         /// <summary>

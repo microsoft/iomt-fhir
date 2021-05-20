@@ -338,3 +338,4 @@ ASALocalRun/
 .Trashes
 ehthumbs.db
 Thumbs.db
+src/console/local.appsettings.json
