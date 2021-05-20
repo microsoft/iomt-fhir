@@ -10,6 +10,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Processor;
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
@@ -57,7 +58,11 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // todo: consider retry
             Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
             {
-                _logger.LogError(eventArgs.Exception);
+                var exception = (EventHubsException)eventArgs.Exception;
+                string reason = $"EventHubError{exception.Reason}";
+                _logger.LogError(exception);
+                _logger.LogMetric(EventMetrics.HandledException(reason, ConnectorOperation.Setup), 1);
+
                 return Task.CompletedTask;
             }
 
