@@ -2,11 +2,11 @@
 This article details provisioning and installation of the IoMT FHIR Connector for Azure using an ARM template.
 
 ## ARM Template Provisioning
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Fiomt-fhir%2Fmaster%2Fdeploy%2Ftemplates%2Fdefault-azuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Fiomt-fhir%2Fmaster%2Fdeploy%2Ftemplates%2Fflexible-azuredeploy.json" target="_blank">
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 
-An [ARM Template](../deploy/templates/default-azuredeploy.json) is provided for easy provisioning of an environment within Azure. When executed, the ARM template will provision the following:
+An [ARM Template](../deploy/templates/flexible-azuredeploy.json) is provided for easy provisioning of an environment within Azure. When executed, the ARM template will provision the following:
 
 * App Service Plan - The service plan for used for hosting the Azure Functions Web app.
 * Azure Web App - The web app running the Azure Functions responsible for normalization and FHIR conversion.

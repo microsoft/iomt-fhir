@@ -189,7 +189,8 @@
     "sender_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
     "receiver_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
     "iomt_fhir_connector_name": "[concat('ResourceIdentity', ':', parameters('ResourceIdentityResolutionType'))]",
-    "fhir_service_audience": "[if(or(equals(parameters('FhirServiceAudience'), json('null')), equals(parameters('FhirServiceAudience'), '')), parameters('FhirServiceUrl'), parameters('FhirServiceAudience'))]"
+    "fhir_service_audience": "[if(or(equals(parameters('FhirServiceAudience'), json('null')), equals(parameters('FhirServiceAudience'), '')), parameters('FhirServiceUrl'), parameters('FhirServiceAudience'))]",
+    "akv_secrets_user_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')]"
   },
   "resources": [
     {
@@ -409,7 +410,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-07-01",
+      "apiVersion": "2018-09-01-preview",
       "name": "[concat(variables('devicedata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('devicedata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
@@ -424,7 +425,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/providers/roleAssignments",
-      "apiVersion": "2018-07-01",
+      "apiVersion": "2018-09-01-preview",
       "name": "[concat(variables('normalizeddata_eventhub_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('normalizeddata_eventhub_name'))))]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
@@ -721,7 +722,7 @@
     },
     {
       "type": "Microsoft.KeyVault/vaults",
-      "apiVersion": "2016-10-01",
+      "apiVersion": "2021-04-01-preview",
       "name": "[variables('key_vault_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
@@ -737,25 +738,25 @@
           "name": "Standard"
         },
         "tenantId": "[subscription().tenantId]",
-        "accessPolicies": [
-          {
-            "tenantId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.tenantId]",
-            "objectId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
-            "permissions": {
-              "keys": [
-              ],
-              "secrets": [
-                "Get",
-                "List"
-              ],
-              "certificates": [
-              ]
-            }
-          }
-        ],
+        "enableRbacAuthorization": true,
         "enabledForDeployment": false,
         "enabledForDiskEncryption": false,
         "enabledForTemplateDeployment": false
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/providers/roleAssignments",
+      "apiVersion": "2018-07-01",
+      "name": "[concat(variables('key_vault_name'), '/Microsoft.Authorization/', guid(uniqueString(concat(variables('key_vault_name'), '-akv'))))]",
+      "dependsOn": [
+          "[resourceId('Microsoft.Web/sites', variables('app_service_name'))]",
+          "[resourceId('Microsoft.KeyVault/vaults',variables('key_vault_name'))]"
+      ],
+      "properties": {
+          "roleDefinitionId": "[variables('akv_secrets_user_role')]",
+          "principalId": "[reference(variables('app_service_resource_id'), '2015-08-01', 'Full').Identity.principalId]",
+          "principalType": "ServicePrincipal",
+          "scope": "[resourceId('Microsoft.KeyVault/vaults', variables('key_vault_name'))]"
       }
     },
     {
