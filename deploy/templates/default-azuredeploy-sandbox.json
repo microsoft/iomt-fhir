@@ -215,6 +215,9 @@
       "location": "[parameters('FhirServiceLocation')]",
       "tags": {},
       "properties": {
+        "authenticationConfiguration": {
+          "smartProxyEnabled": true
+        },
         "corsConfiguration": {
           "origins": [
             "*"
