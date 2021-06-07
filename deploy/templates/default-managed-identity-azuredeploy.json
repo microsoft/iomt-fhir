@@ -722,7 +722,7 @@
     },
     {
       "type": "Microsoft.KeyVault/vaults",
-      "apiVersion": "2021-04-01-preview",
+      "apiVersion": "2019-09-01",
       "name": "[variables('key_vault_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
