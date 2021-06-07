@@ -1,6 +1,6 @@
 # IoMT FHIR Connector for Azure Sandbox
 
-You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallationManagedIdentity.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
+You can deploy a sandbox application to see how [IoMT FHIR Connector for Azure](./ARMInstallation.md) can be used with [Azure API for FHIR](https://docs.microsoft.com/azure/healthcare-apis) and [Azure IoT Central](https://azure.microsoft.com/services/iot-central/). The script deploys all of these components with mock devices sending data through the IoMT FHIR Connector for Azure pipeline.
 
 Once deployment is completed you should see the following Azure components:
 

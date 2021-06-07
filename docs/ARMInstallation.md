@@ -1,12 +1,12 @@
-# Installation via ARM Template
-This article details provisioning and installation of the IoMT FHIR Connector for Azure using an ARM template.
+# Installation via ARM Template for use with Azure API for FHIR and Azure Active Directory
+This article details provisioning and installation of the IoMT FHIR Connector for Azure and connecting to Azure API for FHIR with a managed identity in the same subscription using an ARM template.
 
 ## ARM Template Provisioning
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Fiomt-fhir%2Fmaster%2Fdeploy%2Ftemplates%2Fflexible-azuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Fiomt-fhir%2Fmaster%2Fdeploy%2Ftemplates%2Fdefault-managed-identity-azuredeploy.json" target="_blank">
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 
-An [ARM Template](../deploy/templates/flexible-azuredeploy.json) is provided for easy provisioning of an environment within Azure. When executed, the ARM template will provision the following:
+An [ARM Template](../deploy/templates/default-managed-identity-azuredeploy.json) is provided for easy provisioning of an environment within Azure with the Azure API for FHIR. When executed, the ARM template will provision the following:
 
 * App Service Plan - The service plan for used for hosting the Azure Functions Web app.
 * Azure Web App - The web app running the Azure Functions responsible for normalization and FHIR conversion.
@@ -15,12 +15,12 @@ An [ARM Template](../deploy/templates/flexible-azuredeploy.json) is provided for
 * Azure Key Vault - Used for secret storage.  Event Hub Shared Access Keys and the OAuth client credentials are stored here.
 * Azure Storage - Used by the Azure Functions to track Event Hub processing watermark and also hosts the configuration files for device normalization mapping and FHIR conversion mapping.
 * App Insights - Used to record telemetry.
+* Managed Identity - an Azure Active Directory service identity for the IoMT FHIR Connector for Azure to use to connect to the Azure API for FHIR
 
 ### Prerequisites
 To run this ARM template the following additional items must be set up before execution:
 
-* FHIR Server - A R4 FHIR server supporting OAuth 2.0 client credential flow. 
-* Application registration - An application representing the connector with client id and client secret that has access to the above FHIR server.
+* FHIR Server - An Azure API for FHIR instance using FHIR version R4
 
 ### Parameters
 The following parameters are provided by the ARM template:
@@ -38,10 +38,6 @@ The following parameters are provided by the ARM template:
 |**Resource Location**|The location of the deployed resources.
 |**FHIR Version**|The FHIR version used in the connector. It should match the version used in the FHIR service.
 |**FHIR Service URL**|URL of the FHIR server that IoMT data will be written to.
-|**FHIR Service Authority**|Authority of the FHIR to retrieve a token against.
-|**FHIR Service Resource**|Resource/Audience representing the FHIR server on the provided authority.
-|**FHIR Service Client Id**|Client Id to run services as for access to the FHIR server.
-|**FHIR Service Client Secret**|Client secret of the application for accessing a token.
 |**Resource Identity Resolution Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
 |**Default Device Identifier System**|Default system to use when searching for device identities. If empty system is not used in the search.
 
@@ -55,7 +51,9 @@ The following parameters are provided by the ARM template:
 |**LookupWithEncounter**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Post Deployment
-After the ARM template is successfully deployed the mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob.  You can use a tool like [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to easily upload and update the configurations. Navigate to the Azure Storage account deployed by the ARM template (it will be service name you selected) and select the template storage to container.  From there upload the configurations and you are done.
+After the ARM template is successfully deployed, [configure Azure RBAC for your Azure API for FHIR](https://docs.microsoft.com/en-us/azure/healthcare-apis/fhir/configure-azure-rbac) using the App Service name when searching for the entity to assign the role to, in order to assign access for the IoMT FHIR Connector for Azure to the Azure API for FHIR data plane. Also, the Authority on the Authentication page of your Azure API for FHIR should NOT be changed from the Azure Active Directory in your subscription, or this connection will be broken.
+
+ Also, the mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob.  You can use a tool like [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to easily upload and update the configurations. Navigate to the Azure Storage account deployed by the ARM template (it will be service name you selected) and select the template storage to container.  From there upload the configurations and you are done.
 
 Default templates:
  [Device Content](../sample/templates/basic/devicecontent.json)

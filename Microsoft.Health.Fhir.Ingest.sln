@@ -32,7 +32,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{
 		deploy\templates\consumption-azuredeploy.json = deploy\templates\consumption-azuredeploy.json
 		deploy\templates\default-azuredeploy-sandbox.json = deploy\templates\default-azuredeploy-sandbox.json
 		deploy\templates\default-managed-identity-azuredeploy.json = deploy\templates\default-managed-identity-azuredeploy.json
-		deploy\templates\flexible-azuredeploy.json = deploy\templates\flexible-azuredeploy.json
 		deploy\templates\premium-azuredeploy.json = deploy\templates\premium-azuredeploy.json
 	EndProjectSection
 EndProject
