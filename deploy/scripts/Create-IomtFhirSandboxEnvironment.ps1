@@ -46,14 +46,6 @@ param
 
 Set-StrictMode -Version Latest
 
-# Get current AzureAd context
-try {
-    $tenantInfo = Get-AzureADCurrentSessionInfo -ErrorAction Stop
-} 
-catch {
-    throw "Please log in to Azure AD with Connect-AzureAD cmdlet before proceeding"
-}
-
 # Get current Az context
 try {
     $azContext = Get-AzContext
@@ -62,6 +54,7 @@ catch {
     throw "Please log in to Azure RM with Login-AzAccount cmdlet before proceeding"
 }
 
+# Get current account context - User/Service Principal
 if ($azContext.Account.Type -eq "User") {
     Write-Host "Current context is user: $($azContext.Account.Id)"
     
@@ -91,31 +84,21 @@ else {
     throw "Running as an unsupported account type. Please use either a 'User' or 'Service Principal' to run this command"
 }
 
-
-# Set up Auth Configuration and Resource Group
-./Create-IomtFhirSandboxAuthConfig.ps1 -EnvironmentName $EnvironmentName -EnvironmentLocation $EnvironmentLocation -AdminPassword $AdminPassword
-
-$githubRawBaseUrl = $SourceRepository.Replace("github.com","raw.githubusercontent.com").TrimEnd('/')
-# $sandboxTemplate = "${githubRawBaseUrl}/${SourceRevision}/deploy/templates/default-azuredeploy-sandbox.json"
-$sandboxTemplate = "..\templates\default-azuredeploy-sandbox.json"
-$iomtConnectorTemplate = "${githubRawBaseUrl}/${SourceRevision}/deploy/templates/default-azuredeploy.json"
-
-$tenantDomain = $tenantInfo.TenantDomain
-$aadAuthority = "https://login.microsoftonline.com/${tenantDomain}"
-
-$fhirServerUrl = "https://${EnvironmentName}.azurehealthcareapis.com"
-
-$serviceClientId = (Get-AzKeyVaultSecret -VaultName "${EnvironmentName}-ts" -Name "${EnvironmentName}-service-client-id").SecretValueText
-$serviceClientSecret = (Get-AzKeyVaultSecret -VaultName "${EnvironmentName}-ts" -Name "${EnvironmentName}-service-client-secret").SecretValueText
-$serviceClientObjectId = (Get-AzureADServicePrincipal -Filter "AppId eq '$serviceClientId'").ObjectId
-
-$accessPolicies = @()
-$accessPolicies += @{ "objectId" = $currentObjectId.ToString() }
-$accessPolicies += @{ "objectId" = $serviceClientObjectId.ToString() }
+# Creating Resource Group
+Write-Host "Creating resource group with the name $EnvironmentName in the subscription $($azContext.Subscription.Name)"
+$resourceGroup = Get-AzResourceGroup -Name $EnvironmentName -ErrorAction SilentlyContinue
+if (!$resourceGroup) {
+    New-AzResourceGroup -Name $EnvironmentName -Location $EnvironmentLocation | Out-Null
+}
 
 # Deploy the template
+$githubRawBaseUrl = $SourceRepository.Replace("github.com","raw.githubusercontent.com").TrimEnd('/')
+$sandboxTemplate = "..\templates\default-azuredeploy-sandbox.json"
+$iomtConnectorTemplate = "${githubRawBaseUrl}/${SourceRevision}/deploy/templates/default-managed-identity-azuredeploy.json"
+$fhirServerUrl = "https://${EnvironmentName}.azurehealthcareapis.com"
+
 Write-Host "Deploying resources..."
-New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirServiceAuthority $aadAuthority -FhirVersion $FhirVersion -FhirServiceResource $fhirServerUrl -FhirServiceClientId $serviceClientId -FhirServiceClientSecret $serviceClientSecret -FhirServiceAccessPolicies $accessPolicies -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation -IomtConnectorTemplateUrl $iomtConnectorTemplate
+New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirVersion $FhirVersion -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation -IomtConnectorTemplateUrl $iomtConnectorTemplate
 
 # Copy the config templates to storage
 Write-Host "Copying templates to storage..."
@@ -126,7 +109,5 @@ Write-Host "Warming up site..."
 Invoke-WebRequest -Uri "${fhirServerUrl}/metadata" | Out-Null
 
 @{
-    fhirServerUrl             = $fhirServerUrl
-	serviceClientId			  = $serviceClientId 
-	serviceClientSecret		  = $serviceClientSecret
+    fhirServerUrl             = $fhirServerUrl	
 }

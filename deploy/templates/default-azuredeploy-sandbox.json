@@ -144,29 +144,12 @@
         "description": "Url of the FHIR server that IoMT will be written to."
       }
     },
-    "FhirServiceAuthority": {
+    "FhirServiceAudience": {
       "type": "string",
       "metadata": {
-        "description": "Authority of the FHIR to retrieve a token against."
-      }
-    },
-    "FhirServiceResource": {
-      "type": "string",
-      "metadata": {
-        "description": "Resource/Audience representing the FHIR server on the provided authority."
-      }
-    },
-    "FhirServiceClientId": {
-      "type": "string",
-      "metadata": {
-        "description": "Client Id to run services as for access to the FHIR server."
-      }
-    },
-    "FhirServiceClientSecret": {
-      "type": "string",
-      "metadata": {
-        "description": "Client secret of the application for accessing a token."
-      }
+        "description": "Audience representing the FHIR server."
+      },
+      "defaultValue": ""
     },
     "ResourceIdentityResolutionType": {
       "type": "string",
@@ -185,13 +168,6 @@
       "defaultValue": "",
       "metadata": {
         "description": "Default system to use when searching for device identities. If empty system is not used in the search."
-      }
-    },
-    "FhirServiceAccessPolicies": {
-      "type": "array",
-      "defaultValue": [],
-      "metadata": {
-        "description": "Access policies for Azure API for FHIR PaaS service"
       }
     },
     "FhirServiceLocation": {
@@ -215,7 +191,7 @@
     },
     "IomtConnectorTemplateUrl": {
       "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Microsoft/iomt-fhir/master/deploy/templates/default-azuredeploy.json",
+      "defaultValue": "https://raw.githubusercontent.com/Microsoft/iomt-fhir/master/deploy/templates/default-managed-identity-azuredeploy.json",
       "metadata": {
         "description": "URL for IOMT Connector template"
       }
@@ -223,11 +199,12 @@
   },
   "variables": {
     "app_service_name": "[parameters('ServiceName')]",
-    "iot_central_name": "[parameters('ServiceName')]",
-    "fhir_service_kind": "[concat('fhir-', parameters('FhirVersion'))]",
+    "app_service_deployment_name": "[concat(variables('app_service_name'),'-deploy')]",
+    "fhir_datacontributor_role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')]",    "fhir_service_kind": "[concat('fhir-', parameters('FhirVersion'))]",
     "fhir_service_name": "[parameters('ServiceName')]",
     "fhir_service_url": "[concat('https://', parameters('ServiceName'),'.azurehealthcareapis.com')]",
-    "fhir_service_cosmos_throughput": 1000
+    "fhir_service_cosmos_throughput": 1000,
+    "iot_central_name": "[parameters('ServiceName')]"
   },
   "resources": [
     {
@@ -238,10 +215,7 @@
       "location": "[parameters('FhirServiceLocation')]",
       "tags": {},
       "properties": {
-        "accessPolicies": "[parameters('FhirServiceAccessPolicies')]",
         "authenticationConfiguration": {
-          "audience": "[parameters('FhirServiceResource')]",
-          "authority": "[parameters('FhirServiceAuthority')]",
           "smartProxyEnabled": true
         },
         "corsConfiguration": {
@@ -282,7 +256,7 @@
       }
     },
     {
-      "name": "[concat(variables('app_service_name'),'-deploy')]",
+      "name": "[variables('app_service_deployment_name')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2019-08-01",
       "properties": {
@@ -324,17 +298,8 @@
           "FhirServiceUrl": {
             "value": "[parameters('FhirServiceUrl')]"
           },
-          "FhirServiceAuthority": {
-            "value": "[parameters('FhirServiceAuthority')]"
-          },
-          "FhirServiceResource": {
-            "value": "[parameters('FhirServiceResource')]"
-          },
-          "FhirServiceClientId": {
-            "value": "[parameters('FhirServiceClientId')]"
-          },
-          "FhirServiceClientSecret": {
-            "value": "[parameters('FhirServiceClientSecret')]"
+          "FhirServiceAudience": {
+            "value": "[parameters('FhirServiceAudience')]"
           },
           "ResourceIdentityResolutionType": {
             "value": "[parameters('ResourceIdentityResolutionType')]"
@@ -344,6 +309,22 @@
           }
         },
         "mode": "incremental"
+      }
+    },
+    {
+      "type": "Microsoft.HealthcareApis/services/providers/roleAssignments",
+      "condition": "[contains(parameters('IomtConnectorTemplateUrl'), 'managed-identity-azuredeploy.json')]",
+      "apiVersion": "2018-07-01",
+      "name": "[concat(variables('fhir_service_name'), '/Microsoft.Authorization/', guid(uniqueString(variables('fhir_service_name'))))]",
+      "dependsOn": [
+          "[resourceId('Microsoft.HealthcareApis/services',variables('fhir_service_name'))]",
+          "[resourceId('Microsoft.Resources/deployments', variables('app_service_deployment_name'))]"
+      ],
+      "properties": {
+          "roleDefinitionId": "[variables('fhir_datacontributor_role')]",
+          "principalId": "[reference(variables('app_service_deployment_name')).outputs.managedIdentityId.value]",
+          "principalType": "ServicePrincipal",
+          "scope": "[resourceId('Microsoft.HealthcareApis/services', variables('fhir_service_name'))]"
       }
     }
   ],

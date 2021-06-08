@@ -10,7 +10,7 @@ Once deployment is completed you should see the following Azure components:
 - Event Hubs Namespace
 - Stream Analytics job
 - Storage account
-- Key vault (x2)
+- Key vault
 - Azure API for FHIR (R4)
 - IoT Central Application
 
@@ -44,14 +44,6 @@ Log into your Azure subscription:
 Login-AzAccount
 ```
 
-Connect to Azure AD with:
-
-```PowerShell
-Connect-AzureAD -TenantDomain <AAD TenantDomain>
-```
-
-**NOTE** The connection to Azure AD can be made using a different tenant domain than the one tied to your Azure subscription. If you don't have privileges to create app registrations, users, etc. in your Azure AD tenant, you can [create a new one](https://docs.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant), which will just be used for demo identities, etc.
-
 If you have more than one subscription, you can choose which to deploy to with:
 
 ```PowerShell
@@ -80,7 +72,7 @@ After successful deployment, your IoT Central application must be connected to t
 
 ## Verification
 
-Copy the FHIR server URL, client ID and client secret from the deployment output to query the FHIR server (NOTE: this client ID and secret are used by the IoMT FHIR Connector for Azure and shouldn't be used on any other production services.')
+Copy the FHIR server URL from the deployment output to query the FHIR server.
 
 After a few minutes, you should begin to [see observations in the FHIR server](https://docs.microsoft.com/azure/healthcare-apis/access-fhir-postman-tutorial) from the simulated devices using the following GET URL
 
