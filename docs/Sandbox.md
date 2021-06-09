@@ -65,13 +65,13 @@ After successful deployment, your IoT Central application must be connected to t
 1. Navigate to your IoT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
 2. On the left panel, navigate to "Data export".
 3. Setup the destination to which the data has to be exported to:
-    * Under the Destinations tab, click "+ New Destination".
+    * Under the Destinations tab, click "Add a destination" or "+ New Destination".
     * Enter a name for this destination.
     * Select "Azure Event Hubs" as the Destination type.
     * [Get the connection string to the Event Hubs Namespace](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string) resource created in your environment and enter it in the Connection string field.
     * Enter "devicedata" for the Event Hub field.
     * Click Save.
-4. Under the Exports tab, click "+ New export".
+4. Under the Exports tab, click "Add an export" or "+ New export".
 5. Select "Telemetry" for type of data to export.
 6. Select the name of the destination created in step 3.
 7. Click Save.
