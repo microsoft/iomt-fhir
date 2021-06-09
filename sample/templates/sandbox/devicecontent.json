@@ -2,110 +2,110 @@
   "templateType": "CollectionContent",
   "template": [
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@Body.HeartRate)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.HeartRate)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.HeartRate",
+            "valueExpression": "$.telemetry.HeartRate",
             "valueName": "hr"
           }
         ]
       }
     },
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "respiratoryrate",
-        "typeMatchExpression": "$..[?(@Body.RespiratoryRate)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.RespiratoryRate)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.RespiratoryRate",
+            "valueExpression": "$.telemetry.RespiratoryRate",
             "valueName": "respiratoryrate"
           }
         ]
       }
     },
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "hrv",
-        "typeMatchExpression": "$..[?(@Body.HeartRateVariability)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.HeartRateVariability)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.HeartRateVariability",
+            "valueExpression": "$.telemetry.HeartRateVariability",
             "valueName": "hrv"
           }
         ]
       }
     },
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "bodytemperature",
-        "typeMatchExpression": "$..[?(@Body.BodyTemperature)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.BodyTemperature)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.BodyTemperature",
+            "valueExpression": "$.telemetry.BodyTemperature",
             "valueName": "temp"
           }
         ]
       }
     },
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "bp",
-        "typeMatchExpression": "$..[?(@Body.Systolic && @Body.Diastolic)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.BloodPressure.Systolic && @telemetry.BloodPressure.Diastolic)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.Systolic",
+            "valueExpression": "$.telemetry.BloodPressure.Systolic",
             "valueName": "systolic"
           },
           {
             "required": "true",
-            "valueExpression": "$.Body.Diastolic",
+            "valueExpression": "$.telemetry.BloodPressure.Diastolic",
             "valueName": "diastolic"
           }
         ]
       }
     },
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "rangeofmotion",
-        "typeMatchExpression": "$..[?(@Body.RangeOfMotion)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.RangeOfMotion)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.RangeOfMotion",
+            "valueExpression": "$.telemetry.RangeOfMotion",
             "valueName": "rangeofmotion"
           }
         ]
       }
     },
     {
-      "templateType": "IotJsonPathContent",
+      "templateType": "IotCentralJsonPathContent",
       "template": {
         "typeName": "kneebend",
-        "typeMatchExpression": "$..[?(@Body.KneeBend)]",
-        "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
+        "typeMatchExpression": "$..[?(@telemetry.KneeBend)]",
+        "patientIdExpression": "$.deviceId",
         "values": [
           {
             "required": "true",
-            "valueExpression": "$.Body.KneeBend",
+            "valueExpression": "$.telemetry.KneeBend",
             "valueName": "kneebend"
           }
         ]

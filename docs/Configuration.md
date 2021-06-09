@@ -2,7 +2,7 @@
 
 This article details how to configure your instance of the IoMT FHIR Connector for Azure.
 
-The IoMT FHIR Connector for Azure requires two JSON configuration files.  The first, device content, is responsible for mapping the payloads sent to the Event Hub end point and extracting types, device identifiers, measurement date time, and the measurement value(s).  The second template controls the FHIR mapping.  The FHIR mapping allows configuration of the length of the observation period, FHIR data type used to store the values, and code(s).  The two configuration files should be uploaded to the storage container "template" created under the blob storage account provisioned during the [ARM template deployment](ARMInstallation.md). The device content mapping file should be call `devicecontent.json` and the FHIR mapping file should be called `fhirmapping.json`. Full examples can be found in the repository under [/sample/templates](../sample/templates).  Configuration files are loaded from blob per compute execution.  Once updated they should take effect immediately.
+The IoMT FHIR Connector for Azure requires two JSON configuration files.  The first, device content, is responsible for mapping the payloads sent to the Event Hub end point and extracting types, device identifiers, measurement date time, and the measurement value(s).  The second template controls the FHIR mapping.  The FHIR mapping allows configuration of the length of the observation period, FHIR data type used to store the values, and code(s).  The two configuration files should be uploaded to the storage container "template" created under the blob storage account provisioned during the [ARM template deployment](ARMInstallation.md). The device content mapping file **MUST** be named `devicecontent.json` and the FHIR mapping file **MUST** be named `fhirmapping.json`. Full examples can be found in the repository under [/sample/templates](../sample/templates).  Configuration files are loaded from blob per compute execution.  Once updated they should take effect immediately.
 
 # Device Content Mapping
 
@@ -265,7 +265,7 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 
 The IotJsonPathContentTemplate is similar to the JsonPathContentTemplate except the DeviceIdExpression and TimestampExpression are not required.
 
-The assumption when using this template is the messages being evaluated were sent using the [Azure IoT Hub Device SDKs](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks#azure-iot-hub-device-sdks).  When using these SDKs the device identity (assuming the device id from Iot Hub/Central is registered as an identifer for a device resource on the destination FHIR server) is known as well as the timestamp of the message.  If you are using Azure IoT Hub Device SDKs but are using custom properties in the message body for the device identity or measurement timestamp you can still use the JsonPathContentTemplate.
+The assumption when using this template is the messages being evaluated were sent using the [Azure IoT Hub Device SDKs](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks#azure-iot-hub-device-sdks) or [Export Data (legacy)](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data-legacy) feature of [Azure IoT Central](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data). When using these SDKs the device identity (assuming the device id from Iot Hub/Central is registered as an identifer for a device resource on the destination FHIR server) is known as well as the timestamp of the message.  If you are using Azure IoT Hub Device SDKs but are using custom properties in the message body for the device identity or measurement timestamp you can still use the JsonPathContentTemplate.
 
 *Note: When using the IotJsonPathContentTemplate the TypeMatchExpression should resolve to the entire message as a JToken.  Please see the examples below.*
 
@@ -347,11 +347,13 @@ The assumption when using this template is the messages being evaluated were sen
 }
 ```
 
+Full example template can be found [here](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates/legacy).
+
 ### **IotCentralJsonPathContentTemplate**
 
 The IotCentralJsonPathContentTemplate is similar to the JsonPathContentTemplate except the DeviceIdExpression and TimestampExpression are not required.
 
-The assumption when using this template is the messages being evaluated were sent using the `Export Data` feature of [Azure IoT Central](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data).  When using this feature the device identity (assuming the device id from Iot Central is registered as an identifer for a device resource on the destination FHIR server) is known as well as the timestamp of the message. If you are using this export feature but are using custom properties in the message body for the device identity or measurement timestamp you can still use the JsonPathContentTemplate.
+The assumption when using this template is the messages being evaluated were sent using the [Export Data](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data) feature of [Azure IoT Central](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data). When using this feature the device identity (assuming the device id from Iot Central is registered as an identifer for a device resource on the destination FHIR server) is known as well as the timestamp of the message. If you are using this export feature but are using custom properties in the message body for the device identity or measurement timestamp you can still use the JsonPathContentTemplate.
 
 *Note: When using the IotCentralJsonPathContentTemplate the TypeMatchExpression should resolve to the entire message as a JToken.  Please see the examples below.*
 
@@ -459,6 +461,8 @@ The assumption when using this template is the messages being evaluated were sen
     }
 }
 ```
+Full example template can be found [here](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates/sandbox).
+
 ---
 
 # FHIR Mapping

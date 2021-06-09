@@ -58,16 +58,22 @@ Then deploy the scenario with the Open Source IoMT FHIR Connector for Azure:
 
 ## Post Deployment
 
-**NOTE** The device conversion mapping template provided in this guide is designed to work with Data export (legacy) within IoT Central.
+**NOTE** The device conversion mapping template provided in this guide is designed to work with the [Export Data](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data) feature of [Azure IoT Central](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data).
 
 After successful deployment, your IoT Central application must be connected to the IoMT FHIR Connector for Azure. To do so:
 
 1. Navigate to your IoT Central app at \<ENVIRONMENTNAME\>.azureiotcentral.com
-2. On the left panel, navigate to "Data export (legacy)"
-3. Click New > Azure Event Hubs
-4. Under "Event Hubs namespace" choose your environment name.
-5. Under "Event hub" choose "devicedata"
-6. We only need to export "Telemetry", so you can turn off "Devices" and "Device Templates".
+2. On the left panel, navigate to "Data export".
+3. Setup the destination to which the data has to be exported to:
+    * Under the Destinations tab, click "Add a destination" or "+ New Destination".
+    * Enter a name for this destination.
+    * Select "Azure Event Hubs" as the Destination type.
+    * [Get the connection string to the Event Hubs Namespace](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string) resource created in your environment and enter it in the Connection string field.
+    * Enter "devicedata" for the Event Hub field.
+    * Click Save.
+4. Under the Exports tab, click "Add an export" or "+ New export".
+5. Select "Telemetry" for type of data to export.
+6. Select the name of the destination created in step 3.
 7. Click Save.
 
 ## Verification

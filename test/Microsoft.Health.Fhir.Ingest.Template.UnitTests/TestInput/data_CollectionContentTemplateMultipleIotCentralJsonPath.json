@@ -1,0 +1,55 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "IotCentralJsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@telemetry.HeartRate)]",
+        "patientIdExpression": "$.deviceId",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.telemetry.HeartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotCentralJsonPathContent",
+      "template": {
+        "typeName": "respiratoryrate",
+        "typeMatchExpression": "$..[?(@telemetry.RespiratoryRate)]",
+        "patientIdExpression": "$.deviceId",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.telemetry.RespiratoryRate",
+            "valueName": "respiratoryrate"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotCentralJsonPathContent",
+      "template": {
+        "typeName": "bp",
+        "typeMatchExpression": "$..[?(@telemetry.BloodPressure.Systolic && @telemetry.BloodPressure.Diastolic)]",
+        "patientIdExpression": "$.deviceId",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.telemetry.BloodPressure.Systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.telemetry.BloodPressure.Diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    }
+  ]
+}

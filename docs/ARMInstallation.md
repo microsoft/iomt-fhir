@@ -55,6 +55,5 @@ After the ARM template is successfully deployed, [configure Azure RBAC for your 
 
  Also, the mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob.  You can use a tool like [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to easily upload and update the configurations. Navigate to the Azure Storage account deployed by the ARM template (it will be service name you selected) and select the template storage to container.  From there upload the configurations and you are done.
 
-Default templates:
- [Device Content](../sample/templates/basic/devicecontent.json)
- [FHIR Mapping](../sample/templates/basic/fhirmapping.json)
+More information on mapping templates can be found [here](https://github.com/microsoft/iomt-fhir/blob/7794cbcc463e8d26c3097cd5e2243d770f26fe45/docs/Configuration.md).
+Full examples can be found in the repository under [/sample/templates](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates)

@@ -86,7 +86,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Inges
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Logging", "src\lib\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj", "{05123BAE-E96E-4C7E-95CB-C616DF940F17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Events.UnitTest", "test\Microsoft.Health.Events.UnitTest\Microsoft.Health.Events.UnitTest.csproj", "{77E5164F-2DED-4297-A082-54FAFD1C4EC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Events.UnitTest", "test\Microsoft.Health.Events.UnitTest\Microsoft.Health.Events.UnitTest.csproj", "{77E5164F-2DED-4297-A082-54FAFD1C4EC9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sandbox", "sandbox", "{4793E9D2-6D10-4AB4-8D4C-04E0F0309AF5}"
+	ProjectSection(SolutionItems) = preProject
+		sample\templates\sandbox\devicecontent.json = sample\templates\sandbox\devicecontent.json
+		sample\templates\sandbox\fhirmapping.json = sample\templates\sandbox\fhirmapping.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "legacy", "legacy", "{657FB6EC-2F58-43B6-AD14-5EDE9D73C1E5}"
+	ProjectSection(SolutionItems) = preProject
+		sample\templates\sandbox\legacy\devicecontent.json = sample\templates\sandbox\legacy\devicecontent.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -208,6 +219,8 @@ Global
 		{927BC214-ABD9-4A1B-9F7C-75973513D141} = {1EF3584A-C437-4B45-8BF8-1597D5A8DBC7}
 		{05123BAE-E96E-4C7E-95CB-C616DF940F17} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
 		{77E5164F-2DED-4297-A082-54FAFD1C4EC9} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
+		{4793E9D2-6D10-4AB4-8D4C-04E0F0309AF5} = {75D08B93-4CE1-4967-B0C3-DAA792F1D19A}
+		{657FB6EC-2F58-43B6-AD14-5EDE9D73C1E5} = {75D08B93-4CE1-4967-B0C3-DAA792F1D19A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A358924D-F948-4AE8-8CD0-A0F56225CE0C}
