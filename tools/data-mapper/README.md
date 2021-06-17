@@ -91,7 +91,7 @@ This tool is built with ReactJS. It requires Npm dependencies to build and run. 
 
 5. (Optional) You can use your Visual Studio to run the tool as well, and make your own changes.
 
-   You can load the solution ```Microsoft.Health.Tools.DataMapper.sln``` in your Visual Studio and start or debug the project ```Microsoft.Health.Tools.DataMapper``` that includes the build of Client App automatically. Note, run with ```IIS Express``` will not automatically build and render the web app but the backend APIs.
+   You can load the solution ```Microsoft.Health.Tools.DataMapper.sln``` in your Visual Studio and start or debug the project ```Microsoft.Health.Tools.DataMapper``` after step #2 above. You may want to terminate the running process from Step #3 to avoid from conflicting port.
 
 ### How to Make Mappings
 
