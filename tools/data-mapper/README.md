@@ -89,6 +89,10 @@ This tool is built with ReactJS. It requires Npm dependencies to build and run. 
 
    You may see the site is not secure because of the certificate used on the localhost. Since the tool should not handle any critical data and there is not any other internet connection, you can move forward in your browser.
 
+5. (Optional) You can use your Visual Studio to run the tool as well, and make your own changes.
+
+   You can load the solution ```Microsoft.Health.Tools.DataMapper.sln``` in your Visual Studio and start or debug the project ```Microsoft.Health.Tools.DataMapper``` that includes the build of Client App automatically. Note, run with ```IIS Express``` will not automatically build and render the web app but the backend APIs.
+
 ### How to Make Mappings
 
 1. Make sure you have read the introduction of [IoMT FHIR Connector for Azure](https://github.com/microsoft/iomt-fhir) and understand the purpose of its [configuration](https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md).
