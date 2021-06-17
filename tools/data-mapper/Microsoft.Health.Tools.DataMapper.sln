@@ -28,6 +28,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir", "..\..\src\lib\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj", "{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Events", "..\..\src\lib\Microsoft.Health.Events\Microsoft.Health.Events.csproj", "{860EBEEC-5038-4337-A8CC-8B9E122D0840}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Logging", "..\..\src\lib\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj", "{F77B4296-932B-4F17-8709-7F30CBD2FDDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +74,14 @@ Global
 		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5B2B388-C59C-4CBF-9EF0-F0E2CA47EF7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{860EBEEC-5038-4337-A8CC-8B9E122D0840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{860EBEEC-5038-4337-A8CC-8B9E122D0840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{860EBEEC-5038-4337-A8CC-8B9E122D0840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{860EBEEC-5038-4337-A8CC-8B9E122D0840}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F77B4296-932B-4F17-8709-7F30CBD2FDDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F77B4296-932B-4F17-8709-7F30CBD2FDDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F77B4296-932B-4F17-8709-7F30CBD2FDDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F77B4296-932B-4F17-8709-7F30CBD2FDDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
