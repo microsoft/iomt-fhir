@@ -47,6 +47,22 @@ To check .NET installation, use below commands:
 
 Here is the official resource for installing .NET Core: <https://dotnet.microsoft.com/download/dotnet-core>.
 
+### Npm
+
+This tool is built with ReactJS. It requires Npm dependencies to build and run. The public default registry tested to work is ```https://registry.npmjs.org/```.
+
+- If you are not sure about your Npm registry, you can run:
+  ```
+  npm config get registry
+  ```
+- If you want to use the public registry, you can run:
+  ```
+  npm config set registry https://registry.npmjs.org/
+  ```
+- If you need to use private repo, please make sure:
+  - you are able to access your private repo
+  - the repo has packages and versions up to date
+
 ## Getting Started
 
 ### Start the IoMT Connector Data Mapper
