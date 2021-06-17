@@ -59,9 +59,9 @@ This tool is built with ReactJS. It requires Npm dependencies to build and run. 
   ```
   npm config set registry https://registry.npmjs.org/
   ```
-- If you need to use private repo, please make sure:
-  - you are able to access your private repo
-  - the repo has packages and versions up to date
+- If you need to use private registry, please make sure:
+  - you are able to access your private registry
+  - the registry has dependency packages and versions up to date
 
 ## Getting Started
 
