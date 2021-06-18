@@ -15,6 +15,7 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
+using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
@@ -23,17 +24,25 @@ namespace Microsoft.Health.Events.EventCheckpointing
 {
     public class StorageCheckpointClient : ICheckpointClient
     {
-        private ConcurrentDictionary<string, Checkpoint> _checkpoints;
-        private ConcurrentDictionary<string, int> _lastCheckpointTracker;
-        private int _lastCheckpointMaxCount;
-        private BlobContainerClient _storageClient;
-        private ITelemetryLogger _log;
+        private readonly string _blobCheckpointPrefix;
+        private readonly string _blobPath;
+        private readonly ConcurrentDictionary<string, Checkpoint> _checkpoints;
+        private readonly int _lastCheckpointMaxCount;
+        private readonly ConcurrentDictionary<string, int> _lastCheckpointTracker;
+        private readonly ITelemetryLogger _log;
+        private readonly BlobContainerClient _storageClient;
 
-        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions options, ITelemetryLogger log)
+        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions options, EventHubClientOptions eventHubClientOptions, ITelemetryLogger log)
         {
             EnsureArg.IsNotNull(containerClient);
             EnsureArg.IsNotNull(options);
-            BlobPrefix = options.BlobPrefix;
+            EnsureArg.IsNotNull(eventHubClientOptions);
+
+            // Blob path for checkpoints includes the event hub name to scope the checkpoints per source event hub.
+            _blobCheckpointPrefix = $"{options.BlobPrefix}/checkpoint/";
+            _blobPath = eventHubClientOptions != default ?
+                $"{_blobCheckpointPrefix}{eventHubClientOptions.EventHubNamespaceFQDN}/{eventHubClientOptions.EventHubName}/" :
+                _blobCheckpointPrefix;
 
             _lastCheckpointMaxCount = int.Parse(options.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
@@ -41,8 +50,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
             _storageClient = containerClient;
             _log = log;
         }
-
-        public string BlobPrefix { get; }
 
         public BlobContainerClient GetBlobContainerClient()
         {
@@ -55,7 +62,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             EnsureArg.IsNotNullOrWhiteSpace(checkpoint.Id);
             var lastProcessed = EnsureArg.IsNotNullOrWhiteSpace(checkpoint.LastProcessed.DateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
 
-            var blobName = $"{BlobPrefix}/checkpoint/{checkpoint.Id}";
+            var blobName = $"{checkpoint.Prefix}{checkpoint.Id}";
             var blobClient = _storageClient.GetBlobClient(blobName);
 
             var metadata = new Dictionary<string, string>()
@@ -87,7 +94,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
         public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier)
         {
-            var prefix = $"{BlobPrefix}/checkpoint/{partitionIdentifier}";
+            var prefix = $"{_blobPath}{partitionIdentifier}";
 
             Task<Checkpoint> GetCheckpointAsync()
             {
@@ -103,7 +110,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
                         DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
                     }
 
-                    checkpoint.Prefix = BlobPrefix;
+                    checkpoint.Prefix = _blobPath;
                     checkpoint.Id = partitionId;
                     checkpoint.LastProcessed = lastEventTimestamp;
                 }
@@ -136,7 +143,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 var checkpoint = new Checkpoint();
                 checkpoint.LastProcessed = eventArgs.EnqueuedTime;
                 checkpoint.Id = partitionId;
-                checkpoint.Prefix = BlobPrefix;
+                checkpoint.Prefix = _blobPath;
 
                 _checkpoints[partitionId] = checkpoint;
                 var count = _lastCheckpointTracker.AddOrUpdate(partitionId, 1, (key, value) => value + 1);
@@ -160,6 +167,29 @@ namespace Microsoft.Health.Events.EventCheckpointing
         {
             Checkpoint checkpoint = _checkpoints[partitionId];
             await UpdateCheckpointAsync(checkpoint);
+        }
+
+        /// <summary>
+        /// Deletes the previously recorded checkpoints if the current checkpoint blob path (corresponding to the input event hub) has changed.
+        /// </summary>
+        public async Task ResetCheckpointsAsync()
+        {
+            try
+            {
+                foreach (BlobItem blob in _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None))
+                {
+                    if (!blob.Name.Contains(_blobPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: CancellationToken.None);
+                    }
+                }
+            }
+#pragma warning disable CA1031
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+                _log.LogError(new Exception($"Unable to reset checkpoints. {ex.Message}"));
+            }
         }
     }
 }
