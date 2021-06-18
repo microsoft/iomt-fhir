@@ -1,0 +1,24 @@
+{
+  "templateType": "ExpressionContent",
+  "template": {
+    "typeName": "heartrate",
+    "typeMatchExpression": "$..[?(@heartrate)]",
+    "typeMatchExpressionLanguage": "JsonPath",
+    "deviceIdExpression": "$.device",
+    "deviceIdExpressionLanguage": "JsonPath",
+    "timestampExpression": "$.date",
+    "timestampExpressionLanguage": "JsonPath",
+    "correlationIdExpression": "$.correlationId",
+    "correlationIdExpressionLanguage": "JsonPath",
+    "patientIdExpression": "$.patientId",
+    "patientIdExpressionLanguage": "JsonPath",
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.heartrate",
+        "valueExpressionLanguage": "JsonPath",
+        "valueName": "hr"
+      }
+    ]
+  }
+}
