@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Fhir.Ingest.Template.Expression
+namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public class ExpressionValueExpression : JsonPathValueExpression
+    public class CalculatedFunctionValueExpression : JsonPathValueExpression
     {
         public ExpressionLanguage? ValueExpressionLanguage { get; set; }
     }

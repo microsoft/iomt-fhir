@@ -7,7 +7,7 @@ using System;
 using DevLab.JmesPath;
 using EnsureThat;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.Expression
+namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
     public class ExpressionEvaluatorFactory : IExpressionEvaluatorFactory
     {
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
             switch (expression.Language)
             {
                 case ExpressionLanguage.JsonPath:
-                    return null;
+                    return new JsonPathExpressionEvaluator(expression.Value);
                 case ExpressionLanguage.JMESPath:
                     var jmesPathExpression = _jmesPath.Parse(expression.Value);
                     return new JMESPathExpressionEvaluator(jmesPathExpression, expression);

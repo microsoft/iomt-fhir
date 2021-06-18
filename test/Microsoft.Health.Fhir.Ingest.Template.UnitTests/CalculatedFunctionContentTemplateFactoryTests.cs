@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Fhir.Ingest.Template.Expression;
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class ExpressionContentTemplateFactoryTests
+    public class CalculatedFunctionContentTemplateFactoryTests
     {
         [Theory]
         [FileData(@"TestInput/data_ExpressionContentTemplateValid.json")]
@@ -18,12 +18,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
 
-            var factory = new ExpressionContentTemplateFactory();
+            var factory = new CalculatedFunctionContentTemplateFactory();
 
             var template = factory.Create(templateContainer);
             Assert.NotNull(template);
 
-            var expressionTemplate = template as ExpressionContentTemplate;
+            var expressionTemplate = template as CalculatedFunctionContentTemplate;
             Assert.NotNull(expressionTemplate);
 
             Assert.Equal("heartrate", expressionTemplate.TypeName);
@@ -52,12 +52,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
 
-            var factory = new ExpressionContentTemplateFactory();
+            var factory = new CalculatedFunctionContentTemplateFactory();
 
             var template = factory.Create(templateContainer);
             Assert.NotNull(template);
 
-            var expressionTemplate = template as ExpressionContentTemplate;
+            var expressionTemplate = template as CalculatedFunctionContentTemplate;
             Assert.NotNull(expressionTemplate);
 
             Assert.Equal("heartrate", expressionTemplate.TypeName);

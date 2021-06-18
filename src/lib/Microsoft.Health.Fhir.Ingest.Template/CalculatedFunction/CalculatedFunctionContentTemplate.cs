@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,9 +14,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.Expression
+namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public class ExpressionContentTemplate : IContentTemplate
+    public class CalculatedFunctionContentTemplate : IContentTemplate
     {
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
@@ -49,14 +49,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
         public virtual ExpressionLanguage? CorrelationIdExpressionLanguage { get; set; }
 
 #pragma warning disable CA2227
-        public virtual IList<ExpressionValueExpression> Values { get; set; }
+        public virtual IList<CalculatedFunctionValueExpression> Values { get; set; }
 #pragma warning restore CA2227
 
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual ExpressionLanguage DefaultExpressionLanguage { get; set; } = ExpressionLanguage.JsonPath;
 
         [JsonIgnore]
-        public virtual IExpressionEvaluatorFactory ExpressionEvaluatorFactory { get; set; }
+        public virtual IExpressionEvaluatorFactory ExpressionEvaluatorFactory { get; set; } = new ExpressionEvaluatorFactory();
 
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
@@ -87,7 +87,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
 
                 var evaluator = ExpressionEvaluatorFactory.Create(expression);
 
-                var evaluatedToken = evaluator.Evaluate(token);
+                var evaluatedToken = evaluator.SelectToken(token);
 
                 if (evaluatedToken == null)
                 {
@@ -108,55 +108,28 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
         }
 
         protected virtual DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(
-            token,
-            new Expression()
-            {
-                Id = nameof(TimestampExpression),
-                Value = TimestampExpression,
-                Language = TimestampExpressionLanguage ?? DefaultExpressionLanguage,
-            });
+            token, BuildExpression(nameof(TimestampExpression), TimestampExpression, TimestampExpressionLanguage));
 
         protected virtual string GetDeviceId(JToken token) => EvalExpression<string>(
-            token,
-            new Expression()
-            {
-                Id = nameof(DeviceIdExpression),
-                Value = DeviceIdExpression,
-                Language = DeviceIdExpressionLanguage ?? DefaultExpressionLanguage,
-            });
+            token, BuildExpression(nameof(DeviceIdExpression), DeviceIdExpression, DeviceIdExpressionLanguage));
 
         protected virtual string GetPatientId(JToken token) => EvalExpression<string>(
-            token,
-            new Expression()
-            {
-                Id = nameof(PatientIdExpression),
-                Value = PatientIdExpression,
-                Language = PatientIdExpressionLanguage ?? DefaultExpressionLanguage,
-            });
+            token, BuildExpression(nameof(PatientIdExpression), PatientIdExpression, PatientIdExpressionLanguage));
 
         protected virtual string GetEncounterId(JToken token) => EvalExpression<string>(
-            token,
-            new Expression()
-            {
-                Id = nameof(EncounterIdExpression),
-                Value = EncounterIdExpression,
-                Language = EncounterIdExpressionLanguage ?? DefaultExpressionLanguage,
-            });
+            token, BuildExpression(nameof(EncounterIdExpression), EncounterIdExpression, EncounterIdExpressionLanguage));
 
         protected virtual string GetCorrelationId(JToken token) => EvalExpression<string>(
-            token,
-            new Expression()
-            {
-                Id = nameof(CorrelationIdExpression),
-                Value = CorrelationIdExpression,
-                Language = CorrelationIdExpressionLanguage ?? DefaultExpressionLanguage,
-            });
+            token, BuildExpression(nameof(CorrelationIdExpression), CorrelationIdExpression, CorrelationIdExpressionLanguage));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<JToken> MatchTypeTokens(JToken token)
         {
             // TODO: Gather the matched tokens. Create a new JToken which contains the original root plus the extracted token. Return this token
-            return token.SelectTokens(TypeMatchExpression);
+            var expression = BuildExpression(nameof(TypeMatchExpression), TypeMatchExpression, TypeMatchExpressionLanguage);
+            var evaluator = ExpressionEvaluatorFactory.Create(expression);
+
+            return evaluator.SelectTokens(token);
         }
 
         private Measurement CreateMeasurementFromToken(JToken token)
@@ -188,12 +161,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
 
             if (Values != null)
             {
-                foreach (var val in Values)
+                for (var i = 0; i < Values.Count; i++)
                 {
-                    var value = token.SelectToken(val.ValueExpression);
+                    var val = Values[i];
+                    var value = EvalExpression<string>(
+                        token,
+                        BuildExpression($"ValueExpression{i}", val.ValueExpression, val.ValueExpressionLanguage));
                     if (value != null)
                     {
-                        measurement.Properties.Add(new MeasurementProperty { Name = val.ValueName, Value = value.Value<string>() });
+                        measurement.Properties.Add(new MeasurementProperty { Name = val.ValueName, Value = value });
                     }
                     else
                     {
@@ -206,6 +182,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
             }
 
             return measurement;
+        }
+
+        private Expression BuildExpression(string id, string value, ExpressionLanguage? language)
+        {
+            EnsureArg.IsNotEmptyOrWhiteSpace(id, nameof(id));
+            EnsureArg.IsNotEmptyOrWhiteSpace(value, nameof(value));
+
+            return new Expression()
+            {
+                Id = nameof(id),
+                Value = value,
+                Language = language ?? DefaultExpressionLanguage,
+            };
         }
     }
 }

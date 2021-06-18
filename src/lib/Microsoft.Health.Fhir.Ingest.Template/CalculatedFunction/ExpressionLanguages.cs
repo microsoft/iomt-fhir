@@ -3,16 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-namespace Microsoft.Health.Fhir.Ingest.Template.Expression
+namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public interface IExpressionEvaluator
+    public enum ExpressionLanguage
     {
-        ///
-        /// Evaluates the supplied data against the expression represented by this evaluator
-        ///
-        JToken Evaluate(JToken data);
+        /// <summary>
+        /// Indicates that the expression language is JsonPath
+        /// </summary>
+        JsonPath,
+
+        /// <summary>
+        /// Indicates that the expression language is JMESpath
+        /// </summary>
+        JMESPath,
     }
 }

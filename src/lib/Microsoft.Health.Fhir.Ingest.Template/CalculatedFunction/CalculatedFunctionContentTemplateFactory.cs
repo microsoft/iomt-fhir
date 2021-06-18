@@ -6,9 +6,9 @@
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.Expression
+namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public class ExpressionContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
+    public class CalculatedFunctionContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
         private const string TargetTypeName = "ExpressionContent";
 
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Expression
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {TargetTypeName}.");
             }
 
-            return jsonTemplate.Template.ToValidTemplate<ExpressionContentTemplate>();
+            return jsonTemplate.Template.ToValidTemplate<CalculatedFunctionContentTemplate>();
         }
     }
 }
