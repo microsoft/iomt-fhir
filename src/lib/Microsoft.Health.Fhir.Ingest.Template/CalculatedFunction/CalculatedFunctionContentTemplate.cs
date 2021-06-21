@@ -17,6 +17,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
     public class CalculatedFunctionContentTemplate : IContentTemplate
     {
+        public const string MatchedToken = "matchedToken";
+
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
 
@@ -60,8 +62,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
+            EnsureArg.IsTrue(token is JObject);
 
-            foreach (var typeToken in MatchTypeTokens(token))
+            foreach (var typeToken in MatchTypeTokens(token as JObject))
             {
                 yield return CreateMeasurementFromToken(typeToken);
             }
@@ -122,13 +125,21 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             token, BuildExpression(nameof(CorrelationIdExpression), CorrelationIdExpression, CorrelationIdExpressionLanguage));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IEnumerable<JToken> MatchTypeTokens(JToken token)
+        private IEnumerable<JToken> MatchTypeTokens(JObject token)
         {
-            // TODO: Gather the matched tokens. Create a new JToken which contains the original root plus the extracted token. Return this token
+            EnsureArg.IsNotNull(token, nameof(token));
             var expression = BuildExpression(nameof(TypeMatchExpression), TypeMatchExpression, TypeMatchExpressionLanguage);
             var evaluator = ExpressionEvaluatorFactory.Create(expression);
 
-            return evaluator.SelectTokens(token);
+            foreach (var extractedToken in evaluator.SelectTokens(token))
+            {
+                // Add the extracted data as an element of the original data.
+                // This allows subsequent expressions access to data from the original event data
+
+                var tokenClone = token.DeepClone() as JObject;
+                tokenClone.Add(MatchedToken, extractedToken);
+                yield return tokenClone;
+            }
         }
 
         private Measurement CreateMeasurementFromToken(JToken token)

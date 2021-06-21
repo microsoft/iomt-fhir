@@ -29,6 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "$.matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -49,6 +50,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "$.matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -73,6 +75,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "$.matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -98,6 +101,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "$.matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -118,6 +122,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -142,6 +147,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JMESPath },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -167,6 +173,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JMESPath },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "matchedToken.patient", Required = false },
                     },
                 });
         }
@@ -241,11 +248,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("patient123", m.PatientId);
                 Assert.Equal("abcdefg", m.CorrelationId);
                 Assert.Null(m.EncounterId);
-                Assert.Collection(m.Properties, p =>
-                {
-                    Assert.Equal("hr", p.Name);
-                    Assert.Equal("60", p.Value);
-                });
+                Assert.Collection(
+                    m.Properties,
+                    p =>
+                    {
+                        Assert.Equal("hr", p.Name);
+                        Assert.Equal("60", p.Value);
+                    },
+                    p =>
+                    {
+                        Assert.Equal("pie", p.Name);
+                        Assert.Equal("patient123", p.Value);
+                    });
             });
         }
     }

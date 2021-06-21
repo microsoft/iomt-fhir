@@ -41,7 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
             if (result.Type != JTokenType.Array)
             {
-                throw new ExpressionException($"Expected result to be a collection when using expression ${_expression.Value}");
+                throw new ExpressionException($"Expected result to be a collection when using expression: {_expression.Value}");
             }
 
             return result;
