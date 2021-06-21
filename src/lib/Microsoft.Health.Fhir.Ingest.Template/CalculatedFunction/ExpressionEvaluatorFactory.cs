@@ -17,7 +17,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         {
             _jmesPath = new JmesPath();
 
-            // register additional functions.... Need to figure out how to allow external customers to add in their own functions
+            /*
+             * register additional custom functions.
+             *
+             * TODO: Do we want to allow customers to register additional, custom functions in the OSS project? Possibly via dependency injection?
+             *
+             */
         }
 
         public IExpressionEvaluator Create(Expression expression)
@@ -29,8 +34,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                 case ExpressionLanguage.JsonPath:
                     return new JsonPathExpressionEvaluator(expression.Value);
                 case ExpressionLanguage.JMESPath:
-                    var jmesPathExpression = _jmesPath.Parse(expression.Value);
-                    return new JMESPathExpressionEvaluator(jmesPathExpression, expression);
+                    try
+                    {
+                        var jmesPathExpression = _jmesPath.Parse(expression.Value);
+                        return new JMESPathExpressionEvaluator(jmesPathExpression, expression);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ExpressionException("Unable to parse JMESPath expression", e);
+                    }
+
                 default:
                     throw new ArgumentException($"Unsupported Expression Language {expression.Language}");
             }

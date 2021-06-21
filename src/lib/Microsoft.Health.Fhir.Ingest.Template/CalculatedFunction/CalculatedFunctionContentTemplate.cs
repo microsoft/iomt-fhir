@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
-using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;

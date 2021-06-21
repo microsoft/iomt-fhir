@@ -13,7 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class CalculatedFunctionContentTemplateFactoryTests
     {
         [Theory]
-        [FileData(@"TestInput/data_ExpressionContentTemplateValid.json")]
+        [FileData(@"TestInput/data_CalculatedFunctionContentTemplateValid.json")]
         public void GivenValidTemplateJson_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        [FileData(@"TestInput/data_ExpressionContentTemplateValidOptional.json")]
+        [FileData(@"TestInput/data_CalculatedFunctionContentTemplateValidOptional.json")]
         public void GivenValidTemplateJsonWithOptionalExpressions_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
         {
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);

@@ -1,5 +1,5 @@
 {
-  "templateType": "ExpressionContent",
+  "templateType": "CalculatedFunctionContent",
   "template": {
     "typeName": "heartrate",
     "typeMatchExpression": "$..[?(@heartrate)]",

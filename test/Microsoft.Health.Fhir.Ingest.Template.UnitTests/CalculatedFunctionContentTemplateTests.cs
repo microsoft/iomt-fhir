@@ -15,32 +15,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CalculatedFunctionContentTemplateTests
     {
-        private static readonly IContentTemplate SingleValueTemplate = new CalculatedFunctionContentTemplate
-        {
-            TypeName = "heartrate",
-            TypeMatchExpression = "$..[?(@heartrate)]",
-            DeviceIdExpression = "$.device",
-            TimestampExpression = "$.date",
-            Values = new List<CalculatedFunctionValueExpression>
-            {
-              new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
-            },
-        };
-
-        private static readonly IContentTemplate SingleValueOptionalContentTemplate = new JsonPathContentTemplate
-        {
-            TypeName = "heartrate",
-            TypeMatchExpression = "$..[?(@heartrate)]",
-            DeviceIdExpression = "$.device",
-            TimestampExpression = "$.date",
-            PatientIdExpression = "$.pid",
-            EncounterIdExpression = "$.eid",
-            Values = new List<JsonPathValueExpression>
-            {
-              new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
-            },
-        };
-
         private static readonly IContentTemplate SingleValueRequiredTemplate = new JsonPathContentTemplate
         {
             TypeName = "heartrate",
@@ -308,13 +282,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             });
         }
 
-        [Fact]
-        public void GivenSingleValueOptionalContentTemplateAndValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test()
+        [Theory]
+        [MemberData(nameof(GetSingleValueOptionalContentTemplates))]
+        public void GivenSingleValueOptionalContentTemplateAndValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(IContentTemplate contentTemplate)
         {
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time, pid = "123", eid = "789" });
 
-            var result = SingleValueOptionalContentTemplate.GetMeasurements(token).ToArray();
+            var result = contentTemplate.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Collection(result, m =>
@@ -424,13 +399,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Empty(result);
         }
 
-        [Fact]
-        public void GivenTemplateAndInvalidToken_WhenGetMeasurements_ThenEmptyIEnumerableReturned_Test()
+        [Theory]
+        [MemberData(nameof(GetSingleValueTemplates))]
+        public void GivenTemplateAndInvalidToken_WhenGetMeasurements_ThenEmptyIEnumerableReturned_Test(IContentTemplate contentTemplate)
         {
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { foo = "60", device = "abc", date = time });
 
-            var result = SingleValueTemplate.GetMeasurements(token).ToArray();
+            var result = contentTemplate.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Empty(result);
@@ -480,29 +456,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     TypeName = "heartrate",
                     DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
-                    TypeMatchExpression = "[@] | [?heartrate]",
+                    TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "device",
                     TimestampExpression = "date",
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false },
-                    },
-                },
-            }.ToArray();
-            yield return new List<IContentTemplate>()
-            {
-                new CalculatedFunctionContentTemplate
-                {
-                    TypeName = "heartrate",
-                    TypeMatchExpression = "[@] | [?heartrate]",
-                    TypeMatchExpressionLanguage = ExpressionLanguage.JMESPath,
-                    DeviceIdExpression = "device",
-                    DeviceIdExpressionLanguage = ExpressionLanguage.JMESPath,
-                    TimestampExpression = "date",
-                    TimestampExpressionLanguage = ExpressionLanguage.JMESPath,
-                    Values = new List<CalculatedFunctionValueExpression>
-                    {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false, ValueExpressionLanguage = ExpressionLanguage.JMESPath},
                     },
                 },
             }.ToArray();
@@ -520,20 +479,40 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     },
                 },
             }.ToArray();
+        }
+
+        public static IEnumerable<object[]> GetSingleValueOptionalContentTemplates()
+        {
+            yield return new List<IContentTemplate>()
+            {
+                new JsonPathContentTemplate
+                {
+                    TypeName = "heartrate",
+                    TypeMatchExpression = "$..[?(@heartrate)]",
+                    DeviceIdExpression = "$.device",
+                    TimestampExpression = "$.date",
+                    PatientIdExpression = "$.pid",
+                    EncounterIdExpression = "$.eid",
+                    Values = new List<JsonPathValueExpression>
+                    {
+                      new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
+                    },
+                },
+            }.ToArray();
             yield return new List<IContentTemplate>()
             {
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = "$..[?(@heartrate)]",
-                    TypeMatchExpressionLanguage = ExpressionLanguage.JsonPath,
-                    DeviceIdExpression = "$.device",
-                    DeviceIdExpressionLanguage = ExpressionLanguage.JsonPath,
-                    TimestampExpression = "$.date",
-                    TimestampExpressionLanguage = ExpressionLanguage.JsonPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    TypeMatchExpression = "to_array(@)[?heartrate]",
+                    DeviceIdExpression = "device",
+                    TimestampExpression = "date",
+                    PatientIdExpression = "pid",
+                    EncounterIdExpression = "eid",
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false },
                     },
                 },
             }.ToArray();

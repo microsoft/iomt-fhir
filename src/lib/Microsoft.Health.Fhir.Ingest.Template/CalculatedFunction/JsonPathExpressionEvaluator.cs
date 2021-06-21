@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using EnsureThat;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
@@ -21,12 +22,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public JToken SelectToken(JToken data)
         {
             EnsureArg.IsNotNull(data, nameof(data));
-            return data.SelectToken(_jsonPathExpression);
+            try
+            {
+                return data.SelectToken(_jsonPathExpression);
+            }
+            catch (JsonException e)
+            {
+                throw new ExpressionException($"Unable to retrieve JsonToken using expression ${_jsonPathExpression}", e);
+            }
         }
 
         public IEnumerable<JToken> SelectTokens(JToken data)
         {
-            return data.SelectTokens(_jsonPathExpression);
+            EnsureArg.IsNotNull(data, nameof(data));
+            try
+            {
+                return data.SelectTokens(_jsonPathExpression);
+            }
+            catch (JsonException e)
+            {
+                throw new ExpressionException($"Unable to retrieve JsonTokens using expression ${_jsonPathExpression}", e);
+            }
         }
     }
 }

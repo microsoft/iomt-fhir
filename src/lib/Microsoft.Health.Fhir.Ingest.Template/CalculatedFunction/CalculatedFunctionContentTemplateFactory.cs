@@ -10,7 +10,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
     public class CalculatedFunctionContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
-        private const string TargetTypeName = "ExpressionContent";
+        private const string TargetTypeName = "CalculatedFunctionContent";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Exception message")]
         public override IContentTemplate Create(TemplateContainer jsonTemplate)
