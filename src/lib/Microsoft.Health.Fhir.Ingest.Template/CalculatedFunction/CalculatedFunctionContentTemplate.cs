@@ -55,7 +55,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public virtual ExpressionLanguage DefaultExpressionLanguage { get; set; } = ExpressionLanguage.JsonPath;
 
         [JsonIgnore]
-        public virtual IExpressionEvaluatorFactory ExpressionEvaluatorFactory { get; set; } = new ExpressionEvaluatorFactory();
+        public virtual IExpressionEvaluatorFactory ExpressionEvaluatorFactory { get; set; } = new CachingExpressionEvaluatorFactory();
 
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
@@ -190,7 +190,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
             return new Expression()
             {
-                Id = nameof(id),
+                Id = id,
                 Value = value,
                 Language = language ?? DefaultExpressionLanguage,
             };
