@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Messaging.EventHubs;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
@@ -32,19 +33,21 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private readonly ITelemetryLogger _log;
         private readonly BlobContainerClient _storageClient;
 
-        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions options, EventHubClientOptions eventHubClientOptions, ITelemetryLogger log)
+        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger log)
         {
-            EnsureArg.IsNotNull(containerClient);
-            EnsureArg.IsNotNull(options);
-            EnsureArg.IsNotNull(eventHubClientOptions);
+            EnsureArg.IsNotNull(containerClient, nameof(containerClient));
+            EnsureArg.IsNotNull(storageCheckpointOptions, nameof(storageCheckpointOptions));
+            EnsureArg.IsNotNull(eventHubClientOptions, nameof(eventHubClientOptions));
+
+            (string eventHubNamespaceFQDN, string eventHubName) = GetEventHubProperties(eventHubClientOptions);
+            EnsureArg.IsNotNullOrWhiteSpace(eventHubNamespaceFQDN, nameof(eventHubNamespaceFQDN));
+            EnsureArg.IsNotNullOrWhiteSpace(eventHubName, nameof(eventHubName));
 
             // Blob path for checkpoints includes the event hub name to scope the checkpoints per source event hub.
-            _blobCheckpointPrefix = $"{options.BlobPrefix}/checkpoint/";
-            _blobPath = eventHubClientOptions != default ?
-                $"{_blobCheckpointPrefix}{eventHubClientOptions.EventHubNamespaceFQDN}/{eventHubClientOptions.EventHubName}/" :
-                _blobCheckpointPrefix;
+            _blobCheckpointPrefix = $"{storageCheckpointOptions.BlobPrefix}/checkpoint/";
+            _blobPath = $"{_blobCheckpointPrefix}{eventHubNamespaceFQDN}/{eventHubName}/";
 
-            _lastCheckpointMaxCount = int.Parse(options.CheckpointBatchCount);
+            _lastCheckpointMaxCount = int.Parse(storageCheckpointOptions.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
             _storageClient = containerClient;
@@ -180,7 +183,17 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 {
                     if (!blob.Name.Contains(_blobPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: CancellationToken.None);
+                        try
+                        {
+                            await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: CancellationToken.None);
+                            _log.LogTrace($"Blob checkpoint path changed to {_blobPath}. Deleted checkpoint {blob.Name}.");
+                        }
+#pragma warning disable CA1031
+                        catch (Exception ex)
+#pragma warning restore CA1031
+                        {
+                            _log.LogError(new Exception($"Unable to delete checkpoint {blob.Name} with error {ex.Message}"));
+                        }
                     }
                 }
             }
@@ -190,6 +203,34 @@ namespace Microsoft.Health.Events.EventCheckpointing
             {
                 _log.LogError(new Exception($"Unable to reset checkpoints. {ex.Message}"));
             }
+        }
+
+        private (string eventHubNamespaceFQDN, string eventHubName) GetEventHubProperties(EventHubClientOptions eventHubClientOptions)
+        {
+            // If the authentication type for the event hub is ConnectionString, then parse the event hub properties (eventHubNamspaceFQDN and eventHubName) from the provided connection string,
+            // else return the supplied eventHubClientOptions properties for eventHubNamspaceFQDN and eventHubOptions.
+            var eventHubNamespaceFQDN = eventHubClientOptions.EventHubNamespaceFQDN;
+            var eventHubName = eventHubClientOptions.EventHubName;
+
+            if (eventHubClientOptions.AuthenticationType == AuthenticationType.ConnectionString)
+            {
+                EnsureArg.IsNotNull(eventHubClientOptions.ConnectionString, nameof(eventHubClientOptions.ConnectionString));
+
+                try
+                {
+                    var eventHubsConnectionStringProperties = EventHubsConnectionStringProperties.Parse(eventHubClientOptions.ConnectionString);
+                    eventHubNamespaceFQDN = eventHubsConnectionStringProperties.FullyQualifiedNamespace;
+                    eventHubName = eventHubsConnectionStringProperties.EventHubName;
+                }
+#pragma warning disable CA1031
+                catch (Exception ex)
+#pragma warning restore CA1031
+                {
+                    _log.LogError(new Exception($"Unable to parse event hub properties. {ex.Message}"));
+                }
+            }
+
+            return (eventHubNamespaceFQDN, eventHubName);
         }
     }
 }

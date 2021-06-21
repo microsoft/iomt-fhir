@@ -62,9 +62,25 @@ namespace Microsoft.Health.Events.UnitTest
         [Fact]
         public void GivenNullParameters_WhenStorageCheckpointClientCreated_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new StorageCheckpointClient(null, _storageCheckpointOptions, _eventHubClientOptions, _logger));
-            Assert.Throws<ArgumentNullException>(() => new StorageCheckpointClient(_blobContainerClient, null, _eventHubClientOptions, _logger));
-            Assert.Throws<ArgumentNullException>(() => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, null, _logger));
+            Assert.Throws<ArgumentNullException>("containerClient", () => new StorageCheckpointClient(null, _storageCheckpointOptions, _eventHubClientOptions, _logger));
+            Assert.Throws<ArgumentNullException>("storageCheckpointOptions", () => new StorageCheckpointClient(_blobContainerClient, null, _eventHubClientOptions, _logger));
+            Assert.Throws<ArgumentNullException>("eventHubClientOptions", () => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, null, _logger));
+
+            var eventHubClientOptions = new EventHubClientOptions();
+            Assert.Throws<ArgumentNullException>("eventHubNamespaceFQDN", () => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger));
+
+            eventHubClientOptions.EventHubNamespaceFQDN = "test";
+            Assert.Throws<ArgumentNullException>("eventHubName", () => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger));
+
+            eventHubClientOptions = new EventHubClientOptions
+            {
+                AuthenticationType = AuthenticationType.ConnectionString,
+                ConnectionString = "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;"
+            };
+            Assert.Throws<ArgumentNullException>("eventHubName", () => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger));
+
+            eventHubClientOptions.ConnectionString = "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;EntityPath=devicedata";
+            Assert.Throws<ArgumentNullException>("eventHubNamespaceFQDN", () => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger));
         }
 
         [Fact]
@@ -74,6 +90,23 @@ namespace Microsoft.Health.Events.UnitTest
             _eventHubClientOptions.EventHubName = _eventHubName;
 
             var storageClient = new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, _eventHubClientOptions, _logger);
+            await storageClient.ResetCheckpointsAsync();
+
+            // Given that the source event hub didn't change, verify that no checkpoint deletions occured.
+            _blobContainerClient.Received(1).GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None);
+            await _blobContainerClient.ReceivedWithAnyArgs(0).DeleteBlobAsync(null);
+        }
+
+        [Fact]
+        public async Task GivenUnchangedEventHubOptionsWithConnectionString_WhenResetCheckpointsAsyncCalled_ThenNoCheckpointsAreDeleted()
+        {
+            var eventHubClientOptions = new EventHubClientOptions()
+            {
+                AuthenticationType = AuthenticationType.ConnectionString,
+                ConnectionString = "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;EntityPath=devicedata"
+            };
+
+            var storageClient = new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger);
             await storageClient.ResetCheckpointsAsync();
 
             // Given that the source event hub didn't change, verify that no checkpoint deletions occured.
