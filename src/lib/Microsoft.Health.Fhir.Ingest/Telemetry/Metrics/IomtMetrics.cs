@@ -184,10 +184,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric FhirResourceSaved(ResourceType resourceType, ResourceOperation resourceOperation)
         {
             return new Metric(
-                $"FhirResourceSaved",
+                "FhirResourceSaved",
                 new Dictionary<string, object>
                 {
-                    { _nameDimension, $"{resourceType}FhirResource{resourceOperation}" },
+                    { _nameDimension, $"{resourceType}{resourceOperation}" },
                     { _categoryDimension, Category.Traffic },
                     { _operationDimension, ConnectorOperation.FHIRConversion },
                 });
