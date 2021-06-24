@@ -61,10 +61,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out _));
 
-            var codeValueTemplate = templateContext.Template.GetTemplate("bp") as CodeValueFhirTemplate;
+            var codeValueTemplate = templateContext.Template.GetTemplate("bloodpressure") as CodeValueFhirTemplate;
             Assert.NotNull(codeValueTemplate);
 
-            Assert.Equal("bp", codeValueTemplate.TypeName);
+            Assert.Equal("bloodpressure", codeValueTemplate.TypeName);
             Assert.Equal(ObservationPeriodInterval.Hourly, codeValueTemplate.PeriodInterval);
         }
 
