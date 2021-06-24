@@ -11,6 +11,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -43,7 +44,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var measurementGroup = Substitute.For<IMeasurementGroup>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
-            var service = Substitute.ForPartsOf<R4FhirImportService>(identityService, fhirClient, templateProcessor, cache)
+            var logger = Substitute.For<ITelemetryLogger>();
+
+            var service = Substitute.ForPartsOf<R4FhirImportService>(identityService, fhirClient, templateProcessor, cache, logger)
                 .Mock(m => m.SaveObservationAsync(default, default, default).ReturnsForAnyArgs(string.Empty));
 
             await service.ProcessAsync(config, measurementGroup);
@@ -76,7 +79,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
-            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache);
+            var logger = Substitute.For<ITelemetryLogger>();
+
+            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
@@ -121,7 +126,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
-            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache);
+            var logger = Substitute.For<ITelemetryLogger>();
+
+            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
@@ -179,7 +186,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
-            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache);
+            var logger = Substitute.For<ITelemetryLogger>();
+
+            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
@@ -205,7 +214,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var identifer = new Model.Identifier();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
-            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache);
+            var logger = Substitute.For<ITelemetryLogger>();
+
+            var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
             var result = service.GenerateObservation(config, observationGroup, identifer, ids);
 

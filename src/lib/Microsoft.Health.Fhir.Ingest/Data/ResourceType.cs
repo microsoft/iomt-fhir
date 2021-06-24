@@ -21,5 +21,10 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         /// Encounter Resource
         /// </summary>
         Encounter,
+
+        /// <summary>
+        /// Observation Resource
+        /// </summary>
+        Observation,
     }
 }
