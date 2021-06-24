@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
@@ -41,7 +43,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(device, nameof(device));
 
-            return device.Patient?.GetId<Model.Patient>() ?? throw new FhirResourceNotFoundException(ResourceType.Patient);
+            var patientId = device.Patient?.GetId<Model.Patient>() ?? throw new FhirResourceNotFoundException(ResourceType.Patient);
+
+            // only allow unreserved URI characters
+            if (!Regex.IsMatch(patientId, @"^[A-Za-z0-9_.\-~]+$"))
+            {
+                throw new NotSupportedException("Unsupported characters found in patient id");
+            }
+
+            return patientId;
         }
 
         protected async override Task<(string DeviceId, string PatientId)> LookUpDeviceAndPatientIdAsync(string value, string system = null)
