@@ -13,8 +13,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         JsonPath,
 
         /// <summary>
-        /// Indicates that the expression language is JMESpath
+        /// Indicates that the expression language is JmesPath
         /// </summary>
-        JMESPath,
+        JmesPath,
     }
 }

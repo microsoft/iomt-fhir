@@ -33,7 +33,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             {
                 case ExpressionLanguage.JsonPath:
                     return new JsonPathExpressionEvaluator(expression.Value);
-                case ExpressionLanguage.JMESPath:
+                case ExpressionLanguage.JmesPath:
                     try
                     {
                         var jmesPathExpression = _jmesPath.Parse(expression.Value);

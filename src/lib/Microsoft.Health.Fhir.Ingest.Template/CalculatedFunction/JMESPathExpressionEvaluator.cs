@@ -3,7 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DevLab.JmesPath;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
@@ -25,26 +28,45 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
         public JToken SelectToken(JToken data)
         {
-            var result = _jmespathExpression.Transform(data).AsJToken();
+            EnsureArg.IsNotNull(data);
+            var jmePathArgument = _jmespathExpression.Transform(data);
 
-            if (result.Type == JTokenType.Array)
+            if (jmePathArgument.IsProjection && jmePathArgument.Projection.Length > 1)
             {
                 throw new ExpressionException($"Multiple tokens were returned using expression ${_expression.Value}");
             }
 
-            return result;
+            var resultAsToken = jmePathArgument.AsJToken();
+            if (resultAsToken.Type == JTokenType.Null)
+            {
+                return null;
+            }
+
+            return resultAsToken;
         }
 
         public IEnumerable<JToken> SelectTokens(JToken data)
         {
-            var result = _jmespathExpression.Transform(data).AsJToken();
+            EnsureArg.IsNotNull(data);
+            var jmePathArgument = _jmespathExpression.Transform(data);
 
-            if (result.Type != JTokenType.Array)
+            if (jmePathArgument.IsProjection)
             {
-                throw new ExpressionException($"Expected result to be a collection when using expression: {_expression.Value}");
+                foreach (var arg in jmePathArgument.Projection)
+                {
+                    yield return arg.AsJToken();
+                }
             }
+            else
+            {
+                var resultAsToken = jmePathArgument.AsJToken();
+                if (resultAsToken.Type == JTokenType.Null)
+                {
+                    yield break;
+                }
 
-            return result;
+                yield return resultAsToken;
+            }
         }
     }
 }

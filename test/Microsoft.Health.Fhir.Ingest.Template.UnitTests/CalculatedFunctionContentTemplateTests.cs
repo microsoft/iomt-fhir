@@ -492,7 +492,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "device",
                     TimestampExpression = "date",
@@ -541,7 +541,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "device",
                     TimestampExpression = "date",
@@ -577,7 +577,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "hrStepCombo",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "to_array(@)[?heartrate || steps]",
                     DeviceIdExpression = "device",
                     TimestampExpression = "date",
@@ -612,7 +612,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "bloodpressure",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "Body[?systolic]",
                     DeviceIdExpression = "matchedToken.device",
                     TimestampExpression = "matchedToken.date",
@@ -646,7 +646,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "matchedToken.device",
                     TimestampExpression = "matchedToken.date",
@@ -679,7 +679,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "to_array(@)[?heartrate && date]",
                     DeviceIdExpression = "matchedToken.device",
                     TimestampExpression = "matchedToken.date",
@@ -713,7 +713,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "matchedToken.device",
                     TimestampExpression = "matchedToken.date",
@@ -748,7 +748,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "bloodpressure",
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = "Body[?systolic]",
                     DeviceIdExpression = "Properties.deviceId",
                     TimestampExpression = "matchedToken.date",

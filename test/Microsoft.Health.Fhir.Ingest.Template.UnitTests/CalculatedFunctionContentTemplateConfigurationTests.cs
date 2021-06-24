@@ -112,7 +112,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             PerformEvaluation(
                 new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeName = "heartrate",
                     TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "device",
@@ -135,18 +135,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     TypeName = "heartrate",
                     TypeMatchExpression = "to_array(@)[?heartrate]",
-                    TypeMatchExpressionLanguage = ExpressionLanguage.JMESPath,
+                    TypeMatchExpressionLanguage = ExpressionLanguage.JmesPath,
                     DeviceIdExpression = "device",
-                    DeviceIdExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DeviceIdExpressionLanguage = ExpressionLanguage.JmesPath,
                     TimestampExpression = "date",
-                    TimestampExpressionLanguage = ExpressionLanguage.JMESPath,
+                    TimestampExpressionLanguage = ExpressionLanguage.JmesPath,
                     CorrelationIdExpression = "session",
-                    CorrelationIdExpressionLanguage = ExpressionLanguage.JMESPath,
+                    CorrelationIdExpressionLanguage = ExpressionLanguage.JmesPath,
                     PatientIdExpression = "patient",
-                    PatientIdExpressionLanguage = ExpressionLanguage.JMESPath,
+                    PatientIdExpressionLanguage = ExpressionLanguage.JmesPath,
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JMESPath },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JmesPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "matchedToken.patient", Required = false },
                     },
                 });
@@ -158,21 +158,21 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             PerformEvaluation(
                 new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeName = "heartrate",
                     TypeMatchExpression = "to_array(@)[?heartrate]",
-                    TypeMatchExpressionLanguage = ExpressionLanguage.JMESPath,
+                    TypeMatchExpressionLanguage = ExpressionLanguage.JmesPath,
                     DeviceIdExpression = "device",
-                    DeviceIdExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DeviceIdExpressionLanguage = ExpressionLanguage.JmesPath,
                     TimestampExpression = "date",
-                    TimestampExpressionLanguage = ExpressionLanguage.JMESPath,
+                    TimestampExpressionLanguage = ExpressionLanguage.JmesPath,
                     CorrelationIdExpression = "session",
-                    CorrelationIdExpressionLanguage = ExpressionLanguage.JMESPath,
+                    CorrelationIdExpressionLanguage = ExpressionLanguage.JmesPath,
                     PatientIdExpression = "patient",
-                    PatientIdExpressionLanguage = ExpressionLanguage.JMESPath,
+                    PatientIdExpressionLanguage = ExpressionLanguage.JmesPath,
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JMESPath },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", ValueExpression = "heartrate", Required = false,  ValueExpressionLanguage = ExpressionLanguage.JmesPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", ValueExpression = "matchedToken.patient", Required = false },
                     },
                 });
@@ -209,7 +209,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JMESPath,
+                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeName = "heartrate",
                     TypeMatchExpression = "to_array(@)[?heartrate]",
                     DeviceIdExpression = "device",
