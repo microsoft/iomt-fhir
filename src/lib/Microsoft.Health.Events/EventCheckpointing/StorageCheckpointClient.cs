@@ -179,6 +179,8 @@ namespace Microsoft.Health.Events.EventCheckpointing
         {
             try
             {
+                _log.LogTrace($"Entering {nameof(ResetCheckpointsAsync)}...");
+
                 foreach (BlobItem blob in _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None))
                 {
                     if (!blob.Name.Contains(_blobPath, StringComparison.OrdinalIgnoreCase))
@@ -196,6 +198,8 @@ namespace Microsoft.Health.Events.EventCheckpointing
                         }
                     }
                 }
+
+                _log.LogTrace($"Exiting {nameof(ResetCheckpointsAsync)}.");
             }
 #pragma warning disable CA1031
             catch (Exception ex)
