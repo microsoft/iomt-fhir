@@ -106,8 +106,18 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var checkpointBlobClient = factory.CreateStorageClient(checkpointContainerOptions);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            storageOptions.BlobPrefix = applicationType;
-            var checkpointClient = new StorageCheckpointClient(checkpointBlobClient, storageOptions, logger);
+            var eventProcessorOptions = new EventHubClientOptions();
+            if (applicationType == _normalizationAppType)
+            {
+                Configuration.GetSection("InputEventHub").Bind(eventProcessorOptions);
+            }
+            else if (applicationType == _measurementToFhirAppType)
+            {
+                Configuration.GetSection("NormalizationEventHub").Bind(eventProcessorOptions);
+            }
+
+            storageOptions.BlobPrefix = $"{applicationType}/{storageOptions.BlobPrefix}";
+            var checkpointClient = new StorageCheckpointClient(checkpointBlobClient, storageOptions, eventProcessorOptions, logger);
             return checkpointClient;
         }
 

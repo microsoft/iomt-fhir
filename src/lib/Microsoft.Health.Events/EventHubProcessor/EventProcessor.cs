@@ -36,6 +36,9 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             EnsureArg.IsNotNull(processor);
 
+            // Reset previous checkpoints corresponding to an older source event hub (i.e. applicable if the source event hub changes)
+            await _checkpointClient.ResetCheckpointsAsync();
+
             // Processes two types of events
             // 1) Event hub events
             // 2) Maximum wait events. These are generated when we have not received an event hub
