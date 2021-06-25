@@ -34,7 +34,7 @@
     {
       "templateType": "IotCentralJsonPathContent",
       "template": {
-        "typeName": "bp",
+        "typeName": "bloodpressure",
         "typeMatchExpression": "$..[?(@telemetry.BloodPressure.Systolic && @telemetry.BloodPressure.Diastolic)]",
         "patientIdExpression": "$.deviceId",
         "values": [

@@ -146,7 +146,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotEmpty(measurements);
             Assert.Equal(6, measurements.Length);
             Assert.Equal(2, measurements.Count(m => string.Equals(m.Type, "heartrate")));
-            Assert.Equal(2, measurements.Count(m => string.Equals(m.Type, "bp")));
+            Assert.Equal(2, measurements.Count(m => string.Equals(m.Type, "bloodpressure")));
             Assert.Equal(2, measurements.Count(m => string.Equals(m.Type, "respiratoryrate")));
 
             var heartrateMeasurement = measurements.First(m => string.Equals(m.Type, "heartrate"));
@@ -154,7 +154,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("hr", heartrateMeasurement.Properties[0].Name);
             Assert.Equal("75", heartrateMeasurement.Properties[0].Value);
 
-            var bpMeasurement = measurements.First(m => string.Equals(m.Type, "bp"));
+            var bpMeasurement = measurements.First(m => string.Equals(m.Type, "bloodpressure"));
             Assert.Equal(2, bpMeasurement.Properties.Count());
             Assert.Equal("systolic", bpMeasurement.Properties[0].Name);
             Assert.Equal("62", bpMeasurement.Properties[0].Value);

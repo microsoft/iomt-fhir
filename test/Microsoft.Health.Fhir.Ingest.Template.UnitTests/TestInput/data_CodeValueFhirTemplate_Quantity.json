@@ -9,7 +9,7 @@
       }
     ],
     "periodInterval": 60,
-    "typeName": "bp",
+    "typeName": "bloodpressure",
     "components": [
       {
         "codes": [
