@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
