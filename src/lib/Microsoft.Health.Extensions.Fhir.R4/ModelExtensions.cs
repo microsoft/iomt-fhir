@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
     public static class ModelExtensions
     {
+        private static ConcurrentDictionary<string, Regex> _idMatcherRegexCache = new ConcurrentDictionary<string, Regex>();
+
         public static Hl7.Fhir.Model.ResourceReference ToReference<TResource>(this TResource resource)
             where TResource : Hl7.Fhir.Model.Resource
         {
@@ -39,9 +42,28 @@ namespace Microsoft.Health.Extensions.Fhir
         /// <returns>The id for the specified resource type if it exists, null otherwise.</returns>
         public static string GetId<TResource>(this Hl7.Fhir.Model.ResourceReference reference)
         {
-            var referenceType = $"{typeof(TResource).Name}/";
-            return reference?.Reference == null || !reference.Reference.StartsWith(referenceType, StringComparison.InvariantCultureIgnoreCase)
-                ? null : reference.Reference.Substring(referenceType.Length);
+            string id;
+            var referenceType = typeof(TResource).Name;
+
+            if (reference?.Reference == null)
+            {
+                return null;
+            }
+
+            var idMatcherRegex = _idMatcherRegexCache.GetOrAdd(referenceType, new Regex(referenceType + @"\/([A-Za-z0-9_.\-~#]{1,64})", RegexOptions.Compiled));
+
+            // Reference should be in the form: ResourceType/Identifier
+            // If there is a match, the 2nd group will contain the identifier.
+            var matches = idMatcherRegex.Match(reference.Reference);
+            if (matches?.Groups?.Count != 2)
+            {
+                return null;
+            }
+            else
+            {
+                id = matches?.Groups?[1].Value;
+                return id;
+            }
         }
     }
 }

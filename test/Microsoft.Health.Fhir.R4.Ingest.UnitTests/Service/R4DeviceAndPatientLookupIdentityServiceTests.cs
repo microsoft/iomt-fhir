@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir.Service;
@@ -110,7 +109,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var device = new Model.Device
             {
                 Id = "1",
-                Patient = new Model.ResourceReference("Patient/&containsURIrestrictedchars"),
+                Patient = new Model.ResourceReference("Not a reference in the form of: /ResourceName/Identifier"),
             };
 
             var mg = Substitute.For<IMeasurementGroup>();
@@ -121,7 +120,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
             {
-                var ex = await Assert.ThrowsAsync<NotSupportedException>(async () => await idSrv.ResolveResourceIdentitiesAsync(mg));
+                var ex = await Assert.ThrowsAsync<FhirResourceNotFoundException>(async () => await idSrv.ResolveResourceIdentitiesAsync(mg));
+                Assert.Equal(ResourceType.Patient, ex.FhirResourceType);
             }
 
             await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
