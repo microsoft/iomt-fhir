@@ -2,21 +2,31 @@
   "templateType": "CalculatedFunctionContent",
   "template": {
     "typeName": "heartrate",
-    "typeMatchExpression": "$..[?(@heartrate)]",
-    "typeMatchExpressionLanguage": "JsonPath",
-    "deviceIdExpression": "$.device",
-    "deviceIdExpressionLanguage": "JsonPath",
-    "timestampExpression": "$.date",
-    "timestampExpressionLanguage": "JsonPath",
-    "correlationIdExpression": "$.correlationId",
-    "correlationIdExpressionLanguage": "JsonPath",
-    "patientIdExpression": "$.patientId",
-    "patientIdExpressionLanguage": "JsonPath",
+    "typeMatchExpression": {
+      "value": "$..[?(@heartrate)]",
+      "language": "JsonPath"
+    },
+    "deviceIdExpression": {
+      "value": "$.device",
+      "language": "JsonPath"
+    },
+    "timestampExpression": {
+      "value": "$.date",
+      "language": "JsonPath"
+    },
+    "correlationIdExpression": {
+      "value": "$.correlationId",
+      "language": "JsonPath"
+    },
+    "patientIdExpression": {
+      "value": "$.patientId",
+      "language": "JsonPath"
+    },
     "values": [
       {
         "required": "true",
         "valueExpression": "$.heartrate",
-        "valueExpressionLanguage": "JsonPath",
+        "language": "JsonPath",
         "valueName": "hr"
       }
     ]
