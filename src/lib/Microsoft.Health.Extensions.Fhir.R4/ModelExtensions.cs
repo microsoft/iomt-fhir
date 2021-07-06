@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Concurrent;
+using System;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
     public static class ModelExtensions
     {
-        private static ConcurrentDictionary<string, Regex> _idMatcherRegexCache = new ConcurrentDictionary<string, Regex>();
+        private static Regex _idMatcherRegex = new Regex(@"^[A-Za-z0-9_.\-~#]+$", RegexOptions.Compiled);
 
         public static Hl7.Fhir.Model.ResourceReference ToReference<TResource>(this TResource resource)
             where TResource : Hl7.Fhir.Model.Resource
@@ -43,25 +43,23 @@ namespace Microsoft.Health.Extensions.Fhir
         public static string GetId<TResource>(this Hl7.Fhir.Model.ResourceReference reference)
         {
             string id;
-            var referenceType = typeof(TResource).Name;
+            var referenceType = $"{typeof(TResource).Name}/";
 
-            if (reference?.Reference == null)
+            if (reference?.Reference == null || !reference.Reference.StartsWith(referenceType, StringComparison.InvariantCultureIgnoreCase))
             {
                 return null;
             }
 
-            var idMatcherRegex = _idMatcherRegexCache.GetOrAdd(referenceType, new Regex(referenceType + @"\/([A-Za-z0-9_.\-~#]{1,64})", RegexOptions.Compiled));
-
             // Reference should be in the form: ResourceType/Identifier
-            // If there is a match, the 2nd group will contain the identifier.
-            var matches = idMatcherRegex.Match(reference.Reference);
-            if (matches?.Groups?.Count != 2)
+            var relativeReferenceIdentifier = reference.Reference.Substring(referenceType.Length);
+            var matches = _idMatcherRegex.Match(relativeReferenceIdentifier);
+            if (matches?.Groups?.Count != 1)
             {
                 return null;
             }
             else
             {
-                id = matches?.Groups?[1].Value;
+                id = matches?.Groups?[0].Value;
                 return id;
             }
         }
