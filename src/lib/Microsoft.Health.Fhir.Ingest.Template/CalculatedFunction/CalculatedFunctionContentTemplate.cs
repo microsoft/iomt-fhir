@@ -56,7 +56,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            EnsureArg.IsTrue(token is JObject);
+            EnsureArg.IsOfType(token, typeof(JObject), nameof(token));
 
             foreach (var typeToken in MatchTypeTokens(token as JObject))
             {
