@@ -11,25 +11,30 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
     public class ExpressionEvaluatorFactory : IExpressionEvaluatorFactory
     {
-        private JmesPath _jmesPath;
+        private readonly JmesPath _jmesPath;
+        private readonly ExpressionLanguage _defaultExpressionLanguage;
 
         public ExpressionEvaluatorFactory()
+            : this(new JmesPath(), ExpressionLanguage.JsonPath)
         {
-            _jmesPath = new JmesPath();
-
-            /*
-             * register additional custom functions.
-             *
-             * TODO: Do we want to allow customers to register additional, custom functions in the OSS project? Possibly via dependency injection?
-             *
-             */
         }
 
-        public IExpressionEvaluator Create(Expression expression, ExpressionLanguage defaultLanguage = ExpressionLanguage.JsonPath)
+        public ExpressionEvaluatorFactory(ExpressionLanguage defaultLanguage)
+            : this(new JmesPath(), defaultLanguage)
+        {
+        }
+
+        public ExpressionEvaluatorFactory(JmesPath jmesPath, ExpressionLanguage defaultLanguage)
+        {
+            _jmesPath = EnsureArg.IsNotNull(jmesPath, nameof(jmesPath));
+            _defaultExpressionLanguage = defaultLanguage;
+        }
+
+        public IExpressionEvaluator Create(Expression expression)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(expression?.Value, nameof(expression.Value));
 
-            var expressionLanguage = expression.Language ?? defaultLanguage;
+            var expressionLanguage = expression.Language ?? _defaultExpressionLanguage;
 
             switch (expressionLanguage)
             {

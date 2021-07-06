@@ -36,18 +36,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Null(expressionTemplate.TimestampExpression.Language);
             Assert.Null(expressionTemplate.PatientIdExpression);
             Assert.Null(expressionTemplate.CorrelationIdExpression);
-            Assert.IsType<CachingExpressionEvaluatorFactory>(expressionTemplate.ExpressionEvaluatorFactory);
             Assert.Collection(expressionTemplate.Values, v =>
             {
                 Assert.True(v.Required);
                 Assert.Equal("hr", v.ValueName);
                 Assert.Equal("$.heartrate", v.Value);
                 Assert.Null(v.Language);
-                Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(v, ExpressionLanguage.JmesPath));
+                Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(v));
             });
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression, ExpressionLanguage.JmesPath));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression, ExpressionLanguage.JmesPath));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression, ExpressionLanguage.JmesPath));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression));
         }
 
         [Theory]
@@ -75,21 +74,22 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.PatientIdExpression.Language);
             Assert.Equal("$.correlationId", expressionTemplate.CorrelationIdExpression.Value);
             Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.CorrelationIdExpression.Language);
-            Assert.IsType<CachingExpressionEvaluatorFactory>(expressionTemplate.ExpressionEvaluatorFactory);
+            Assert.Equal("$.encounterId", expressionTemplate.EncounterIdExpression.Value);
+            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.CorrelationIdExpression.Language);
             Assert.Collection(expressionTemplate.Values, v =>
             {
                 Assert.True(v.Required);
                 Assert.Equal("hr", v.ValueName);
                 Assert.Equal("$.heartrate", v.Value);
                 Assert.Equal(ExpressionLanguage.JsonPath, v.Language);
-                Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(v, ExpressionLanguage.JmesPath));
+                Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(v));
             });
-            Assert.IsType<CachingExpressionEvaluatorFactory>(expressionTemplate.ExpressionEvaluatorFactory);
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression, ExpressionLanguage.JmesPath));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression, ExpressionLanguage.JmesPath));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression, ExpressionLanguage.JmesPath));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.PatientIdExpression, ExpressionLanguage.JmesPath));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.CorrelationIdExpression, ExpressionLanguage.JmesPath));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.PatientIdExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.CorrelationIdExpression));
+            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.EncounterIdExpression));
         }
     }
 }

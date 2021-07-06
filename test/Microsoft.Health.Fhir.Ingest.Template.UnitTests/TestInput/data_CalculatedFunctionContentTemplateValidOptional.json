@@ -1,5 +1,5 @@
 {
-  "templateType": "CalculatedFunctionContent",
+  "templateType": "CalculatedContent",
   "template": {
     "typeName": "heartrate",
     "typeMatchExpression": {
@@ -20,6 +20,10 @@
     },
     "patientIdExpression": {
       "value": "$.patientId",
+      "language": "JsonPath"
+    },
+    "encounterIdExpression": {
+      "value": "$.encounterId",
       "language": "JsonPath"
     },
     "values": [
