@@ -493,7 +493,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
                     DeviceIdExpression = new Expression("device"),
                     TimestampExpression = new Expression("date"),
@@ -501,7 +500,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
             yield return new List<IContentTemplate>()
@@ -545,7 +544,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
                     DeviceIdExpression = new Expression("device"),
                     TimestampExpression = new Expression("date"),
@@ -555,7 +553,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }
@@ -583,7 +581,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "hrStepCombo",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = new Expression("to_array(@)[?heartrate || steps]"),
                     DeviceIdExpression = new Expression("device"),
                     TimestampExpression = new Expression("date"),
@@ -592,7 +589,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "steps", Value = "steps", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }
@@ -620,7 +617,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "bloodpressure",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = new Expression("Body[?systolic]"),
                     DeviceIdExpression = new Expression("matchedToken.device"),
                     TimestampExpression = new Expression("matchedToken.date"),
@@ -629,7 +625,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "systolic", Value = "matchedToken.systolic", Required = true },
                         new CalculatedFunctionValueExpression { ValueName = "diastolic", Value = "matchedToken.diastolic", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }
@@ -656,7 +652,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
                     TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
                     DeviceIdExpression = new Expression("matchedToken.device"),
                     TimestampExpression = new Expression("matchedToken.date"),
@@ -664,7 +659,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "matchedToken.heartrate", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }
@@ -699,7 +694,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "matchedToken.heartrate", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }
@@ -736,7 +731,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "matchedToken.heartrate", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }
@@ -773,7 +768,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "systolic", Value = "matchedToken.systolic", Required = true },
                         new CalculatedFunctionValueExpression { ValueName = "diastolic", Value = "matchedToken.diastolic", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 },
             }.ToArray();
         }

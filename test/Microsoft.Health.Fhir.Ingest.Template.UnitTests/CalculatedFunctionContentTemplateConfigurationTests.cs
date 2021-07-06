@@ -119,7 +119,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
         }
 
@@ -162,7 +162,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false,  Language = ExpressionLanguage.JmesPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
             });
         }

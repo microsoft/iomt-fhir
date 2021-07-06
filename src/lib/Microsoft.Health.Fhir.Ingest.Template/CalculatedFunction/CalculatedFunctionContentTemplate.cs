@@ -81,7 +81,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                     continue;
                 }
 
-                var evaluator = ExpressionEvaluatorFactory.Create(expression, DefaultExpressionLanguage);
+                var evaluator = ExpressionEvaluatorFactory.Create(expression);
 
                 var evaluatedToken = evaluator.SelectToken(token);
 
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         private IEnumerable<JToken> MatchTypeTokens(JObject token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            var evaluator = ExpressionEvaluatorFactory.Create(TypeMatchExpression, DefaultExpressionLanguage);
+            var evaluator = ExpressionEvaluatorFactory.Create(TypeMatchExpression);
 
             foreach (var extractedToken in evaluator.SelectTokens(token))
             {

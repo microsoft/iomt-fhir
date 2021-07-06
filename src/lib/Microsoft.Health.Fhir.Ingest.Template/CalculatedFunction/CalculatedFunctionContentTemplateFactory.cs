@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using DevLab.JmesPath;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -12,17 +13,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
     public class CalculatedFunctionContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
-        private const string TargetTypeName = "CalculatedFunctionContent";
-        private IExpressionEvaluatorFactory _expressionEvaluatorFactory;
+        private const string TargetTypeName = "CalculatedContent";
+        private JmesPath _jmesPath;
 
         public CalculatedFunctionContentTemplateFactory()
-            : this(new ExpressionEvaluatorFactory())
         {
-        }
-
-        public CalculatedFunctionContentTemplateFactory(IExpressionEvaluatorFactory expressionEvaluatorFactory)
-        {
-            _expressionEvaluatorFactory = EnsureArg.IsNotNull(expressionEvaluatorFactory, nameof(expressionEvaluatorFactory));
+            /*
+             * TODO Load and register additional custom JmesPath functions. For now, simply create the basic JmesPath object
+             */
+            _jmesPath = new JmesPath();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Exception message")]
@@ -48,26 +47,48 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         private IExpressionEvaluatorFactory CreateExpressionEvaluatorFactory(CalculatedFunctionContentTemplate template)
         {
             var evaluatorCache = new Dictionary<string, IExpressionEvaluator>();
-            AddExpression(evaluatorCache, template.TypeMatchExpression, template.DefaultExpressionLanguage);
-            AddExpression(evaluatorCache, template.DeviceIdExpression, template.DefaultExpressionLanguage);
-            AddExpression(evaluatorCache, template.PatientIdExpression, template.DefaultExpressionLanguage);
-            AddExpression(evaluatorCache, template.EncounterIdExpression, template.DefaultExpressionLanguage);
-            AddExpression(evaluatorCache, template.TimestampExpression, template.DefaultExpressionLanguage);
-            AddExpression(evaluatorCache, template.CorrelationIdExpression, template.DefaultExpressionLanguage);
+            IExpressionEvaluatorFactory expressionEvaluator = new ExpressionEvaluatorFactory(_jmesPath, template.DefaultExpressionLanguage);
+
+            AddExpression(evaluatorCache, template.TypeMatchExpression, expressionEvaluator);
+            AddExpression(evaluatorCache, template.DeviceIdExpression, expressionEvaluator);
+            AddExpression(evaluatorCache, template.PatientIdExpression, expressionEvaluator);
+            AddExpression(evaluatorCache, template.EncounterIdExpression, expressionEvaluator);
+            AddExpression(evaluatorCache, template.TimestampExpression, expressionEvaluator);
+            AddExpression(evaluatorCache, template.CorrelationIdExpression, expressionEvaluator);
 
             foreach (var valueExpression in template.Values)
             {
-                AddExpression(evaluatorCache, valueExpression, template.DefaultExpressionLanguage);
+                AddExpression(evaluatorCache, valueExpression, expressionEvaluator);
             }
 
             return new CachingExpressionEvaluatorFactory(new ReadOnlyDictionary<string, IExpressionEvaluator>(evaluatorCache));
         }
 
-        private void AddExpression(IDictionary<string, IExpressionEvaluator> cache, Expression expression, ExpressionLanguage defaultLanguage)
+        private void AddExpression(
+            IDictionary<string, IExpressionEvaluator> cache,
+            Expression expression,
+            IExpressionEvaluatorFactory expressionEvaluator)
         {
             if (expression != null)
             {
-                cache[expression.GetId()] = _expressionEvaluatorFactory.Create(expression, expression.Language ?? defaultLanguage);
+                cache[expression.GetId()] = expressionEvaluator.Create(expression);
+            }
+        }
+
+        private class CachingExpressionEvaluatorFactory : IExpressionEvaluatorFactory
+        {
+            private IReadOnlyDictionary<string, IExpressionEvaluator> _expressionCache;
+
+            public CachingExpressionEvaluatorFactory(IReadOnlyDictionary<string, IExpressionEvaluator> expressionCache)
+            {
+                _expressionCache = EnsureArg.IsNotNull(expressionCache, nameof(expressionCache));
+            }
+
+            public IExpressionEvaluator Create(Expression expression)
+            {
+                EnsureArg.IsNotNull(expression, nameof(expression));
+
+                return _expressionCache[expression.GetId()];
             }
         }
     }

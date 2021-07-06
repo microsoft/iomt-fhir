@@ -11,8 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         /// Creates an expression evaluator which will evaluate data based on the supplied expression
         /// </summary>
         /// <param name="expression">The expression to use when performing an evaluation</param>
-        /// <param name="defaultLanguage">The default expression language to use, if not supplied within the expression itself</param>
-        /// <returns>The expressio evaluator</returns>
-        IExpressionEvaluator Create(Expression expression, ExpressionLanguage defaultLanguage);
+        /// <returns>The expression evaluator</returns>
+        IExpressionEvaluator Create(Expression expression);
     }
 }
