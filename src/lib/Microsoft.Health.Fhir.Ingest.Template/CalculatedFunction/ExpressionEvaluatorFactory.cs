@@ -25,11 +25,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
              */
         }
 
-        public IExpressionEvaluator Create(Expression expression)
+        public IExpressionEvaluator Create(Expression expression, ExpressionLanguage defaultLanguage = ExpressionLanguage.JsonPath)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(expression?.Value, nameof(expression.Value));
 
-            switch (expression.Language)
+            var expressionLanguage = expression.Language ?? defaultLanguage;
+
+            switch (expressionLanguage)
             {
                 case ExpressionLanguage.JsonPath:
                     return new JsonPathExpressionEvaluator(expression.Value);
@@ -37,7 +39,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                     try
                     {
                         var jmesPathExpression = _jmesPath.Parse(expression.Value);
-                        return new JMESPathExpressionEvaluator(jmesPathExpression, expression);
+                        return new JMESPathExpressionEvaluator(jmesPathExpression);
                     }
                     catch (Exception e)
                     {
@@ -45,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                     }
 
                 default:
-                    throw new ArgumentException($"Unsupported Expression Language {expression.Language}");
+                    throw new ArgumentException($"Unsupported Expression Language {expressionLanguage}");
             }
         }
     }

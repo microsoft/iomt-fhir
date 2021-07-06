@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using EnsureThat;
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -24,7 +25,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             : base(
                   new JsonPathContentTemplateFactory(),
                   new IotJsonPathContentTemplateFactory(),
-                  new IotCentralJsonPathContentTemplateFactory())
+                  new IotCentralJsonPathContentTemplateFactory(),
+                  new CalculatedFunctionContentTemplateFactory())
         {
         }
 

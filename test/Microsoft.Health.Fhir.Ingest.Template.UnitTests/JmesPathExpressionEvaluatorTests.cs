@@ -18,19 +18,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public JmesPathExpressionEvaluatorTests()
         {
             var jmesPath = new JmesPath();
-            _singleValueExpressionEvaluator = new JMESPathExpressionEvaluator(jmesPath.Parse("testProperty"), new Expression()
-            {
-                Id = "expressionA",
-                Value = "testProperty",
-                Language = ExpressionLanguage.JmesPath,
-            });
+            _singleValueExpressionEvaluator = new JMESPathExpressionEvaluator(jmesPath.Parse("testProperty"));
 
-            _projectedExpressionEvaluator = new JMESPathExpressionEvaluator(jmesPath.Parse("property[].name"), new Expression()
-            {
-                Id = "expressionB",
-                Value = "property[].name",
-                Language = ExpressionLanguage.JmesPath,
-            });
+            _projectedExpressionEvaluator = new JMESPathExpressionEvaluator(jmesPath.Parse("property[].name"));
         }
 
         [Fact]

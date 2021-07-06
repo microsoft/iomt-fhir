@@ -23,31 +23,25 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public virtual string TypeName { get; set; }
 
         [JsonProperty(Required = Required.Always)]
-        public virtual string TypeMatchExpression { get; set; }
-
-        public virtual ExpressionLanguage? TypeMatchExpressionLanguage { get; set; }
-
-        [JsonProperty(Required = Required.Always)]
-        public virtual string DeviceIdExpression { get; set; }
-
-        public virtual ExpressionLanguage? DeviceIdExpressionLanguage { get; set; }
-
-        public virtual string PatientIdExpression { get; set; }
-
-        public virtual ExpressionLanguage? PatientIdExpressionLanguage { get; set; }
-
-        public virtual string EncounterIdExpression { get; set; }
-
-        public virtual ExpressionLanguage? EncounterIdExpressionLanguage { get; set; }
+        [JsonConverter(typeof(ExpressionJsonConverter))]
+        public virtual Expression TypeMatchExpression { get; set; }
 
         [JsonProperty(Required = Required.Always)]
-        public virtual string TimestampExpression { get; set; }
+        [JsonConverter(typeof(ExpressionJsonConverter))]
+        public virtual Expression DeviceIdExpression { get; set; }
 
-        public virtual ExpressionLanguage? TimestampExpressionLanguage { get; set; }
+        [JsonConverter(typeof(ExpressionJsonConverter))]
+        public virtual Expression PatientIdExpression { get; set; }
 
-        public virtual string CorrelationIdExpression { get; set; }
+        [JsonConverter(typeof(ExpressionJsonConverter))]
+        public virtual Expression EncounterIdExpression { get; set; }
 
-        public virtual ExpressionLanguage? CorrelationIdExpressionLanguage { get; set; }
+        [JsonProperty(Required = Required.Always)]
+        [JsonConverter(typeof(ExpressionJsonConverter))]
+        public virtual Expression TimestampExpression { get; set; }
+
+        [JsonConverter(typeof(ExpressionJsonConverter))]
+        public virtual Expression CorrelationIdExpression { get; set; }
 
 #pragma warning disable CA2227
         public virtual IList<CalculatedFunctionValueExpression> Values { get; set; }
@@ -57,7 +51,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public virtual ExpressionLanguage DefaultExpressionLanguage { get; set; } = ExpressionLanguage.JsonPath;
 
         [JsonIgnore]
-        public virtual IExpressionEvaluatorFactory ExpressionEvaluatorFactory { get; set; } = new CachingExpressionEvaluatorFactory();
+        public virtual IExpressionEvaluatorFactory ExpressionEvaluatorFactory { get; set; }
 
         public virtual IEnumerable<Measurement> GetMeasurements(JToken token)
         {
@@ -82,12 +76,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
             foreach (var expression in expressions)
             {
-                if (string.IsNullOrWhiteSpace(expression.Value))
+                if (string.IsNullOrWhiteSpace(expression?.Value))
                 {
                     continue;
                 }
 
-                var evaluator = ExpressionEvaluatorFactory.Create(expression);
+                var evaluator = ExpressionEvaluatorFactory.Create(expression, DefaultExpressionLanguage);
 
                 var evaluatedToken = evaluator.SelectToken(token);
 
@@ -102,34 +96,28 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             return default;
         }
 
-        protected static bool IsExpressionDefined(params string[] expressions)
+        protected static bool IsExpressionDefined(params Expression[] expressions)
         {
             EnsureArg.IsNotNull(expressions, nameof(expressions));
 
-            return expressions.Any(ex => !string.IsNullOrWhiteSpace(ex));
+            return expressions.Any(ex => ex != null && !string.IsNullOrWhiteSpace(ex.Value));
         }
 
-        protected virtual DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(
-            token, BuildExpression(nameof(TimestampExpression), TimestampExpression, TimestampExpressionLanguage));
+        protected virtual DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, TimestampExpression);
 
-        protected virtual string GetDeviceId(JToken token) => EvalExpression<string>(
-            token, BuildExpression(nameof(DeviceIdExpression), DeviceIdExpression, DeviceIdExpressionLanguage));
+        protected virtual string GetDeviceId(JToken token) => EvalExpression<string>(token, DeviceIdExpression);
 
-        protected virtual string GetPatientId(JToken token) => EvalExpression<string>(
-            token, BuildExpression(nameof(PatientIdExpression), PatientIdExpression, PatientIdExpressionLanguage));
+        protected virtual string GetPatientId(JToken token) => EvalExpression<string>(token, PatientIdExpression);
 
-        protected virtual string GetEncounterId(JToken token) => EvalExpression<string>(
-            token, BuildExpression(nameof(EncounterIdExpression), EncounterIdExpression, EncounterIdExpressionLanguage));
+        protected virtual string GetEncounterId(JToken token) => EvalExpression<string>(token, EncounterIdExpression);
 
-        protected virtual string GetCorrelationId(JToken token) => EvalExpression<string>(
-            token, BuildExpression(nameof(CorrelationIdExpression), CorrelationIdExpression, CorrelationIdExpressionLanguage));
+        protected virtual string GetCorrelationId(JToken token) => EvalExpression<string>(token, CorrelationIdExpression);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<JToken> MatchTypeTokens(JObject token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            var expression = BuildExpression(nameof(TypeMatchExpression), TypeMatchExpression, TypeMatchExpressionLanguage);
-            var evaluator = ExpressionEvaluatorFactory.Create(expression);
+            var evaluator = ExpressionEvaluatorFactory.Create(TypeMatchExpression, DefaultExpressionLanguage);
 
             foreach (var extractedToken in evaluator.SelectTokens(token))
             {
@@ -174,9 +162,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                 for (var i = 0; i < Values.Count; i++)
                 {
                     var val = Values[i];
-                    var value = EvalExpression<string>(
-                        token,
-                        BuildExpression($"ValueExpression{i}", val.ValueExpression, val.ValueExpressionLanguage));
+                    var value = EvalExpression<string>(token, val);
                     if (value != null)
                     {
                         measurement.Properties.Add(new MeasurementProperty { Name = val.ValueName, Value = value });
@@ -192,19 +178,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
 
             return measurement;
-        }
-
-        private Expression BuildExpression(string id, string value, ExpressionLanguage? language)
-        {
-            EnsureArg.IsNotEmptyOrWhiteSpace(id, nameof(id));
-            EnsureArg.IsNotEmptyOrWhiteSpace(value, nameof(value));
-
-            return new Expression()
-            {
-                Id = id,
-                Value = value,
-                Language = language ?? DefaultExpressionLanguage,
-            };
         }
     }
 }

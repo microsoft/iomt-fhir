@@ -3,18 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Newtonsoft.Json;
-
 namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public class CalculatedFunctionValueExpression : Expression
+    public static class ExpressionExtensions
     {
-        [JsonProperty(Required = Newtonsoft.Json.Required.Always)]
-        public string ValueName { get; set; }
+        private const string _defaultLanguage = "default";
 
-        [JsonProperty(Required = Newtonsoft.Json.Required.Always, PropertyName = "valueExpression")]
-        public override string Value { get; set; }
-
-        public bool Required { get; set; }
+        public static string GetId(this Expression expression)
+        {
+            var language = expression.Language.ToString() ?? _defaultLanguage;
+            return $"{expression.Value}-{language}";
+        }
     }
 }
