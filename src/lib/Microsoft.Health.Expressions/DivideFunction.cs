@@ -3,36 +3,36 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Text;
 using DevLab.JmesPath.Functions;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Expressions
 {
-    public class AppendStringFunction : JmesPathFunction
+    public class DivideFunction : JmesPathFunction
     {
-        public AppendStringFunction()
-            : base("appendString", 2)
+        public DivideFunction()
+            : base("divide", 2)
         {
         }
 
         public override void Validate(params JmesPathFunctionArgument[] args)
         {
             base.Validate();
-            this.ValidatePositionalArgument(args, 0, JTokenType.String);
-            this.ValidatePositionalArgument(args, 1, JTokenType.String);
+            this.ValidatePositionalArgumentIsNumber(args, 0);
+            this.ValidatePositionalArgumentIsNumber(args, 1);
             this.ValidateExpectedArgumentCount(MinArgumentCount, args.Length);
         }
 
         public override JToken Execute(params JmesPathFunctionArgument[] args)
         {
-            var toModify = args[0].Token.Value<string>();
-            var toAppend = args[1].Token.Value<string>();
-
-            var mutableString = new StringBuilder(toModify);
-
-            return new JValue(mutableString.Append(toAppend).ToString());
+            if (args[0].Token.Type == JTokenType.Float || args[1].Token.Type == JTokenType.Float)
+            {
+                return new JValue(args[0].Token.Value<double>() / args[1].Token.Value<double>());
+            }
+            else
+            {
+                return new JValue(args[0].Token.Value<long>() / args[1].Token.Value<long>());
+            }
         }
     }
 }
