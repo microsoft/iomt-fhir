@@ -64,7 +64,7 @@
     {
       "templateType": "IotJsonPathContent",
       "template": {
-        "typeName": "bp",
+        "typeName": "bloodpressure",
         "typeMatchExpression": "$..[?(@Body.Systolic && @Body.Diastolic)]",
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [

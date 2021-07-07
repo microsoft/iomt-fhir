@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
@@ -190,6 +191,23 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric NotSupported()
         {
             return _notSupported;
+        }
+
+        /// <summary>
+        /// A metric for when a FHIR resource has been saved.
+        /// </summary>
+        /// <param name="resourceType">The type of FHIR resource that was saved.</param>
+        /// <param name="resourceOperation">The operation performed on the FHIR resource.</param>
+        public static Metric FhirResourceSaved(ResourceType resourceType, ResourceOperation resourceOperation)
+        {
+            return new Metric(
+                "FhirResourceSaved",
+                new Dictionary<string, object>
+                {
+                    { _nameDimension, $"{resourceType}{resourceOperation}" },
+                    { _categoryDimension, Category.Traffic },
+                    { _operationDimension, ConnectorOperation.FHIRConversion },
+                });
         }
 
         public static Metric UnhandledException(string exceptionName, string connectorStage)
