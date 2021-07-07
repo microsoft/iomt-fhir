@@ -50,7 +50,7 @@ namespace Microsoft.Health.Expressions
 
             data = JObject.FromObject(new
             {
-                timestamp = new int[ 1, 2, 3],
+                timestamp = new int[1, 2, 3],
             });
 
             Assert.Throws<Exception>(() => _expression.Transform(data));

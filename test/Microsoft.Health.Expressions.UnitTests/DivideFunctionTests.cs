@@ -97,7 +97,7 @@ namespace Microsoft.Health.Expressions
 
             data = JObject.FromObject(new
             {
-                left = new int[ 1, 2, 3],
+                left = new int[1, 2, 3],
                 right = 100,
             });
 
