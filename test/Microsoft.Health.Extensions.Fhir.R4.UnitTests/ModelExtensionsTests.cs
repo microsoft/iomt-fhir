@@ -35,5 +35,18 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             var patientReference = device.Patient?.GetId<Model.Patient>();
             Assert.Null(patientReference);
         }
+
+        [Fact]
+        public void GivenDeviceWithPatientReferenceQueryParam_GetId_ThenNullIsReturned_Test()
+        {
+            var device = new Model.Device
+            {
+                Id = "1",
+                Patient = new Model.ResourceReference("Patient/123?_id=123"),
+            };
+
+            var patientReference = device.Patient?.GetId<Model.Patient>();
+            Assert.Null(patientReference);
+        }
     }
 }

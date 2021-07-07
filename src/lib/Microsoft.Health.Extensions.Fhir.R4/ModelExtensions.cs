@@ -53,7 +53,7 @@ namespace Microsoft.Health.Extensions.Fhir
             // Reference should be in the form: ResourceType/Identifier
             var relativeReferenceIdentifier = reference.Reference.Substring(referenceType.Length);
             var matches = _idMatcherRegex.Match(relativeReferenceIdentifier);
-            if (matches?.Groups?.Count != 1)
+            if (!matches.Success)
             {
                 return null;
             }
