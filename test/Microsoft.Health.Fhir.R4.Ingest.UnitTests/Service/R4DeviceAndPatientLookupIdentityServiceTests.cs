@@ -100,5 +100,31 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
         }
+
+        [Fact]
+        public async void GivenDeviceWithPatientReferenceUnsupportedCharacters_WhenResolveResourceIdentitiesAsync_ThenNotSupportedExceptionThrown_Test()
+        {
+            var fhirClient = Utilities.CreateMockFhirClient();
+            var resourceService = Substitute.For<ResourceManagementService>();
+            var device = new Model.Device
+            {
+                Id = "1",
+                Patient = new Model.ResourceReference("Not a reference in the form of: /ResourceName/Identifier"),
+            };
+
+            var mg = Substitute.For<IMeasurementGroup>();
+            mg.DeviceId.Returns("deviceId");
+
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(Task.FromResult(device));
+
+            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
+            {
+                var ex = await Assert.ThrowsAsync<FhirResourceNotFoundException>(async () => await idSrv.ResolveResourceIdentitiesAsync(mg));
+                Assert.Equal(ResourceType.Patient, ex.FhirResourceType);
+            }
+
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
+        }
     }
 }
