@@ -28,7 +28,15 @@ namespace Microsoft.Health.Logging.Telemetry
 
         public virtual void LogError(Exception ex)
         {
-            _telemetryClient.TrackException(ex);
+            if (ex is AggregateException e)
+            {
+                // Address bug https://github.com/microsoft/iomt-fhir/pull/120
+                LogAggregateException(e);
+            }
+            else
+            {
+                _telemetryClient.TrackException(ex);
+            }
         }
 
         public virtual void LogTrace(string message)
@@ -40,6 +48,19 @@ namespace Microsoft.Health.Logging.Telemetry
         {
             EnsureArg.IsNotNull(metric);
             metric.LogMetric(_telemetryClient, metricValue);
+        }
+
+        private void LogAggregateException(AggregateException e)
+        {
+            if (e.InnerException != null)
+            {
+                _telemetryClient.TrackException(e.InnerException);
+            }
+
+            foreach (var exception in e.InnerExceptions)
+            {
+                _telemetryClient.TrackException(exception);
+            }
         }
     }
 }
