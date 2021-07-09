@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Health.Common;
 using Microsoft.Health.Common.Config;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Config;
@@ -77,7 +76,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var measurements = new MeasurementGroup[] { Substitute.For<MeasurementGroup>(), Substitute.For<MeasurementGroup>() };
 
-            var aggEx = await Assert.ThrowsAsync<SimpleAggregateException>(async () => await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log));
+            var aggEx = await Assert.ThrowsAsync<AggregateException>(async () => await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log));
 
             Assert.Collection(
                 aggEx.InnerExceptions,

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
@@ -108,30 +107,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public async Task GivenEvents_WhenProcessAsync_AndGetMeasurementThrowsException_ThenNoEventsAreConsumed_Test()
-        {
-            var template = Substitute.For<IContentTemplate>();
-
-            template.GetMeasurements(null).ReturnsForAnyArgs(arg => throw new Exception("Mock Exception"));
-
-            var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
-
-            var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
-
-            var log = Substitute.For<ITelemetryLogger>();
-
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
-
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
-            var exception = await Assert.ThrowsAsync<SimpleAggregateException>(() => srv.ProcessAsync(events, consumer));
-
-            Assert.Equal(events.Length, exception.InnerExceptions.Count);
-            template.ReceivedWithAnyArgs(10).GetMeasurements(null);
-            converter.ReceivedWithAnyArgs(10).Convert(null);
-            await consumer.ReceivedWithAnyArgs(0).AddAsync(null);
-        }
-
-        [Fact]
         public async Task GivenEventsAndDefaultErrorConsumer_WhenProcessAsyncAndConsumerErrors_ThenEachEventResultConsumedAndErrorProprogated_Test()
         {
             var template = Substitute.For<IContentTemplate>();
@@ -146,7 +121,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new Exception()));
 
             var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
-            var exception = await Assert.ThrowsAsync<SimpleAggregateException>(() => srv.ProcessAsync(events, consumer));
+            var exception = await Assert.ThrowsAsync<AggregateException>(() => srv.ProcessAsync(events, consumer));
             Assert.Equal(events.Length, exception.InnerExceptions.Count);
 
             template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
