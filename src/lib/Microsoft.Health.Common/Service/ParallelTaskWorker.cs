@@ -66,7 +66,7 @@ namespace Microsoft.Health.Common.Service
                     {
                         if (!exceptions.IsEmpty)
                         {
-                            throw new AggregateException(exceptions);
+                            throw new SimpleAggregateException(exceptions);
                         }
                     },
                     cts.Token,

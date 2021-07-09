@@ -12,6 +12,7 @@ using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -124,7 +125,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     {
                         if (!exceptions.IsEmpty)
                         {
-                            throw new AggregateException(exceptions);
+                            throw new SimpleAggregateException(exceptions);
                         }
                     },
                     cts.Token,
