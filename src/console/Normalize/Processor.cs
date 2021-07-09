@@ -75,11 +75,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                         eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
                     }
 
-                    foreach (KeyValuePair<string, object> entry in x.Properties)
-                    {
-                        eventData.Properties[entry.Key] = entry.Value;
-                    }
-
                     return eventData;
                 });
 
