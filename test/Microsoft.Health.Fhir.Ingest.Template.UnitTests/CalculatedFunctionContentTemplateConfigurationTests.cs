@@ -169,7 +169,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredValueExpression_And_UsingJsonPath_ExceptionIsThrown_Test()
         {
-            Assert.Throws<InvalidOperationException>(() =>
+            var exp = Assert.Throws<InvalidOperationException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
@@ -188,6 +188,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
             });
+            Assert.StartsWith("Unable to extract required value for [hr]", exp.Message);
         }
 
         [Fact]
@@ -213,6 +214,104 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
             });
+        }
+
+        [Fact]
+        public void Given_MissingRequiredDeviceIdExpression_ExceptionIsThrown_Test()
+        {
+            var exp = Assert.Throws<InvalidOperationException>(() =>
+            {
+                PerformEvaluation(
+                new CalculatedFunctionContentTemplate
+                {
+                    TypeName = "heartrate",
+                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
+                    TimestampExpression = new Expression("$.date"),
+                    CorrelationIdExpression = new Expression("$.session"),
+                    PatientIdExpression = new Expression("$.patient"),
+                    Values = new List<CalculatedFunctionValueExpression>
+                    {
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
+                    },
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                });
+            });
+            Assert.StartsWith("An expression must be set for [DeviceIdExpression]", exp.Message);
+        }
+
+        [Fact]
+        public void Given_MissingRequiredTimestampExpression_ExceptionIsThrown_Test()
+        {
+            var exp = Assert.Throws<InvalidOperationException>(() =>
+            {
+                PerformEvaluation(
+                new CalculatedFunctionContentTemplate
+                {
+                    TypeName = "heartrate",
+                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new Expression("$.device"),
+                    CorrelationIdExpression = new Expression("$.session"),
+                    PatientIdExpression = new Expression("$.patient"),
+                    Values = new List<CalculatedFunctionValueExpression>
+                    {
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
+                    },
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                });
+            });
+            Assert.StartsWith("An expression must be set for [TimestampExpression]", exp.Message);
+        }
+
+        [Fact]
+        public void Given_MissingRequiredCorrelationIdValue_ExceptionIsThrown_Test()
+        {
+            var exp = Assert.Throws<InvalidOperationException>(() =>
+            {
+                PerformEvaluation(
+                new CalculatedFunctionContentTemplate
+                {
+                    TypeName = "heartrate",
+                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new Expression("$.device"),
+                    TimestampExpression = new Expression("$.date"),
+                    CorrelationIdExpression = new Expression("$.missingsession"),
+                    PatientIdExpression = new Expression("$.patient"),
+                    Values = new List<CalculatedFunctionValueExpression>
+                    {
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
+                    },
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                });
+            });
+            Assert.StartsWith("Unable to extract required value for [CorrelationIdExpression]", exp.Message);
+        }
+
+        [Fact]
+        public void Given_MissingRequiredDeviceIdValue_ExceptionIsThrown_Test()
+        {
+            var exp = Assert.Throws<InvalidOperationException>(() =>
+            {
+                PerformEvaluation(
+                new CalculatedFunctionContentTemplate
+                {
+                    TypeName = "heartrate",
+                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new Expression("$.badDeviceExpression"),
+                    TimestampExpression = new Expression("$.date"),
+                    CorrelationIdExpression = new Expression("$.session"),
+                    PatientIdExpression = new Expression("$.patient"),
+                    Values = new List<CalculatedFunctionValueExpression>
+                    {
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
+                    },
+                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
+                });
+            });
+            Assert.StartsWith("Unable to extract required value for [DeviceIdExpression]", exp.Message);
         }
 
         private void PerformEvaluation(IContentTemplate contentTemplate)

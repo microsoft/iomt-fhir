@@ -417,8 +417,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
 
-            var ex = Assert.Throws<ArgumentNullException>(() => template.GetMeasurements(token).ToArray());
-            Assert.Contains("correlationId", ex.Message);
+            var ex = Assert.Throws<InvalidOperationException>(() => template.GetMeasurements(token).ToArray());
+            Assert.Contains("Unable to extract required value for [CorrelationIdExpression]", ex.Message);
         }
 
         [Theory]
