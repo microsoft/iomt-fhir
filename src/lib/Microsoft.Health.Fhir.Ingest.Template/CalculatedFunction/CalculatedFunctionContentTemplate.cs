@@ -64,33 +64,29 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
         }
 
-        protected T EvalExpression<T>(JToken token, params Expression[] expressions)
+        protected T EvalExpression<T>(JToken token, string name, Expression expression, bool isRequired = false)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            EnsureArg.IsNotNull(expressions, nameof(expressions));
 
-            if (expressions == null)
+            if (expression != null && !string.IsNullOrWhiteSpace(expression.Value))
             {
-                return default;
-            }
-
-            foreach (var expression in expressions)
-            {
-                if (string.IsNullOrWhiteSpace(expression?.Value))
-                {
-                    continue;
-                }
+                EnsureArg.IsNotNull(expression?.Value, nameof(expression.Value));
 
                 var evaluator = ExpressionEvaluatorFactory.Create(expression);
-
                 var evaluatedToken = evaluator.SelectToken(token);
 
-                if (evaluatedToken == null)
+                if (evaluatedToken != null)
                 {
-                    continue;
+                    return evaluatedToken.Value<T>();
                 }
-
-                return evaluatedToken.Value<T>();
+                else if (isRequired)
+                {
+                    throw new InvalidOperationException($"Unable to extract required value for [{name}] using expression {expression.Value}");
+                }
+            }
+            else if (isRequired)
+            {
+                throw new InvalidOperationException($"An expression must be set for [{name}]");
             }
 
             return default;
@@ -103,15 +99,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             return expressions.Any(ex => ex != null && !string.IsNullOrWhiteSpace(ex.Value));
         }
 
-        protected virtual DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, TimestampExpression);
+        protected virtual DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, nameof(TimestampExpression), TimestampExpression, true);
 
-        protected virtual string GetDeviceId(JToken token) => EvalExpression<string>(token, DeviceIdExpression);
+        protected virtual string GetDeviceId(JToken token) => EvalExpression<string>(token, nameof(DeviceIdExpression), DeviceIdExpression, true);
 
-        protected virtual string GetPatientId(JToken token) => EvalExpression<string>(token, PatientIdExpression);
+        protected virtual string GetPatientId(JToken token) => EvalExpression<string>(token, nameof(PatientIdExpression), PatientIdExpression);
 
-        protected virtual string GetEncounterId(JToken token) => EvalExpression<string>(token, EncounterIdExpression);
+        protected virtual string GetEncounterId(JToken token) => EvalExpression<string>(token, nameof(EncounterIdExpression), EncounterIdExpression);
 
-        protected virtual string GetCorrelationId(JToken token) => EvalExpression<string>(token, CorrelationIdExpression);
+        protected virtual string GetCorrelationId(JToken token) => EvalExpression<string>(token, nameof(CorrelationIdExpression), CorrelationIdExpression, true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<JToken> MatchTypeTokens(JObject token)
@@ -135,16 +131,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             // Current assumption is that the expressions should match a single element and will error otherwise.
 
             string deviceId = GetDeviceId(token);
-            EnsureArg.IsNotNull(deviceId, nameof(deviceId));
-
             DateTime? timestamp = GetTimestamp(token);
-            EnsureArg.IsNotNull(timestamp, nameof(timestamp));
 
             string correlationId = null;
             if (IsExpressionDefined(CorrelationIdExpression))
             {
                 correlationId = GetCorrelationId(token);
-                EnsureArg.IsNotNull(correlationId, nameof(correlationId));
             }
 
             var measurement = new Measurement
@@ -162,17 +154,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                 for (var i = 0; i < Values.Count; i++)
                 {
                     var val = Values[i];
-                    var value = EvalExpression<string>(token, val);
+                    var value = EvalExpression<string>(token, val.ValueName, val, val.Required);
                     if (value != null)
                     {
                         measurement.Properties.Add(new MeasurementProperty { Name = val.ValueName, Value = value });
-                    }
-                    else
-                    {
-                        if (val.Required)
-                        {
-                            throw new InvalidOperationException($"Required value {val.ValueName} not found.");
-                        }
                     }
                 }
             }
