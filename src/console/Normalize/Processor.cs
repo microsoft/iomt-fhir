@@ -142,15 +142,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         {
             var type = exception.GetType().ToString();
             var ToMetric = new Metric(
-            type,
-            new Dictionary<string, object>
-            {
-                { DimensionNames.Name, type },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                { DimensionNames.Operation, ConnectorOperation.Normalization},
-            });
+                type,
+                new Dictionary<string, object>
+                {
+                    { DimensionNames.Name, type },
+                    { DimensionNames.Category, Category.Errors },
+                    { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
+                    { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
+                    { DimensionNames.Operation, ConnectorOperation.Normalization},
+                });
             logger.LogMetric(ToMetric, 1);
         }
     }
