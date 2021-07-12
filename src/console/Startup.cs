@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.	
 // -------------------------------------------------------------------------------------------------	
 
+using System;
+using System.Collections.Generic;
 using Azure.Messaging.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Storage;
-using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
@@ -21,8 +22,6 @@ using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
-using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -126,30 +125,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         {
             var eventConsumers = serviceProvider.GetRequiredService<List<IEventConsumer>>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
-            var applicationType = GetConsoleApplicationType();
-
-            if (applicationType == _normalizationAppType)
-            {
-                Action<Exception> exceptionProcessor = exception =>
-                {
-                    var type = exception.GetType().ToString();
-                    var ToMetric = new Metric(
-                    type,
-                    new Dictionary<string, object>
-                    {
-                        { DimensionNames.Name, type },
-                        { DimensionNames.Category, Category.Errors },
-                        { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                        { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                        { DimensionNames.Operation, ConnectorOperation.Normalization},
-                    });
-                    logger.LogMetric(ToMetric, 1);
-                };
-
-                return new EventConsumerService(eventConsumers, logger, exceptionTelemetryProcessor: exceptionProcessor);
-            }
-
-            return new EventConsumerService(eventConsumers, logger, false);
+            return new EventConsumerService(eventConsumers, logger);
         }
 
         public virtual IAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
