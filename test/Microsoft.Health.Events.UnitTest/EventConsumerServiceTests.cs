@@ -53,7 +53,7 @@ namespace Microsoft.Health.Events.UnitTest
             var logger = Substitute.For<ITelemetryLogger>();
             var eventConsumer = Substitute.For<IEventConsumer>();
 
-            // fail to consume events 3 times in a row, then succeed
+            // fail to consume events 2 times in a row, then succeed
             eventConsumer.When(x => x.ConsumeAsync(initialBatch))
                 .Do(x => { if (retries < 2) { retries++; throw new HttpRequestException("failure"); } });
 
