@@ -23,19 +23,16 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private readonly IEnumerable<IEventConsumer> _eventConsumers;
         private ITelemetryLogger _logger;
 
-        public EventConsumerService(IEnumerable<IEventConsumer> eventConsumers, ITelemetryLogger logger)
+        public EventConsumerService(
+            IEnumerable<IEventConsumer> eventConsumers,
+            ITelemetryLogger logger,
+            bool shouldRetry = true,
+            Action<Exception> exceptionTelemetryProcessor = null)
         {
             _eventConsumers = EnsureArg.IsNotNull(eventConsumers, nameof(eventConsumers));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
-            RetryPolicy = CreateRetryPolicy(logger);
-        }
-
-        public EventConsumerService(IEnumerable<IEventConsumer> eventConsumers, ITelemetryLogger logger, AsyncPolicy retryPolicy)
-        {
-            _eventConsumers = EnsureArg.IsNotNull(eventConsumers, nameof(eventConsumers));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            RetryPolicy = EnsureArg.IsNotNull(retryPolicy, nameof(retryPolicy));
+            RetryPolicy = CreateRetryPolicy(logger, shouldRetry, exceptionTelemetryProcessor);
         }
 
         public AsyncPolicy RetryPolicy { get;  }
@@ -63,13 +60,23 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
-        private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
+        private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger, bool shouldRetry, Action<Exception> exceptionTelemetryProcessor)
         {
             bool ExceptionRetryableFilter(Exception ee)
             {
+                if (exceptionTelemetryProcessor != null)
+                {
+                    exceptionTelemetryProcessor.Invoke(ee);
+                }
+
+                if (!shouldRetry)
+                {
+                    return false;
+                }
+
                 switch (ee)
                 {
-                    case AggregateException ae when ae.InnerExceptions.All(ExceptionRetryableFilter):
+                    case AggregateException ae when ae.InnerExceptions.Any(ExceptionRetryableFilter):
                     case OperationCanceledException _:
                     case HttpRequestException _:
                     case EventHubsException _:

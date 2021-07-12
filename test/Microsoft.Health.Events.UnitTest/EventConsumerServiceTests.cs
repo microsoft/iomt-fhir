@@ -19,7 +19,7 @@ namespace Microsoft.Health.Events.UnitTest
     public class EventConsumerServiceTests
     {
         [Fact]
-        public async void GivenEventConsumer_WhenEventConsumerThrowsNonRetryableException_ThenEventConsumer_IsNotRetried_()
+        public async void GivenEventConsumer_WhenEventConsumerThrowsNonRetryableException_ThenEventConsumer_ThenIsNotRetried_()
         {
             var retries = 0;
             var initialBatch = new List<EventMessage>()
@@ -42,6 +42,33 @@ namespace Microsoft.Health.Events.UnitTest
         }
 
         [Fact]
+        public async void GivenEventConsumer_And_ConfiguredToNotRetry_WhenEventConsumerThrowsRetryableException_ThenIsNotRetried()
+        {
+            var retries = 0;
+            var initialBatch = new List<EventMessage>()
+            {
+                new EventMessage("0", new ReadOnlyMemory<byte>(), 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()))
+            };
+
+            var logger = Substitute.For<ITelemetryLogger>();
+            var eventConsumer = Substitute.For<IEventConsumer>();
+            var exceptionProcessor = Substitute.For<Action<Exception>>();
+
+            // fail to consume events 2 times in a row, then succeed
+            eventConsumer.When(x => x.ConsumeAsync(initialBatch))
+                .Do(x => { if (retries < 2) { retries++; throw new HttpRequestException("failure"); } });
+
+            var eventEventConsumers = new List<IEventConsumer>() { eventConsumer };
+            var eventConsumerService = new EventConsumerService(eventEventConsumers, logger, false, exceptionProcessor);
+
+            // 2 retries followed by a successful call
+            await eventConsumerService.ConsumeEvents(initialBatch);
+            logger.Received(0).LogError(Arg.Is<Exception>(ex => ex.Message.StartsWith("Encountered retryable exception")));
+            await eventConsumer.Received(1).ConsumeAsync(initialBatch);
+            exceptionProcessor.Received(1).Invoke(Arg.Any<HttpRequestException>());
+        }
+
+        [Fact]
         public async void GivenEventConsumer_WhenEventConsumerThrowsRetryableException_ThenRetryEventConsumer_Test()
         {
             var retries = 0;
@@ -52,18 +79,20 @@ namespace Microsoft.Health.Events.UnitTest
 
             var logger = Substitute.For<ITelemetryLogger>();
             var eventConsumer = Substitute.For<IEventConsumer>();
+            var exceptionProcessor = Substitute.For<Action<Exception>>();
 
             // fail to consume events 2 times in a row, then succeed
             eventConsumer.When(x => x.ConsumeAsync(initialBatch))
                 .Do(x => { if (retries < 2) { retries++; throw new HttpRequestException("failure"); } });
 
             var eventEventConsumers = new List<IEventConsumer>() { eventConsumer };
-            var eventConsumerService = new EventConsumerService(eventEventConsumers, logger);
+            var eventConsumerService = new EventConsumerService(eventEventConsumers, logger, true, exceptionProcessor);
 
             // 2 retries followed by a successful call
             await eventConsumerService.ConsumeEvents(initialBatch);
             logger.Received(2).LogError(Arg.Is<Exception>(ex => ex.Message.StartsWith("Encountered retryable exception")));
             await eventConsumer.Received(3).ConsumeAsync(initialBatch);
+            exceptionProcessor.Received(2).Invoke(Arg.Any<HttpRequestException>());
         }
     }
 }

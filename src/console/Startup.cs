@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Storage;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
@@ -125,7 +126,30 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         {
             var eventConsumers = serviceProvider.GetRequiredService<List<IEventConsumer>>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
-            return new EventConsumerService(eventConsumers, logger);
+            var applicationType = GetConsoleApplicationType();
+
+            if (applicationType == _normalizationAppType)
+            {
+                Action<Exception> exceptionProcessor = exception =>
+                {
+                    var type = exception.GetType().ToString();
+                    var ToMetric = new Metric(
+                    type,
+                    new Dictionary<string, object>
+                    {
+                        { DimensionNames.Name, type },
+                        { DimensionNames.Category, Category.Errors },
+                        { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
+                        { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
+                        { DimensionNames.Operation, ConnectorOperation.Normalization},
+                    });
+                    logger.LogMetric(ToMetric, 1);
+                };
+
+                return new EventConsumerService(eventConsumers, logger, exceptionTelemetryProcessor: exceptionProcessor);
+            }
+
+            return new EventConsumerService(eventConsumers, logger, false);
         }
 
         public virtual IAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
