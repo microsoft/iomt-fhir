@@ -58,7 +58,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         {
             EnsureArg.IsNotNull(events);
             await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events));
-            
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events)
