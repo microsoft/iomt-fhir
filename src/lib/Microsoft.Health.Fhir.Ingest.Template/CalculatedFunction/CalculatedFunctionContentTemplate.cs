@@ -77,7 +77,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
                 if (evaluatedToken != null)
                 {
-                    return evaluatedToken.Value<T>();
+                    try
+                    {
+                        return evaluatedToken.Value<T>();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new InvalidOperationException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e);
+                    }
                 }
                 else if (isRequired)
                 {
