@@ -53,7 +53,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 {
                     try
                     {
-                        await RetryPolicy.ExecuteAsync(async () => await TryOperationAsync(eventConsumer, events).ConfigureAwait(false));
+                        await RetryPolicy.ExecuteAsync(async () => await eventConsumer.ConsumeAsync(events).ConfigureAwait(false));
                     }
                     catch (Exception e)
                     {
@@ -61,11 +61,6 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                     }
                 }
             }
-        }
-
-        private static async Task TryOperationAsync(IEventConsumer eventConsumer, IEnumerable<IEventMessage> events)
-        {
-            await eventConsumer.ConsumeAsync(events);
         }
 
         private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
