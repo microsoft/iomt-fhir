@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Identity;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
 using Microsoft.Health.Events.Model;
@@ -77,6 +78,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                     case OperationCanceledException _:
                     case HttpRequestException _:
                     case EventHubsException _:
+                    case AuthenticationFailedException _:
                     case RequestFailedException _:
                         break;
                     default:
