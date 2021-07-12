@@ -114,19 +114,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         {
             bool ExceptionRetryableFilter(Exception ee)
             {
-                var type = ee.GetType().ToString();
-                var ToMetric = new Metric(
-                type,
-                new Dictionary<string, object>
-                {
-                        { DimensionNames.Name, type },
-                        { DimensionNames.Category, Category.Errors },
-                        { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                        { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                        { DimensionNames.Operation, ConnectorOperation.Normalization},
-                });
-                logger.LogMetric(ToMetric, 1);
-
                 switch (ee)
                 {
                     case AggregateException ae when ae.InnerExceptions.Any(ExceptionRetryableFilter):
@@ -137,16 +124,34 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                     case RequestFailedException _:
                         break;
                     default:
+                        TrackExceptionMetric(ee, logger);
                         return false;
                 }
 
                 logger.LogError(new Exception("Encountered retryable exception", ee));
+                TrackExceptionMetric(ee, logger);
                 return true;
             }
 
             return Policy
                 .Handle<Exception>(ExceptionRetryableFilter)
                 .WaitAndRetryForeverAsync(retryCount => TimeSpan.FromSeconds(Math.Min(30, Math.Pow(2, retryCount))));
+        }
+
+        private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
+        {
+            var type = exception.GetType().ToString();
+            var ToMetric = new Metric(
+            type,
+            new Dictionary<string, object>
+            {
+                { DimensionNames.Name, type },
+                { DimensionNames.Category, Category.Errors },
+                { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
+                { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
+                { DimensionNames.Operation, ConnectorOperation.Normalization},
+            });
+            logger.LogMetric(ToMetric, 1);
         }
     }
 }
