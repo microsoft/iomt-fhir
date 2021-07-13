@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.	
 // -------------------------------------------------------------------------------------------------	
 
+using System;
+using System.Collections.Generic;
 using Azure.Messaging.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -20,8 +22,6 @@ using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
-using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
