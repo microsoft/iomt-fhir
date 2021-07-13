@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Azure;
+using AzureMessagingEventHubs = Azure.Messaging.EventHubs;
 using Azure.Identity;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
@@ -119,7 +120,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                     case AggregateException ae when ae.InnerExceptions.Any(ExceptionRetryableFilter):
                     case OperationCanceledException _:
                     case HttpRequestException _:
-                    case EventHubsException _:
+                    case AzureMessagingEventHubs.EventHubsException _:
                     case AuthenticationFailedException _:
                     case RequestFailedException _:
                         break;
