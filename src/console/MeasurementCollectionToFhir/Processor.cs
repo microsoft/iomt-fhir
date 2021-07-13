@@ -58,7 +58,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         {
             bool ExceptionRetryableFilter(Exception ee)
             {
-                logger.LogError(new Exception("Encountered retryable exception", ee));
+                logger.LogTrace($"Encountered retryable exception {ee.GetType()}");
+                logger.LogError(ee);
                 TrackExceptionMetric(ee, logger);
                 return true;
             }

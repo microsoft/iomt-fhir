@@ -129,7 +129,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                         return false;
                 }
 
-                logger.LogError(new Exception("Encountered retryable exception", ee));
+                logger.LogTrace($"Encountered retryable exception {ee.GetType()}");
+                logger.LogError(ee);
                 TrackExceptionMetric(ee, logger);
                 return true;
             }
