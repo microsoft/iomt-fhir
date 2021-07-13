@@ -34,17 +34,16 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             [MeasurementFhirImport] MeasurementFhirImportService measurementImportService,
             ITelemetryLogger logger)
         {
-            _templateDefinition = templateDefinition;
-            _templateManager = templateManager;
-            _measurementImportService = measurementImportService;
-            _logger = logger;
+            _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
+            _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
+            _measurementImportService = EnsureArg.IsNotNull(measurementImportService, nameof(measurementImportService));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _retryPolicy = CreateRetryPolicy(logger);
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
         {
             EnsureArg.IsNotNull(events);
-            EnsureArg.IsNotNull(_templateDefinition);
 
             await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
         }

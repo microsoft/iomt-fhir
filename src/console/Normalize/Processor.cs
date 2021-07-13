@@ -47,18 +47,17 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             ITelemetryLogger logger,
             IOptions<NormalizationServiceOptions> options)
         {
-            _templateDefinition = templateDefinition;
-            _templateManager = templateManager;
-            _collector = collector;
-            _logger = logger;
-            _normalizationOptions = options;
+            _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
+            _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
+            _collector = EnsureArg.IsNotNull(collector, nameof(collector));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            _normalizationOptions = EnsureArg.IsNotNull(options, nameof(options));
             _retryPolicy = CreateRetryPolicy(logger);
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
         {
             EnsureArg.IsNotNull(events);
-            EnsureArg.IsNotNull(_templateDefinition);
 
             await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
         }
