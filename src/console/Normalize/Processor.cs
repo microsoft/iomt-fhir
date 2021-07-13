@@ -58,14 +58,13 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
         {
             EnsureArg.IsNotNull(events);
-            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events));
+            EnsureArg.IsNotNull(_templateDefinition);
+
+            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
         }
 
-        private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events)
+        private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)
         {
-            EnsureArg.IsNotNull(_templateDefinition);
-            var templateContent = _templateManager.GetTemplateAsString(_templateDefinition);
-
             var templateContext = CollectionContentTemplateFactory.Default.Create(templateContent);
             templateContext.EnsureValid();
             var template = templateContext.Template;
