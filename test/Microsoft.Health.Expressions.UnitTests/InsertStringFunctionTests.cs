@@ -41,6 +41,24 @@ namespace Microsoft.Health.Expressions
         }
 
         [Theory]
+        [InlineData("myString", "!!", "myString!!")]
+        [InlineData("sample ", "text", "sample text")]
+        public void InsertString_AtEnd_Succeeds(string original, string toInsert, string expected)
+        {
+            var data = JObject.FromObject(new
+            {
+                original = original,
+                toInsert = toInsert,
+            });
+
+            _expression = _jmesPath.Parse("insertString(original, toInsert, length(original))");
+
+            var jmesArgument = _expression.Transform(data);
+            Assert.Equal(JTokenType.String, jmesArgument.Token.Type);
+            Assert.Equal(expected, jmesArgument.Token.Value<string>());
+        }
+
+        [Theory]
         [InlineData("myString", "!!", 9)]
         [InlineData("ppy", "ha", -1)]
         public void Inserting_OutOfBounds_Throws_Exception(string original, string toInsert, long pos)
@@ -72,6 +90,15 @@ namespace Microsoft.Health.Expressions
                 original = "text",
                 toInsert = 123,
                 pos = 0,
+            });
+
+            Assert.Throws<Exception>(() => _expression.Transform(data));
+
+            data = JObject.FromObject(new
+            {
+                original = "text",
+                toInsert = "toInsert",
+                pos = 1.5,
             });
 
             Assert.Throws<Exception>(() => _expression.Transform(data));

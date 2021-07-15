@@ -25,6 +25,7 @@ namespace Microsoft.Health.Expressions
         [Theory]
         [InlineData(0, "1970-01-01T00:00:00+0")]
         [InlineData(1625677200, "2021-07-07T17:00:00+0")]
+        [InlineData(-1, "1969-12-31T23:59:59+0")]
         public void UnixTimestampe_Parsing_Succeeds(long unixTime, string datetime)
         {
             var data = JObject.FromObject(new
