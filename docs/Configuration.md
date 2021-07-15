@@ -46,9 +46,17 @@ Below is a conceptual example of what happens during normalization.
 
 ## Mapping with Expressions
 
-The IoMT Fhir Connector provides an expression based content template to both match the desired template and extract values. **Expressions** may be expressed using either JSON Path or JmesPath, and each expression within the template may choose its own expression language. If an expression language is not defined, the default expression language (JSON Path) will be used.
+The IoMT Fhir Connector provides an expression based content template to both match the desired template and extract values. **Expressions** may be expressed using either JSON Path or JmesPath, and each expression within the template may choose its own expression language. If an expression language is not defined, the default expression language configured for the template will be used. By default this is JSONPath but can be overwritten if needed.
 
 An expression is defined as:
+```
+<name of expression> : {
+        "value" : <the expression>,
+        "language": <the expression language>
+    }
+```
+
+In the example below, _typeMatchExpression_ is defined as:
 
 ```
 "templateType": "CalculatedContentTemplate",
@@ -73,7 +81,7 @@ If it's desired to simply use the default expression language, the expression al
     }
 ```
 
-It is also possible to change the default expression language that will be used:
+It is also possible to explicitly set the default expression language that will be used:
 
 ```
 "templateType": "CalculatedContentTemplate",
@@ -94,7 +102,7 @@ When specifying the language to use for the expression, the below values are val
 
 More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). The [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. Additional examples can be found in the [unit tests](../test/Microsoft.Health.Fhir.Ingest.UnitTests/Template/JsonPathContentTemplateTests.cs).
 
-More information on JmesPath can be found [here](https://jmespath.org/specification.html). [CalculatedContentTemplete](#CalculatedContentTemplate) makes use of custom functions not defined in the JmesPath spec. More information on them can be found [here](./CustomFunctions.md). Source code for the functions can be found TODO. 
+More information on JmesPath can be found [here](https://jmespath.org/specification.html). [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JmesPath .NET implementation](https://github.com/jdevillard/JmesPath.Net) for resolving JmesPath expressions. In addtion to the functions provided as part of the specification a set of custom functions are also available for use. More information on them can be found [here](./CustomFunctions.md). Source code for the functions can be found TODO. 
 
 ### Matched Token
 The **TypeMatchExpression** is evaluated against the incoming EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against a new JToken which contains both the original EventData payload as well as the extracted JToken matched here. The extracted JToken will be available as the property __matchedToken__.
