@@ -8,11 +8,11 @@ The IoMT FHIR Connector for Azure requires two JSON configuration files.  The fi
 
 The IoMT FHIR Connector for Azure provides mapping functionality to extract device content into a common format for further evaluation.  Each event hub message received is evaluated against all templates. This allows a single inbound message to be projected to multiple outbound messages and subsequently mapped to different observations in FHIR.  The result is a normalized data object representing the value or values parsed by the templates.  The normalized data model has a few required properties that must be found and extracted:
 
-| Property | Description |
-| - | - |
-|**Type**|The name/type to classify the measurement.  This is used to bind to the desired FHIR mapping template.  Multiple templates can output to the same type allowing you to map different representations across multiple devices to a single common output.|
-|**OccurenceTimeUtc**|The time the measurement occurred.|
-|**DeviceId**|The identifier for the device.  This should match an identifier on the device resource that resides on the destination FHIR server.|
+| Property             | Description                                                                                                                                                                                                                                             |
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Type**             | The name/type to classify the measurement.  This is used to bind to the desired FHIR mapping template.  Multiple templates can output to the same type allowing you to map different representations across multiple devices to a single common output. |
+| **OccurenceTimeUtc** | The time the measurement occurred.                                                                                                                                                                                                                      |
+| **DeviceId**         | The identifier for the device.  This should match an identifier on the device resource that resides on the destination FHIR server.                                                                                                                     |
  |**Properties**|Extract at least one property so the value can be saved in the observation created.  Properties are a collection of key value pairs extracted during normalization.|
 
 The full normalized model is defined by the [IMeasurement](../src/lib/Microsoft.Health.Fhir.Ingest/Data/IMeasurement.cs) interface.
@@ -44,27 +44,170 @@ Below is a conceptual example of what happens during normalization.
  }
  ```
 
-## Mapping with JSON Path
+## Mapping with Expressions
 
-The two device content template types supported today rely on JSON Path to both match the desired template and extract values.  
-More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). Both template types use the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. Additional examples can be found in the [unit tests](../test/Microsoft.Health.Fhir.Ingest.UnitTests/Template/JsonPathContentTemplateTests.cs).
+The IoMT Fhir Connector provides an expression based content template to both match the desired template and extract values. **Expressions** may be expressed using either JSON Path or JmesPath, and each expression within the template may choose its own expression language. If an expression language is not defined, the default expression language (JSON Path) will be used.
 
-### **JsonPathContentTemplate**
+An expression is defined as:
 
-The JsonPathContentTemplate allows matching on and extracting values from an EventHub message using JSON Path.
+```
+"templateType": "CalculatedContentTemplate",
+    "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": {
+            "value" : "$..[?(@heartRate)]",
+            "language": "JsonPath"
+        },
+        ...
+    }
+```
 
-| Property | Description |<div style="width:150px">Example</div>
-| --- | --- | ---
-|**TypeName**|The type to associate with measurements that match the template.|`heartrate`
-|**TypeMatchExpression**|The JSON Path expression that is evaluated against the EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against the extracted JToken matched here.|`$..[?(@heartRate)]`
-|**TimestampExpression**|The JSON Path expression to extract the timestamp value for the measurement's OccurrenceTimeUtc.|`$.endDate`
-|**DeviceIdExpression**|The JSON Path expression to extract the device identifier.|`$.deviceId`
-|**PatientIdExpression**|*Required* when IdentityResolution is in [Create](ARMInstallation.md#Resource-Identity-Resolution-Type) mode and *Optional* when IdentityResolution is in [Lookup](ARMInstallation.md#Resource-Identity-Resolution-Type) mode. The JSON Path expression to extract the patient identifier.|`$.patientId`
-|**EncounterIdExpression**|*Optional*: The JSON Path expression to extract the encounter identifier.|`$.encounterId`
-|**CorrelationIdExpression**|*Optional*: The JSON Path expression to extract the correlation identifier.  If extracted this value can be used to group values into a single observation in the FHIR mapping template.|`$.correlationId`
-|**Values[].ValueName**|The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template. |`hr`
-|**Values[].ValueExpression**|The JSON Path expression to extract the desired value.|`$.heartRate`
-|**Values[].Required**|Will require the value to be present in the payload.  If not found a measurement will not be generated and an InvalidOperationException will be thrown.|`true`
+If it's desired to simply use the default expression language, the expression alone may be supplied:
+
+```
+"templateType": "CalculatedContentTemplate",
+    "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartRate)]",
+        ...
+    }
+```
+
+It is also possible to change the default expression language that will be used:
+
+```
+"templateType": "CalculatedContentTemplate",
+    "template": {
+        "typeName": "heartrate",
+        "defaultExpressionLanguage": "JsonPath",
+        "typeMatchExpression": "$..[?(@heartRate)]",
+        ...
+    }
+```
+### Expression Languages
+
+When specifying the language to use for the expression, the below values are valid:
+| Expression Language | Value        |
+|---------------------|--------------|
+| JSON Path           | **JsonPath** |
+| JmesPath            | **JmesPath** |
+
+More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). The [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. Additional examples can be found in the [unit tests](../test/Microsoft.Health.Fhir.Ingest.UnitTests/Template/JsonPathContentTemplateTests.cs).
+
+More information on JmesPath can be found [here](https://jmespath.org/specification.html). [CalculatedContentTemplete](#CalculatedContentTemplate) makes use of custom functions not defined in the JmesPath spec. More information on them can be found [here](./CustomFunctions.md). Source code for the functions can be found TODO. 
+
+### Matched Token
+The **TypeMatchExpression** is evaluated against the incoming EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against a new JToken which contains both the original EventData payload as well as the extracted JToken matched here. The extracted JToken will be available as the property __matchedToken__.
+
+Given the following:
+
+_Message_
+
+```
+{
+  "Properties": {
+    "deviceId": "device123"
+  },
+  "SystemProperties": {},
+  "Body": [
+    {
+      "systolic": "120",
+      "diastolic": "80",
+      "date": "2021-07-13T17:29:01.061144Z"
+    },
+    {
+      "systolic": "122",
+      "diastolic": "82",
+      "date": "2021-07-13T17:28:01.061122Z"
+    }
+  ]
+}
+```
+
+_Template_
+
+```
+"templateType": "CalculatedContentTemplate",
+    "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        ...
+    }
+```
+
+Two matches will be extracted using the above expression and used to create JTokens. Subsequent expressions will be evaluated using the following JTokens:
+
+```
+{
+  "Properties": {
+    "deviceId": "device123"
+  },
+  "SystemProperties": {},
+  "Body": [
+    {
+      "systolic": "120",
+      "diastolic": "80",
+      "date": "2021-07-13T17:29:01.061144Z"
+    },
+    {
+      "systolic": "122",
+      "diastolic": "82",
+      "date": "2021-07-13T17:28:01.061122Z"
+    }
+  ],
+  "matchedToken" : {
+      "systolic": "120",
+      "diastolic": "80",
+      "date": "2021-07-13T17:29:01.061144Z"
+  }
+}
+```
+
+And
+
+```
+{
+  "Properties": {
+    "deviceId": "device123"
+  },
+  "SystemProperties": {},
+  "Body": [
+    {
+      "systolic": "120",
+      "diastolic": "80",
+      "date": "2021-07-13T17:29:01.061144Z"
+    },
+    {
+      "systolic": "122",
+      "diastolic": "82",
+      "date": "2021-07-13T17:28:01.061122Z"
+    }
+  ],
+  "matchedToken" : {
+    {
+      "systolic": "122",
+      "diastolic": "82",
+      "date": "2021-07-13T17:28:01.061122Z"
+    }
+  }
+}
+```
+
+### CalculatedContentTemplate
+The CalculatedContentTemplate allows matching on and extracting values from an EventHub message using **Expressions** as defined above.
+
+| Property                 | Description                                                                                                                                                                                                           | Example            |
+|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| TypeName                 | The type to associate with measurements that match the template.                                                                                                                                                      | heartrate          |
+| TypeMatchExpression      | The expression that is evaluated against the EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against the extracted JToken matched here. | $..[?(@heartRate)] |
+| TimestampExpression      | The expression to extract the timestamp value for the measurement's OccurrenceTimeUtc.                                                                                                                                | $.matchedToken.endDate          |
+| DeviceIdExpression       | The expression to extract the device identifier.                                                                                                                                                                      | $.matchedToken.deviceId         |
+| PatientIdExpression      | Required when IdentityResolution is in Create mode and Optional when IdentityResolution is in Lookup mode. The expression to extract the patient identifier.                                                          | $.matchedToken.patientId        |
+| EncounterIdExpression    | Optional: The expression to extract the encounter identifier.                                                                                                                                                         | $.matchedToken.encounterId      |
+| CorrelationIdExpression  | Optional: The expression to extract the correlation identifier. If extracted this value can be used to group values into a single observation in the FHIR mapping template.                                           | $.matchedToken.correlationId    |
+| Values[].ValueName       | The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template.                                                                   | hr                 |
+| Values[].ValueExpression | The expression to extract the desired value.                                                                                                                                                                          | $.matchedToken.heartRate        |
+| Values[].Required        | Will require the value to be present in the payload. If not found a measurement will not be generated and an InvalidOperationException will be thrown.                                                                | true               |
 
 #### Examples
 
@@ -90,16 +233,16 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 
 ```json
 {
-    "templateType": "JsonPathContent",
+    "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
         "typeMatchExpression": "$..[?(@heartRate)]",
-        "deviceIdExpression": "$.deviceId",
-        "timestampExpression": "$.endDate",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
         "values": [
             {
                 "required": "true",
-                "valueExpression": "$.heartRate",
+                "valueExpression": "$.matchedToken.heartRate",
                 "valueName": "hr"
             }
         ]
@@ -132,17 +275,17 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 {
     "typeName": "bloodpressure",
     "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
-    "deviceIdExpression": "$.deviceid",
-    "timestampExpression": "$.endDate",
+    "deviceIdExpression": "$.matchedToken.deviceid",
+    "timestampExpression": "$.matchedToken.endDate",
     "values": [
         {
             "required": "true",
-            "valueExpression": "$.systolic",
+            "valueExpression": "$.matchedToken.systolic",
             "valueName": "systolic"
         },
         {
             "required": "true",
-            "valueExpression": "$.diastolic",
+            "valueExpression": "$.matchedToken.diastolic",
             "valueName": "diastolic"
         }
     ]
@@ -172,16 +315,16 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 
 ```json
 {
-    "templateType": "JsonPathContent",
+    "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
         "typeMatchExpression": "$..[?(@heartRate)]",
-        "deviceIdExpression": "$.deviceId",
-        "timestampExpression": "$.endDate",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
         "values": [
             {
                 "required": "true",
-                "valueExpression": "$.heartRate",
+                "valueExpression": "$.matchedToken.heartRate",
                 "valueName": "hr"
             }
         ]
@@ -193,16 +336,16 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 
 ```json
 {
-    "templateType": "JsonPathContent",
+    "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "stepcount",
         "typeMatchExpression": "$..[?(@steps)]",
-        "deviceIdExpression": "$.deviceId",
-        "timestampExpression": "$.endDate",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
         "values": [
             {
                 "required": "true",
-                "valueExpression": "$.steps",
+                "valueExpression": "$.matchedToken.steps",
                 "valueName": "steps"
             }
         ]
@@ -244,16 +387,16 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 
 ```json
 {
-    "templateType": "JsonPathContent",
+    "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
         "typeMatchExpression": "$..[?(@heartRate)]",
-        "deviceIdExpression": "$.deviceId",
-        "timestampExpression": "$.endDate",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
         "values": [
             {
                 "required": "true",
-                "valueExpression": "$.heartRate",
+                "valueExpression": "$.matchedToken.heartRate",
                 "valueName": "hr"
             }
         ]
@@ -261,210 +404,134 @@ The JsonPathContentTemplate allows matching on and extracting values from an Eve
 }
 ```
 
-### **IotJsonPathContentTemplate**
-
-The IotJsonPathContentTemplate is similar to the JsonPathContentTemplate except the DeviceIdExpression and TimestampExpression are not required.
-
-The assumption when using this template is the messages being evaluated were sent using the [Azure IoT Hub Device SDKs](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks#azure-iot-hub-device-sdks) or [Export Data (legacy)](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data-legacy) feature of [Azure IoT Central](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data). When using these SDKs the device identity (assuming the device id from Iot Hub/Central is registered as an identifer for a device resource on the destination FHIR server) is known as well as the timestamp of the message.  If you are using Azure IoT Hub Device SDKs but are using custom properties in the message body for the device identity or measurement timestamp you can still use the JsonPathContentTemplate.
-
-*Note: When using the IotJsonPathContentTemplate the TypeMatchExpression should resolve to the entire message as a JToken.  Please see the examples below.*
-
-#### Examples
-
 ---
 
-**Heart Rate**
+**Project Data From Matched Token And Original Event**
 
 *Message*
-```json
-{
-    "Body": {
-        "heartRate": "78"
-    },
-    "Properties": {
-        "iothub-creation-time-utc" : "2019-02-01T22:46:01.8750000Z"
-    },
-    "SystemProperties": {
-        "iothub-connection-device-id" : "device123"
-    }
-}
-```
-*Template*
-```json
-{
-    "templateType": "JsonPathContent",
-    "template": {
-        "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@Body.heartRate)]",
-        "deviceIdExpression": "$.deviceId",
-        "timestampExpression": "$.endDate",
-        "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.Body.heartRate",
-                "valueName": "hr"
-            }
-        ]
-    }
-}
-```
----
 
-**Blood Pressure**
-
-*Message*
 ```json
 {
-    "Body": {
-        "systolic": "123",
-        "diastolic" : "87"
-    },
-    "Properties": {
-        "iothub-creation-time-utc" : "2019-02-01T22:46:01.8750000Z"
-    },
-    "SystemProperties": {
-        "iothub-connection-device-id" : "device123"
-    }
-}
-```
-*Template*
-```json
-{
-    "typeName": "bloodpressure",
-    "typeMatchExpression": "$..[?(@Body.systolic && @Body.diastolic)]",
-    "values": [
+    "Body": [
         {
-            "required": "true",
-            "valueExpression": "$.Body.systolic",
-            "valueName": "systolic"
+            "heartRate": "78",
+            "endDate": "2019-02-01T22:46:01.8750000Z",
         },
         {
-            "required": "true",
-            "valueExpression": "$.Body.diastolic",
-            "valueName": "diastolic"
+            "heartRate": "81",
+            "endDate": "2019-02-01T23:46:01.8750000Z",
+        },
+        {
+            "heartRate": "72",
+            "endDate": "2019-02-01T24:46:01.8750000Z",
         }
-    ]
+    ],
+    "Properties": {
+        "deviceId": "device123"
+    },
+    "SystemProperties": {}
 }
 ```
 
-Full example template can be found [here](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates/legacy).
-
-### **IotCentralJsonPathContentTemplate**
-
-The IotCentralJsonPathContentTemplate is similar to the JsonPathContentTemplate except the DeviceIdExpression and TimestampExpression are not required.
-
-The assumption when using this template is the messages being evaluated were sent using the [Export Data](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data) feature of [Azure IoT Central](https://docs.microsoft.com/en-us/azure/iot-central/core/howto-export-data). When using this feature the device identity (assuming the device id from Iot Central is registered as an identifer for a device resource on the destination FHIR server) is known as well as the timestamp of the message. If you are using this export feature but are using custom properties in the message body for the device identity or measurement timestamp you can still use the JsonPathContentTemplate.
-
-*Note: When using the IotCentralJsonPathContentTemplate the TypeMatchExpression should resolve to the entire message as a JToken.  Please see the examples below.*
-
-#### Examples
-
----
-
-**Heart Rate**
-
-*Message*
-```json
-{
-    "applicationId": "1dffa667-9bee-4f16-b243-25ad4151475e",
-    "messageSource": "telemetry",
-    "deviceId": "1vzb5ghlsg1",
-    "schema": "default@v1",
-    "templateId": "urn:qugj6vbw5:___qbj_27r",
-    "enqueuedTime": "2020-08-05T22:26:55.455Z",
-    "telemetry": {
-        "Activity": "running",
-        "BloodPressure": {
-            "Diastolic": 7,
-            "Systolic": 71
-        },
-        "BodyTemperature": 98.73447010562934,
-        "HeartRate": 88,
-        "HeartRateVariability": 17,
-        "RespiratoryRate": 13
-    },
-    "enrichments": {
-      "userSpecifiedKey": "sampleValue"
-    },
-    "messageProperties": {
-      "messageProp": "value"
-    }
-}
-```
 *Template*
+
 ```json
 {
-    "templateType": "IotCentralJsonPathContent",
+    "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@telemetry.HeartRate)]",
+        "typeMatchExpression": "$..[?(@heartRate)]",
+        "deviceIdExpression": "$.Properties.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
         "values": [
             {
                 "required": "true",
-                "valueExpression": "$.telemetry.HeartRate",
+                "valueExpression": "$.matchedToken.heartRate",
                 "valueName": "hr"
             }
         ]
     }
 }
 ```
+
 ---
-**Blood Pressure**
+
+**Select and tranform incoming data**
 
 *Message*
+
 ```json
 {
-    "applicationId": "1dffa667-9bee-4f16-b243-25ad4151475e",
-    "messageSource": "telemetry",
-    "deviceId": "1vzb5ghlsg1",
-    "schema": "default@v1",
-    "templateId": "urn:qugj6vbw5:___qbj_27r",
-    "enqueuedTime": "2020-08-05T22:26:55.455Z",
-    "telemetry": {
-        "Activity": "running",
-        "BloodPressure": {
-            "Diastolic": 7,
-            "Systolic": 71
+    "Body": [
+        {
+            "height": "78",
+            "unit": "inches",
+            "endDate": "2019-02-01T22:46:01.8750000Z",
         },
-        "BodyTemperature": 98.73447010562934,
-        "HeartRate": 88,
-        "HeartRateVariability": 17,
-        "RespiratoryRate": 13
+        {
+            "height": "72",
+            "unit": "inches",
+            "endDate": "2019-02-01T23:46:01.8750000Z",
+        },
+        {
+            "height": "1.9304",
+            "unit": "meters",
+            "endDate": "2019-02-01T24:46:01.8750000Z",
+        }
+    ],
+    "Properties": {
+        "deviceId": "device123"
     },
-    "enrichments": {
-      "userSpecifiedKey": "sampleValue"
-    },
-    "messageProperties": {
-      "messageProp": "value"
-    }
+    "SystemProperties": {}
 }
 ```
-*Template*
+
+*Template 1*
+
 ```json
 {
-    "templateType": "IotCentralJsonPathContent",
+    "templateType": "CalculatedContentTemplate",
     "template": {
-        "typeName": "bloodPressure",
-        "typeMatchExpression": "$..[?(@telemetry.BloodPressure.Diastolic && @telemetry.BloodPressure.Systolic)]",
+        "typeName": "heightInMeters",
+        "typeMatchExpression": "$..[?(@unit == 'inches')]",
+        "deviceIdExpression": "$.Properties.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
         "values": [
             {
                 "required": "true",
-                "valueExpression": "$.telemetry.BloodPressure.Diastolic",
-                "valueName": "bp_diastolic"
-            },
-            {
-                "required": "true",
-                "valueExpression": "$.telemetry.BloodPressure.Systolic",
-                "valueName": "bp_systolic"
+                "valueExpression": {
+                    "value": "multiply(matchedToken.height, `0.0254`)",
+                    "language": "JmesPath"
+                },
+                "valueName": "height"
             }
         ]
     }
 }
 ```
-Full example template can be found [here](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates/sandbox).
 
----
+*Template 2*
 
+```json
+{
+    "templateType": "CalculatedContentTemplate",
+    "template": {
+        "typeName": "heightInMeters",
+        "typeMatchExpression": "$..[?(@unit == 'meters')]",
+        "deviceIdExpression": "$.Properties.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+            {
+                "required": "true",
+                "valueExpression": "$.matchedToken.height",
+                "valueName": "height"
+            }
+        ]
+    }
+}
+```
+
+Additional template types may be used alongside the CalculatedContentTemplate. Information on Legacy Templates such as __JsonPathContentTemplate__ can be found [here](./Legacy-Configuration.md).
 # FHIR Mapping
 
 Once the device content is extracted into [Measurement](../src/lib/Microsoft.Health.Fhir.Ingest/Data/Measurement.cs) definitions the data is collected and grouped according to a window of time (set during deployment), device id, and type.  The output of this grouping is sent to be converted into a FHIR resource (observation currently). Here the FHIR mapping controls how the data is mapped into a FHIR observation. Should an observation be created for a point in time or over a period of an hour? What codes should be added to the observation? Should be value be represented as SampledData or a Quantity? These are all options the FHIR mapping configuration controls.
@@ -475,27 +542,27 @@ The FHIR mapping also controls how the measurements are grouped into an observat
 
 The CodeValueFhirTemplate is currently the only template supported in FHIR mapping at this time.  It allows you defined codes, the effective period, and value of the observation. Multiple value types are supported: SampledData, CodeableConcept, String, and Quantity.  In addition to these configurable values the identifier for the observation, along with linking to the proper device and patient are handled automatically. An additional code used by IoMT FHIR Connector for Azure is also added.
 
-| Property | Description
-| --- | ---
-|**TypeName**| The type of measurement this template should bind to. There should be at least one DeviceContent template that outputs this type.
-|**PeriodInterval**|How measurements should be grouped into observations. Supported values are 0 (an instance), 60 (an hour), 1440 (a day), and -1 (correlation id).
-|**Category**|Any number of [CodeableConcepts](http://hl7.org/fhir/datatypes-definitions.html#codeableconcept) to classify the type of observation created.
-|**Codes**|One or more [Codings](http://hl7.org/fhir/datatypes-definitions.html#coding) to apply to the observation created.
-|**Codes[].Code**|The code for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
-|**Codes[].System**|The system for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
-|**Codes[].Display**|The display for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
-|**Value**|The value to extract and represent in the observation. See [Value Type Templates](#valuetypes) for more information.
-|**Components**|*Optional:* One or more components to create on the observation.
-|**Components[].Codes**|One or more [Codings](http://hl7.org/fhir/datatypes-definitions.html#coding) to apply to the component.
-|**Components[].Value**|The value to extract and represent in the component. See [Value Type Templates](#valuetypes) for more information.
+| Property               |
+|------------------------|
+| **TypeName**           |
+| **PeriodInterval**     |
+| **Category**           |
+| **Codes**              |
+| **Codes[].Code**       |
+| **Codes[].System**     |
+| **Codes[].Display**    |
+| **Value**              |
+| **Components**         |
+| **Components[].Codes** |
+| **Components[].Value** |
 
 ## Value Type Templates <a name="valuetypes"></a>
 
 Each Value type defines at least the following properties:
-| Property | Description 
-| --- | ---
-|**ValueType**|The type of this value. One of the value type templates below. 
-|**ValueName**|The name of the attribute projected by the normalization phase. 
+| Property      |
+|---------------|
+| **ValueType** |
+| **ValueName** |
 
 Below are the currently supported value type templates. In the future further templates may be added.
 
@@ -503,20 +570,20 @@ Below are the currently supported value type templates. In the future further te
 
 Represents the [SampledData](http://hl7.org/fhir/datatypes.html#SampledData) FHIR data type. Measurements are written to value stream starting with start of the observations and incrementing forward using the period defined.  If no value is present an `E` will be written into the data stream.  If the period is such that two more values occupy the same position in the data stream the latest value is used.  The same logic is applied when an observation using the SampledData is updated.
 
-| Property | Description
-| --- | ---
-|**DefaultPeriod**|The default period in milliseconds to use. 
-|**Unit**|The unit to set on the origin of the SampledData. 
+| Property          |
+|-------------------|
+| **DefaultPeriod** |
+| **Unit**          |
 
 ### Quantity
 
 Represents the [Quantity](http://hl7.org/fhir/datatypes.html#Quantity) FHIR data type.  If more than one value is present in the grouping only the first value is used.  If new value arrives that maps to the same observation it will overwrite the old value.
 
-| Property | Description
-| --- | ---
-|**Unit**| Unit representation.
-|**Code**| Coded form of the unit.
-|**System**| System that defines the coded unit form.
+| Property   |
+|------------|
+| **Unit**   |
+| **Code**   |
+| **System** |
 
 ### String
 
@@ -528,13 +595,13 @@ No additional properties are defined.
 
 Represents the [CodeableConcept](http://hl7.org/fhir/datatypes.html#CodeableConcept) FHIR data type. The actual value isn't used.
 
-| Property | Description
-| --- | ---
-|**Text**|Plain text representation.
-|**Codes**|One or more [Codings](http://hl7.org/fhir/datatypes-definitions.html#coding) to apply to the observation created.
-|**Codes[].Code**|The code for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
-|**Codes[].System**|The system for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
-|**Codes[].Display**|The display for the [Coding](http://hl7.org/fhir/datatypes-definitions.html#coding).
+| Property            |
+|---------------------|
+| **Text**            |
+| **Codes**           |
+| **Codes[].Code**    |
+| **Codes[].System**  |
+| **Codes[].Display** |
 
 ## Examples
 
