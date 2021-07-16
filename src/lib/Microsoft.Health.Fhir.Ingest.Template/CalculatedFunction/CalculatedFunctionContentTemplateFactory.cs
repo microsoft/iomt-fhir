@@ -40,8 +40,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
 
             var calculatedFunctionTemplate = jsonTemplate.Template.ToValidTemplate<CalculatedFunctionContentTemplate>();
-            calculatedFunctionTemplate.ExpressionEvaluatorFactory = CreateExpressionEvaluatorFactory(calculatedFunctionTemplate);
-            return calculatedFunctionTemplate;
+            var measurementExtractor = new MeasurementExtractor(calculatedFunctionTemplate, CreateExpressionEvaluatorFactory(calculatedFunctionTemplate));
+            return measurementExtractor;
         }
 
         private IExpressionEvaluatorFactory CreateExpressionEvaluatorFactory(CalculatedFunctionContentTemplate template)

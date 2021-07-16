@@ -24,7 +24,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var template = factory.Create(templateContainer);
             Assert.NotNull(template);
 
-            var expressionTemplate = template as CalculatedFunctionContentTemplate;
+            var measurementExtractor = template as MeasurementExtractor;
+            var expressionTemplate = measurementExtractor.Template;
+            var expressionEvaluatorFactory = measurementExtractor.ExpressionEvaluatorFactory;
+
             Assert.NotNull(expressionTemplate);
 
             Assert.Equal("heartrate", expressionTemplate.TypeName);
@@ -42,11 +45,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("hr", v.ValueName);
                 Assert.Equal("$.heartrate", v.Value);
                 Assert.Null(v.Language);
-                Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(v));
+                Assert.NotNull(expressionEvaluatorFactory.Create(v));
             });
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression));
         }
 
         [Theory]
@@ -60,7 +63,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var template = factory.Create(templateContainer);
             Assert.NotNull(template);
 
-            var expressionTemplate = template as CalculatedFunctionContentTemplate;
+            var measurementExtractor = template as MeasurementExtractor;
+            var expressionTemplate = measurementExtractor.Template;
+            var expressionEvaluatorFactory = measurementExtractor.ExpressionEvaluatorFactory;
             Assert.NotNull(expressionTemplate);
 
             Assert.Equal("heartrate", expressionTemplate.TypeName);
@@ -82,14 +87,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 Assert.Equal("hr", v.ValueName);
                 Assert.Equal("$.heartrate", v.Value);
                 Assert.Equal(ExpressionLanguage.JsonPath, v.Language);
-                Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(v));
+                Assert.NotNull(expressionEvaluatorFactory.Create(v));
             });
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.PatientIdExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.CorrelationIdExpression));
-            Assert.NotNull(expressionTemplate.ExpressionEvaluatorFactory.Create(expressionTemplate.EncounterIdExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TimestampExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.PatientIdExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.CorrelationIdExpression));
+            Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.EncounterIdExpression));
         }
     }
 }

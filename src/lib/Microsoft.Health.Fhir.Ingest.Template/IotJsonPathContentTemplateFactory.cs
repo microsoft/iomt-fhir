@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
             }
 
-            return jsonTemplate.Template.ToValidTemplate<IotJsonPathContentTemplate>();
+            return new IotJsonPathLegacyMeasurementExtractor(jsonTemplate.Template.ToValidTemplate<IotJsonPathContentTemplate>());
         }
     }
 }

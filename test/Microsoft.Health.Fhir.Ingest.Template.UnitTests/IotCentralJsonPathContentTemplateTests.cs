@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class IotCentralJsonPathContentTemplateTests
     {
-        private static readonly IContentTemplate BloodPressureTemplate = new IotCentralJsonPathContentTemplate
+        private static readonly IContentTemplate BloodPressureTemplate = BuildMeasurementExtractor(new IotCentralJsonPathContentTemplate
         {
             TypeName = "bloodPressure",
             TypeMatchExpression = "$..[?(@telemetry.BloodPressure.Diastolic && @telemetry.BloodPressure.Systolic)]",
@@ -23,9 +24,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new JsonPathValueExpression { ValueName = "bp_diastolic", ValueExpression = "$.telemetry.BloodPressure.Diastolic", Required = true },
                 new JsonPathValueExpression { ValueName = "bp_systolic", ValueExpression = "$.telemetry.BloodPressure.Systolic", Required = true },
             },
-        };
+        });
 
-        private static readonly IContentTemplate EnrichmentTemplate = new IotCentralJsonPathContentTemplate
+        private static readonly IContentTemplate EnrichmentTemplate = BuildMeasurementExtractor(new IotCentralJsonPathContentTemplate
         {
             TypeName = "elevation",
             TypeMatchExpression = "$..[?(@enrichments.Elevation)]",
@@ -33,9 +34,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 new JsonPathValueExpression { ValueName = "elevation", ValueExpression = "$.enrichments.Elevation", Required = true },
             },
-        };
+        });
 
-        private static readonly IContentTemplate TelemetryTemplate = new IotCentralJsonPathContentTemplate
+        private static readonly IContentTemplate TelemetryTemplate = BuildMeasurementExtractor(new IotCentralJsonPathContentTemplate
         {
             TypeName = "telemetry",
             TypeMatchExpression = "$..[?(@telemetry)]",
@@ -46,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new JsonPathValueExpression { ValueName = "bp_systolic", ValueExpression = "$.telemetry.BloodPressure.Systolic", Required = true },
                 new JsonPathValueExpression { ValueName = "respitoryrate", ValueExpression = "$.telemetry.RespiratoryRate", Required = true },
             },
-        };
+        });
 
         [Theory]
         [FileData(@"TestInput/data_IotCentralPayloadExample.json")]
@@ -135,6 +136,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         Assert.Equal("13", p.Value);
                     });
             });
+        }
+
+        private static IContentTemplate BuildMeasurementExtractor(IotCentralJsonPathContentTemplate template)
+        {
+            return new LegacyMeasurementExtractor(
+                new JsonPathCalculatedFunctionContentTemplateFacade<IotCentralJsonPathContentTemplate>(template),
+                new JsonPathExpressionEvaluatorFactory());
         }
     }
 }

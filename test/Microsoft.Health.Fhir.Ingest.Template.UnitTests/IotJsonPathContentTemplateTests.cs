@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class IotJsonPathContentTemplateTests
     {
-        private static readonly IContentTemplate SingleValueTemplate = new IotJsonPathContentTemplate
+        private static readonly IContentTemplate SingleValueTemplate = BuildMeasurementExtractor(new IotJsonPathContentTemplate
         {
             TypeName = "heartrate",
             TypeMatchExpression = "$..[?(@Body.heartrate)]",
@@ -22,9 +23,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.Body.heartrate", Required = true },
             },
-        };
+        });
 
-        private static readonly IContentTemplate MultiValueTemplate = new IotJsonPathContentTemplate
+        private static readonly IContentTemplate MultiValueTemplate = BuildMeasurementExtractor(new IotJsonPathContentTemplate
         {
             TypeName = "bloodpressure",
             TypeMatchExpression = "$..[?(@Body.systolic && @Body.diastolic)]",
@@ -33,7 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new JsonPathValueExpression { ValueName = "systolic", ValueExpression = "$.Body.systolic", Required = true },
                 new JsonPathValueExpression { ValueName = "diastolic", ValueExpression = "$.Body.diastolic", Required = true },
             },
-        };
+        });
 
         [Theory]
         [FileData(@"TestInput/data_IotHubPayloadExample.json")]
@@ -103,6 +104,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Assert.Equal("203", p.Value);
                 });
             });
+        }
+
+        private static IContentTemplate BuildMeasurementExtractor(IotJsonPathContentTemplate template)
+        {
+            return new IotJsonPathLegacyMeasurementExtractor(template);
         }
     }
 }

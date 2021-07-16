@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -14,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JsonPathContentTemplateTests
     {
-        private static readonly IContentTemplate SingleValueTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate SingleValueTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "heartrate",
             TypeMatchExpression = "$..[?(@heartrate)]",
@@ -24,9 +25,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
               new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
             },
-        };
+        });
 
-        private static readonly IContentTemplate SingleValueOptionalContentTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate SingleValueOptionalContentTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "heartrate",
             TypeMatchExpression = "$..[?(@heartrate)]",
@@ -38,9 +39,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
               new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
             },
-        };
+        });
 
-        private static readonly IContentTemplate SingleValueRequiredTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate SingleValueRequiredTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "heartrate",
             TypeMatchExpression = "$..[?(@heartrate)]",
@@ -50,9 +51,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
               new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = true },
             },
-        };
+        });
 
-        private static readonly IContentTemplate MultiValueTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate MultiValueTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "hrStepCombo",
             TypeMatchExpression = "$..[?(@heartrate || @steps)]",
@@ -63,9 +64,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
               new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
               new JsonPathValueExpression { ValueName = "steps", ValueExpression = "$.steps", Required = false },
             },
-        };
+        });
 
-        private static readonly IContentTemplate MultiValueRequiredTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate MultiValueRequiredTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "bloodpressure",
             TypeMatchExpression = "$..[?(@systolic)]",
@@ -76,9 +77,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
               new JsonPathValueExpression { ValueName = "systolic", ValueExpression = "$.systolic", Required = true },
               new JsonPathValueExpression { ValueName = "diastolic", ValueExpression = "$.diastolic", Required = true },
             },
-        };
+        });
 
-        private static readonly IContentTemplate SingleValueRequiredCompoundAndMatchTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate SingleValueRequiredCompoundAndMatchTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "heartrate",
             TypeMatchExpression = "$..[?(@heartrate && @date)]",
@@ -88,9 +89,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
               new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = true },
             },
-        };
+        });
 
-        private static readonly IContentTemplate CorrelationIdTemplate = new JsonPathContentTemplate
+        private static readonly IContentTemplate CorrelationIdTemplate = BuildMeasurementExtractor(new JsonPathContentTemplate
         {
             TypeName = "heartrate",
             TypeMatchExpression = "$..[?(@heartrate)]",
@@ -101,7 +102,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
               new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.heartrate", Required = false },
             },
-        };
+        });
 
         [Fact]
         public void GivenMultiValueTemplateAndValidTokenWithMissingValue_WhenGetMeasurements_ThenSingleMeasurementReturned_Test()
@@ -165,12 +166,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var time = DateTime.UtcNow;
 
-            var token = JToken.FromObject(new[]
-            {
-                new { systolic = "120", diastolic = "80", device = "abc", date = time },
-                new { systolic = "122", diastolic = "82", device = "abc", date = time.AddMinutes(-1) },
-                new { systolic = "100", diastolic = "70", device = "abc", date = time.AddMinutes(-2) },
-            });
+            var token = JToken.FromObject(
+                new
+                {
+                    Body = new[]
+                    {
+                        new { systolic = "120", diastolic = "80", device = "abc", date = time },
+                        new { systolic = "122", diastolic = "82", device = "abc", date = time.AddMinutes(-1) },
+                        new { systolic = "100", diastolic = "70", device = "abc", date = time.AddMinutes(-2) },
+                    },
+                });
 
             var result = MultiValueRequiredTemplate.GetMeasurements(token).ToArray();
 
@@ -391,7 +396,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             };
 
-            var result = template.GetMeasurements(token).ToArray();
+            var result = BuildMeasurementExtractor(template).GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Collection(result, m =>
@@ -466,8 +471,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
 
-            var ex = Assert.Throws<ArgumentNullException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
-            Assert.Contains("correlationId", ex.Message);
+            var ex = Assert.Throws<InvalidOperationException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
+            Assert.StartsWith("Unable to extract required value for [CorrelationIdExpression]", ex.Message);
+        }
+
+        private static IContentTemplate BuildMeasurementExtractor(JsonPathContentTemplate template)
+        {
+            return new LegacyMeasurementExtractor(
+                new JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>(template),
+                new JsonPathExpressionEvaluatorFactory());
         }
 
         public class JsonWidget

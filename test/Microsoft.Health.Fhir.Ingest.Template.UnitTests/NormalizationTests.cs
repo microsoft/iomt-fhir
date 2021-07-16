@@ -16,6 +16,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHrv_WhenGetMeasurements_ThenNoMeasurementsReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -30,6 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHeartRateAndSteps_WhenGetMeasurements_ThenTwoMeasurementsReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -73,6 +75,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHeartRate_WhenGetMeasurements_ThenOneMeasurementReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -103,6 +106,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithSteps_WhenGetMeasurements_ThenOneMeasurementReturned_Test(string json)
         {
             var template = CreateTemplate(json);

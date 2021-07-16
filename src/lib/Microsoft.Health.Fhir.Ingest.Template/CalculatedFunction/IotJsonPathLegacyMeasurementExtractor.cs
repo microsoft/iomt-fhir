@@ -1,0 +1,24 @@
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
+using Newtonsoft.Json.Linq;
+
+namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+{
+    public class IotJsonPathLegacyMeasurementExtractor : LegacyMeasurementExtractor
+    {
+        private IotJsonPathContentTemplate _template;
+
+        public IotJsonPathLegacyMeasurementExtractor(
+            IotJsonPathContentTemplate template)
+            : base(new JsonPathCalculatedFunctionContentTemplateFacade<IotJsonPathContentTemplate>(template), new JsonPathExpressionEvaluatorFactory())
+        {
+            _template = template;
+        }
+
+        protected override DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, nameof(Template.TimestampExpression), true, Template.TimestampExpression, new Expression(_template.AlternateTimestampExpression, ExpressionLanguage.JsonPath));
+    }
+}

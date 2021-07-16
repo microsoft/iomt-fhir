@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
@@ -19,11 +20,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new JsonPathContentTemplateFactory();
 
-            var template = factory.Create(templateContainer);
-            Assert.NotNull(template);
+            var contentTemplate = factory.Create(templateContainer);
+            Assert.NotNull(contentTemplate);
+            Assert.IsType<LegacyMeasurementExtractor>(contentTemplate);
+            var extractor = contentTemplate as MeasurementExtractor;
+            Assert.IsType<JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>>(extractor.Template);
 
-            var jsonPathTemplate = template as JsonPathContentTemplate;
-            Assert.NotNull(jsonPathTemplate);
+            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>).InnerTemplate;
 
             Assert.Equal("heartrate", jsonPathTemplate.TypeName);
             Assert.Equal("$..[?(@heartrate)]", jsonPathTemplate.TypeMatchExpression);
@@ -47,11 +50,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new JsonPathContentTemplateFactory();
 
-            var template = factory.Create(templateContainer);
-            Assert.NotNull(template);
+            var contentTemplate = factory.Create(templateContainer);
+            Assert.NotNull(contentTemplate);
+            Assert.IsType<LegacyMeasurementExtractor>(contentTemplate);
+            var extractor = contentTemplate as MeasurementExtractor;
+            Assert.IsType<JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>>(extractor.Template);
 
-            var jsonPathTemplate = template as JsonPathContentTemplate;
-            Assert.NotNull(jsonPathTemplate);
+            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>).InnerTemplate;
 
             Assert.Equal("heartrate", jsonPathTemplate.TypeName);
             Assert.Equal("$..[?(@heartrate)]", jsonPathTemplate.TypeMatchExpression);

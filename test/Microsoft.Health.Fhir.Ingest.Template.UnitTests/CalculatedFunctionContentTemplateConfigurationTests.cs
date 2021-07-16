@@ -31,7 +31,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
         }
 
@@ -53,7 +52,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
         }
 
@@ -74,7 +72,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false,  Language = ExpressionLanguage.JsonPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
         }
 
@@ -96,7 +93,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false,  Language = ExpressionLanguage.JsonPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
         }
 
@@ -119,7 +115,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
         }
 
@@ -140,7 +135,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false,  Language = ExpressionLanguage.JmesPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
         }
 
@@ -162,7 +156,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false,  Language = ExpressionLanguage.JmesPath },
                         new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
         }
 
@@ -185,7 +178,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
             });
             Assert.StartsWith("Unable to extract required value for [hr]", exp.Message);
@@ -211,7 +203,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(ExpressionLanguage.JmesPath),
                 });
             });
         }
@@ -234,7 +225,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
             });
             Assert.StartsWith("An expression must be set for [DeviceIdExpression]", exp.Message);
@@ -258,7 +248,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
             });
             Assert.StartsWith("An expression must be set for [TimestampExpression]", exp.Message);
@@ -283,7 +272,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
             });
             Assert.StartsWith("Unable to extract required value for [CorrelationIdExpression]", exp.Message);
@@ -308,13 +296,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
                     },
-                    ExpressionEvaluatorFactory = new ExpressionEvaluatorFactory(),
                 });
             });
             Assert.StartsWith("Unable to extract required value for [DeviceIdExpression]", exp.Message);
         }
 
-        private void PerformEvaluation(IContentTemplate contentTemplate)
+        private void PerformEvaluation(CalculatedFunctionContentTemplate template)
         {
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new
@@ -326,7 +313,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 patient = "patient123",
             });
 
-            var result = contentTemplate.GetMeasurements(token).ToArray();
+            var measurementExtractor = new MeasurementExtractor(template, new ExpressionEvaluatorFactory(template.DefaultExpressionLanguage));
+            var result = measurementExtractor.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);
             Assert.Collection(result, m =>
