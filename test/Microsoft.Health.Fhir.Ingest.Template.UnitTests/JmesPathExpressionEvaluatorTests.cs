@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using DevLab.JmesPath;
 using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Newtonsoft.Json.Linq;
@@ -14,13 +15,32 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         private JmesPathExpressionEvaluator _singleValueExpressionEvaluator;
         private JmesPathExpressionEvaluator _projectedExpressionEvaluator;
+        private JmesPath _jmesPath;
 
         public JmesPathExpressionEvaluatorTests()
         {
-            var jmesPath = new JmesPath();
-            _singleValueExpressionEvaluator = new JMESPathExpressionEvaluator(jmesPath.Parse("testProperty"));
+            _jmesPath = new JmesPath();
+            _singleValueExpressionEvaluator = new JmesPathExpressionEvaluator(_jmesPath, "testProperty");
 
-            _projectedExpressionEvaluator = new JMESPathExpressionEvaluator(jmesPath.Parse("property[].name"));
+            _projectedExpressionEvaluator = new JmesPathExpressionEvaluator(_jmesPath, "property[].name");
+        }
+
+        [Fact]
+        public void When_InvalidParametersProvided_ExceptionIsThrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => new JmesPathExpressionEvaluator(null, null));
+            Assert.Throws<ArgumentNullException>(() => new JmesPathExpressionEvaluator(_jmesPath, null));
+            Assert.Throws<ArgumentException>(() => new JmesPathExpressionEvaluator(_jmesPath, string.Empty));
+        }
+
+        [Theory]
+        [InlineData(".")]
+        [InlineData("?")]
+        [InlineData("[?]")]
+        public void When_InvalidExpressionProvided_ExceptionIsThrown(string badExpression)
+        {
+            var exception = Assert.Throws<ExpressionException>(() => new JmesPathExpressionEvaluator(_jmesPath, badExpression));
+            Assert.StartsWith("The following JmesPath expression could not be parsed", exception.Message);
         }
 
         [Fact]

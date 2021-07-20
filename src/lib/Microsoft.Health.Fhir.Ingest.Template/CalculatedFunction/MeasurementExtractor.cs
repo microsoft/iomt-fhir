@@ -149,9 +149,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
             if (Template.Values != null)
             {
-                for (var i = 0; i < Template.Values.Count; i++)
+                foreach (var val in Template.Values)
                 {
-                    var val = Template.Values[i];
                     var value = EvalExpression<string>(token, val.ValueName, val.Required, val);
                     if (value != null)
                     {

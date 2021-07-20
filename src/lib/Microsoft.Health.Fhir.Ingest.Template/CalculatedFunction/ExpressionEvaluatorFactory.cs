@@ -41,16 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                 case ExpressionLanguage.JsonPath:
                     return new JsonPathExpressionEvaluator(expression.Value);
                 case ExpressionLanguage.JmesPath:
-                    try
-                    {
-                        var jmesPathExpression = _jmesPath.Parse(expression.Value);
-                        return new JmesPathExpressionEvaluator(jmesPathExpression);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new ExpressionException("Unable to parse JMESPath expression", e);
-                    }
-
+                    return new JmesPathExpressionEvaluator(_jmesPath, expression.Value);
                 default:
                     throw new ArgumentException($"Unsupported Expression Language {expressionLanguage}");
             }

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using DevLab.JmesPath;
 using EnsureThat;
@@ -14,10 +15,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
     {
         private JmesPath.Expression _jmespathExpression;
 
-        public JmesPathExpressionEvaluator(
-            JmesPath.Expression jmespathExpression)
+        public JmesPathExpressionEvaluator(JmesPath jmesPath, string expression)
         {
-            _jmespathExpression = EnsureArg.IsNotNull(jmespathExpression, nameof(jmespathExpression));
+            EnsureArg.IsNotNull(jmesPath, nameof(jmesPath));
+            EnsureArg.IsNotNullOrWhiteSpace(expression, nameof(expression));
+
+            try
+            {
+                _jmespathExpression = jmesPath.Parse(expression);
+            }
+            catch (Exception e)
+            {
+                throw new ExpressionException($"The following JmesPath expression could not be parsed: {expression}", e);
+            }
         }
 
         public JToken SelectToken(JToken data)
