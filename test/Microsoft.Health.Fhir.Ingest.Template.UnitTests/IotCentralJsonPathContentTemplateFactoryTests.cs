@@ -24,9 +24,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(contentTemplate);
             Assert.IsType<LegacyMeasurementExtractor>(contentTemplate);
             var extractor = contentTemplate as MeasurementExtractor;
-            Assert.IsType<JsonPathCalculatedFunctionContentTemplateFacade<IotCentralJsonPathContentTemplate>>(extractor.Template);
+            Assert.IsType<JsonPathCalculatedFunctionContentTemplateAdapter<IotCentralJsonPathContentTemplate>>(extractor.Template);
 
-            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateFacade<IotCentralJsonPathContentTemplate>).InnerTemplate;
+            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateAdapter<IotCentralJsonPathContentTemplate>).InnerTemplate;
 
             Assert.Equal("telemetry", jsonPathTemplate.TypeName);
             Assert.Equal("$..[?(@telemetry)]", jsonPathTemplate.TypeMatchExpression);
@@ -61,9 +61,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(contentTemplate);
             Assert.IsType<LegacyMeasurementExtractor>(contentTemplate);
             var extractor = contentTemplate as MeasurementExtractor;
-            Assert.IsType<JsonPathCalculatedFunctionContentTemplateFacade<IotCentralJsonPathContentTemplate>>(extractor.Template);
+            Assert.IsType<JsonPathCalculatedFunctionContentTemplateAdapter<IotCentralJsonPathContentTemplate>>(extractor.Template);
 
-            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateFacade<IotCentralJsonPathContentTemplate>).InnerTemplate;
+            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateAdapter<IotCentralJsonPathContentTemplate>).InnerTemplate;
 
             Assert.Equal("telemetry", jsonPathTemplate.TypeName);
             Assert.Equal("$..[?(@telemetry)]", jsonPathTemplate.TypeMatchExpression);

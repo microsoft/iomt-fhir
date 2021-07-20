@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
             }
 
-            var facade = new JsonPathCalculatedFunctionContentTemplateFacade<IotCentralJsonPathContentTemplate>(
+            var facade = new JsonPathCalculatedFunctionContentTemplateAdapter<IotCentralJsonPathContentTemplate>(
                 jsonTemplate.Template.ToValidTemplate<IotCentralJsonPathContentTemplate>());
 
             return new LegacyMeasurementExtractor(facade, new JsonPathExpressionEvaluatorFactory());

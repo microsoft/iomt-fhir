@@ -44,7 +44,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                     try
                     {
                         var jmesPathExpression = _jmesPath.Parse(expression.Value);
-                        return new JMESPathExpressionEvaluator(jmesPathExpression);
+                        return new JmesPathExpressionEvaluator(jmesPathExpression);
                     }
                     catch (Exception e)
                     {

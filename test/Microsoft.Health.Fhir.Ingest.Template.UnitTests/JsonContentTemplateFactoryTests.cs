@@ -24,9 +24,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(contentTemplate);
             Assert.IsType<LegacyMeasurementExtractor>(contentTemplate);
             var extractor = contentTemplate as MeasurementExtractor;
-            Assert.IsType<JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>>(extractor.Template);
+            Assert.IsType<JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>>(extractor.Template);
 
-            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>).InnerTemplate;
+            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>).InnerTemplate;
 
             Assert.Equal("heartrate", jsonPathTemplate.TypeName);
             Assert.Equal("$..[?(@heartrate)]", jsonPathTemplate.TypeMatchExpression);
@@ -54,9 +54,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(contentTemplate);
             Assert.IsType<LegacyMeasurementExtractor>(contentTemplate);
             var extractor = contentTemplate as MeasurementExtractor;
-            Assert.IsType<JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>>(extractor.Template);
+            Assert.IsType<JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>>(extractor.Template);
 
-            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>).InnerTemplate;
+            var jsonPathTemplate = (extractor.Template as JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>).InnerTemplate;
 
             Assert.Equal("heartrate", jsonPathTemplate.TypeName);
             Assert.Equal("$..[?(@heartrate)]", jsonPathTemplate.TypeMatchExpression);

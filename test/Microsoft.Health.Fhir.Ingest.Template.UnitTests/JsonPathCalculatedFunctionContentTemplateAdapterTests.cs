@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class JsonPathCalculatedFunctionContentTemplateFacadeTests
+    public class JsonPathCalculatedFunctionContentTemplateAdapterTests
     {
         [Fact]
         public void When_AllExpressionsAreSupplied_AllExpressions_Are_Initialized()
@@ -30,7 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             };
 
-            var facade = new JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>(contentTemplate);
+            var facade = new JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>(contentTemplate);
 
             Assert.Equal("heartrate", facade.TypeName);
             Assert.Equal("$..[?(@heartrate)]", facade.TypeMatchExpression.Value);
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             };
 
-            var facade = new JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>(contentTemplate);
+            var facade = new JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>(contentTemplate);
 
             Assert.Equal("heartrate", facade.TypeName);
             Assert.Equal("$..[?(@heartrate)]", facade.TypeMatchExpression.Value);

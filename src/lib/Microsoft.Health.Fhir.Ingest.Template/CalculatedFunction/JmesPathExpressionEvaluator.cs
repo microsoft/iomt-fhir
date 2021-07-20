@@ -10,11 +10,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public class JMESPathExpressionEvaluator : IExpressionEvaluator
+    public class JmesPathExpressionEvaluator : IExpressionEvaluator
     {
         private JmesPath.Expression _jmespathExpression;
 
-        public JMESPathExpressionEvaluator(
+        public JmesPathExpressionEvaluator(
             JmesPath.Expression jmespathExpression)
         {
             _jmespathExpression = EnsureArg.IsNotNull(jmespathExpression, nameof(jmespathExpression));
@@ -23,14 +23,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         public JToken SelectToken(JToken data)
         {
             EnsureArg.IsNotNull(data);
-            var jmePathArgument = _jmespathExpression.Transform(data);
+            var jmesPathArgument = _jmespathExpression.Transform(data);
 
-            if (jmePathArgument.IsProjection && jmePathArgument.Projection.Length > 1)
+            if (jmesPathArgument.IsProjection && jmesPathArgument.Projection.Length > 1)
             {
                 throw new ExpressionException($"Multiple tokens were returned using expression ${_jmespathExpression}");
             }
 
-            var resultAsToken = jmePathArgument.AsJToken();
+            var resultAsToken = jmesPathArgument.AsJToken();
             if (resultAsToken.Type == JTokenType.Null)
             {
                 return null;

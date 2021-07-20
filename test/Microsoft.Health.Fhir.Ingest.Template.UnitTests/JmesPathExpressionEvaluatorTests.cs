@@ -12,8 +12,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JmesPathExpressionEvaluatorTests
     {
-        private JMESPathExpressionEvaluator _singleValueExpressionEvaluator;
-        private JMESPathExpressionEvaluator _projectedExpressionEvaluator;
+        private JmesPathExpressionEvaluator _singleValueExpressionEvaluator;
+        private JmesPathExpressionEvaluator _projectedExpressionEvaluator;
 
         public JmesPathExpressionEvaluatorTests()
         {

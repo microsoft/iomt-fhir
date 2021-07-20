@@ -478,7 +478,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         private static IContentTemplate BuildMeasurementExtractor(JsonPathContentTemplate template)
         {
             return new LegacyMeasurementExtractor(
-                new JsonPathCalculatedFunctionContentTemplateFacade<JsonPathContentTemplate>(template),
+                new JsonPathCalculatedFunctionContentTemplateAdapter<JsonPathContentTemplate>(template),
                 new JsonPathExpressionEvaluatorFactory());
         }
 

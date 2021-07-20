@@ -8,10 +8,10 @@ using EnsureThat;
 
 namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 {
-    public class JsonPathCalculatedFunctionContentTemplateFacade<TTemplate> : CalculatedFunctionContentTemplate
+    public class JsonPathCalculatedFunctionContentTemplateAdapter<TTemplate> : CalculatedFunctionContentTemplate
         where TTemplate : JsonPathContentTemplate, new()
     {
-        public JsonPathCalculatedFunctionContentTemplateFacade(TTemplate innerTemplate)
+        public JsonPathCalculatedFunctionContentTemplateAdapter(TTemplate innerTemplate)
         {
             InnerTemplate = EnsureArg.IsNotNull(innerTemplate, nameof(innerTemplate));
 
