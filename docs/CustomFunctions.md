@@ -97,20 +97,6 @@ Examples:
 
 ## String Functions
 
-### fromUnixTimestamp
-
-```
-string fromUnixTimestamp(number $unixTimestamp)
-```
-
-Produces an [ISO 8061](https://en.wikipedia.org/wiki/ISO_8601) compliant time stamp from the given Unix timestamp.
-
-Examples:
-| Given                 | Expression              | Result                  |
-|-----------------------|-------------------------|-------------------------|
-| {"unix" : 1625677200} | fromUnixTimestamp(unix) | "2021-07-07T17:00:00+0" |
-| {"unix" : 0}          | fromUnixTimestamp(unix) | "1970-01-01T00:00:00+0" |
-
 ### insertString
 
 ```
@@ -130,3 +116,33 @@ Examples:
 | {"original" : "myString", "toInsert" : "!!"}              | insertString(original, toInsert, length(original)) | "myString!!"        |
 | {"original" : "myString", "toInsert" : "!!", "pos" : 100} | insertString(original, toInsert, pos)              | error: out of range |
 | {"original" : "myString", "toInsert" : "!!", "pos" : -1}  | insertString(original, toInsert, pos)              | error: out of range |
+
+## Date Functions
+
+### fromUnixTimestamp
+
+```
+string fromUnixTimestamp(number $unixTimestampInSeconds)
+```
+
+Produces an [ISO 8061](https://en.wikipedia.org/wiki/ISO_8601) compliant time stamp from the given Unix timestamp. The timestamp is represented as the number of seconds since the Epoch (January 1 1970).
+
+Examples:
+| Given                 | Expression              | Result                  |
+|-----------------------|-------------------------|-------------------------|
+| {"unix" : 1625677200} | fromUnixTimestamp(unix) | "2021-07-07T17:00:00+0" |
+| {"unix" : 0}          | fromUnixTimestamp(unix) | "1970-01-01T00:00:00+0" |
+
+### fromUnixTimestampMs
+
+```
+string fromUnixTimestampMs(number $unixTimestampInMs)
+```
+
+Produces an [ISO 8061](https://en.wikipedia.org/wiki/ISO_8601) compliant time stamp from the given Unix timestamp. The timestamp is represented as the number of milliseconds since the Epoch (January 1 1970).
+
+Examples:
+| Given                    | Expression                | Result                  |
+|--------------------------|---------------------------|-------------------------|
+| {"unix" : 1626799080000} | fromUnixTimestampMs(unix) | "2021-07-20T16:38:00+0" |
+| {"unix" : 0}             | fromUnixTimestampMs(unix) | "1970-01-01T00:00:00+0" |
