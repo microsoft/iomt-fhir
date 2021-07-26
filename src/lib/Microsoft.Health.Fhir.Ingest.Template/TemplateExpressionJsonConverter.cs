@@ -7,31 +7,48 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class ExpressionJsonConverter : JsonConverter
+    /// <summary>
+    /// A custom JsonConverter which supports creating a TemplateExpression from either a String or JObject.
+    ///
+    /// Example:
+    ///
+    /// {
+    /// "typeMatchExpression" : "@.heartRate"
+    /// }
+    ///
+    /// or
+    /// {
+    ///     "typeMatchExpression" : {
+    ///         "value" : "@.heartRate",
+    ///         "language" : "JsonPath"
+    ///     }
+    /// }
+    /// </summary>
+    public class TemplateExpressionJsonConverter : JsonConverter
     {
-        public ExpressionJsonConverter()
+        public TemplateExpressionJsonConverter()
         {
         }
 
         public override bool CanConvert(Type objectType)
         {
-            return typeof(Expression) == objectType;
+            return typeof(TemplateExpression) == objectType;
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.ValueType == typeof(string))
             {
-                return new Expression()
+                return new TemplateExpression()
                 {
                     Value = (string)reader.Value,
                 };
             }
             else
             {
-                return JToken.Load(reader).ToObject<Expression>();
+                return JToken.Load(reader).ToObject<TemplateExpression>();
             }
         }
 

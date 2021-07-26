@@ -5,9 +5,9 @@
 
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CalculatedFunctionValueExpression : Expression
+    public class CalculatedFunctionValueExpression : TemplateExpression
     {
         [JsonProperty(Required = Newtonsoft.Json.Required.Always)]
         public string ValueName { get; set; }

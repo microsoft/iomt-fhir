@@ -9,7 +9,7 @@ using DevLab.JmesPath;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JmesPathExpressionEvaluator : IExpressionEvaluator
     {
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
             catch (Exception e)
             {
-                throw new ExpressionException($"The following JmesPath expression could not be parsed: {expression}", e);
+                throw new TemplateExpressionException($"The following JmesPath expression could not be parsed: {expression}", e);
             }
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
             if (jmesPathArgument.IsProjection && jmesPathArgument.Projection.Length > 1)
             {
-                throw new ExpressionException($"Multiple tokens were returned using expression ${_jmespathExpression}");
+                throw new TemplateExpressionException($"Multiple tokens were returned using expression ${_jmespathExpression}");
             }
 
             var resultAsToken = jmesPathArgument.AsJToken();

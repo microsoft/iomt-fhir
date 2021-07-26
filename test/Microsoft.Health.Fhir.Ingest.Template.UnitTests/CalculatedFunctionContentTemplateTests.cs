@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -328,9 +328,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var template = new CalculatedFunctionContentTemplate
             {
                 TypeName = "space",
-                TypeMatchExpression = new Expression("$..[?(@['My Property'])]"),
-                DeviceIdExpression = new Expression("$.['My Property']"),
-                TimestampExpression = new Expression("$.Time"),
+                TypeMatchExpression = new TemplateExpression("$..[?(@['My Property'])]"),
+                DeviceIdExpression = new TemplateExpression("$.['My Property']"),
+                TimestampExpression = new TemplateExpression("$.Time"),
                 Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "prop", Value = "$.['My Property']", Required = false },
@@ -491,11 +491,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
-                    DeviceIdExpression = new Expression("device"),
-                    TimestampExpression = new Expression("date"),
+                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate]"),
+                    DeviceIdExpression = new TemplateExpression("device"),
+                    TimestampExpression = new TemplateExpression("date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
@@ -507,9 +507,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new Expression("$.device"),
-                    TimestampExpression = new Expression("$.date"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new TemplateExpression("$.device"),
+                    TimestampExpression = new TemplateExpression("$.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -525,11 +525,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new Expression("$.device"),
-                    TimestampExpression = new Expression("$.date"),
-                    PatientIdExpression = new Expression("$.pid"),
-                    EncounterIdExpression = new Expression("$.eid"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new TemplateExpression("$.device"),
+                    TimestampExpression = new TemplateExpression("$.date"),
+                    PatientIdExpression = new TemplateExpression("$.pid"),
+                    EncounterIdExpression = new TemplateExpression("$.eid"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -540,13 +540,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
-                    DeviceIdExpression = new Expression("device"),
-                    TimestampExpression = new Expression("date"),
-                    PatientIdExpression = new Expression("pid"),
-                    EncounterIdExpression = new Expression("eid"),
+                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate]"),
+                    DeviceIdExpression = new TemplateExpression("device"),
+                    TimestampExpression = new TemplateExpression("date"),
+                    PatientIdExpression = new TemplateExpression("pid"),
+                    EncounterIdExpression = new TemplateExpression("eid"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
@@ -562,9 +562,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "hrStepCombo",
-                    TypeMatchExpression = new Expression("$..[?(@heartrate || @steps)]"),
-                    DeviceIdExpression = new Expression("$.device"),
-                    TimestampExpression = new Expression("$.date"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate || @steps)]"),
+                    DeviceIdExpression = new TemplateExpression("$.device"),
+                    TimestampExpression = new TemplateExpression("$.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -576,11 +576,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
                     TypeName = "hrStepCombo",
-                    TypeMatchExpression = new Expression("to_array(@)[?heartrate || steps]"),
-                    DeviceIdExpression = new Expression("device"),
-                    TimestampExpression = new Expression("date"),
+                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate || steps]"),
+                    DeviceIdExpression = new TemplateExpression("device"),
+                    TimestampExpression = new TemplateExpression("date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
@@ -597,9 +597,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "bloodpressure",
-                    TypeMatchExpression = new Expression("$..[?(@systolic)]"),
-                    DeviceIdExpression = new Expression("$.matchedToken.device"),
-                    TimestampExpression = new Expression("$.matchedToken.date"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@systolic)]"),
+                    DeviceIdExpression = new TemplateExpression("$.matchedToken.device"),
+                    TimestampExpression = new TemplateExpression("$.matchedToken.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "systolic", Value = "$.matchedToken.systolic", Required = true },
@@ -611,11 +611,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
                     TypeName = "bloodpressure",
-                    TypeMatchExpression = new Expression("Body[?systolic]"),
-                    DeviceIdExpression = new Expression("matchedToken.device"),
-                    TimestampExpression = new Expression("matchedToken.date"),
+                    TypeMatchExpression = new TemplateExpression("Body[?systolic]"),
+                    DeviceIdExpression = new TemplateExpression("matchedToken.device"),
+                    TimestampExpression = new TemplateExpression("matchedToken.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "systolic", Value = "matchedToken.systolic", Required = true },
@@ -632,9 +632,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new Expression("$.device"),
-                    TimestampExpression = new Expression("$.date"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new TemplateExpression("$.device"),
+                    TimestampExpression = new TemplateExpression("$.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = true },
@@ -645,11 +645,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
-                    DeviceIdExpression = new Expression("matchedToken.device"),
-                    TimestampExpression = new Expression("matchedToken.date"),
+                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate]"),
+                    DeviceIdExpression = new TemplateExpression("matchedToken.device"),
+                    TimestampExpression = new TemplateExpression("matchedToken.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "matchedToken.heartrate", Required = true },
@@ -665,9 +665,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("$..[?(@heartrate && @date)]"),
-                    DeviceIdExpression = new Expression("$.device"),
-                    TimestampExpression = new Expression("$.date"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate && @date)]"),
+                    DeviceIdExpression = new TemplateExpression("$.device"),
+                    TimestampExpression = new TemplateExpression("$.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = true },
@@ -679,10 +679,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
-                    TypeMatchExpression = new Expression("to_array(@)[?heartrate && date]"),
-                    DeviceIdExpression = new Expression("matchedToken.device"),
-                    TimestampExpression = new Expression("matchedToken.date"),
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
+                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate && date]"),
+                    DeviceIdExpression = new TemplateExpression("matchedToken.device"),
+                    TimestampExpression = new TemplateExpression("matchedToken.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "matchedToken.heartrate", Required = true },
@@ -698,10 +698,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new Expression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new Expression("$.device"),
-                    TimestampExpression = new Expression("$.date"),
-                    CorrelationIdExpression = new Expression("$.session"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
+                    DeviceIdExpression = new TemplateExpression("$.device"),
+                    TimestampExpression = new TemplateExpression("$.date"),
+                    CorrelationIdExpression = new TemplateExpression("$.session"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -713,11 +713,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
-                    TypeMatchExpression = new Expression("to_array(@)[?heartrate]"),
-                    DeviceIdExpression = new Expression("matchedToken.device"),
-                    TimestampExpression = new Expression("matchedToken.date"),
-                    CorrelationIdExpression = new Expression("matchedToken.session"),
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
+                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate]"),
+                    DeviceIdExpression = new TemplateExpression("matchedToken.device"),
+                    TimestampExpression = new TemplateExpression("matchedToken.date"),
+                    CorrelationIdExpression = new TemplateExpression("matchedToken.session"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "matchedToken.heartrate", Required = false },
@@ -733,9 +733,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "bloodpressure",
-                    TypeMatchExpression = new Expression("$..[?(@systolic)]"),
-                    DeviceIdExpression = new Expression("$.Properties.deviceId"),
-                    TimestampExpression = new Expression("$.matchedToken.date"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@systolic)]"),
+                    DeviceIdExpression = new TemplateExpression("$.Properties.deviceId"),
+                    TimestampExpression = new TemplateExpression("$.matchedToken.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                       new CalculatedFunctionValueExpression { ValueName = "systolic", Value = "$.matchedToken.systolic", Required = true },
@@ -748,10 +748,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 BuildMeasurementExtractor(new CalculatedFunctionContentTemplate
                 {
                     TypeName = "bloodpressure",
-                    DefaultExpressionLanguage = ExpressionLanguage.JmesPath,
-                    TypeMatchExpression = new Expression("Body[?systolic]"),
-                    DeviceIdExpression = new Expression("Properties.deviceId"),
-                    TimestampExpression = new Expression("matchedToken.date"),
+                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
+                    TypeMatchExpression = new TemplateExpression("Body[?systolic]"),
+                    DeviceIdExpression = new TemplateExpression("Properties.deviceId"),
+                    TimestampExpression = new TemplateExpression("matchedToken.date"),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "systolic", Value = "matchedToken.systolic", Required = true },
@@ -763,7 +763,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         private static IContentTemplate BuildMeasurementExtractor(CalculatedFunctionContentTemplate template)
         {
-            return new MeasurementExtractor(template, new ExpressionEvaluatorFactory(template.DefaultExpressionLanguage));
+            return new MeasurementExtractor(template, new TemplateExpressionEvaluatorFactory(template.DefaultExpressionLanguage));
         }
 
         public class JsonWidget

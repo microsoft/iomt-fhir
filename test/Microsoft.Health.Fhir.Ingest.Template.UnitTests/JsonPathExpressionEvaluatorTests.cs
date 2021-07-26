@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -50,7 +50,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             });
 
-            Assert.Throws<ExpressionException>(() => _projectedExpressionEvaluator.SelectToken(data));
+            Assert.Throws<TemplateExpressionException>(() => _projectedExpressionEvaluator.SelectToken(data));
         }
 
         [Fact]

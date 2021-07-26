@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public interface IExpressionEvaluator
     {

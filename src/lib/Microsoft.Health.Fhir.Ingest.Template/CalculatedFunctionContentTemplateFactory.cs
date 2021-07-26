@@ -9,7 +9,7 @@ using DevLab.JmesPath;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CalculatedFunctionContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         private IExpressionEvaluatorFactory CreateExpressionEvaluatorFactory(CalculatedFunctionContentTemplate template)
         {
             var evaluatorCache = new Dictionary<string, IExpressionEvaluator>();
-            IExpressionEvaluatorFactory expressionEvaluator = new ExpressionEvaluatorFactory(_jmesPath, template.DefaultExpressionLanguage);
+            IExpressionEvaluatorFactory expressionEvaluator = new TemplateExpressionEvaluatorFactory(_jmesPath, template.DefaultExpressionLanguage);
 
             AddExpression(evaluatorCache, template.TypeMatchExpression, expressionEvaluator);
             AddExpression(evaluatorCache, template.DeviceIdExpression, expressionEvaluator);
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
 
         private void AddExpression(
             IDictionary<string, IExpressionEvaluator> cache,
-            Expression expression,
+            TemplateExpression expression,
             IExpressionEvaluatorFactory expressionEvaluator)
         {
             if (expression != null)
@@ -84,7 +84,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                 _expressionCache = EnsureArg.IsNotNull(expressionCache, nameof(expressionCache));
             }
 
-            public IExpressionEvaluator Create(Expression expression)
+            public IExpressionEvaluator Create(TemplateExpression expression)
             {
                 EnsureArg.IsNotNull(expression, nameof(expression));
 

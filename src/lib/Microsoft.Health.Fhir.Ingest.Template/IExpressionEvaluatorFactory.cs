@@ -1,9 +1,9 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public interface IExpressionEvaluatorFactory
     {
@@ -12,6 +12,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         /// </summary>
         /// <param name="expression">The expression to use when performing an evaluation</param>
         /// <returns>The expression evaluator</returns>
-        IExpressionEvaluator Create(Expression expression);
+        IExpressionEvaluator Create(TemplateExpression expression);
     }
 }

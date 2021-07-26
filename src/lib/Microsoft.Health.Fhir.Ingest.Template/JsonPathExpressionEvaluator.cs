@@ -8,7 +8,7 @@ using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JsonPathExpressionEvaluator : IExpressionEvaluator
     {
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
             catch (JsonException e)
             {
-                throw new ExpressionException($"Unable to retrieve JsonToken using expression ${_jsonPathExpression}", e);
+                throw new TemplateExpressionException($"Unable to retrieve JsonToken using expression ${_jsonPathExpression}", e);
             }
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
             catch (JsonException e)
             {
-                throw new ExpressionException($"Unable to retrieve JsonTokens using expression ${_jsonPathExpression}", e);
+                throw new TemplateExpressionException($"Unable to retrieve JsonTokens using expression ${_jsonPathExpression}", e);
             }
         }
     }

@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;

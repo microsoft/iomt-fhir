@@ -11,7 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class MeasurementExtractor : IContentTemplate
     {
@@ -40,7 +40,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             }
         }
 
-        protected T EvalExpression<T>(JToken token, string name, bool isRequired = false, params Expression[] expressions)
+        protected T EvalExpression<T>(JToken token, string name, bool isRequired = false, params TemplateExpression[] expressions)
         {
             EnsureArg.IsNotNull(token, nameof(token));
             EnsureArg.IsNotEmptyOrWhiteSpace(name, nameof(name));
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             return default;
         }
 
-        protected static bool IsExpressionDefined(params Expression[] expressions)
+        protected static bool IsExpressionDefined(params TemplateExpression[] expressions)
         {
             EnsureArg.IsNotNull(expressions, nameof(expressions));
 

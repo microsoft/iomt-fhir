@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

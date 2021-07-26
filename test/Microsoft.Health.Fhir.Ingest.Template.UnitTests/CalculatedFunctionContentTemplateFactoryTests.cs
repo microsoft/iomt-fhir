@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
@@ -70,23 +69,23 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             Assert.Equal("heartrate", expressionTemplate.TypeName);
             Assert.Equal("$..[?(@heartrate)]", expressionTemplate.TypeMatchExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.TypeMatchExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, expressionTemplate.TypeMatchExpression.Language);
             Assert.Equal("$.device", expressionTemplate.DeviceIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.DeviceIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, expressionTemplate.DeviceIdExpression.Language);
             Assert.Equal("$.date", expressionTemplate.TimestampExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.TimestampExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, expressionTemplate.TimestampExpression.Language);
             Assert.Equal("$.patientId", expressionTemplate.PatientIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.PatientIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, expressionTemplate.PatientIdExpression.Language);
             Assert.Equal("$.correlationId", expressionTemplate.CorrelationIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.CorrelationIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, expressionTemplate.CorrelationIdExpression.Language);
             Assert.Equal("$.encounterId", expressionTemplate.EncounterIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, expressionTemplate.CorrelationIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, expressionTemplate.CorrelationIdExpression.Language);
             Assert.Collection(expressionTemplate.Values, v =>
             {
                 Assert.True(v.Required);
                 Assert.Equal("hr", v.ValueName);
                 Assert.Equal("$.heartrate", v.Value);
-                Assert.Equal(ExpressionLanguage.JsonPath, v.Language);
+                Assert.Equal(TemplateExpressionLanguage.JsonPath, v.Language);
                 Assert.NotNull(expressionEvaluatorFactory.Create(v));
             });
             Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));

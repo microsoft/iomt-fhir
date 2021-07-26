@@ -6,19 +6,19 @@
 using System;
 using EnsureThat;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     /// <summary>
     /// A simple expression evaluator factory which always evaluates expressions using JsonPath
     /// </summary>
     public class JsonPathExpressionEvaluatorFactory : IExpressionEvaluatorFactory
     {
-        public IExpressionEvaluator Create(Expression expression)
+        public IExpressionEvaluator Create(TemplateExpression expression)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(expression?.Value, nameof(expression.Value));
 
-            var expressionLanguage = expression.Language ?? ExpressionLanguage.JsonPath;
-            if (expressionLanguage != ExpressionLanguage.JsonPath)
+            var expressionLanguage = expression.Language ?? TemplateExpressionLanguage.JsonPath;
+            if (expressionLanguage != TemplateExpressionLanguage.JsonPath)
             {
                 throw new ArgumentException($"Unsupported Expression Language {expressionLanguage}. Only JsonPath is supported.");
             }

@@ -6,7 +6,7 @@
 using System.Linq;
 using EnsureThat;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JsonPathCalculatedFunctionContentTemplateAdapter<TTemplate> : CalculatedFunctionContentTemplate
         where TTemplate : JsonPathContentTemplate, new()
@@ -27,18 +27,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
                {
                    ValueName = value.ValueName,
                    Value = value.ValueExpression,
-                   Language = ExpressionLanguage.JsonPath,
+                   Language = TemplateExpressionLanguage.JsonPath,
                    Required = value.Required,
                }).ToList();
         }
 
         public TTemplate InnerTemplate { get; private set; }
 
-        private Expression CreateExpression(string value)
+        private TemplateExpression CreateExpression(string value)
         {
             if (!string.IsNullOrWhiteSpace(value))
             {
-                return new Expression(value, ExpressionLanguage.JsonPath);
+                return new TemplateExpression(value, TemplateExpressionLanguage.JsonPath);
             }
 
             return null;

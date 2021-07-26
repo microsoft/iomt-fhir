@@ -6,15 +6,15 @@
 using EnsureThat;
 using Newtonsoft.Json;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class Expression
+    public class TemplateExpression
     {
-        public Expression()
+        public TemplateExpression()
         {
         }
 
-        public Expression(string value, ExpressionLanguage? language = null)
+        public TemplateExpression(string value, TemplateExpressionLanguage? language = null)
         {
             Value = EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
             Language = language;
@@ -23,6 +23,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
         [JsonProperty(Required = Required.Always)]
         public virtual string Value { get; set; }
 
-        public ExpressionLanguage? Language { get; set; }
+        public TemplateExpressionLanguage? Language { get; set; }
     }
 }

@@ -5,7 +5,7 @@
 
 using System;
 using DevLab.JmesPath;
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [InlineData("[?]")]
         public void When_InvalidExpressionProvided_ExceptionIsThrown(string badExpression)
         {
-            var exception = Assert.Throws<ExpressionException>(() => new JmesPathExpressionEvaluator(_jmesPath, badExpression));
+            var exception = Assert.Throws<TemplateExpressionException>(() => new JmesPathExpressionEvaluator(_jmesPath, badExpression));
             Assert.StartsWith("The following JmesPath expression could not be parsed", exception.Message);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             });
 
-            Assert.Throws<ExpressionException>(() => _projectedExpressionEvaluator.SelectToken(data));
+            Assert.Throws<TemplateExpressionException>(() => _projectedExpressionEvaluator.SelectToken(data));
         }
 
         [Fact]

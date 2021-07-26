@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -35,15 +35,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("heartrate", facade.TypeName);
             Assert.Equal("$..[?(@heartrate)]", facade.TypeMatchExpression.Value);
             Assert.Equal("$.device", facade.DeviceIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.DeviceIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.DeviceIdExpression.Language);
             Assert.Equal("$.date", facade.TimestampExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.TimestampExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.TimestampExpression.Language);
             Assert.Equal("$.patientId", facade.PatientIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.PatientIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.PatientIdExpression.Language);
             Assert.Equal("$.corId", facade.CorrelationIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.CorrelationIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.CorrelationIdExpression.Language);
             Assert.Equal("$.encounterId", facade.EncounterIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.EncounterIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.EncounterIdExpression.Language);
             Assert.Collection(
                 facade.Values,
                 item =>
@@ -81,9 +81,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("heartrate", facade.TypeName);
             Assert.Equal("$..[?(@heartrate)]", facade.TypeMatchExpression.Value);
             Assert.Equal("$.device", facade.DeviceIdExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.DeviceIdExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.DeviceIdExpression.Language);
             Assert.Equal("$.date", facade.TimestampExpression.Value);
-            Assert.Equal(ExpressionLanguage.JsonPath, facade.TimestampExpression.Language);
+            Assert.Equal(TemplateExpressionLanguage.JsonPath, facade.TimestampExpression.Language);
             Assert.Null(facade.PatientIdExpression);
             Assert.Null(facade.CorrelationIdExpression);
             Assert.Null(facade.EncounterIdExpression);

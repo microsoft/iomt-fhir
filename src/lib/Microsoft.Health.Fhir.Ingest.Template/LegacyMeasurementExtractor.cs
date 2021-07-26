@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     /// <summary>
     /// An instance of a MeasurementExtractor which does not wrap its match tokens inside of the original event data. This is the

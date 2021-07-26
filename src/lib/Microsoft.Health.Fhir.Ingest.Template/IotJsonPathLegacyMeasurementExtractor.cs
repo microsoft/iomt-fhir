@@ -7,7 +7,7 @@ using System;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class IotJsonPathLegacyMeasurementExtractor : LegacyMeasurementExtractor
     {
@@ -20,6 +20,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template.CalculatedFunction
             _template = EnsureArg.IsNotNull(template, nameof(template));
         }
 
-        protected override DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, nameof(Template.TimestampExpression), true, Template.TimestampExpression, new Expression(_template.AlternateTimestampExpression, ExpressionLanguage.JsonPath));
+        protected override DateTime? GetTimestamp(JToken token) => EvalExpression<DateTime?>(token, nameof(Template.TimestampExpression), true, Template.TimestampExpression, new TemplateExpression(_template.AlternateTimestampExpression, TemplateExpressionLanguage.JsonPath));
     }
 }
