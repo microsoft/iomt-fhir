@@ -206,10 +206,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                     expressionRegister.RegisterExpressions(jmesPath.FunctionRepository);
                     return new TemplateExpressionEvaluatorFactory(jmesPath);
                 });
-            services.AddSingleton<JsonPathContentTemplateFactory>();
-            services.AddSingleton<IotJsonPathContentTemplateFactory>();
-            services.AddSingleton<IotCentralJsonPathContentTemplateFactory>();
-            services.AddSingleton<CalculatedFunctionContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, JsonPathContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotJsonPathContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotCentralJsonPathContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, CalculatedFunctionContentTemplateFactory>();
             services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>(
                 sp =>
                 {
