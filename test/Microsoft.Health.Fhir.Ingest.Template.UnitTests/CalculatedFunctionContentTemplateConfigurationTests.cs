@@ -20,15 +20,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new TemplateExpression("$.device"),
-                    TimestampExpression = new TemplateExpression("$.date"),
-                    CorrelationIdExpression = new TemplateExpression("$.session"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    DeviceIdExpression = new TemplateExpression("$.device", TemplateExpressionLanguage.JsonPath),
+                    TimestampExpression = new TemplateExpression("$.date", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.session", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false, Language = TemplateExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false, Language = TemplateExpressionLanguage.JsonPath },
                     },
                 });
         }
@@ -41,15 +41,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     DefaultExpressionLanguage = TemplateExpressionLanguage.JsonPath,
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new TemplateExpression("$.device"),
-                    TimestampExpression = new TemplateExpression("$.date"),
-                    CorrelationIdExpression = new TemplateExpression("$.session"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    DeviceIdExpression = new TemplateExpression("$.device", TemplateExpressionLanguage.JsonPath),
+                    TimestampExpression = new TemplateExpression("$.date", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.session", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false, Language = TemplateExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false, Language = TemplateExpressionLanguage.JsonPath },
                     },
                 });
         }
@@ -69,7 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false,  Language = TemplateExpressionLanguage.JsonPath },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false, Language = TemplateExpressionLanguage.JsonPath },
                     },
                 });
         }
@@ -90,29 +90,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false,  Language = TemplateExpressionLanguage.JsonPath },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false },
-                    },
-                });
-        }
-
-        [Fact]
-        public void Given_NoTemplateLanguage_And_DefaultLanguaged_Specified_JMESPathIsUsed_Test()
-        {
-            PerformEvaluation(
-                new CalculatedFunctionContentTemplate
-                {
-                    DefaultExpressionLanguage = TemplateExpressionLanguage.JmesPath,
-                    TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("to_array(@)[?heartrate]"),
-                    DeviceIdExpression = new TemplateExpression("device"),
-                    TimestampExpression = new TemplateExpression("date"),
-                    CorrelationIdExpression = new TemplateExpression("session"),
-                    PatientIdExpression = new TemplateExpression("patient"),
-
-                    Values = new List<CalculatedFunctionValueExpression>
-                    {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "$.matchedToken.patient", Required = false, Language = TemplateExpressionLanguage.JsonPath },
                     },
                 });
         }
@@ -132,7 +110,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false,  Language = TemplateExpressionLanguage.JmesPath },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false, Language = TemplateExpressionLanguage.JmesPath },
                     },
                 });
         }
@@ -153,7 +131,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false,  Language = TemplateExpressionLanguage.JmesPath },
-                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false },
+                        new CalculatedFunctionValueExpression { ValueName = "pie", Value = "matchedToken.patient", Required = false, Language = TemplateExpressionLanguage.JmesPath },
                     },
                 });
         }
@@ -167,15 +145,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new TemplateExpression("$.device"),
-                    TimestampExpression = new TemplateExpression("$.date"),
-                    CorrelationIdExpression = new TemplateExpression("$.session"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    DeviceIdExpression = new TemplateExpression("$.device", TemplateExpressionLanguage.JsonPath),
+                    TimestampExpression = new TemplateExpression("$.date", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.session", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false, Language = TemplateExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true, Language = TemplateExpressionLanguage.JsonPath },
                     },
                 });
             });
@@ -199,8 +177,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     PatientIdExpression = new TemplateExpression("patient", TemplateExpressionLanguage.JmesPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false },
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "missingField", Required = true },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "heartrate", Required = false, Language = TemplateExpressionLanguage.JmesPath },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "missingField", Required = true, Language = TemplateExpressionLanguage.JmesPath },
                     },
                 });
             });
@@ -215,14 +193,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    TimestampExpression = new TemplateExpression("$.date"),
-                    CorrelationIdExpression = new TemplateExpression("$.session"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    TimestampExpression = new TemplateExpression("$.date", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.session", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
-                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false, Language = TemplateExpressionLanguage.JsonPath },
+                        new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.missingField", Required = true, Language = TemplateExpressionLanguage.JsonPath },
                     },
                 });
             });
@@ -238,10 +216,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new TemplateExpression("$.device"),
-                    CorrelationIdExpression = new TemplateExpression("$.session"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    DeviceIdExpression = new TemplateExpression("$.device", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.session", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -261,11 +239,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new TemplateExpression("$.device"),
-                    TimestampExpression = new TemplateExpression("$.date"),
-                    CorrelationIdExpression = new TemplateExpression("$.missingsession"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    DeviceIdExpression = new TemplateExpression("$.device", TemplateExpressionLanguage.JsonPath),
+                    TimestampExpression = new TemplateExpression("$.date", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.missingsession", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -285,11 +263,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 new CalculatedFunctionContentTemplate
                 {
                     TypeName = "heartrate",
-                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]"),
-                    DeviceIdExpression = new TemplateExpression("$.badDeviceExpression"),
-                    TimestampExpression = new TemplateExpression("$.date"),
-                    CorrelationIdExpression = new TemplateExpression("$.session"),
-                    PatientIdExpression = new TemplateExpression("$.patient"),
+                    TypeMatchExpression = new TemplateExpression("$..[?(@heartrate)]", TemplateExpressionLanguage.JsonPath),
+                    DeviceIdExpression = new TemplateExpression("$.badDeviceExpression", TemplateExpressionLanguage.JsonPath),
+                    TimestampExpression = new TemplateExpression("$.date", TemplateExpressionLanguage.JsonPath),
+                    CorrelationIdExpression = new TemplateExpression("$.session", TemplateExpressionLanguage.JsonPath),
+                    PatientIdExpression = new TemplateExpression("$.patient", TemplateExpressionLanguage.JsonPath),
                     Values = new List<CalculatedFunctionValueExpression>
                     {
                         new CalculatedFunctionValueExpression { ValueName = "hr", Value = "$.heartrate", Required = false },
@@ -312,7 +290,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 patient = "patient123",
             });
 
-            var measurementExtractor = new MeasurementExtractor(template, new TemplateExpressionEvaluatorFactory(template.DefaultExpressionLanguage));
+            var measurementExtractor = new MeasurementExtractor(template, new TemplateExpressionEvaluatorFactory());
             var result = measurementExtractor.GetMeasurements(token).ToArray();
 
             Assert.NotNull(result);

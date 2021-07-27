@@ -5,8 +5,8 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using DevLab.JmesPath;
 using EnsureThat;
+using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -14,14 +14,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class CalculatedFunctionContentTemplateFactory : HandlerProxyTemplateFactory<TemplateContainer, IContentTemplate>
     {
         private const string TargetTypeName = "CalculatedContent";
-        private JmesPath _jmesPath;
+        private readonly ITelemetryLogger _logger;
+        private readonly IExpressionEvaluatorFactory _expressionEvaluatorFactory;
 
-        public CalculatedFunctionContentTemplateFactory()
+        public CalculatedFunctionContentTemplateFactory(
+            IExpressionEvaluatorFactory expressionEvaluatorFactory,
+            ITelemetryLogger logger)
         {
-            /*
-             * TODO Load and register additional custom JmesPath functions. For now, simply create the basic JmesPath object
-             */
-            _jmesPath = new JmesPath();
+            _expressionEvaluatorFactory = EnsureArg.IsNotNull(expressionEvaluatorFactory, nameof(expressionEvaluatorFactory));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Exception message")]
@@ -40,6 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
 
             var calculatedFunctionTemplate = jsonTemplate.Template.ToValidTemplate<CalculatedFunctionContentTemplate>();
+            calculatedFunctionTemplate.EnsureExpressionLanguageIsSet();
             var measurementExtractor = new MeasurementExtractor(calculatedFunctionTemplate, CreateExpressionEvaluatorFactory(calculatedFunctionTemplate));
             return measurementExtractor;
         }
@@ -47,18 +49,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         private IExpressionEvaluatorFactory CreateExpressionEvaluatorFactory(CalculatedFunctionContentTemplate template)
         {
             var evaluatorCache = new Dictionary<string, IExpressionEvaluator>();
-            IExpressionEvaluatorFactory expressionEvaluator = new TemplateExpressionEvaluatorFactory(_jmesPath, template.DefaultExpressionLanguage);
 
-            AddExpression(evaluatorCache, template.TypeMatchExpression, expressionEvaluator);
-            AddExpression(evaluatorCache, template.DeviceIdExpression, expressionEvaluator);
-            AddExpression(evaluatorCache, template.PatientIdExpression, expressionEvaluator);
-            AddExpression(evaluatorCache, template.EncounterIdExpression, expressionEvaluator);
-            AddExpression(evaluatorCache, template.TimestampExpression, expressionEvaluator);
-            AddExpression(evaluatorCache, template.CorrelationIdExpression, expressionEvaluator);
+            AddExpression(evaluatorCache, template.TypeMatchExpression, nameof(template.TypeMatchExpression), true);
+            AddExpression(evaluatorCache, template.DeviceIdExpression, nameof(template.DeviceIdExpression), true);
+            AddExpression(evaluatorCache, template.PatientIdExpression, nameof(template.PatientIdExpression));
+            AddExpression(evaluatorCache, template.EncounterIdExpression, nameof(template.EncounterIdExpression));
+            AddExpression(evaluatorCache, template.TimestampExpression, nameof(template.TimestampExpression));
+            AddExpression(evaluatorCache, template.CorrelationIdExpression, nameof(template.CorrelationIdExpression));
 
             foreach (var valueExpression in template.Values)
             {
-                AddExpression(evaluatorCache, valueExpression, expressionEvaluator);
+                AddExpression(evaluatorCache, valueExpression, valueExpression.ValueName, valueExpression.Required);
             }
 
             return new CachingExpressionEvaluatorFactory(new ReadOnlyDictionary<string, IExpressionEvaluator>(evaluatorCache));
@@ -67,11 +68,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         private void AddExpression(
             IDictionary<string, IExpressionEvaluator> cache,
             TemplateExpression expression,
-            IExpressionEvaluatorFactory expressionEvaluator)
+            string expressionName,
+            bool isRequired = false)
         {
             if (expression != null)
             {
-                cache[expression.GetId()] = expressionEvaluator.Create(expression);
+                cache[expression.GetId()] = _expressionEvaluatorFactory.Create(expression);
+                _logger.LogTrace($"Using {expression.Value} for expression [{expressionName}]");
+            }
+            else if (isRequired)
+            {
+                throw new TemplateExpressionException($"Unable to create the template; the expression for [{expressionName}] is missing");
             }
         }
 

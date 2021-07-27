@@ -25,10 +25,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class IomtConnectorFunctions
     {
         private readonly ITelemetryLogger _logger;
+        private readonly CollectionContentTemplateFactory _collectionContentTemplateFactory;
 
         public IomtConnectorFunctions(ITelemetryLogger logger)
         {
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            _collectionContentTemplateFactory = new CollectionContentTemplateFactory(
+                new JsonPathContentTemplateFactory(),
+                new IotJsonPathContentTemplateFactory(),
+                new IotCentralJsonPathContentTemplateFactory(),
+                new CalculatedFunctionContentTemplateFactory(
+                    new TemplateExpressionEvaluatorFactory(), _logger));
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
@@ -67,7 +74,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 EnsureArg.IsNotNull(events, nameof(events));
                 EnsureArg.IsNotNull(normalizationSettings, nameof(normalizationSettings));
 
-                var templateContext = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
+                var templateContext = _collectionContentTemplateFactory.Create(templateDefinitions);
                 templateContext.EnsureValid();
                 var template = templateContext.Template;
 

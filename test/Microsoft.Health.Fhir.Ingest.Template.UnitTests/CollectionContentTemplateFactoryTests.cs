@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -15,11 +16,24 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CollectionContentTemplateFactoryTests
     {
+        private CollectionContentTemplateFactory _collectionContentTemplateFactory;
+
+        public CollectionContentTemplateFactoryTests()
+        {
+            var logger = Substitute.For<ITelemetryLogger>();
+
+            _collectionContentTemplateFactory = new CollectionContentTemplateFactory(
+                new JsonPathContentTemplateFactory(),
+                new IotJsonPathContentTemplateFactory(),
+                new IotCentralJsonPathContentTemplateFactory(),
+                new CalculatedFunctionContentTemplateFactory(new TemplateExpressionEvaluatorFactory(), logger));
+        }
+
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateEmpty.json")]
         public void GivenEmptyConfig_WhenCreate_ThenInvalidTemplateException_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
         }
@@ -28,7 +42,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_CollectionContentTemplateEmptyWithType.json")]
         public void GivenEmptyTemplateCollection_WhenCreate_ThenTemplateReturned_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             templateContext.EnsureValid();
 
@@ -81,7 +95,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_CollectionContentTemplateMixed.json")]
         public void GivenInputWithMultipleTemplates_WhenCreate_ThenTemplateReturn_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.True(templateContext.IsValid(out _));
             templateContext.EnsureValid();
@@ -91,7 +105,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_CollectionContentTemplateInvalid.json")]
         public void GivenInvalidTemplateCollection_WhenCreate_ThenValidationShouldFail_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out string errors));
             Assert.Contains("Required property 'DeviceIdExpression' not found in JSON.", errors);
@@ -104,7 +118,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_CollectionContentTemplateMixedValidity.json")]
         public void GivenMixedValidityTemplateCollection_WhenCreate_ItShouldWork_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out _));
 
@@ -127,7 +141,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_InvalidJson.txt")]
         public void GivenBadInputJson_WhenCreate_ThenValidationFailed_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out _));
             Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
@@ -137,7 +151,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_InvalidTemplateType.json")]
         public void GivenMismatchedTemplateTypeInputJson_WhenCreate_ThenValidationFailed_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out string error));
             Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
@@ -148,7 +162,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [FileData(@"TestInput/data_InvalidCollectionContentTemplateWithNoTemplateArray.json")]
         public void GivenNoTemplateArrayInputJson_WhenCreate_ThenValidationFailed_Test(string json)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
             Assert.False(templateContext.IsValid(out string error));
             Assert.Throws<ValidationException>(() => templateContext.EnsureValid());

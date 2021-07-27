@@ -14,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public TemplateExpression(string value, TemplateExpressionLanguage? language = null)
+        public TemplateExpression(string value, TemplateExpressionLanguage language)
         {
             Value = EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
             Language = language;

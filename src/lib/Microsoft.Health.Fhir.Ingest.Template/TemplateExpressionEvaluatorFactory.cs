@@ -12,35 +12,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class TemplateExpressionEvaluatorFactory : IExpressionEvaluatorFactory
     {
         private readonly JmesPath _jmesPath;
-        private readonly TemplateExpressionLanguage _defaultExpressionLanguage;
 
         public TemplateExpressionEvaluatorFactory()
-            : this(new JmesPath(), TemplateExpressionLanguage.JsonPath)
+            : this(new JmesPath())
         {
         }
 
-        public TemplateExpressionEvaluatorFactory(TemplateExpressionLanguage defaultLanguage)
-            : this(new JmesPath(), defaultLanguage)
-        {
-        }
-
-        public TemplateExpressionEvaluatorFactory(JmesPath jmesPath, TemplateExpressionLanguage defaultLanguage)
+        public TemplateExpressionEvaluatorFactory(JmesPath jmesPath)
         {
             _jmesPath = EnsureArg.IsNotNull(jmesPath, nameof(jmesPath));
-            _defaultExpressionLanguage = defaultLanguage;
         }
 
         public IExpressionEvaluator Create(TemplateExpression expression)
         {
             EnsureArg.IsNotEmptyOrWhiteSpace(expression?.Value, nameof(expression.Value));
+            EnsureArg.IsNotNull(expression?.Language, nameof(expression.Language));
 
-            var expressionLanguage = expression.Language ?? _defaultExpressionLanguage;
-
-            return expressionLanguage switch
+            return expression.Language switch
             {
                 TemplateExpressionLanguage.JsonPath => new JsonPathExpressionEvaluator(expression.Value),
                 TemplateExpressionLanguage.JmesPath => new JmesPathExpressionEvaluator(_jmesPath, expression.Value),
-                _ => throw new ArgumentException($"Unsupported Expression Language {expressionLanguage}")
+                _ => throw new ArgumentException($"Unsupported Expression Language {expression?.Language}")
             };
         }
     }

@@ -20,17 +20,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        private CollectionContentTemplateFactory()
-            : base(
-                  new JsonPathContentTemplateFactory(),
-                  new IotJsonPathContentTemplateFactory(),
-                  new IotCentralJsonPathContentTemplateFactory(),
-                  new CalculatedFunctionContentTemplateFactory())
-        {
-        }
-
-        public static CollectionContentTemplateFactory Default { get; } = new CollectionContentTemplateFactory();
-
         protected override string TargetTemplateTypeName => "CollectionContentTemplate";
 
         protected override IContentTemplate BuildCollectionTemplate(JArray templateCollection, ICollection<TemplateError> errors)

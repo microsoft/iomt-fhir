@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
     <RootNamespace>Microsoft.Health.Fhir.Ingest.Template</RootNamespace>
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <IsPackable>true</IsPackable>
@@ -34,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj" />
   </ItemGroup>
 

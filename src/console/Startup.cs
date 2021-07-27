@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Azure.Messaging.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,7 @@ using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -41,6 +43,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             services.AddSingleton<IEventProcessorClientFactory, EventProcessorClientFactory>();
             services.AddSingleton<IEventProducerClientFactory, EventProducerClientFactory>();
             services.AddSingleton<BlobContainerClientFactory>();
+            AddContentTemplateFactories(services);
             services.AddSingleton(ResolveTemplateManager);
             services.AddSingleton(ResolveEventConsumers);
             services.AddSingleton(ResolveCheckpointClient);
@@ -75,7 +78,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var options = new NormalizationServiceOptions();
                 Configuration.GetSection(NormalizationServiceOptions.Settings).Bind(options);
                 IOptions<NormalizationServiceOptions> normalizationServiceOptions = Options.Create(options);
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, normalizationServiceOptions);
+                var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, normalizationServiceOptions, collectionContentFactory);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)
@@ -187,6 +191,28 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             }
 
             return applicationType;
+        }
+
+        private void AddContentTemplateFactories(IServiceCollection services)
+        {
+            services.AddSingleton<IExpressionEvaluatorFactory>(
+                sp =>
+                {
+                    /*
+                     * TODO Load and register additional custom JmesPath functions. For now, simply create the basic JmesPath object
+                     */
+                    return new TemplateExpressionEvaluatorFactory(new DevLab.JmesPath.JmesPath());
+                });
+            services.AddSingleton<JsonPathContentTemplateFactory>();
+            services.AddSingleton<IotJsonPathContentTemplateFactory>();
+            services.AddSingleton<IotCentralJsonPathContentTemplateFactory>();
+            services.AddSingleton<CalculatedFunctionContentTemplateFactory>();
+            services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>(
+                sp =>
+                {
+                    var contentTemplateFactories = sp.GetRequiredService<IEnumerable<ITemplateFactory<TemplateContainer, IContentTemplate>>>();
+                    return new CollectionContentTemplateFactory(contentTemplateFactories.ToArray());
+                });
         }
     }
 }
