@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Microsoft.Health.Tools.DataMapper.Controllers.Apis
 {
@@ -23,7 +23,7 @@ namespace Microsoft.Health.Tools.DataMapper.Controllers.Apis
         {
             try
             {
-                JContainer.Parse(jsonContent);
+                JsonDocument.Parse(jsonContent);
                 message = null;
                 return true;
             }
