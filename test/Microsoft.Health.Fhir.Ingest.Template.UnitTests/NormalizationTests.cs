@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         }
 
         [Theory]
-        //[FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHeartRate_WhenGetMeasurements_ThenOneMeasurementReturned_Test(string json)
         {

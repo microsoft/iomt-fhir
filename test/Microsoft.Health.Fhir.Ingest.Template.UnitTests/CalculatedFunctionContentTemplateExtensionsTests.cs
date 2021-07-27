@@ -3,14 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
-
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {

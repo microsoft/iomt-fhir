@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Azure.Messaging.EventHubs;
+using DevLab.JmesPath;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.EventProducers;
 using Microsoft.Health.Events.Repository;
+using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -195,13 +197,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         private void AddContentTemplateFactories(IServiceCollection services)
         {
+            services.AddSingleton<IExpressionRegister>(sp => new AssemblyExpressionRegister(typeof(IExpressionRegister).Assembly, sp.GetRequiredService<ITelemetryLogger>()));
             services.AddSingleton<IExpressionEvaluatorFactory>(
                 sp =>
                 {
-                    /*
-                     * TODO Load and register additional custom JmesPath functions. For now, simply create the basic JmesPath object
-                     */
-                    return new TemplateExpressionEvaluatorFactory(new DevLab.JmesPath.JmesPath());
+                    var jmesPath = new JmesPath();
+                    var expressionRegister = sp.GetRequiredService<IExpressionRegister>();
+                    expressionRegister.RegisterExpressions(jmesPath.FunctionRepository);
+                    return new TemplateExpressionEvaluatorFactory(jmesPath);
                 });
             services.AddSingleton<JsonPathContentTemplateFactory>();
             services.AddSingleton<IotJsonPathContentTemplateFactory>();
