@@ -5,6 +5,7 @@
 
 import * as React from 'react';
 import { Input, Col, Row } from 'reactstrap';
+import * as JsonLint from 'jsonlint-mod';
 
 import { Mapping } from '../../store/Mapping';
 import TestService from '../../services/TestService';
@@ -12,6 +13,9 @@ import { PlayCircleIcon } from '../Icons';
 import * as Utility from './Utility';
 
 const MappingTestWidget = (props: { data: Mapping }) => {
+    const [dataSampleResult, setDataSampleResult] = React.useState('');
+    const [dataSampleValid, setDataSampleValid] = React.useState(true);
+
     const [normTestResult, setNormTestResult] = React.useState('Normalization test result output...');
     const [normTestResultBadge, setNormTestResultBadge] = React.useState('');
     const [normTestInProgress, setNormTestInProgress] = React.useState(false);
@@ -22,6 +26,19 @@ const MappingTestWidget = (props: { data: Mapping }) => {
 
     const dataSampleRef = React.useRef<HTMLInputElement>() as React.RefObject<HTMLInputElement>;
     const identityResolutionTypeRef = React.useRef<HTMLInputElement>() as React.RefObject<HTMLInputElement>;
+
+    const handleDataSampleChange = () => {
+        const dataSample = dataSampleRef.current?.value;
+        try {
+            JsonLint.parse(dataSample);
+            setDataSampleResult('Valid JSON');
+            setDataSampleValid(true);
+        }
+        catch (err) {
+            setDataSampleResult(err.toString());
+            setDataSampleValid(false);
+        }
+    }
 
     const startNormalizationTest = () => {
         setNormTestInProgress(true);
@@ -105,7 +122,11 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                             <Input
                                 type="textarea" name="devicedatasample" id="devicedatasample" rows={10}
                                 placeholder="Paste your device data sample here..." innerRef={dataSampleRef}
+                                onChange={handleDataSampleChange}
                             />
+                            <pre className={`iomt-cm-data-result overflow-auto p-2 ${dataSampleValid ? "text-success" : "text-danger"}`}>
+                                {dataSampleResult}
+                            </pre>
                         </div>
                     </Col>
                     <Col sm={4}>

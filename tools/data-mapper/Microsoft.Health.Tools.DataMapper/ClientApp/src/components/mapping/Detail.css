@@ -5,11 +5,17 @@
 }
 
 .iomt-cm-test-area textarea {
-    height: 280px;
+    height: 200px;
 }
 
 .iomt-cm-test {
     background-color: #f8f9fa;
+}
+
+.iomt-cm-data-result {
+    height: 70px;
+    margin-top: 10px;
+    overflow-y: scroll;
 }
 
 .iomt-cm-test-result {
