@@ -6,6 +6,12 @@
 import * as React from 'react';
 import { Input, Col, Row } from 'reactstrap';
 import * as JsonLint from 'jsonlint-mod';
+import * as CodeMirror from 'codemirror';
+
+import 'codemirror/addon/display/placeholder.js'
+import 'codemirror/addon/edit/matchbrackets.js';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/mode/javascript/javascript.js';
 
 import { Mapping } from '../../store/Mapping';
 import TestService from '../../services/TestService';
@@ -13,6 +19,7 @@ import { PlayCircleIcon } from '../Icons';
 import * as Utility from './Utility';
 
 const MappingTestWidget = (props: { data: Mapping }) => {
+    const [dataSample, setDataSample] = React.useState('');
     const [dataSampleResult, setDataSampleResult] = React.useState('');
     const [dataSampleValid, setDataSampleValid] = React.useState(true);
 
@@ -24,25 +31,62 @@ const MappingTestWidget = (props: { data: Mapping }) => {
     const [fhirTestResultBadge, setFhirTestResultBadge] = React.useState('');
     const [fhirTestInProgress, setFhirTestInProgress] = React.useState(false);
 
-    const dataSampleRef = React.useRef<HTMLInputElement>() as React.RefObject<HTMLInputElement>;
     const identityResolutionTypeRef = React.useRef<HTMLInputElement>() as React.RefObject<HTMLInputElement>;
 
-    const handleDataSampleChange = () => {
-        const dataSample = dataSampleRef.current?.value;
+    var codeEditor: CodeMirror.EditorFromTextArea;
+    var dataSampleErrorLine: number | null = null;
+
+    React.useEffect(() => {
+        codeEditor = CodeMirror.fromTextArea(
+            (document.getElementById('devicedatasample') as HTMLTextAreaElement),
+            {
+                mode: "javascript",
+                lineNumbers: true,
+                matchBrackets: true,
+                placeholder: 'Paste your device data sample here...'
+            }
+        );
+
+        codeEditor.on('change', () => handleDataSampleChange(codeEditor.getValue()));
+
+        return () => {
+            codeEditor.toTextArea();
+        };
+    }, []);
+
+    const handleDataSampleChange = (newDataSample: string) => {
+        setDataSample(newDataSample);
         try {
-            JsonLint.parse(dataSample);
+            JsonLint.parse(newDataSample);
             setDataSampleResult('Valid JSON');
             setDataSampleValid(true);
+            highlightDataSampleErrorLine(null);
         }
         catch (err) {
             setDataSampleResult(err.toString());
             setDataSampleValid(false);
+            const lineMatches = err.message.match(/line ([0-9]+)/);
+            if (lineMatches) {
+                highlightDataSampleErrorLine(Number(lineMatches[1]) - 1);
+            }
         }
+    }
+
+    const highlightDataSampleErrorLine = (line: number | null) => {
+        if (line === dataSampleErrorLine) {
+            return;
+        }
+        if (typeof line === 'number') {
+            codeEditor.addLineClass(line, 'background', 'iomt-cm-data-error');
+        }
+        if (typeof dataSampleErrorLine === 'number') {
+            codeEditor.removeLineClass(dataSampleErrorLine, 'background', 'iomt-cm-data-error');
+        }
+        dataSampleErrorLine = line;
     }
 
     const startNormalizationTest = () => {
         setNormTestInProgress(true);
-        const dataSample = dataSampleRef.current?.value;
         TestService.testNormalization(props.data, dataSample ?? '')
             .then(res => {
                 return res.json();
@@ -120,9 +164,7 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                                 <span className="h6">Device Data Sample</span>
                             </div>
                             <Input
-                                type="textarea" name="devicedatasample" id="devicedatasample" rows={10}
-                                placeholder="Paste your device data sample here..." innerRef={dataSampleRef}
-                                onChange={handleDataSampleChange}
+                                type="textarea" name="devicedatasample" id="devicedatasample"
                             />
                             <pre className={`iomt-cm-data-result overflow-auto p-2 ${dataSampleValid ? "text-success" : "text-danger"}`}>
                                 {dataSampleResult}

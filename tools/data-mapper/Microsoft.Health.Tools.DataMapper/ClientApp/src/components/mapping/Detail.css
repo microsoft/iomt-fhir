@@ -1,4 +1,9 @@
-﻿
+﻿.CodeMirror {
+    height: 200px;
+    border: 1px solid #dee2e6 !important;
+    font-size: 87.5%;
+}
+
 .iomt-cm-test-area {
     width: calc(100vw - 30px);
     height: 380px;
@@ -10,6 +15,10 @@
 
 .iomt-cm-test {
     background-color: #f8f9fa;
+}
+
+.iomt-cm-data-error {
+    background-color: #ffc7ce;
 }
 
 .iomt-cm-data-result {
