@@ -14,7 +14,7 @@ export const DeviceEditFormTutorial = (props: {}) => {
                     <span className="h6">Tutorial</span>
                 </CardTitle>
                 <p>
-                    Device Maping is used to normalize the data input from your devices.
+                    Device Mapping is used to normalize the data input from your devices.
                 </p>
                 Note: <br />
                 <ul>
