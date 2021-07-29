@@ -198,24 +198,20 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         private void AddContentTemplateFactories(IServiceCollection services)
         {
             services.AddSingleton<IExpressionRegister>(sp => new AssemblyExpressionRegister(typeof(IExpressionRegister).Assembly, sp.GetRequiredService<ITelemetryLogger>()));
-            services.AddSingleton<IExpressionEvaluatorFactory>(
+            services.AddSingleton(
                 sp =>
                 {
                     var jmesPath = new JmesPath();
                     var expressionRegister = sp.GetRequiredService<IExpressionRegister>();
                     expressionRegister.RegisterExpressions(jmesPath.FunctionRepository);
-                    return new TemplateExpressionEvaluatorFactory(jmesPath);
+                    return jmesPath;
                 });
+            services.AddSingleton<IExpressionEvaluatorFactory, TemplateExpressionEvaluatorFactory>();
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, JsonPathContentTemplateFactory>();
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotJsonPathContentTemplateFactory>();
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotCentralJsonPathContentTemplateFactory>();
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, CalculatedFunctionContentTemplateFactory>();
-            services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>(
-                sp =>
-                {
-                    var contentTemplateFactories = sp.GetRequiredService<IEnumerable<ITemplateFactory<TemplateContainer, IContentTemplate>>>();
-                    return new CollectionContentTemplateFactory(contentTemplateFactories.ToArray());
-                });
+            services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>, CollectionContentTemplateFactory>();
         }
     }
 }

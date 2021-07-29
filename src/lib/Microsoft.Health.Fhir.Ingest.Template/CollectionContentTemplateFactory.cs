@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,6 +18,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         public CollectionContentTemplateFactory(params ITemplateFactory<TemplateContainer, IContentTemplate>[] factories)
             : base(factories)
+        {
+        }
+
+        public CollectionContentTemplateFactory(IEnumerable<ITemplateFactory<TemplateContainer, IContentTemplate>> factories)
+            : base(factories.ToArray())
         {
         }
 

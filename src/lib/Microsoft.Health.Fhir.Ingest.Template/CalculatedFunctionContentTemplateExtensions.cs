@@ -15,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         /// to default language of the content template.
         /// </summary>
         /// <param name="template">The template to retrieve expressions from</param>
-        public static void EnsureExpressionLanguageIsSet(this CalculatedFunctionContentTemplate template)
+        public static CalculatedFunctionContentTemplate EnsureExpressionLanguageIsSet(this CalculatedFunctionContentTemplate template)
         {
             EnsureArg.IsNotNull(template, nameof(template));
 
@@ -26,6 +26,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     tuple.expression.Language ??= template.DefaultExpressionLanguage;
                 }
             }
+
+            return template;
         }
 
         private static IEnumerable<(string name, TemplateExpression expression)> GetExpressions(this CalculatedFunctionContentTemplate template)
