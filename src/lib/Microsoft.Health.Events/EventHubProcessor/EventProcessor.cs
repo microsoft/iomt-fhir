@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -21,6 +22,8 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class EventProcessor
     {
+        private readonly string _eventHubErrorPrefix = "EventHubError";
+
         private IEventConsumerService _eventConsumerService;
         private ICheckpointClient _checkpointClient;
         private ITelemetryLogger _logger;
@@ -61,8 +64,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // todo: consider retry
             Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
             {
-                var exception = (EventHubsException)eventArgs.Exception;
-                string reason = $"EventHubError{exception.Reason}";
+                (var exception, string reason) = ProcessErrorEventException(eventArgs.Exception);
                 _logger.LogError(exception);
                 _logger.LogMetric(EventMetrics.HandledException(reason, ConnectorOperation.Setup), 1);
 
@@ -109,6 +111,19 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 processor.ProcessEventAsync -= ProcessEventHandler;
                 processor.ProcessErrorAsync -= ProcessErrorHandler;
                 processor.PartitionInitializingAsync -= ProcessInitializingHandler;
+            }
+        }
+
+        private (Exception exception, string reason) ProcessErrorEventException(Exception exception)
+        {
+            switch (exception)
+            {
+                case EventHubsException eventHubsException:
+                    return (eventHubsException, $"{_eventHubErrorPrefix}{eventHubsException.Reason}");
+                case SocketException socketException:
+                    return (socketException, $"{_eventHubErrorPrefix}{socketException.SocketErrorCode}");
+                default:
+                    return (exception, $"{_eventHubErrorPrefix}GeneralError");
             }
         }
     }
