@@ -41,7 +41,11 @@ param
     [string]$SourceRevision = "master",
 
 	[parameter(Mandatory = $false)]
-    [SecureString]$AdminPassword
+    [SecureString]$AdminPassword,
+
+    [parameter(Mandatory = $false)]
+    [ValidateSet('Lookup', 'Create', 'LookupWithEncounter')]
+    [string]$ResourceIdentityResolutionType = "Create"
 )
 
 Set-StrictMode -Version Latest
@@ -98,12 +102,12 @@ $iomtConnectorTemplate = "${githubRawBaseUrl}/${SourceRevision}/deploy/templates
 $fhirServerUrl = "https://${EnvironmentName}.azurehealthcareapis.com"
 
 Write-Host "Deploying resources..."
-New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirVersion $FhirVersion -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation -IomtConnectorTemplateUrl $iomtConnectorTemplate
+New-AzResourceGroupDeployment -TemplateFile $sandboxTemplate -ResourceGroupName $EnvironmentName -ServiceName $EnvironmentName -FhirServiceLocation $FhirApiLocation -FhirVersion $FhirVersion -RepositoryUrl $SourceRepository -RepositoryBranch $SourceRevision -FhirServiceUrl $fhirServerUrl -ResourceLocation $EnvironmentLocation -IomtConnectorTemplateUrl $iomtConnectorTemplate -ResourceIdentityResolutionType $ResourceIdentityResolutionType
 
 # Copy the config templates to storage
 Write-Host "Copying templates to storage..."
 $storageAcct = Get-AzStorageAccount -ResourceGroupName $EnvironmentName -Name $EnvironmentName
-Get-ChildItem -Path "../../sample/templates/sandbox" -File | Set-AzStorageBlobContent -Context $storageAcct.Context -Container "template"
+Get-ChildItem -Path "../../sample/templates/sandbox" -File | Set-AzStorageBlobContent -Context $storageAcct.Context -Container "template" -Force
 
 Write-Host "Warming up site..."
 Invoke-WebRequest -Uri "${fhirServerUrl}/metadata" | Out-Null
