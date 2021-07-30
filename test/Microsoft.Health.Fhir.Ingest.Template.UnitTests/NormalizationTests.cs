@@ -6,16 +6,31 @@
 using System;
 using System.Linq;
 using EnsureThat;
+using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json.Linq;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class NormalizationTests
     {
+        private CollectionContentTemplateFactory _collectionContentTemplateFactory;
+
+        public NormalizationTests()
+        {
+            var logger = Substitute.For<ITelemetryLogger>();
+            _collectionContentTemplateFactory = new CollectionContentTemplateFactory(
+                new JsonPathContentTemplateFactory(),
+                new IotJsonPathContentTemplateFactory(),
+                new IotCentralJsonPathContentTemplateFactory(),
+                new CalculatedFunctionContentTemplateFactory(new TemplateExpressionEvaluatorFactory(), logger));
+        }
+
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHrv_WhenGetMeasurements_ThenNoMeasurementsReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -30,6 +45,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHeartRateAndSteps_WhenGetMeasurements_ThenTwoMeasurementsReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -73,6 +89,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithHeartRate_WhenGetMeasurements_ThenOneMeasurementReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -103,6 +120,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndSteps.json")]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndStepsJmesPath.json")]
         public void GivenMeasurementWithSteps_WhenGetMeasurements_ThenOneMeasurementReturned_Test(string json)
         {
             var template = CreateTemplate(json);
@@ -167,10 +185,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("15", respiratoryrateMeasurement.Properties[0].Value);
         }
 
-        private static IContentTemplate CreateTemplate(string json)
+        private IContentTemplate CreateTemplate(string json)
         {
             EnsureArg.IsNotNull(json, nameof(json));
-            var templateContext = CollectionContentTemplateFactory.Default.Create(json);
+            var templateContext = _collectionContentTemplateFactory.Create(json);
             Assert.NotNull(templateContext);
 
             templateContext.EnsureValid();

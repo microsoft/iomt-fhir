@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,15 +21,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        private CollectionContentTemplateFactory()
-            : base(
-                  new JsonPathContentTemplateFactory(),
-                  new IotJsonPathContentTemplateFactory(),
-                  new IotCentralJsonPathContentTemplateFactory())
+        public CollectionContentTemplateFactory(IEnumerable<ITemplateFactory<TemplateContainer, IContentTemplate>> factories)
+            : base(factories.ToArray())
         {
         }
-
-        public static CollectionContentTemplateFactory Default { get; } = new CollectionContentTemplateFactory();
 
         protected override string TargetTemplateTypeName => "CollectionContentTemplate";
 

@@ -77,7 +77,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             }
             else
             {
-                throw new Exception($"An invalid application type type was provided: {applicationType}");
+                throw new Exception($"An invalid application type was provided: {applicationType}");
             }
         }
 

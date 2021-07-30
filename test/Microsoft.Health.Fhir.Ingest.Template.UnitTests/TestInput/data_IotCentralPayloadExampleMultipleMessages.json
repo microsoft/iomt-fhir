@@ -1,84 +1,86 @@
-[
-  {
-    "applicationId": "9ad1c9e6-746e-4895-b6ac-ccd256567364",
-    "messageSource": "telemetry",
-    "deviceId": "1qsi9p8t5l2",
-    "schema": "default@v1",
-    "templateId": "dtmi:hpzy1kfcbt2:umua7dplmbd",
-    "enqueuedTime": "2021-06-08T19:45:20.2020000Z",
-    "telemetry": {
-      "HeartRate": 75,
-      "RespiratoryRate": 15,
-      "HeartRateVariability": 47,
-      "BodyTemperature": 98.43639286275842,
-      "BloodPressure": {
-        "Systolic": 62,
-        "Diastolic": 30
+{
+  "Body": [
+    {
+      "applicationId": "9ad1c9e6-746e-4895-b6ac-ccd256567364",
+      "messageSource": "telemetry",
+      "deviceId": "1qsi9p8t5l2",
+      "schema": "default@v1",
+      "templateId": "dtmi:hpzy1kfcbt2:umua7dplmbd",
+      "enqueuedTime": "2021-06-08T19:45:20.2020000Z",
+      "telemetry": {
+        "HeartRate": 75,
+        "RespiratoryRate": 15,
+        "HeartRateVariability": 47,
+        "BodyTemperature": 98.43639286275842,
+        "BloodPressure": {
+          "Systolic": 62,
+          "Diastolic": 30
+        },
+        "Activity": "unknown",
+        "BatteryLevel": 45,
+        "DeviceTemperature": 99.73965481946802
       },
-      "Activity": "unknown",
-      "BatteryLevel": 45,
-      "DeviceTemperature": 99.73965481946802
-    },
-    "messageProperties": {
-      "iothub-creation-time-utc": "2021-06-08T19:45:20.1960000Z"
-    },
-    "enrichments": {},
-    "EventProcessedUtcTime": "2021-06-08T19:46:30.0221523Z",
-    "PartitionId": 0,
-    "EventEnqueuedUtcTime": "2021-06-08T19:45:21.6700000Z"
-  },
-  {
-    "applicationId": "9ad1c9e6-746e-4895-b6ac-ccd256567364",
-    "messageSource": "telemetry",
-    "deviceId": "24bjobtcf8i",
-    "schema": "default@v1",
-    "templateId": "dtmi:j71gm4wvkse:q2hnw2dwt",
-    "enqueuedTime": "2021-06-08T19:44:31.8750000Z",
-    "telemetry": {
-      "BatteryLevel": 18,
-      "DeviceTemperature": 33.29263007599055,
-      "Acceleration": {
-        "x": 55.926383348707056,
-        "y": 32.48023902752244,
-        "z": 52.63074069893806
+      "messageProperties": {
+        "iothub-creation-time-utc": "2021-06-08T19:45:20.1960000Z"
       },
-      "RangeOfMotion": 83,
-      "KneeBend": -19
+      "enrichments": {},
+      "EventProcessedUtcTime": "2021-06-08T19:46:30.0221523Z",
+      "PartitionId": 0,
+      "EventEnqueuedUtcTime": "2021-06-08T19:45:21.6700000Z"
     },
-    "messageProperties": {
-      "iothub-creation-time-utc": "2021-06-08T19:44:31.8510000Z"
-    },
-    "enrichments": {},
-    "EventProcessedUtcTime": "2021-06-08T19:46:30.0221523Z",
-    "PartitionId": 17,
-    "EventEnqueuedUtcTime": "2021-06-08T19:44:33.2760000Z"
-  },
-  {
-    "applicationId": "9ad1c9e6-746e-4895-b6ac-ccd256567364",
-    "messageSource": "telemetry",
-    "deviceId": "1qsi9p8t5l2",
-    "schema": "default@v1",
-    "templateId": "dtmi:hpzy1kfcbt2:umua7dplmbd",
-    "enqueuedTime": "2021-06-08T19:44:04.9410000Z",
-    "telemetry": {
-      "DeviceTemperature": 100.35698673128682,
-      "HeartRate": 69,
-      "RespiratoryRate": 15,
-      "HeartRateVariability": 14,
-      "BodyTemperature": 98.3519900406635,
-      "BloodPressure": {
-        "Systolic": 43,
-        "Diastolic": 34
+    {
+      "applicationId": "9ad1c9e6-746e-4895-b6ac-ccd256567364",
+      "messageSource": "telemetry",
+      "deviceId": "24bjobtcf8i",
+      "schema": "default@v1",
+      "templateId": "dtmi:j71gm4wvkse:q2hnw2dwt",
+      "enqueuedTime": "2021-06-08T19:44:31.8750000Z",
+      "telemetry": {
+        "BatteryLevel": 18,
+        "DeviceTemperature": 33.29263007599055,
+        "Acceleration": {
+          "x": 55.926383348707056,
+          "y": 32.48023902752244,
+          "z": 52.63074069893806
+        },
+        "RangeOfMotion": 83,
+        "KneeBend": -19
       },
-      "Activity": "resting",
-      "BatteryLevel": 78
+      "messageProperties": {
+        "iothub-creation-time-utc": "2021-06-08T19:44:31.8510000Z"
+      },
+      "enrichments": {},
+      "EventProcessedUtcTime": "2021-06-08T19:46:30.0221523Z",
+      "PartitionId": 17,
+      "EventEnqueuedUtcTime": "2021-06-08T19:44:33.2760000Z"
     },
-    "messageProperties": {
-      "iothub-creation-time-utc": "2021-06-08T19:44:04.9270000Z"
-    },
-    "enrichments": {},
-    "EventProcessedUtcTime": "2021-06-08T19:46:30.0221523Z",
-    "PartitionId": 0,
-    "EventEnqueuedUtcTime": "2021-06-08T19:44:06.5540000Z"
-  }
-]
+    {
+      "applicationId": "9ad1c9e6-746e-4895-b6ac-ccd256567364",
+      "messageSource": "telemetry",
+      "deviceId": "1qsi9p8t5l2",
+      "schema": "default@v1",
+      "templateId": "dtmi:hpzy1kfcbt2:umua7dplmbd",
+      "enqueuedTime": "2021-06-08T19:44:04.9410000Z",
+      "telemetry": {
+        "DeviceTemperature": 100.35698673128682,
+        "HeartRate": 69,
+        "RespiratoryRate": 15,
+        "HeartRateVariability": 14,
+        "BodyTemperature": 98.3519900406635,
+        "BloodPressure": {
+          "Systolic": 43,
+          "Diastolic": 34
+        },
+        "Activity": "resting",
+        "BatteryLevel": 78
+      },
+      "messageProperties": {
+        "iothub-creation-time-utc": "2021-06-08T19:44:04.9270000Z"
+      },
+      "enrichments": {},
+      "EventProcessedUtcTime": "2021-06-08T19:46:30.0221523Z",
+      "PartitionId": 0,
+      "EventEnqueuedUtcTime": "2021-06-08T19:44:06.5540000Z"
+    }
+  ]
+}

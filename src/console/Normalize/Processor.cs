@@ -39,13 +39,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private IOptions<NormalizationServiceOptions> _normalizationOptions;
         private IEventProcessingMeter _eventProcessingMeter = new EventProcessingMeter();
         private AsyncPolicy _retryPolicy;
+        private CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
 
         public Processor(
-            [Blob("template/%Template:DeviceContent%", FileAccess.Read)] string templateDefinition,
+            string templateDefinition,
             ITemplateManager templateManager,
             IAsyncCollector<IMeasurement> collector,
             ITelemetryLogger logger,
-            IOptions<NormalizationServiceOptions> options)
+            IOptions<NormalizationServiceOptions> options,
+            CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory)
         {
             _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
             _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
@@ -53,6 +55,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _normalizationOptions = EnsureArg.IsNotNull(options, nameof(options));
             _retryPolicy = CreateRetryPolicy(logger);
+            _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
@@ -64,7 +67,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)
         {
-            var templateContext = CollectionContentTemplateFactory.Default.Create(templateContent);
+            var templateContext = _collectionTemplateFactory.Create(templateContent);
             templateContext.EnsureValid();
             var template = templateContext.Template;
 

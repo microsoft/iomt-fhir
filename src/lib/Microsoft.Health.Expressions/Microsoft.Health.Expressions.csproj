@@ -26,6 +26,9 @@
 		<PackageReference Include="JmesPath.Net" Version="1.0.153" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
+    </ItemGroup>
+	<ItemGroup>
 		<AdditionalFiles Include="..\..\..\stylecop.json">
 			<Link>stylecop.json</Link>
 		</AdditionalFiles>

@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using DevLab.JmesPath;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
@@ -25,10 +27,20 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class IomtConnectorFunctions
     {
         private readonly ITelemetryLogger _logger;
+        private readonly CollectionContentTemplateFactory _collectionContentTemplateFactory;
 
         public IomtConnectorFunctions(ITelemetryLogger logger)
         {
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            var expressionRegister = new AssemblyExpressionRegister(typeof(IExpressionRegister).Assembly, _logger);
+            var jmesPath = new JmesPath();
+            expressionRegister.RegisterExpressions(jmesPath.FunctionRepository);
+            _collectionContentTemplateFactory = new CollectionContentTemplateFactory(
+                new JsonPathContentTemplateFactory(),
+                new IotJsonPathContentTemplateFactory(),
+                new IotCentralJsonPathContentTemplateFactory(),
+                new CalculatedFunctionContentTemplateFactory(
+                    new TemplateExpressionEvaluatorFactory(jmesPath), _logger));
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
@@ -67,7 +79,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 EnsureArg.IsNotNull(events, nameof(events));
                 EnsureArg.IsNotNull(normalizationSettings, nameof(normalizationSettings));
 
-                var templateContext = CollectionContentTemplateFactory.Default.Create(templateDefinitions);
+                var templateContext = _collectionContentTemplateFactory.Create(templateDefinitions);
                 templateContext.EnsureValid();
                 var template = templateContext.Template;
 

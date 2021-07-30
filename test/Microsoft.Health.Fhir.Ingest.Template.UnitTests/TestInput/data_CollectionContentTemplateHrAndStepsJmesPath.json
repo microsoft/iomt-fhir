@@ -1,0 +1,39 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "defaultExpressionLanguage": "JmesPath",
+        "typeName": "heartrate",
+        "typeMatchExpression": "to_array(@)[?heartrate]",
+        "deviceIdExpression": "matchedToken.device",
+        "timestampExpression": "matchedToken.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "matchedToken.heartrate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "defaultExpressionLanguage": "JmesPath",
+        "typeName": "steps",
+        "typeMatchExpression": "to_array(@)[?steps]",
+        "deviceIdExpression": "matchedToken.device",
+        "timestampExpression": "matchedToken.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "matchedToken.steps",
+            "valueName": "steps"
+          }
+        ]
+      }
+    }
+  ]
+}
