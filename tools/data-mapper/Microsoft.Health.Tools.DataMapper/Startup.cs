@@ -3,12 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using DevLab.JmesPath;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Health.Expressions;
+using Microsoft.Health.Logging.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Tools.DataMapper
 {
@@ -44,6 +48,7 @@ namespace Microsoft.Health.Tools.DataMapper
             {
                 configuration.RootPath = "ClientApp/build";
             });
+            AddContentTemplateFactories(services);
         }
 
         /// <summary>
@@ -87,6 +92,25 @@ namespace Microsoft.Health.Tools.DataMapper
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
+        }
+
+        private void AddContentTemplateFactories(IServiceCollection services)
+        {
+            services.AddSingleton<IExpressionRegister>(sp => new AssemblyExpressionRegister(typeof(IExpressionRegister).Assembly, sp.GetRequiredService<ITelemetryLogger>()));
+            services.AddSingleton(
+                sp =>
+                {
+                    var jmesPath = new JmesPath();
+                    var expressionRegister = sp.GetRequiredService<IExpressionRegister>();
+                    expressionRegister.RegisterExpressions(jmesPath.FunctionRepository);
+                    return jmesPath;
+                });
+            services.AddSingleton<IExpressionEvaluatorFactory, TemplateExpressionEvaluatorFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, JsonPathContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotJsonPathContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotCentralJsonPathContentTemplateFactory>();
+            services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, CalculatedFunctionContentTemplateFactory>();
+            services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>, CollectionContentTemplateFactory>();
         }
     }
 }
