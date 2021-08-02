@@ -12,7 +12,7 @@ using Microsoft.Health.Logging.Telemetry;
 namespace Microsoft.Health.Tools.DataMapper
 {
     /// <summary>
-    /// A facage which routes ITelemetryLogger operations to the underlying ILogger
+    /// A facade which routes ITelemetryLogger operations to the underlying ILogger
     /// </summary>
     public class TelemetryLoggerFacade : ITelemetryLogger
     {
