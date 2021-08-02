@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -20,14 +21,18 @@ namespace Microsoft.Health.Tools.DataMapper.Controllers.Apis
     public class NormalizationTestController : ControllerBase
     {
         private readonly ILogger<NormalizationTestController> logger;
+        private readonly CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NormalizationTestController"/> class.
         /// </summary>
         /// <param name="logger">Logger.</param>
-        public NormalizationTestController(ILogger<NormalizationTestController> logger)
+        public NormalizationTestController(
+            ILogger<NormalizationTestController> logger,
+            CollectionTemplateFactory<IContentTemplate, IContentTemplate> templateFactory)
         {
-            this.logger = logger;
+            this.logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            this.collectionTemplateFactory = EnsureArg.IsNotNull(templateFactory, nameof(templateFactory));
         }
 
         /// <summary>
@@ -50,7 +55,7 @@ namespace Microsoft.Health.Tools.DataMapper.Controllers.Apis
             }
 
             // Validate mapping semantic.
-            var templateContext = CollectionContentTemplateFactory.Default.Create(request.DeviceMapping);
+            var templateContext = collectionTemplateFactory.Create(request.DeviceMapping);
             if (!templateContext.IsValid(out string errors))
             {
                 return this.BadRequest(

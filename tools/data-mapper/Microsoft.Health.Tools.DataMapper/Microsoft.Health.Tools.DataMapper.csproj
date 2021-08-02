@@ -58,6 +58,7 @@
     <ProjectReference Include="..\..\..\src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
     <ProjectReference Include="..\..\..\src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
     <ProjectReference Include="..\..\..\src\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj" />
+    <ProjectReference Include="..\..\..\src\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
