@@ -22,7 +22,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EncounterIdExpression = CreateExpression(InnerTemplate.EncounterIdExpression);
             TimestampExpression = CreateExpression(InnerTemplate.TimestampExpression);
             CorrelationIdExpression = CreateExpression(InnerTemplate.CorrelationIdExpression);
-            Values = InnerTemplate.Values.Select(value =>
+
+            if (InnerTemplate.Values != null)
+            {
+               Values = InnerTemplate.Values.Select(value =>
                new CalculatedFunctionValueExpression()
                {
                    ValueName = value.ValueName,
@@ -30,6 +33,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                    Language = TemplateExpressionLanguage.JsonPath,
                    Required = value.Required,
                }).ToList();
+            }
         }
 
         public TTemplate InnerTemplate { get; private set; }
