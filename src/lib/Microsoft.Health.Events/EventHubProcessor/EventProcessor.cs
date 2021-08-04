@@ -4,26 +4,23 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Processor;
 using EnsureThat;
-using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class EventProcessor
     {
-        private readonly string _eventHubErrorPrefix = "EventHubError";
-
         private IEventConsumerService _eventConsumerService;
         private ICheckpointClient _checkpointClient;
         private ITelemetryLogger _logger;
@@ -64,9 +61,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // todo: consider retry
             Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
             {
-                (var exception, string reason) = ProcessErrorEventException(eventArgs.Exception);
-                _logger.LogError(exception);
-                _logger.LogMetric(EventMetrics.HandledException(reason, ConnectorOperation.Setup), 1);
+                EventHubExceptionTelemetryProcessor.ProcessException(eventArgs.Exception, _logger);
 
                 return Task.CompletedTask;
             }
@@ -88,7 +83,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 #pragma warning restore CA1031
                 {
                     _logger.LogTrace($"Failed to initialize partition {partitionId} from checkpoint");
-                    _logger.LogError(ex);
+                    EventHubExceptionTelemetryProcessor.ProcessException(ex, _logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
                 }
             }
 
@@ -111,19 +106,6 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 processor.ProcessEventAsync -= ProcessEventHandler;
                 processor.ProcessErrorAsync -= ProcessErrorHandler;
                 processor.PartitionInitializingAsync -= ProcessInitializingHandler;
-            }
-        }
-
-        private (Exception exception, string reason) ProcessErrorEventException(Exception exception)
-        {
-            switch (exception)
-            {
-                case EventHubsException eventHubsException:
-                    return (eventHubsException, $"{_eventHubErrorPrefix}{eventHubsException.Reason}");
-                case SocketException socketException:
-                    return (socketException, $"{_eventHubErrorPrefix}{socketException.SocketErrorCode}");
-                default:
-                    return (exception, $"{_eventHubErrorPrefix}GeneralError");
             }
         }
     }
