@@ -15,6 +15,7 @@ import 'codemirror/mode/javascript/javascript.js';
 
 import { Mapping } from '../../store/Mapping';
 import TestService from '../../services/TestService';
+import * as Constants from '../Constants';
 import { PlayCircleIcon } from '../Icons';
 import * as Utility from './Utility';
 
@@ -104,7 +105,7 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                 setNormTestInProgress(false);
             })
             .catch(err => {
-                setNormTestResultBadge("Failed");
+                setNormTestResultBadge(Constants.Text.LabelTestResultFail);
                 setNormTestResult(err);
                 setNormTestInProgress(false);
             })
@@ -124,6 +125,7 @@ const MappingTestWidget = (props: { data: Mapping }) => {
             }
         }
         catch (err) {
+            setFhirTestResultBadge(Constants.Text.LabelTestResultFail);
             setFhirTestResult(`${err.message}. Did you already get successful normalization result?`);
             return;
         }
@@ -148,7 +150,7 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                 setFhirTestInProgress(false);
             })
             .catch(err => {
-                setFhirTestResultBadge("Failed!");
+                setFhirTestResultBadge(Constants.Text.LabelTestResultFail);
                 setFhirTestResult(err);
                 setFhirTestInProgress(false);
             })

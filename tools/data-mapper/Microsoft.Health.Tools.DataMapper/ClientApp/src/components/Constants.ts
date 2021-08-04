@@ -64,4 +64,6 @@ export const Text = {
 
     LabelUntitled: "Untitled",
     LabelMappingList: "Mapping Templates",
+
+    LabelTestResultFail: "Fail"
 }
