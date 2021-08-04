@@ -24,7 +24,7 @@ Please see the [specification](https://jmespath.org/specification.html#built-in-
 number add(number $left, number $right)
 ```
 
-Returns the result of adding the left argument from the right.
+Returns the result of adding the left argument to the right.
 
 Examples:
 | Given                       | Expression       | Result |
@@ -39,14 +39,15 @@ Examples:
 number divide(number $left, number $right)
 ```
 
-Returns the result of multiplying the left argument with the right.
+Returns the result of dividing the left argument by the right.
 
 Examples:
-| Given                       | Expression          | Result |
-|-----------------------------|---------------------|--------|
-| n/a                         | divide(`10`, `10`)  | 1      |
-| {"left" : 40, "right" : 50} | divide(left, right) | 0.8    |
-| {"left" : 0, "right" : 50}  | divide(left, right) | 0      |
+| Given                       | Expression          | Result                           |
+|-----------------------------|---------------------|----------------------------------|
+| n/a                         | divide(`10`, `10`)  | 1                                |
+| {"left" : 40, "right" : 50} | divide(left, right) | 0.8                              |
+| {"left" : 0, "right" : 50}  | divide(left, right) | 0                                |
+| {"left" : 50, "right" : 0}  | divide(left, right) | mathmatic error : divide by zero |
 
 ### multiply
 
@@ -86,7 +87,7 @@ Examples:
 number subtract(number $left, number $right)
 ```
 
-Returns the result of subtracting the left argument from the right.
+Returns the result of subtracting the right argument from the left.
 
 Examples:
 | Given                       | Expression            | Result |

@@ -15,7 +15,7 @@ The IoMT FHIR Connector for Azure provides mapping functionality to extract devi
 | **DeviceId**         | The identifier for the device.  This should match an identifier on the device resource that resides on the destination FHIR server.                                                                                                                     |
  |**Properties**|Extract at least one property so the value can be saved in the observation created.  Properties are a collection of key value pairs extracted during normalization.|
 
-The full normalized model is defined by the [IMeasurement](../src/lib/Microsoft.Health.Fhir.Ingest/Data/IMeasurement.cs) interface.
+The full normalized model is defined by the [IMeasurement](../src/lib/Microsoft.Health.Fhir.Ingest.Schema/IMeasurement.cs) interface.
 
 Below is a conceptual example of what happens during normalization.
 
@@ -58,7 +58,7 @@ An expression is defined as:
 
 In the example below, _typeMatchExpression_ is defined as:
 
-```
+```json
 "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
@@ -70,9 +70,9 @@ In the example below, _typeMatchExpression_ is defined as:
     }
 ```
 
-If it's desired to simply use the default expression language, the expression alone may be supplied:
+The default expression language to use for a template is JsonPath. If it's desired to simply use the default language, the expression alone may be supplied:
 
-```
+```json
 "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
@@ -81,9 +81,9 @@ If it's desired to simply use the default expression language, the expression al
     }
 ```
 
-It is also possible to explicitly set the default expression language that will be used:
+Finally, the default expression language to use for a template can be explicitly set using the `defaultExpressionLanguage` parameter:
 
-```
+```json
 "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
@@ -100,18 +100,18 @@ When specifying the language to use for the expression, the below values are val
 | JSON Path           | **JsonPath** |
 | JmesPath            | **JmesPath** |
 
-More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). The [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. Additional examples can be found in the [unit tests](../test/Microsoft.Health.Fhir.Ingest.UnitTests/Template/JsonPathContentTemplateTests.cs).
+More information on JSON Path can be found [here](https://goessner.net/articles/JsonPath/). The [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JSON .NET implementation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm) for resolving JSON Path expressions. Additional examples can be found in the [unit tests](../test/Microsoft.Health.Fhir.Ingest.Template.UnitTests/CalculatedFunctionContentTemplateTests.cs).
 
 More information on JmesPath can be found [here](https://jmespath.org/specification.html). [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JmesPath .NET implementation](https://github.com/jdevillard/JmesPath.Net) for resolving JmesPath expressions. In addtion to the functions provided as part of the specification a set of custom functions are also available for use. More information on them can be found [here](./CustomFunctions.md). Source code for the functions can be found TODO. 
 
 ### Matched Token
-The **TypeMatchExpression** is evaluated against the incoming EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against a new JToken which contains both the original EventData payload as well as the extracted JToken matched here. The extracted JToken will be available as the property __matchedToken__.
+The **TypeMatchExpression** is evaluated against the incoming EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against a new JToken which contains both the original EventData payload as well as the extracted JToken matched here. In this way, the original payload as well as the matched object are available to each subsequent expression. hThe extracted JToken will be available as the property __matchedToken__.
 
 Given the following:
 
 _Message_
 
-```
+```json
 {
   "Properties": {
     "deviceId": "device123"
@@ -119,13 +119,13 @@ _Message_
   "SystemProperties": {},
   "Body": [
     {
-      "systolic": "120",
-      "diastolic": "80",
+      "systolic": "120", // Match
+      "diastolic": "80", // Match
       "date": "2021-07-13T17:29:01.061144Z"
     },
     {
-      "systolic": "122",
-      "diastolic": "82",
+      "systolic": "122", // Match
+      "diastolic": "82", // Match
       "date": "2021-07-13T17:28:01.061122Z"
     }
   ]
@@ -134,18 +134,18 @@ _Message_
 
 _Template_
 
-```
+```json
 "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]", //Expression
         ...
     }
 ```
 
 Two matches will be extracted using the above expression and used to create JTokens. Subsequent expressions will be evaluated using the following JTokens:
 
-```
+```json
 {
   "Properties": {
     "deviceId": "device123"
@@ -173,7 +173,7 @@ Two matches will be extracted using the above expression and used to create JTok
 
 And
 
-```
+```json
 {
   "Properties": {
     "deviceId": "device123"
@@ -228,7 +228,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 ```json
 {
     "Body": {
-        "heartRate": "78",
+        "heartRate": "78", // Match
         "endDate": "2019-02-01T22:46:01.8750000Z",
         "deviceId": "device123"
     },
@@ -244,7 +244,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
     "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@heartRate)]",
+        "typeMatchExpression": "$..[?(@heartRate)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
@@ -267,8 +267,8 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 ```json
 {
     "Body": {
-        "systolic": "123",
-        "diastolic" : "87",
+        "systolic": "123", // Match
+        "diastolic" : "87", // Match
         "endDate": "2019-02-01T22:46:01.8750000Z",
         "deviceId": "device123"
     },
@@ -282,7 +282,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 ```json
 {
     "typeName": "bloodpressure",
-    "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+    "typeMatchExpression": "$..[?(@systolic && @diastolic)]", // Expression
     "deviceIdExpression": "$.matchedToken.deviceid",
     "timestampExpression": "$.matchedToken.endDate",
     "values": [
@@ -309,8 +309,8 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 ```json
 {
     "Body": {
-        "heartRate": "78",
-        "steps": "2",
+        "heartRate": "78", // Match (Template 1)
+        "steps": "2", // Match (Template 2)
         "endDate": "2019-02-01T22:46:01.8750000Z",
         "deviceId": "device123"
     },
@@ -326,7 +326,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
     "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@heartRate)]",
+        "typeMatchExpression": "$..[?(@heartRate)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
@@ -347,7 +347,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
     "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "stepcount",
-        "typeMatchExpression": "$..[?(@steps)]",
+        "typeMatchExpression": "$..[?(@steps)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
@@ -371,17 +371,17 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 {
     "Body": [
         {
-            "heartRate": "78",
+            "heartRate": "78", // Match
             "endDate": "2019-02-01T22:46:01.8750000Z",
             "deviceId": "device123"
         },
         {
-            "heartRate": "81",
+            "heartRate": "81", // Match
             "endDate": "2019-02-01T23:46:01.8750000Z",
             "deviceId": "device123"
         },
         {
-            "heartRate": "72",
+            "heartRate": "72", // Match
             "endDate": "2019-02-01T24:46:01.8750000Z",
             "deviceId": "device123"
         }
@@ -398,7 +398,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
     "templateType": "CalculatedContentTemplate",
     "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@heartRate)]",
+        "typeMatchExpression": "$..[?(@heartRate)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
@@ -464,7 +464,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 
 ---
 
-**Select and tranform incoming data**
+**Select and transform incoming data**
 
 *Message*
 
@@ -542,7 +542,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 Additional template types may be used alongside the CalculatedContentTemplate. Information on Legacy Templates such as __JsonPathContentTemplate__ can be found [here](./Legacy-Configuration.md).
 # FHIR Mapping
 
-Once the device content is extracted into [Measurement](../src/lib/Microsoft.Health.Fhir.Ingest/Data/Measurement.cs) definitions the data is collected and grouped according to a window of time (set during deployment), device id, and type.  The output of this grouping is sent to be converted into a FHIR resource (observation currently). Here the FHIR mapping controls how the data is mapped into a FHIR observation. Should an observation be created for a point in time or over a period of an hour? What codes should be added to the observation? Should be value be represented as SampledData or a Quantity? These are all options the FHIR mapping configuration controls.
+Once the device content is extracted into [Measurement](../src/lib/Microsoft.Health.Fhir.Ingest.Schema/Measurement.cs) definitions the data is collected and grouped according to a window of time (set during deployment), device id, and type.  The output of this grouping is sent to be converted into a FHIR resource (observation currently). Here the FHIR mapping controls how the data is mapped into a FHIR observation. Should an observation be created for a point in time or over a period of an hour? What codes should be added to the observation? Should be value be represented as SampledData or a Quantity? These are all options the FHIR mapping configuration controls.
 
 The FHIR mapping also controls how the measurements are grouped into an observation. This is controlled by the ```PeriodInterval``` setting in the template documentation below. The simplest option is ```Instance``` which means each measurement will map to a single observation.  This is option appropriate if your data collection is infrequent (a couple times a day or less).  If you are collecting data with high frequency (every second or ever minute) then using a period of ```Hour``` or ```Day``` is recommended.  When set data that arrived will be mapped to the correct hourly and daily observation.  This should be used with a value type SampledData which will capture measurements according to the period you configure.  The last option is grouping by ```CorrelationId``` which will group all measurements that share the same device, type, and correlation id (defined and extracted during device mapping).  This should also use the SampledData value type so all values with in the observation period can be represented.
 
