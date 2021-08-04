@@ -10,6 +10,7 @@
 }
 
 .iomt-cm-test-area textarea {
+    width: 100%;
     height: 200px;
 }
 

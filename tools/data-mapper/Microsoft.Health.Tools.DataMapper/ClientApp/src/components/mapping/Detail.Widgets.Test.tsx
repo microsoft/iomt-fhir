@@ -31,27 +31,30 @@ const MappingTestWidget = (props: { data: Mapping }) => {
     const [fhirTestResultBadge, setFhirTestResultBadge] = React.useState('');
     const [fhirTestInProgress, setFhirTestInProgress] = React.useState(false);
 
+    const dataSampleRef = React.useRef<HTMLTextAreaElement>() as React.RefObject<HTMLTextAreaElement>;
     const identityResolutionTypeRef = React.useRef<HTMLInputElement>() as React.RefObject<HTMLInputElement>;
 
     var codeEditor: CodeMirror.EditorFromTextArea;
     var dataSampleErrorLine: number | null = null;
 
     React.useEffect(() => {
-        codeEditor = CodeMirror.fromTextArea(
-            (document.getElementById('devicedatasample') as HTMLTextAreaElement),
-            {
-                mode: "javascript",
-                lineNumbers: true,
-                matchBrackets: true,
-                placeholder: 'Paste your device data sample here...'
-            }
-        );
+        if (dataSampleRef.current) {
+            codeEditor = CodeMirror.fromTextArea(
+                dataSampleRef.current,
+                {
+                    mode: "javascript",
+                    lineNumbers: true,
+                    matchBrackets: true,
+                    placeholder: 'Paste your device data sample here...'
+                }
+            );
 
-        codeEditor.on('change', () => handleDataSampleChange(codeEditor.getValue()));
+            codeEditor.on('change', () => handleDataSampleChange(codeEditor.getValue()));
 
-        return () => {
-            codeEditor.toTextArea();
-        };
+            return () => {
+                codeEditor.toTextArea();
+            };
+        }
     }, []);
 
     const handleDataSampleChange = (newDataSample: string) => {
@@ -163,9 +166,8 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                             <div className="pt-2 pb-3">
                                 <span className="h6">Device Data Sample</span>
                             </div>
-                            <Input
-                                type="textarea" name="devicedatasample" id="devicedatasample"
-                            />
+                            <textarea className="border overflow-auto p-2" ref={dataSampleRef}>
+                            </textarea>
                             <pre className={`iomt-cm-data-result overflow-auto p-2 ${dataSampleValid ? "text-success" : "text-danger"}`}>
                                 {dataSampleResult}
                             </pre>
