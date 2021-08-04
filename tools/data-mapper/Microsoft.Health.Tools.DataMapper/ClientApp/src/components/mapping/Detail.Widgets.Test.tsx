@@ -77,7 +77,7 @@ const MappingTestWidget = (props: { data: Mapping }) => {
     }
 
     const highlightDataSampleErrorLine = (line: number | null) => {
-        if (line === dataSampleErrorLine) {
+        if (line === dataSampleErrorLine || !codeEditor) {
             return;
         }
         if (typeof line === 'number') {
@@ -168,7 +168,8 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                             <div className="pt-2 pb-3">
                                 <span className="h6">Device Data Sample</span>
                             </div>
-                            <textarea className="border overflow-auto p-2" ref={dataSampleRef}>
+                            <textarea className="border overflow-auto p-2" ref={dataSampleRef}
+                                onChange={e => { handleDataSampleChange(e.target.value) }}>
                             </textarea>
                             <pre className={`iomt-cm-data-result overflow-auto p-2 ${dataSampleValid ? "text-success" : "text-danger"}`}>
                                 {dataSampleResult}
