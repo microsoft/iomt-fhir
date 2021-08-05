@@ -4,7 +4,7 @@
     {
       "templateType": "CalculatedContent",
       "template": {
-        "typeName": "heightInMeters1",
+        "typeName": "heightInMeters",
         "typeMatchExpression": "$..[?(@unit == 'inches')]",
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
@@ -12,7 +12,7 @@
           {
             "required": "true",
             "valueExpression": {
-              "value": "multiply(matchedToken.height, `0.0254`)",
+              "value": "multiply(to_number(matchedToken.height), `0.0254`)",
               "language": "JmesPath"
             },
             "valueName": "height"
@@ -23,7 +23,7 @@
     {
       "templateType": "CalculatedContent",
       "template": {
-        "typeName": "heightInMeters2",
+        "typeName": "heightInMeters",
         "typeMatchExpression": "$..[?(@unit == 'meters')]",
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",

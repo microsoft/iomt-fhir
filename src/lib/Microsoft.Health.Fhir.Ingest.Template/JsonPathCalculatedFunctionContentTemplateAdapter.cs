@@ -29,8 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                new CalculatedFunctionValueExpression()
                {
                    ValueName = value.ValueName,
-                   Value = value.ValueExpression,
-                   Language = TemplateExpressionLanguage.JsonPath,
+                   ValueExpression = new TemplateExpression(value.ValueExpression, TemplateExpressionLanguage.JsonPath),
                    Required = value.Required,
                }).ToList();
             }

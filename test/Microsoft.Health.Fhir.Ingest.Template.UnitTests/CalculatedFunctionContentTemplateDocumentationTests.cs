@@ -228,6 +228,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 measurements,
                 m =>
                 {
+                    Assert.Equal("heightInMeters", m.Type);
                     Assert.Equal("device123", m.DeviceId);
                     Assert.Equal("2019-02-01T22:46:01", m.OccurrenceTimeUtc.ToString("yyyy-MM-ddTHH:mm:ss"));
                     Assert.Collection(
@@ -235,11 +236,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         p =>
                         {
                             Assert.Equal("height", p.Name);
-                            Assert.Equal("78", p.Value);
+                            Assert.Equal(1.9812, float.Parse(p.Value), 4);
                         });
                 },
                 m =>
                 {
+                    Assert.Equal("heightInMeters", m.Type);
                     Assert.Equal("device123", m.DeviceId);
                     Assert.Equal("2019-02-01T23:46:01", m.OccurrenceTimeUtc.ToString("yyyy-MM-ddTHH:mm:ss"));
                     Assert.Collection(
@@ -247,7 +249,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         p =>
                         {
                             Assert.Equal("height", p.Name);
-                            Assert.Equal("81", p.Value);
+                            Assert.Equal("1.9304", p.Value);
                         });
                 });
         }

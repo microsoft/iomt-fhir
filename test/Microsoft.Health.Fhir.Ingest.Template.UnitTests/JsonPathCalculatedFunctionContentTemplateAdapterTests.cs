@@ -49,13 +49,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 item =>
                 {
                     Assert.Equal("hr1", item.ValueName);
-                    Assert.Equal("$.heartrate", item.Value);
+                    Assert.Equal("$.heartrate", item.ValueExpression.Value);
                     Assert.False(item.Required);
                 },
                 item =>
                 {
                     Assert.Equal("hr2", item.ValueName);
-                    Assert.Equal("$.heartrate2", item.Value);
+                    Assert.Equal("$.heartrate2", item.ValueExpression.Value);
                     Assert.True(item.Required);
                 });
         }
@@ -92,13 +92,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 item =>
                 {
                     Assert.Equal("hr1", item.ValueName);
-                    Assert.Equal("$.heartrate", item.Value);
+                    Assert.Equal("$.heartrate", item.ValueExpression.Value);
                     Assert.False(item.Required);
                 },
                 item =>
                 {
                     Assert.Equal("hr2", item.ValueName);
-                    Assert.Equal("$.heartrate2", item.Value);
+                    Assert.Equal("$.heartrate2", item.ValueExpression.Value);
                     Assert.True(item.Required);
                 });
         }

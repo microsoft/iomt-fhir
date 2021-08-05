@@ -69,7 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal(TemplateExpressionLanguage.JmesPath, template.TypeMatchExpression.Language);
             Assert.Collection(
                 template.Values,
-                p => Assert.Equal(TemplateExpressionLanguage.JmesPath, p.Language));
+                p => Assert.Equal(TemplateExpressionLanguage.JmesPath, p.ValueExpression.Language));
         }
 
         private CalculatedFunctionContentTemplate GenerateContentTemplate(TemplateExpressionLanguage? language)
@@ -85,7 +85,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 PatientIdExpression = new TemplateExpression(),
                 Values = new List<CalculatedFunctionValueExpression>
                     {
-                      new CalculatedFunctionValueExpression { ValueName = "hr", Value = string.Empty, Required = true },
+                      new CalculatedFunctionValueExpression
+                      {
+                          ValueName = "hr", ValueExpression = new TemplateExpression(), Required = true,
+                      },
                     },
             };
 
@@ -107,7 +110,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal(language, template.TypeMatchExpression.Language);
             Assert.Collection(
                 template.Values,
-                p => Assert.Equal(language, p.Language));
+                p => Assert.Equal(language, p.ValueExpression.Language));
         }
     }
 }

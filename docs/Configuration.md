@@ -495,72 +495,74 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 
 **Select and transform incoming data**
 
+In the below example, height data arrives in either inches or meters. We want all normalized height data to be in meters. To achieve this we create a template which targets only height data in inches and transforms it into meters. Another template targets height data in meters and simply stores it as is.
+
 *Message*
 
 ```json
 {
-    "Body": [
-        {
-            "height": "78",
-            "unit": "inches",
-            "endDate": "2019-02-01T22:46:01.8750000Z",
-        },
-        {
-            "height": "1.9304",
-            "unit": "meters",
-            "endDate": "2019-02-01T23:46:01.8750000Z",
-        }
-    ],
-    "Properties": {
-        "deviceId": "device123"
+  "Body": [
+    {
+      "height": "78",
+      "unit": "inches", // Match (Template 1)
+      "endDate": "2019-02-01T22:46:01.8750000Z",
+      "deviceId": "device123"
     },
-    "SystemProperties": {}
+    {
+      "height": "1.9304",
+      "unit": "meters", // Match (Template 2)
+      "endDate": "2019-02-01T23:46:01.8750000Z",
+      "deviceId": "device123"
+    }
+  ],
+  "Properties": {},
+  "SystemProperties": {}
 }
 ```
 
 *Template 1*
 
 ```json
-{
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heightInMeters",
         "typeMatchExpression": "$..[?(@unit == 'inches')]",
-        "deviceIdExpression": "$.Properties.deviceId",
+        "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
-            {
-                "required": "true",
-                "valueExpression": {
-                    "value": "multiply(matchedToken.height, `0.0254`)",
-                    "language": "JmesPath"
-                },
-                "valueName": "height"
-            }
+          {
+            "required": "true",
+            "valueExpression": {
+              "value": "multiply(to_number(matchedToken.height), `0.0254`)", // Convert inches to meters. Notice we utilize JmesPath as that gives us access to transformation functions
+              "language": "JmesPath"
+            },
+            "valueName": "height"
+          }
         ]
+      }
     }
-}
 ```
 
 *Template 2*
 
 ```json
 {
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heightInMeters",
         "typeMatchExpression": "$..[?(@unit == 'meters')]",
-        "deviceIdExpression": "$.Properties.deviceId",
+        "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.matchedToken.height",
-                "valueName": "height"
-            }
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.height", // Simply extract the height as it is already in meters
+            "valueName": "height"
+          }
         ]
+      }
     }
-}
 ```
 
 Additional template types may be used alongside the CalculatedContentTemplate. Information on Legacy Templates such as __JsonPathContentTemplate__ can be found [here](./Legacy-Configuration.md).
