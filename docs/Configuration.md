@@ -547,7 +547,7 @@ In the below example, height data arrives in either inches or meters. We want al
 *Template 2*
 
 ```json
-{
+    {
       "templateType": "CalculatedContent",
       "template": {
         "typeName": "heightInMeters",
