@@ -18,6 +18,11 @@ namespace Microsoft.Health.Common.Telemetry
         public static string DeviceMessageError => nameof(DeviceMessageError);
 
         /// <summary>
+        /// A metric type for errors that occur when interacting with event hub resources.
+        /// </summary>
+        public static string EventHubError => nameof(EventHubError);
+
+        /// <summary>
         /// A metric type for errors that occur when loading or parsing the FHIR template json file.
         /// </summary>
         public static string FHIRTemplateError => nameof(FHIRTemplateError);

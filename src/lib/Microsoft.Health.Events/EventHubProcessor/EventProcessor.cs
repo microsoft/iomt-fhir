@@ -10,11 +10,11 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Processor;
 using EnsureThat;
-using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
@@ -61,10 +61,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // todo: consider retry
             Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
             {
-                var exception = (EventHubsException)eventArgs.Exception;
-                string reason = $"EventHubError{exception.Reason}";
-                _logger.LogError(exception);
-                _logger.LogMetric(EventMetrics.HandledException(reason, ConnectorOperation.Setup), 1);
+                EventHubExceptionTelemetryProcessor.ProcessException(eventArgs.Exception, _logger);
 
                 return Task.CompletedTask;
             }
@@ -86,7 +83,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 #pragma warning restore CA1031
                 {
                     _logger.LogTrace($"Failed to initialize partition {partitionId} from checkpoint");
-                    _logger.LogError(ex);
+                    EventHubExceptionTelemetryProcessor.ProcessException(ex, _logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
                 }
             }
 

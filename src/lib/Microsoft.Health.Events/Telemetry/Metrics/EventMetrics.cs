@@ -117,7 +117,7 @@ namespace Microsoft.Health.Events.Telemetry
                 {
                     { _nameDimension, exceptionName },
                     { _categoryDimension, Category.Errors },
-                    { _errorTypeDimension, ErrorType.GeneralError },
+                    { _errorTypeDimension, ErrorType.EventHubError },
                     { _errorSeverityDimension, ErrorSeverity.Critical },
                     { _operationDimension, connectorStage },
                 });
