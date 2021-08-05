@@ -12,29 +12,6 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
-    public enum EventHubErrorCode
-    {
-        /// <summary>
-        /// Error code that categorizes exceptions of the type EventHubsException
-        /// </summary>
-        OperationErrors,
-
-        /// <summary>
-        /// Error code that indicates failures in initializing event hub partition
-        /// </summary>
-        EventHubPartitionInitFailed,
-
-        /// <summary>
-        /// Error code that categorizes exceptions of the type SocketException
-        /// </summary>
-        SocketErrors,
-
-        /// <summary>
-        /// Error code that categorizes all other generic Exceptions
-        /// </summary>
-        GeneralErrors,
-    }
-
     public static class EventHubExceptionTelemetryProcessor
     {
         public static void ProcessException(
@@ -59,11 +36,13 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             switch (exception)
             {
                 case EventHubsException _:
-                    return $"{ErrorType.EventHubError}{EventHubErrorCode.OperationErrors}";
+                    return $"{ErrorType.EventHubError}{EventHubErrorCode.OperationError}";
                 case SocketException _:
-                    return $"{ErrorType.EventHubError}{EventHubErrorCode.SocketErrors}";
+                    return $"{ErrorType.EventHubError}{EventHubErrorCode.SocketError}";
+                case UnauthorizedAccessException _:
+                    return $"{ErrorType.EventHubError}{EventHubErrorCode.AuthorizationError}";
                 default:
-                    return $"{ErrorType.EventHubError}{EventHubErrorCode.GeneralErrors}";
+                    return $"{ErrorType.EventHubError}{EventHubErrorCode.GeneralError}";
             }
         }
     }

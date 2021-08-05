@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.EventHubs;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
@@ -12,9 +13,10 @@ namespace Microsoft.Health.Events.UnitTest
     public class EventHubExceptionTelemetryProcessorTests
     {
         [Theory]
-        [InlineData(typeof(EventHubsException), new object [] { false, "test" }, "EventHubErrorOperationErrors")]
-        [InlineData(typeof(SocketException), null, "EventHubErrorSocketErrors")]
-        [InlineData(typeof(Exception), null, "EventHubErrorGeneralErrors")]
+        [InlineData(typeof(EventHubsException), new object [] { false, "test" }, "EventHubErrorOperationError")]
+        [InlineData(typeof(SocketException), null, "EventHubErrorSocketError")]
+        [InlineData(typeof(UnauthorizedAccessException), null, "EventHubErrorAuthorizationError")]
+        [InlineData(typeof(Exception), null, "EventHubErrorGeneralError")]
         public void GivenExceptionTypes_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName)
         {
             var logger = Substitute.For<ITelemetryLogger>();
