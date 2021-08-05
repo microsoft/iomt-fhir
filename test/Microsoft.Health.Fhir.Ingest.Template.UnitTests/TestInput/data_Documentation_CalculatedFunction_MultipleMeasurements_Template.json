@@ -1,0 +1,38 @@
+﻿{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartRate)]",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.heartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "stepcount",
+        "typeMatchExpression": "$..[?(@steps)]",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.steps",
+            "valueName": "steps"
+          }
+        ]
+      }
+    }
+  ]
+}
+    

@@ -1,0 +1,27 @@
+﻿{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        "deviceIdExpression": "$.Body.deviceId",
+        "timestampExpression": "$.matchedToken.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    }
+  ]
+}
+    

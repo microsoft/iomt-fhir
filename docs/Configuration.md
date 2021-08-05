@@ -6,7 +6,7 @@ The IoMT FHIR Connector for Azure requires two JSON configuration files.  The fi
 
 # Device Content Mapping
 
-The IoMT FHIR Connector for Azure provides mapping functionality to extract device content into a common format for further evaluation.  Each event hub message received is evaluated against all templates. This allows a single inbound message to be projected to multiple outbound messages and subsequently mapped to different observations in FHIR.  The result is a normalized data object representing the value or values parsed by the templates.  The normalized data model has a few required properties that must be found and extracted:
+Using user provided mapping templates, the IoMT FHIR Connector for Azure is able to extract data from Event Hub messages into a common format for further evaluation.  Each event hub message received is evaluated against all templates. This allows a single inbound message to be projected to multiple outbound messages and subsequently mapped to different observations in FHIR.  The result is a normalized data object representing the value or values parsed by the templates.  The normalized data model has a few required properties that must be found and extracted:
 
 | Property             | Description                                                                                                                                                                                                                                             |
 |----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -105,7 +105,7 @@ More information on JSON Path can be found [here](https://goessner.net/articles/
 More information on JmesPath can be found [here](https://jmespath.org/specification.html). [CalculatedContentTemplete](#CalculatedContentTemplate) uses the [JmesPath .NET implementation](https://github.com/jdevillard/JmesPath.Net) for resolving JmesPath expressions. In addtion to the functions provided as part of the specification a set of custom functions are also available for use. More information on them can be found [here](./CustomFunctions.md). Source code for the functions can be found TODO. 
 
 ### Matched Token
-The **TypeMatchExpression** is evaluated against the incoming EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against a new JToken which contains both the original EventData payload as well as the extracted JToken matched here. In this way, the original payload as well as the matched object are available to each subsequent expression. hThe extracted JToken will be available as the property __matchedToken__.
+The **TypeMatchExpression** is evaluated against the incoming EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against a new JToken which contains both the original EventData payload as well as the extracted JToken matched here. In this way, the original payload as well as the matched object are available to each subsequent expression. The extracted JToken will be available as the property __matchedToken__.
 
 Given the following:
 
@@ -113,56 +113,78 @@ _Message_
 
 ```json
 {
-  "Properties": {
-    "deviceId": "device123"
+  "Body": {
+    "deviceId": "device123",
+    "data": [
+      {
+        "systolic": "120", // Match
+        "diastolic": "80", // Match 
+        "date": "2021-07-13T17:29:01.061144Z"
+      },
+      {
+        "systolic": "122", // Match
+        "diastolic": "82", // Match
+        "date": "2021-07-13T17:28:01.061122Z"
+      }
+    ]
   },
-  "SystemProperties": {},
-  "Body": [
-    {
-      "systolic": "120", // Match
-      "diastolic": "80", // Match
-      "date": "2021-07-13T17:29:01.061144Z"
-    },
-    {
-      "systolic": "122", // Match
-      "diastolic": "82", // Match
-      "date": "2021-07-13T17:28:01.061122Z"
-    }
-  ]
+  "Properties": {},
+  "SystemProperties": {}
 }
 ```
 
 _Template_
 
 ```json
-"templateType": "CalculatedContentTemplate",
-    "template": {
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@systolic && @diastolic)]", //Expression
-        ...
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]", // Expression
+        "deviceIdExpression": "$.Body.deviceId", // This accesses the attribute 'deviceId' which belongs to the original event data
+        "timestampExpression": "$.matchedToken.date", 
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
     }
+  ]
+}
 ```
 
 Two matches will be extracted using the above expression and used to create JTokens. Subsequent expressions will be evaluated using the following JTokens:
 
 ```json
 {
-  "Properties": {
-    "deviceId": "device123"
+  "Body": {
+    "deviceId": "device123",
+    "data": [
+      {
+        "systolic": "120", 
+        "diastolic": "80",
+        "date": "2021-07-13T17:29:01.061144Z"
+      },
+      {
+        "systolic": "122",
+        "diastolic": "82",
+        "date": "2021-07-13T17:28:01.061122Z"
+      }
+    ]
   },
+  "Properties": {},
   "SystemProperties": {},
-  "Body": [
-    {
-      "systolic": "120",
-      "diastolic": "80",
-      "date": "2021-07-13T17:29:01.061144Z"
-    },
-    {
-      "systolic": "122",
-      "diastolic": "82",
-      "date": "2021-07-13T17:28:01.061122Z"
-    }
-  ],
   "matchedToken" : {
       "systolic": "120",
       "diastolic": "80",
@@ -175,24 +197,24 @@ And
 
 ```json
 {
-  "Properties": {
-    "deviceId": "device123"
+  "Body": {
+    "deviceId": "device123",
+    "data": [
+      {
+        "systolic": "120",
+        "diastolic": "80",
+        "date": "2021-07-13T17:29:01.061144Z"
+      },
+      {
+        "systolic": "122", 
+        "diastolic": "82", 
+        "date": "2021-07-13T17:28:01.061122Z"
+      }
+    ]
   },
+  "Properties": {},
   "SystemProperties": {},
-  "Body": [
-    {
-      "systolic": "120",
-      "diastolic": "80",
-      "date": "2021-07-13T17:29:01.061144Z"
-    },
-    {
-      "systolic": "122",
-      "diastolic": "82",
-      "date": "2021-07-13T17:28:01.061122Z"
-    }
-  ],
   "matchedToken" : {
-    {
       "systolic": "122",
       "diastolic": "82",
       "date": "2021-07-13T17:28:01.061122Z"
@@ -204,18 +226,18 @@ And
 ### CalculatedContentTemplate
 The CalculatedContentTemplate allows matching on and extracting values from an EventHub message using **Expressions** as defined above.
 
-| Property                 | Description                                                                                                                                                                                                           | Example            |
-|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
-| TypeName                 | The type to associate with measurements that match the template.                                                                                                                                                      | heartrate          |
-| TypeMatchExpression      | The expression that is evaluated against the EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against the extracted JToken matched here. | $..[?(@heartRate)] |
-| TimestampExpression      | The expression to extract the timestamp value for the measurement's OccurrenceTimeUtc.                                                                                                                                | $.matchedToken.endDate          |
-| DeviceIdExpression       | The expression to extract the device identifier.                                                                                                                                                                      | $.matchedToken.deviceId         |
-| PatientIdExpression      | Required when IdentityResolution is in Create mode and Optional when IdentityResolution is in Lookup mode. The expression to extract the patient identifier.                                                          | $.matchedToken.patientId        |
-| EncounterIdExpression    | Optional: The expression to extract the encounter identifier.                                                                                                                                                         | $.matchedToken.encounterId      |
-| CorrelationIdExpression  | Optional: The expression to extract the correlation identifier. If extracted this value can be used to group values into a single observation in the FHIR mapping template.                                           | $.matchedToken.correlationId    |
-| Values[].ValueName       | The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template.                                                                   | hr                 |
-| Values[].ValueExpression | The expression to extract the desired value.                                                                                                                                                                          | $.matchedToken.heartRate        |
-| Values[].Required        | Will require the value to be present in the payload. If not found a measurement will not be generated and an InvalidOperationException will be thrown.                                                                | true               |
+| Property                 | Description                                                                                                                                                                                                           | Example                      |
+|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------|
+| TypeName                 | The type to associate with measurements that match the template.                                                                                                                                                      | heartrate                    |
+| TypeMatchExpression      | The expression that is evaluated against the EventData payload. If a matching JToken is found the template is considered a match. All subsequent expressions are evaluated against the extracted JToken matched here. | $..[?(@heartRate)]           |
+| TimestampExpression      | The expression to extract the timestamp value for the measurement's OccurrenceTimeUtc.                                                                                                                                | $.matchedToken.endDate       |
+| DeviceIdExpression       | The expression to extract the device identifier.                                                                                                                                                                      | $.matchedToken.deviceId      |
+| PatientIdExpression      | Required when IdentityResolution is in Create mode and Optional when IdentityResolution is in Lookup mode. The expression to extract the patient identifier.                                                          | $.matchedToken.patientId     |
+| EncounterIdExpression    | Optional: The expression to extract the encounter identifier.                                                                                                                                                         | $.matchedToken.encounterId   |
+| CorrelationIdExpression  | Optional: The expression to extract the correlation identifier. If extracted this value can be used to group values into a single observation in the FHIR mapping template.                                           | $.matchedToken.correlationId |
+| Values[].ValueName       | The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template.                                                                   | hr                           |
+| Values[].ValueExpression | The expression to extract the desired value.                                                                                                                                                                          | $.matchedToken.heartRate     |
+| Values[].Required        | Will require the value to be present in the payload. If not found a measurement will not be generated and an InvalidOperationException will be thrown.                                                                | true                         |
 
 #### Examples
 
@@ -227,35 +249,35 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 
 ```json
 {
-    "Body": {
-        "heartRate": "78", // Match
-        "endDate": "2019-02-01T22:46:01.8750000Z",
-        "deviceId": "device123"
-    },
-    "Properties": {},
-    "SystemProperties": {}
+  "Body": {
+    "heartRate": "78",
+    "endDate": "2019-02-01T22:46:01.8750000Z",
+    "deviceId": "device123"
+  },
+  "Properties": {},
+  "SystemProperties": {}
 }
 ```
 
 *Template*
 
 ```json
-{
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@heartRate)]", // Expression
+        "typeMatchExpression": "$..[?(@heartRate)]",
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.matchedToken.heartRate",
-                "valueName": "hr"
-            }
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.heartRate",
+            "valueName": "hr"
+          }
         ]
+      }
     }
-}
 ```
 
 ---
@@ -280,24 +302,27 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 *Template*
 
 ```json
-{
-    "typeName": "bloodpressure",
-    "typeMatchExpression": "$..[?(@systolic && @diastolic)]", // Expression
-    "deviceIdExpression": "$.matchedToken.deviceid",
-    "timestampExpression": "$.matchedToken.endDate",
-    "values": [
-        {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "bloodpressure",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]", // Expression
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+          {
             "required": "true",
             "valueExpression": "$.matchedToken.systolic",
             "valueName": "systolic"
-        },
-        {
+          },
+          {
             "required": "true",
             "valueExpression": "$.matchedToken.diastolic",
             "valueName": "diastolic"
-        }
-    ]
-}
+          }
+        ]
+      }
+    }
 ```
 
 ---
@@ -322,43 +347,43 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 *Template 1*
 
 ```json
-{
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heartrate",
         "typeMatchExpression": "$..[?(@heartRate)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.matchedToken.heartRate",
-                "valueName": "hr"
-            }
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.heartRate",
+            "valueName": "hr"
+          }
         ]
-    }
-}
+      }
+    },
 ```
 
 *Template 2*
 
 ```json
-{
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "stepcount",
         "typeMatchExpression": "$..[?(@steps)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.matchedToken.steps",
-                "valueName": "steps"
-            }
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.steps",
+            "valueName": "steps"
+          }
         ]
+      }
     }
-}
 ```
 
 ---
@@ -369,47 +394,47 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 
 ```json
 {
-    "Body": [
-        {
-            "heartRate": "78", // Match
-            "endDate": "2019-02-01T22:46:01.8750000Z",
-            "deviceId": "device123"
-        },
-        {
-            "heartRate": "81", // Match
-            "endDate": "2019-02-01T23:46:01.8750000Z",
-            "deviceId": "device123"
-        },
-        {
-            "heartRate": "72", // Match
-            "endDate": "2019-02-01T24:46:01.8750000Z",
-            "deviceId": "device123"
-        }
-    ],
-    "Properties": {},
-    "SystemProperties": {}
+  "Body": [
+    {
+      "heartRate": "78", // Match
+      "endDate": "2019-02-01T20:46:01.8750000Z",
+      "deviceId": "device123"
+    },
+    {
+      "heartRate": "81", // Match
+      "endDate": "2019-02-01T21:46:01.8750000Z",
+      "deviceId": "device123"
+    },
+    {
+      "heartRate": "72", // Match
+      "endDate": "2019-02-01T22:46:01.8750000Z",
+      "deviceId": "device123"
+    }
+  ],
+  "Properties": {},
+  "SystemProperties": {}
 }
 ```
 
 *Template*
 
 ```json
-{
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heartrate",
         "typeMatchExpression": "$..[?(@heartRate)]", // Expression
         "deviceIdExpression": "$.matchedToken.deviceId",
         "timestampExpression": "$.matchedToken.endDate",
         "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.matchedToken.heartRate",
-                "valueName": "hr"
-            }
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.heartRate",
+            "valueName": "hr"
+          }
         ]
+      }
     }
-}
 ```
 
 ---
@@ -420,46 +445,50 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 
 ```json
 {
-    "Body": [
-        {
-            "heartRate": "78",
-            "endDate": "2019-02-01T22:46:01.8750000Z",
-        },
-        {
-            "heartRate": "81",
-            "endDate": "2019-02-01T23:46:01.8750000Z",
-        },
-        {
-            "heartRate": "72",
-            "endDate": "2019-02-01T24:46:01.8750000Z",
-        }
-    ],
-    "Properties": {
-        "deviceId": "device123"
-    },
-    "SystemProperties": {}
+  "Body": {
+    "deviceId": "device123",
+    "data": [
+      {
+        "systolic": "120", // Match
+        "diastolic": "80", // Match 
+        "date": "2021-07-13T17:29:01.061144Z"
+      },
+      {
+        "systolic": "122", // Match
+        "diastolic": "82", // Match
+        "date": "2021-07-13T17:28:01.061122Z"
+      }
+    ]
+  },
+  "Properties": {},
+  "SystemProperties": {}
 }
 ```
 
 *Template*
 
 ```json
-{
-    "templateType": "CalculatedContentTemplate",
-    "template": {
+    {
+      "templateType": "CalculatedContent",
+      "template": {
         "typeName": "heartrate",
-        "typeMatchExpression": "$..[?(@heartRate)]",
-        "deviceIdExpression": "$.Properties.deviceId",
-        "timestampExpression": "$.matchedToken.endDate",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]", // Expression
+        "deviceIdExpression": "$.Body.deviceId", // This accesses the attribute 'deviceId' which belongs to the original event data
+        "timestampExpression": "$.matchedToken.date", 
         "values": [
-            {
-                "required": "true",
-                "valueExpression": "$.matchedToken.heartRate",
-                "valueName": "hr"
-            }
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.diastolic",
+            "valueName": "diastolic"
+          }
         ]
+      }
     }
-}
 ```
 
 ---
@@ -477,14 +506,9 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
             "endDate": "2019-02-01T22:46:01.8750000Z",
         },
         {
-            "height": "72",
-            "unit": "inches",
-            "endDate": "2019-02-01T23:46:01.8750000Z",
-        },
-        {
             "height": "1.9304",
             "unit": "meters",
-            "endDate": "2019-02-01T24:46:01.8750000Z",
+            "endDate": "2019-02-01T23:46:01.8750000Z",
         }
     ],
     "Properties": {

@@ -1,0 +1,21 @@
+﻿{
+  "Body": [
+    {
+      "heartRate": "78", 
+      "endDate": "2019-02-01T20:46:01.8750000Z",
+      "deviceId": "device123"
+    },
+    {
+      "heartRate": "81", 
+      "endDate": "2019-02-01T21:46:01.8750000Z",
+      "deviceId": "device123"
+    },
+    {
+      "heartRate": "72", 
+      "endDate": "2019-02-01T22:46:01.8750000Z",
+      "deviceId": "device123"
+    }
+  ],
+  "Properties": {},
+  "SystemProperties": {}
+}

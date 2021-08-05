@@ -1,0 +1,10 @@
+﻿{
+  "Body": {
+    "systolic": "123", 
+    "diastolic": "87", 
+    "endDate": "2019-02-01T22:46:01.8750000Z",
+    "deviceId": "device123"
+  },
+  "Properties": {},
+  "SystemProperties": {}
+}
