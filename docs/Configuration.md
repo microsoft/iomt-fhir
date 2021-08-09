@@ -44,6 +44,25 @@ Below is a conceptual example of what happens during normalization.
 
  ![alt text](../images/normalizationexample.png "Normalization Example")
 
+Given the above, below is an example of the [Measurement](../src/lib/Microsoft.Health.Fhir.Ingest.Schema/IMeasurement.cs) produced for the **heartrate** value:
+```json
+{
+    "Type": "heartrate",
+    "OccurrenceTimeUtc": "2019-02-01T22:46:01.875Z",
+    "IngestionTimeUtc": null,
+    "DeviceId": "device123",
+    "PatientId": null,
+    "EncounterId": null,
+    "CorrelationId": null,
+    "Properties": [
+      {
+        "Name": "hr",
+        "Value": "65"
+      }
+    ]
+  }
+```
+
  The content payload itself is an event hub message which is composed of three parts: Body, Properties, and SystemProperties.  The `Body` is a byte array representing an UTF-8 encoded string.  During template evaluation the byte array is automatically converted into the string value. `Properties` is a key value collection for use by the message creator.  `SystemProperties` is also a key value collection reserved by the EventHub framework with entries automatically populated by EventHub.
 
  ```json
