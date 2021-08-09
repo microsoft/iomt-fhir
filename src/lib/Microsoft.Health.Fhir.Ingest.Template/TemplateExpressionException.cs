@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class TemplateExpressionException : Exception
+    public class TemplateExpressionException : InvalidTemplateException
     {
         public TemplateExpressionException(string message)
             : base(message)

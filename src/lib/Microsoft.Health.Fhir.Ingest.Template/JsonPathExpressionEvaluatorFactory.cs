@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -20,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var expressionLanguage = expression.Language ?? TemplateExpressionLanguage.JsonPath;
             if (expressionLanguage != TemplateExpressionLanguage.JsonPath)
             {
-                throw new ArgumentException($"Unsupported Expression Language {expressionLanguage}. Only JsonPath is supported.");
+                throw new TemplateExpressionException($"Unsupported Expression Language {expressionLanguage}. Only JsonPath is supported.");
             }
 
             return new JsonPathExpressionEvaluator(expression.Value);

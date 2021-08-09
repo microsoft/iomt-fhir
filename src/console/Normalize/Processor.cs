@@ -5,12 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Azure;
-using AzureMessagingEventHubs = Azure.Messaging.EventHubs;
 using Azure.Identity;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
@@ -27,6 +26,7 @@ using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Polly;
 using static Microsoft.Azure.EventHubs.EventData;
+using AzureMessagingEventHubs = Azure.Messaging.EventHubs;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 {
@@ -124,6 +124,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                     case AzureMessagingEventHubs.EventHubsException _:
                     case AuthenticationFailedException _:
                     case RequestFailedException _:
+                    case ValidationException _:
                         break;
                     default:
                         TrackExceptionMetric(ee, logger);

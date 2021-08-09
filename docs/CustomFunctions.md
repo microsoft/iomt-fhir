@@ -1,4 +1,16 @@
-[TOC]
+- [Custom Functions](#custom-functions)
+  - [Exception Handling](#exception-handling)
+  - [Mathmatical Functions](#mathmatical-functions)
+    - [add](#add)
+    - [divide](#divide)
+    - [multiply](#multiply)
+    - [pow](#pow)
+    - [subtract](#subtract)
+  - [String Functions](#string-functions)
+    - [insertString](#insertstring)
+  - [Date Functions](#date-functions)
+    - [fromUnixTimestamp](#fromunixtimestamp)
+    - [fromUnixTimestampMs](#fromunixtimestampms)
 
 # Custom Functions
 
@@ -15,6 +27,28 @@ The signature indicates the the valid types for the arugments. If an invalid typ
 When math related functions are performed the end result _must_ be able to fit within a C# [long](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types#characteristics-of-the-integral-types) value. If this cannot happen then a mathmatical error will occur.
 
 Please see the [specification](https://jmespath.org/specification.html#built-in-functions) for more details.
+
+## Exception Handling
+
+Exceptions may occur at various points within the event processing lifecyle. We detail the various points where they can occur below.
+
+- Template Parsing
+  - When
+    - Each time a new batch of messages is received the device mapping template is loaded and parsed
+  - Exceptions that may occur
+    -  Failure to parse the template
+    -  Failure to parse any expressions
+ -  Outcome
+    -  System will attempt to reload and parse the latest device mapping template until parsing succeeds. No new messages will be processed until parsing is successful
+
+- Function Execution
+  - When
+    - Each time a function is executed against data within a message
+  - Exceptions that may occur
+    -  Input data does not match that of the function signature
+    -  Any additional exceptions listed in the description of the function
+ -  Outcome
+    -  System stop processing that message. The message is not retried.
 
 ## Mathmatical Functions
 
