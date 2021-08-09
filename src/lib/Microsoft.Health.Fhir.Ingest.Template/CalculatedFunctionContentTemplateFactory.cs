@@ -57,9 +57,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             AddExpression(evaluatorCache, template.TimestampExpression, nameof(template.TimestampExpression));
             AddExpression(evaluatorCache, template.CorrelationIdExpression, nameof(template.CorrelationIdExpression));
 
-            foreach (var valueExpression in template.Values)
+            foreach (var value in template.Values)
             {
-                AddExpression(evaluatorCache, valueExpression, valueExpression.ValueName, valueExpression.Required);
+                AddExpression(evaluatorCache, value.ValueExpression, value.ValueName, value.Required);
             }
 
             return new CachingExpressionEvaluatorFactory(new ReadOnlyDictionary<string, IExpressionEvaluator>(evaluatorCache));

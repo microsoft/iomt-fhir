@@ -1,0 +1,18 @@
+﻿{
+  "Body": [
+    {
+      "height": "78",
+      "unit": "inches",
+      "endDate": "2019-02-01T22:46:01.8750000Z",
+      "deviceId": "device123"
+    },
+    {
+      "height": "1.9304",
+      "unit": "meters",
+      "endDate": "2019-02-01T23:46:01.8750000Z",
+      "deviceId": "device123"
+    }
+  ],
+  "Properties": {},
+  "SystemProperties": {}
+}

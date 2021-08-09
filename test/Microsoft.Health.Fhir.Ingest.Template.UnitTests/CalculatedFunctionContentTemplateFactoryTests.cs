@@ -53,9 +53,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 Assert.True(v.Required);
                 Assert.Equal("hr", v.ValueName);
-                Assert.Equal("$.heartrate", v.Value);
-                Assert.Equal(TemplateExpressionLanguage.JsonPath, v.Language);
-                Assert.NotNull(expressionEvaluatorFactory.Create(v));
+                Assert.Equal("$.heartrate", v.ValueExpression.Value);
+                Assert.Equal(TemplateExpressionLanguage.JsonPath, v.ValueExpression.Language);
+                Assert.NotNull(expressionEvaluatorFactory.Create(v.ValueExpression));
             });
             Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
             Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));
@@ -93,9 +93,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 Assert.True(v.Required);
                 Assert.Equal("hr", v.ValueName);
-                Assert.Equal("$.heartrate", v.Value);
-                Assert.Equal(TemplateExpressionLanguage.JsonPath, v.Language);
-                Assert.NotNull(expressionEvaluatorFactory.Create(v));
+                Assert.Equal("$.heartrate", v.ValueExpression.Value);
+                Assert.Equal(TemplateExpressionLanguage.JsonPath, v.ValueExpression.Language);
+                Assert.NotNull(expressionEvaluatorFactory.Create(v.ValueExpression));
             });
             Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.TypeMatchExpression));
             Assert.NotNull(expressionEvaluatorFactory.Create(expressionTemplate.DeviceIdExpression));

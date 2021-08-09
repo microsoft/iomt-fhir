@@ -43,9 +43,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (template.Values != null)
             {
-                foreach (CalculatedFunctionValueExpression valueExpression in template.Values)
+                foreach (CalculatedFunctionValueExpression value in template.Values)
                 {
-                    yield return (valueExpression.ValueName, valueExpression);
+                    yield return (value.ValueName, value.ValueExpression);
                 }
             }
         }

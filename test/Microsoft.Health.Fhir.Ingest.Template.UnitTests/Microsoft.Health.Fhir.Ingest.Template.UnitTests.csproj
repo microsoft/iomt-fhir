@@ -38,12 +38,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj" />
     <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Tests.Common\Microsoft.Health.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="TestInput\*.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestInput\*.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

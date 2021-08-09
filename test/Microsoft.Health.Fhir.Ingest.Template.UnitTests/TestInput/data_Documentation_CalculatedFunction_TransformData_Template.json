@@ -1,0 +1,40 @@
+﻿{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "heightInMeters",
+        "typeMatchExpression": "$..[?(@unit == 'inches')]",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": {
+              "value": "multiply(to_number(matchedToken.height), `0.0254`)",
+              "language": "JmesPath"
+            },
+            "valueName": "height"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "heightInMeters",
+        "typeMatchExpression": "$..[?(@unit == 'meters')]",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.height",
+            "valueName": "height"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -151,7 +151,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 foreach (var val in Template.Values)
                 {
-                    var value = EvalExpression<string>(token, val.ValueName, val.Required, val);
+                    var value = EvalExpression<string>(token, val.ValueName, val.Required, val.ValueExpression);
                     if (value != null)
                     {
                         measurement.Properties.Add(new MeasurementProperty { Name = val.ValueName, Value = value });

@@ -7,13 +7,14 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CalculatedFunctionValueExpression : TemplateExpression
+    public class CalculatedFunctionValueExpression
     {
         [JsonProperty(Required = Newtonsoft.Json.Required.Always)]
         public string ValueName { get; set; }
 
-        [JsonProperty(Required = Newtonsoft.Json.Required.Always, PropertyName = "valueExpression")]
-        public override string Value { get; set; }
+        [JsonProperty(Required = Newtonsoft.Json.Required.Always)]
+        [JsonConverter(typeof(TemplateExpressionJsonConverter))]
+        public TemplateExpression ValueExpression { get; set; }
 
         public bool Required { get; set; }
     }

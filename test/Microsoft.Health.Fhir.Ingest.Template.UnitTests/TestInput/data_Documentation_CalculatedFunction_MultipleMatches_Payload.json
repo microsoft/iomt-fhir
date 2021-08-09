@@ -1,0 +1,19 @@
+﻿{
+  "Body": {
+    "deviceId": "device123",
+    "data": [
+      {
+        "systolic": "120",
+        "diastolic": "80",
+        "date": "2021-07-13T17:29:01.061144Z"
+      },
+      {
+        "systolic": "122",
+        "diastolic": "82",
+        "date": "2021-07-13T17:28:01.061122Z"
+      }
+    ]
+  },
+  "Properties": {},
+  "SystemProperties": {}
+}

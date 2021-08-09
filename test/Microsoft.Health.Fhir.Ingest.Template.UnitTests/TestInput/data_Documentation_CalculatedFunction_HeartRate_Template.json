@@ -1,0 +1,21 @@
+﻿{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartRate)]",
+        "deviceIdExpression": "$.matchedToken.deviceId",
+        "timestampExpression": "$.matchedToken.endDate",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.matchedToken.heartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    }
+  ]
+}

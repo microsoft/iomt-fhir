@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using DevLab.JmesPath;
 using EnsureThat;
 
@@ -32,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             {
                 TemplateExpressionLanguage.JsonPath => new JsonPathExpressionEvaluator(expression.Value),
                 TemplateExpressionLanguage.JmesPath => new JmesPathExpressionEvaluator(_jmesPath, expression.Value),
-                _ => throw new ArgumentException($"Unsupported Expression Language {expression?.Language}")
+                _ => throw new TemplateExpressionException($"Unsupported Expression Language: {expression?.Language}")
             };
         }
     }

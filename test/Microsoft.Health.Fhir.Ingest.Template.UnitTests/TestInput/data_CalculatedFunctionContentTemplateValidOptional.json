@@ -29,8 +29,10 @@
     "values": [
       {
         "required": "true",
-        "valueExpression": "$.heartrate",
-        "language": "JsonPath",
+        "valueExpression": {
+          "value": "$.heartrate",
+          "language": "JsonPath"
+        },
         "valueName": "hr"
       }
     ]
