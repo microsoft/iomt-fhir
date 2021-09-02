@@ -19,7 +19,13 @@ const MappingCreationModal = (props: { onSave: Function; action: Action; inputDe
     const [typename, setTypename] = React.useState(inputDefaultValue ?? '');
     const [typenameError, setTypenameError] = React.useState('');
     const [modal, setModal] = React.useState(false);
-    const toggle = () => setModal(!modal);
+
+    const toggle = () => {
+        if (!modal) {
+            setTypenameError("");
+        }
+        setModal(!modal);
+    }
 
     const modalTitleText = () => {
         switch (action) {
