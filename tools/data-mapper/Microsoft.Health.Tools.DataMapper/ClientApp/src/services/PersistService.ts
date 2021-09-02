@@ -58,7 +58,7 @@ const createMapping = (typename: string): Promise<Mapping> => {
 const updateMapping = (id: string, typename: string): Promise<Mapping> => {
     return new Promise((resolve, reject) => {
         if (!typename || typename.trim().length < 1) {
-            reject(`The typename cannot be empty`);
+            reject(`The type name cannot be empty`);
             return;
         }
 
@@ -70,7 +70,7 @@ const updateMapping = (id: string, typename: string): Promise<Mapping> => {
 
         const mappings = getAllMappings();
         if (_.find(mappings, { typeName: typename })) {
-            reject(`The typename ${typename} already exists`);
+            reject(`The type name ${typename} already exists`);
             return;
         }
 
