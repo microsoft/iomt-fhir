@@ -57,6 +57,11 @@ const createMapping = (typename: string): Promise<Mapping> => {
 
 const updateMapping = (id: string, typename: string): Promise<Mapping> => {
     return new Promise((resolve, reject) => {
+        if (!typename || typename.trim().length < 1) {
+            reject(`The typename cannot be empty`);
+            return;
+        }
+
         const existingMapping = getMapping(id);
         if (existingMapping && existingMapping.typeName === typename) {
             resolve(existingMapping);
