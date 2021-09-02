@@ -7,3 +7,14 @@
 .box-shadow {
     box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
 }
+
+.page-heading {
+    color: #212529;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+span.navbar-text {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}

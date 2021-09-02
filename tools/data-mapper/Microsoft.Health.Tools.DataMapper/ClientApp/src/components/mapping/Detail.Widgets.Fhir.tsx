@@ -126,7 +126,7 @@ const FhirMappingWidget = (props: { data: Mapping; onUpdate: Function }) => {
     return (
         <React.Fragment>
             <div className="iomt-cm-editor-title p-2 pb-3 m-0 border border-bottom-0">
-                <span className="h5">{props.data.typeName} - FHIR Mapping</span>
+                <span className="h5">FHIR Mapping</span>
             </div>
             <div className="iomt-cm-editor border">
                 {

@@ -38,7 +38,7 @@ const DeviceMappingWidget = (props: { data: Mapping; onUpdate: Function}) => {
     return (
         <React.Fragment>
             <div className="iomt-cm-editor-title p-2 pb-3 m-0 border border-bottom-0">
-                <span className="h5">{props.data.typeName} - Device Mapping</span>
+                <span className="h5">Device Mapping</span>
             </div>
             <div className="iomt-cm-editor p-3 border">
                 {
