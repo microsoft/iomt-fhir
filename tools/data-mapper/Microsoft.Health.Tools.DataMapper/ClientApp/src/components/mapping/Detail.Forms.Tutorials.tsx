@@ -170,7 +170,7 @@ export const FhirComponentsFormTutorial = (props: {}) => {
                     <li>Codings of each component should be specified to the value in it.</li>
                 </ul>
                 <p>
-                    Please check "Blood Pressure - Sampled Data" as examples in <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    Please check "Heart Rate - Sampled Data" as an example in <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>
