@@ -9,7 +9,7 @@ import { RouteComponentProps } from 'react-router';
 
 import { ApplicationState } from '../../store';
 import * as MappingsStore from '../../store/Mapping';
-import MappingCreationModal from './List.Modals.Creation';
+import { default as MappingCreationModal, Action } from './List.Modals.Creation';
 import MappingExportModal from './List.Modals.Export';
 import PersistService from '../../services/PersistService';
 import { Mapping } from '../../store/Mapping';
@@ -62,6 +62,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                 <div className="d-inline-block m-1 mb-3">
                     <MappingCreationModal
                         onSave={this.createMapping}
+                        action={Action.Create}
                     />
                 </div>
                 <div className="d-inline-block m-1 mb-3">
@@ -95,11 +96,11 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                                             <button className="m-1 btn iomt-cm-btn-link"
                                                 onClick={() => { window.location.href = `/mappings/${mapping.id}` }}>
                                                 Edit
-                                                </button>
+                                            </button>
                                             <button className="m-1 btn iomt-cm-btn-link"
                                                 onClick={() => { this.props.deleteMapping(mapping.id); this.props.listMappings() }}>
                                                 Delete
-                                                </button>
+                                            </button>
                                         </td>
                                     </tr>
                                 );

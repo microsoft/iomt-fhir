@@ -6,9 +6,13 @@
 import * as React from 'react';
 import { FormGroup, Label, Input, Modal, ModalHeader, ModalBody, ModalFooter, Form, Col } from 'reactstrap';
 
-const MappingCreationModal = (props: { onSave: Function }) => {
+export enum Action {
+    Create
+}
+
+const MappingCreationModal = (props: { onSave: Function; action: Action }) => {
     const {
-        onSave,
+        onSave, action
     } = props;
 
     const [typename, setTypename] = React.useState('');
@@ -16,10 +20,30 @@ const MappingCreationModal = (props: { onSave: Function }) => {
     const [modal, setModal] = React.useState(false);
     const toggle = () => setModal(!modal);
 
+    const modalTitleText = () => {
+        switch (action) {
+            case Action.Create:
+                return "Create new mapping";
+            default:
+                return "";
+        }
+    }
+
+    const buttonText = () => {
+        switch (action) {
+            case Action.Create:
+                return "Add new mapping";
+            default:
+                return "";
+        }
+    }
+
     const renderModal = () => {
         return (
             <Modal isOpen={modal} toggle={toggle}>
-                <ModalHeader toggle={toggle}>Create new mapping</ModalHeader>
+                <ModalHeader toggle={toggle}>
+                    {modalTitleText()}
+                </ModalHeader>
                 <ModalBody>
                     <Form>
                         <FormGroup row>
@@ -45,7 +69,7 @@ const MappingCreationModal = (props: { onSave: Function }) => {
     return (
         <div>
             <button className="btn iomt-cm-btn" onClick={toggle}>
-                Add new mapping
+                {buttonText()}
             </button>
             {renderModal()}
         </div>
