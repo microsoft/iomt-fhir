@@ -25,6 +25,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
 
     public componentDidMount() {
         this.createMapping = this.createMapping.bind(this);
+        this.renameMapping = this.renameMapping.bind(this);
         this.ensureMappingsFetched();
     }
 
@@ -48,6 +49,18 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
         PersistService.createMapping(typename)
             .then((newMapping: Mapping) => {
                 window.location.href = `/mappings/${newMapping.id}`
+            })
+            .catch(err => {
+                if (errorHandler) {
+                    errorHandler(err);
+                }
+            });
+    }
+
+    private renameMapping(id: string, typename: string, errorHandler?: Function) {
+        PersistService.renameMapping(id, typename)
+            .then(() => {
+                this.ensureMappingsFetched();
             })
             .catch(err => {
                 if (errorHandler) {
@@ -93,6 +106,12 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                                     <tr key={index}>
                                         <td>{mapping.typeName}</td>
                                         <td className="text-right">
+                                            <MappingCreationModal
+                                                onSave={(typename: string, errorHandler: Function) => this.renameMapping(mapping.id, typename, errorHandler)}
+                                                action={Action.Rename}
+                                                inputDefaultValue={mapping.typeName}
+                                                buttonClassName="m-1 btn iomt-cm-btn-link"
+                                            />
                                             <button className="m-1 btn iomt-cm-btn-link"
                                                 onClick={() => { window.location.href = `/mappings/${mapping.id}` }}>
                                                 Edit

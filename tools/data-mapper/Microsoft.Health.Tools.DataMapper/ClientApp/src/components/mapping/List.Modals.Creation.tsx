@@ -7,15 +7,16 @@ import * as React from 'react';
 import { FormGroup, Label, Input, Modal, ModalHeader, ModalBody, ModalFooter, Form, Col } from 'reactstrap';
 
 export enum Action {
-    Create
+    Create,
+    Rename
 }
 
-const MappingCreationModal = (props: { onSave: Function; action: Action }) => {
+const MappingCreationModal = (props: { onSave: Function; action: Action; inputDefaultValue?: string; buttonClassName?: string }) => {
     const {
-        onSave, action
+        onSave, action, inputDefaultValue, buttonClassName
     } = props;
 
-    const [typename, setTypename] = React.useState('');
+    const [typename, setTypename] = React.useState(inputDefaultValue ?? '');
     const [typenameError, setTypenameError] = React.useState('');
     const [modal, setModal] = React.useState(false);
     const toggle = () => setModal(!modal);
@@ -24,6 +25,8 @@ const MappingCreationModal = (props: { onSave: Function; action: Action }) => {
         switch (action) {
             case Action.Create:
                 return "Create new mapping";
+            case Action.Rename:
+                return "Rename mapping";
             default:
                 return "";
         }
@@ -33,6 +36,8 @@ const MappingCreationModal = (props: { onSave: Function; action: Action }) => {
         switch (action) {
             case Action.Create:
                 return "Add new mapping";
+            case Action.Rename:
+                return "Rename";
             default:
                 return "";
         }
@@ -51,6 +56,7 @@ const MappingCreationModal = (props: { onSave: Function; action: Action }) => {
                             <Col sm={9}>
                                 <Input type="text" name="typename" id="typename"
                                     placeholder="input a unique type name"
+                                    defaultValue={inputDefaultValue}
                                     onChange={e => { setTypename(e.target.value) }}
                                 />
                                 <span>{typenameError}</span>
@@ -67,12 +73,12 @@ const MappingCreationModal = (props: { onSave: Function; action: Action }) => {
     }
 
     return (
-        <div>
-            <button className="btn iomt-cm-btn" onClick={toggle}>
+        <span>
+            <button className={buttonClassName ?? "btn iomt-cm-btn"} onClick={toggle}>
                 {buttonText()}
             </button>
             {renderModal()}
-        </div>
+        </span>
     );
 }
 

@@ -51,22 +51,31 @@ const getMapping = (mappingId: string): Mapping => {
 }
 
 const createMapping = (typename: string): Promise<Mapping> => {
-    return new Promise((resolve, reject) => {
-        const mappings = getAllMappings();
+    const id = generateUID();
+    return updateMapping(id, typename);
+}
 
-        if (_.find(mappings, { typeName: typename })) {
-            reject(`The typename ${typename} existed`);
+const updateMapping = (id: string, typename: string): Promise<Mapping> => {
+    return new Promise((resolve, reject) => {
+        const existingMapping = getMapping(id);
+        if (existingMapping && existingMapping.typeName === typename) {
+            resolve(existingMapping);
             return;
         }
 
-        const newMappingId = generateUID();
-        const newMapping = {
-            id: newMappingId,
+        const mappings = getAllMappings();
+        if (_.find(mappings, { typeName: typename })) {
+            reject(`The typename ${typename} already exists`);
+            return;
+        }
+
+        const mapping = {
+            id: id,
             typeName: typename
         } as Mapping;
-        saveMappingToLocalStorage(newMappingId, newMapping);
+        saveMappingToLocalStorage(id, mapping);
 
-        resolve(newMapping);
+        resolve(mapping);
         return;
     });
 }
@@ -88,6 +97,7 @@ const PersistService = {
     createMapping: createMapping,
     getAllMappings: getAllMappings,
     getMapping: getMapping,
+    renameMapping: updateMapping,
     saveMapping: saveMappingToLocalStorage,
     deleteMapping: deleteMappingInLocalStorage
 }
