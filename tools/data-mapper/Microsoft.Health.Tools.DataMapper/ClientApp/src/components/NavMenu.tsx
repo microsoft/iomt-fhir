@@ -8,7 +8,7 @@ import { Navbar, NavbarBrand, NavbarText } from 'reactstrap';
 import { Link, useLocation } from 'react-router-dom';
 import PersistService from '../services/PersistService';
 import { Mapping } from '../store/Mapping';
-import { default as MappingCreationModal, Action } from './mapping/List.Modals.Creation';
+import { default as MappingNameModal, Action } from './mapping/List.Modals.Name';
 import './NavMenu.css';
 
 const NavMenu = (props: {}) => {
@@ -48,7 +48,7 @@ const NavMenu = (props: {}) => {
                         <span className="page-heading" style={{ margin: "0px 10px 0px 50px" }}>
                             {mappingTypeName}
                         </span>
-                        <MappingCreationModal
+                        <MappingNameModal
                             onSave={(typename: string, errorHandler: Function) => renameMapping(mappingId, typename, errorHandler)}
                             action={Action.Rename}
                             inputDefaultValue={mappingTypeName}

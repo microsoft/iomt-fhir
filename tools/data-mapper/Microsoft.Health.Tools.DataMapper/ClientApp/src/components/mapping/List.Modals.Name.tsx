@@ -11,7 +11,7 @@ export enum Action {
     Rename
 }
 
-const MappingCreationModal = (props: { onSave: Function; action: Action; inputDefaultValue?: string; buttonClassName?: string }) => {
+const MappingNameModal = (props: { onSave: Function; action: Action; inputDefaultValue?: string; buttonClassName?: string }) => {
     const {
         onSave, action, inputDefaultValue, buttonClassName
     } = props;
@@ -88,4 +88,4 @@ const MappingCreationModal = (props: { onSave: Function; action: Action; inputDe
     );
 }
 
-export default MappingCreationModal;
+export default MappingNameModal;

@@ -9,7 +9,7 @@ import { RouteComponentProps } from 'react-router';
 
 import { ApplicationState } from '../../store';
 import * as MappingsStore from '../../store/Mapping';
-import { default as MappingCreationModal, Action } from './List.Modals.Creation';
+import { default as MappingNameModal, Action } from './List.Modals.Name';
 import MappingExportModal from './List.Modals.Export';
 import PersistService from '../../services/PersistService';
 import { Mapping } from '../../store/Mapping';
@@ -73,7 +73,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
         return (
             <React.Fragment>
                 <div className="d-inline-block m-1 mb-3">
-                    <MappingCreationModal
+                    <MappingNameModal
                         onSave={this.createMapping}
                         action={Action.Create}
                     />
@@ -106,7 +106,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                                     <tr key={index}>
                                         <td>{mapping.typeName}</td>
                                         <td className="text-right">
-                                            <MappingCreationModal
+                                            <MappingNameModal
                                                 onSave={(typename: string, errorHandler: Function) => this.renameMapping(mapping.id, typename, errorHandler)}
                                                 action={Action.Rename}
                                                 inputDefaultValue={mapping.typeName}
