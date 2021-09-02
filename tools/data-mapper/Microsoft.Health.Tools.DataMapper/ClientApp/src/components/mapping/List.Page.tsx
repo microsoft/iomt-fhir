@@ -57,10 +57,13 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
             });
     }
 
-    private renameMapping(id: string, typename: string, errorHandler?: Function) {
+    private renameMapping(id: string, typename: string, errorHandler?: Function, setModal?: Function) {
         PersistService.renameMapping(id, typename)
             .then(() => {
                 this.ensureMappingsFetched();
+                if (setModal) {
+                    setModal(false);
+                }
             })
             .catch(err => {
                 if (errorHandler) {
@@ -107,7 +110,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                                         <td>{mapping.typeName}</td>
                                         <td className="text-right">
                                             <MappingNameModal
-                                                onSave={(typename: string, errorHandler: Function) => this.renameMapping(mapping.id, typename, errorHandler)}
+                                                onSave={(typename: string, errorHandler: Function, setModal: Function) => this.renameMapping(mapping.id, typename, errorHandler, setModal)}
                                                 action={Action.Rename}
                                                 inputDefaultValue={mapping.typeName}
                                                 buttonClassName="m-1 btn iomt-cm-btn-link"

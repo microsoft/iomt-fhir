@@ -71,7 +71,7 @@ const MappingNameModal = (props: { onSave: Function; action: Action; inputDefaul
                     </Form>
                 </ModalBody>
                 <ModalFooter>
-                    <button className="btn btn-primary" onClick={() => onSave(typename, setTypenameError)}>Confirm</button>{' '}
+                    <button className="btn btn-primary" onClick={() => onSave(typename, setTypenameError, setModal)}>Confirm</button>{' '}
                     <button className="btn btn-secondary" onClick={toggle}>Cancel</button>
                 </ModalFooter>
             </Modal>

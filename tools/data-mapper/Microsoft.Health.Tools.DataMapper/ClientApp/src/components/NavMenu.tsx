@@ -25,10 +25,13 @@ const NavMenu = (props: {}) => {
         setMappingTypeName(typeName);
     }, [location]);
 
-    const renameMapping = (id: string, typename: string, errorHandler?: Function) => {
+    const renameMapping = (id: string, typename: string, errorHandler?: Function, setModal?: Function) => {
         PersistService.renameMapping(id, typename)
             .then((mapping: Mapping) => {
                 setMappingTypeName(mapping.typeName);
+                if (setModal) {
+                    setModal(false);
+                }
             })
             .catch(err => {
                 if (errorHandler) {
@@ -49,7 +52,7 @@ const NavMenu = (props: {}) => {
                             {mappingTypeName}
                         </span>
                         <MappingNameModal
-                            onSave={(typename: string, errorHandler: Function) => renameMapping(mappingId, typename, errorHandler)}
+                            onSave={(typename: string, errorHandler: Function, setModal: Function) => renameMapping(mappingId, typename, errorHandler, setModal)}
                             action={Action.Rename}
                             inputDefaultValue={mappingTypeName}
                         />
