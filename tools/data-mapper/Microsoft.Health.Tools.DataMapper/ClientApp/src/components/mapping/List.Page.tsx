@@ -13,6 +13,7 @@ import { default as MappingNameModal, Action } from './List.Modals.Name';
 import MappingExportModal from './List.Modals.Export';
 import PersistService from '../../services/PersistService';
 import { Mapping } from '../../store/Mapping';
+import * as Constants from '../Constants';
 
 import './List.css';
 
@@ -48,7 +49,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
     private createMapping(typename: string, errorHandler?: Function) {
         PersistService.createMapping(typename)
             .then((newMapping: Mapping) => {
-                window.location.href = `/mappings/${newMapping.id}`
+                window.location.href = `${Constants.Text.PathMappings}${newMapping.id}`
             })
             .catch(err => {
                 if (errorHandler) {
@@ -116,7 +117,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                                                 buttonClassName="m-1 btn iomt-cm-btn-link"
                                             />
                                             <button className="m-1 btn iomt-cm-btn-link"
-                                                onClick={() => { window.location.href = `/mappings/${mapping.id}` }}>
+                                                onClick={() => { window.location.href = `${Constants.Text.PathMappings}${mapping.id}` }}>
                                                 Edit
                                             </button>
                                             <button className="m-1 btn iomt-cm-btn-link"

@@ -9,6 +9,7 @@ import { Link, useLocation } from 'react-router-dom';
 import PersistService from '../services/PersistService';
 import { Mapping } from '../store/Mapping';
 import { default as MappingNameModal, Action } from './mapping/List.Modals.Name';
+import * as Constants from './Constants';
 import './NavMenu.css';
 
 const NavMenu = (props: {}) => {
@@ -19,7 +20,18 @@ const NavMenu = (props: {}) => {
 
     React.useEffect(() => {
         const pathname = location.pathname;
-        const id = pathname.substr(pathname.lastIndexOf('/') + 1);
+
+        // Get mapping ID between start and end strings, if any, from the path
+        var id = '';
+        const start = Constants.Text.PathMappings;
+        const end = '/';
+        const startIndex = pathname.indexOf(start);
+        if (startIndex !== -1) {
+            const idIndex = startIndex + start.length;
+            const endIndex = pathname.indexOf(end, idIndex);
+            id = pathname.substring(idIndex, (endIndex !== -1 ? endIndex : undefined));
+        }
+
         const typeName = PersistService.getMapping(id)?.typeName;
         setMappingId(id);
         setMappingTypeName(typeName);
