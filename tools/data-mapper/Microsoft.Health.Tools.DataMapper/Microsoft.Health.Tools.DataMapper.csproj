@@ -37,8 +37,8 @@
     <None Remove="ClientApp\src\components\mapping\Detail.Fhir.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Forms.Tutorials.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Page.tsx" />
-    <None Remove="ClientApp\src\components\mapping\List.Modals.Creation.tsx" />
     <None Remove="ClientApp\src\components\mapping\List.Modals.Export.tsx" />
+    <None Remove="ClientApp\src\components\mapping\List.Modals.Name.tsx" />
     <None Remove="ClientApp\src\components\mapping\List.Page.tsx" />
     <None Remove="ClientApp\src\services\PersistService.ts" />
     <None Remove="ClientApp\src\services\TestService.ts" />
@@ -66,8 +66,8 @@
     <TypeScriptCompile Include="ClientApp\src\components\Icons.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\Detail.Forms.Tutorials.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\Detail.Page.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Modals.Creation.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Modals.Export.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Modals.Name.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Page.tsx" />
     <TypeScriptCompile Include="ClientApp\src\services\PersistService.ts" />
     <TypeScriptCompile Include="ClientApp\src\services\TestService.ts" />

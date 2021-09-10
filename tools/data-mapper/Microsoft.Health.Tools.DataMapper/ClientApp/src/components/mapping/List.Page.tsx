@@ -9,10 +9,11 @@ import { RouteComponentProps } from 'react-router';
 
 import { ApplicationState } from '../../store';
 import * as MappingsStore from '../../store/Mapping';
-import MappingCreationModal from './List.Modals.Creation';
+import { default as MappingNameModal, Action } from './List.Modals.Name';
 import MappingExportModal from './List.Modals.Export';
 import PersistService from '../../services/PersistService';
 import { Mapping } from '../../store/Mapping';
+import * as Constants from '../Constants';
 
 import './List.css';
 
@@ -25,6 +26,7 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
 
     public componentDidMount() {
         this.createMapping = this.createMapping.bind(this);
+        this.renameMapping = this.renameMapping.bind(this);
         this.ensureMappingsFetched();
     }
 
@@ -47,7 +49,22 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
     private createMapping(typename: string, errorHandler?: Function) {
         PersistService.createMapping(typename)
             .then((newMapping: Mapping) => {
-                window.location.href = `/mappings/${newMapping.id}`
+                window.location.href = `${Constants.Text.PathMappings}${newMapping.id}`
+            })
+            .catch(err => {
+                if (errorHandler) {
+                    errorHandler(err);
+                }
+            });
+    }
+
+    private renameMapping(id: string, typename: string, errorHandler?: Function, setModal?: Function) {
+        PersistService.renameMapping(id, typename)
+            .then(() => {
+                this.ensureMappingsFetched();
+                if (setModal) {
+                    setModal(false);
+                }
             })
             .catch(err => {
                 if (errorHandler) {
@@ -60,8 +77,9 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
         return (
             <React.Fragment>
                 <div className="d-inline-block m-1 mb-3">
-                    <MappingCreationModal
+                    <MappingNameModal
                         onSave={this.createMapping}
+                        action={Action.Create}
                     />
                 </div>
                 <div className="d-inline-block m-1 mb-3">
@@ -92,14 +110,20 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                                     <tr key={index}>
                                         <td>{mapping.typeName}</td>
                                         <td className="text-right">
+                                            <MappingNameModal
+                                                onSave={(typename: string, errorHandler: Function, setModal: Function) => this.renameMapping(mapping.id, typename, errorHandler, setModal)}
+                                                action={Action.Rename}
+                                                inputDefaultValue={mapping.typeName}
+                                                buttonClassName="m-1 btn iomt-cm-btn-link"
+                                            />
                                             <button className="m-1 btn iomt-cm-btn-link"
-                                                onClick={() => { window.location.href = `/mappings/${mapping.id}` }}>
+                                                onClick={() => { window.location.href = `${Constants.Text.PathMappings}${mapping.id}` }}>
                                                 Edit
-                                                </button>
+                                            </button>
                                             <button className="m-1 btn iomt-cm-btn-link"
                                                 onClick={() => { this.props.deleteMapping(mapping.id); this.props.listMappings() }}>
                                                 Delete
-                                                </button>
+                                            </button>
                                         </td>
                                     </tr>
                                 );

@@ -9,6 +9,7 @@ import Layout from './components/Layout';
 
 import MappingListPage from './components/mapping/List.Page';
 import MappingDetailPage from './components/mapping/Detail.Page';
+import * as Constants from './components/Constants';
 
 import './custom.css'
 
@@ -16,6 +17,6 @@ export default () => (
     <Layout>
         <Route exact path='/' component={MappingListPage} />
         <Route exact path='/mappings' component={MappingListPage} />
-        <Route path="/mappings/:id" component={MappingDetailPage} />
+        <Route path={`${Constants.Text.PathMappings}:id`} component={MappingDetailPage} />
     </Layout>
 );
