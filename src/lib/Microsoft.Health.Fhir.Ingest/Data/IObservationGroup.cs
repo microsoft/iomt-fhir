@@ -14,6 +14,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         (DateTime Start, DateTime End) Boundary { get; }
 
+        IReadOnlyCollection<IMeasurement> Measurements { get; }
+
         void AddMeasurement(IMeasurement measurement);
 
         IDictionary<string, IEnumerable<(DateTime Time, string Value)>> GetValues();

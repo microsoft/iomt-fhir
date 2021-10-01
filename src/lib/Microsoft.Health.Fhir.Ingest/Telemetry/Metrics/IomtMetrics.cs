@@ -39,6 +39,42 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 { _operationDimension, ConnectorOperation.FHIRConversion },
             });
 
+        private static Metric _measurementEventProcessingLatency = new Metric(
+            "MeasurementEventProcessingLatency",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "MeasurementEventProcessingLatency" },
+                { _categoryDimension, Category.Latency },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
+            });
+
+        private static Metric _measurementEventProcessingLatencyMs = new Metric(
+            "MeasurementEventProcessingLatencyMs",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "MeasurementEventProcessingLatencyMs" },
+                { _categoryDimension, Category.Latency },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
+            });
+
+        private static Metric _iotConnectorFhirProcessingLatency = new Metric(
+            "IotConnectorFhirProcessingLatency",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "IotConnectorFhirProcessingLatency" },
+                { _categoryDimension, Category.Latency },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
+            });
+
+        private static Metric _iotConnectorFhirProcessingLatencyMs = new Metric(
+            "IotConnectorFhirProcessingLatencyMs",
+            new Dictionary<string, object>
+            {
+                { _nameDimension, "IotConnectorFhirProcessingLatencyMs" },
+                { _categoryDimension, Category.Latency },
+                { _operationDimension, ConnectorOperation.FHIRConversion },
+            });
+
         private static Metric _measurementGroup = new Metric(
             "MeasurementGroup",
             new Dictionary<string, object>
@@ -127,6 +163,38 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric MeasurementIngestionLatencyMs()
         {
             return _measurementIngestionLatencyMs;
+        }
+
+        /// <summary>
+        /// The latency between ingestion of a Measurment Event and output to FHIR processor. An increase here indicates a backlog of messages to process for the Fhir Transformation Service
+        /// </summary>
+        public static Metric MeasurementEventProcessingLatency()
+        {
+            return _measurementEventProcessingLatency;
+        }
+
+        /// <summary>
+        /// The latency between ingestion of a Measurment Event and output to FHIR processor, in milliseconds. An increase here indicates a backlog of messages to process for the Fhir Transformation Service
+        /// </summary>
+        public static Metric MeasurementEventProcessingLatencyMs()
+        {
+            return _measurementEventProcessingLatencyMs;
+        }
+
+        /// <summary>
+        /// The latency between ingestion of a Device Event and writting a Measurement associated with it as an Observation into FHIR.
+        /// </summary>
+        public static Metric IotConnectorFhirProcessingLatency()
+        {
+            return _iotConnectorFhirProcessingLatency;
+        }
+
+        /// <summary>
+        /// The latency between ingestion of a Device Event and writting a Measurement associated with it as an Observation into FHIR, in milliseconds.
+        /// </summary>
+        public static Metric IotConnectorFhirProcessingLatencyMs()
+        {
+            return _iotConnectorFhirProcessingLatencyMs;
         }
 
         /// <summary>

@@ -111,6 +111,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
         {
             // Deserialize events into measurements and then group according to the device, type, and other factors
+            foreach (var eventMessage in data)
+            {
+                var eventProcessLatency = DateTime.UtcNow - eventMessage.EnqueuedTime.UtcDateTime;
+                log.LogMetric(IomtMetrics.MeasurementEventProcessingLatency(), eventProcessLatency.TotalSeconds);
+                log.LogMetric(IomtMetrics.MeasurementEventProcessingLatencyMs(), eventProcessLatency.TotalMilliseconds);
+            }
+
             return data.Select(e => JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray())))
                 .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
                 .Select(g =>

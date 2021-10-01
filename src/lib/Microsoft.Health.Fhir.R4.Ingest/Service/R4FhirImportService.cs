@@ -68,7 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
                 result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
-                _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created), 1);
+                LogFhirResourceSavedMetrics(ResourceOperation.Created, observationGroup);
             }
             else
             {
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
 
                 result = policyResult.Result;
-                _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Updated), 1);
+                LogFhirResourceSavedMetrics(ResourceOperation.Updated, observationGroup);
             }
 
             _observationCache.CreateEntry(cacheKey)
@@ -149,6 +149,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var searchParams = identifier.ToSearchParams();
             var result = await _client.SearchAsync<Model.Observation>(searchParams).ConfigureAwait(false);
             return await result.ReadOneFromBundleWithContinuationAsync<Model.Observation>(_client);
+        }
+
+        private void LogFhirResourceSavedMetrics(ResourceOperation operation, IObservationGroup observationGroup, ResourceType resourceType = ResourceType.Observation)
+        {
+            _logger.LogMetric(IomtMetrics.FhirResourceSaved(resourceType, operation), 1);
+            foreach (var measurement in observationGroup.Measurements)
+            {
+                var iotProcessingLatency = DateTime.UtcNow - measurement.IngestionTimeUtc.Value;
+                _logger.LogMetric(IomtMetrics.IotConnectorFhirProcessingLatency(), iotProcessingLatency.TotalSeconds);
+                _logger.LogMetric(IomtMetrics.IotConnectorFhirProcessingLatencyMs(), iotProcessingLatency.TotalMilliseconds);
+            }
         }
     }
 }

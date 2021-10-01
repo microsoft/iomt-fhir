@@ -145,6 +145,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     Assert.Equal(startDate, v.Time);
                     Assert.Equal("3", v.Value);
                 });
+
+            Assert.Equal(measurement.Length, og.Measurements.Count);
         }
     }
 }

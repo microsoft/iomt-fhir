@@ -14,16 +14,21 @@ namespace Microsoft.Health.Fhir.Ingest.Data
     {
         private readonly Dictionary<string, SortedSet<(DateTime Time, string Value)>> _propertyTimeValues = new Dictionary<string, SortedSet<(DateTime Time, string Value)>>();
 
+        private readonly IList<IMeasurement> _measurements = new List<IMeasurement>();
+
         public virtual string Name { get; set; }
 
         public abstract (DateTime Start, DateTime End) Boundary { get; }
 
         protected IDictionary<string, SortedSet<(DateTime Time, string Value)>> PropertyTimeValues => _propertyTimeValues;
 
+        public IReadOnlyCollection<IMeasurement> Measurements => _measurements as IReadOnlyCollection<IMeasurement>;
+
         public virtual void AddMeasurement(IMeasurement measurement)
         {
             EnsureArg.IsNotNull(measurement);
 
+            _measurements.Add(measurement);
             foreach (var mp in measurement.Properties)
             {
                 if (!_propertyTimeValues.TryGetValue(mp.Name, out SortedSet<(DateTime Time, string Value)> values))
