@@ -1,31 +1,19 @@
-﻿.CodeMirror {
-    height: 200px;
-    border: 1px solid #dee2e6 !important;
-    font-size: 87.5%;
-}
-
-.iomt-cm-test-area {
+﻿.iomt-cm-test-area {
     width: calc(100vw - 30px);
     height: 380px;
 }
 
-.iomt-cm-test-area textarea {
+.iomt-cm-test-area .CodeMirror, .iomt-cm-test-area textarea {
     width: 100%;
     height: 200px;
 }
 
+.iomt-cm-test-area .validation-result {
+    height: 70px;
+}
+
 .iomt-cm-test {
     background-color: #f8f9fa;
-}
-
-.iomt-cm-data-error {
-    background-color: #ffc7ce;
-}
-
-.iomt-cm-data-result {
-    height: 70px;
-    margin-top: 10px;
-    overflow-y: scroll;
 }
 
 .iomt-cm-test-result {

@@ -33,6 +33,7 @@
   <ItemGroup>
     <None Remove="ClientApp\src\components\Constants.ts" />
     <None Remove="ClientApp\src\components\Icons.tsx" />
+    <None Remove="ClientApp\src\components\JsonValidator.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail - Copy.DeviceEdit.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Fhir.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Forms.Tutorials.tsx" />
@@ -62,6 +63,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\components\JsonValidator.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\Constants.ts" />
     <TypeScriptCompile Include="ClientApp\src\components\Icons.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\Detail.Forms.Tutorials.tsx" />

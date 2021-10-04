@@ -5,24 +5,16 @@
 
 import * as React from 'react';
 import { Input, Col, Row } from 'reactstrap';
-import * as JsonLint from 'jsonlint-mod';
-import * as CodeMirror from 'codemirror';
-
-import 'codemirror/addon/display/placeholder.js'
-import 'codemirror/addon/edit/matchbrackets.js';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/mode/javascript/javascript.js';
 
 import { Mapping } from '../../store/Mapping';
 import TestService from '../../services/TestService';
 import * as Constants from '../Constants';
 import { PlayCircleIcon } from '../Icons';
+import JsonValidator from '../JsonValidator';
 import * as Utility from './Utility';
 
 const MappingTestWidget = (props: { data: Mapping }) => {
     const [dataSample, setDataSample] = React.useState('');
-    const [dataSampleResult, setDataSampleResult] = React.useState('');
-    const [dataSampleValid, setDataSampleValid] = React.useState(true);
 
     const [normTestResult, setNormTestResult] = React.useState('Normalization test result output...');
     const [normTestResultBadge, setNormTestResultBadge] = React.useState('');
@@ -32,62 +24,7 @@ const MappingTestWidget = (props: { data: Mapping }) => {
     const [fhirTestResultBadge, setFhirTestResultBadge] = React.useState('');
     const [fhirTestInProgress, setFhirTestInProgress] = React.useState(false);
 
-    const dataSampleRef = React.useRef<HTMLTextAreaElement>() as React.RefObject<HTMLTextAreaElement>;
     const identityResolutionTypeRef = React.useRef<HTMLInputElement>() as React.RefObject<HTMLInputElement>;
-
-    var codeEditor: CodeMirror.EditorFromTextArea;
-    var dataSampleErrorLine: number | null = null;
-
-    React.useEffect(() => {
-        if (dataSampleRef.current) {
-            codeEditor = CodeMirror.fromTextArea(
-                dataSampleRef.current,
-                {
-                    mode: "javascript",
-                    lineNumbers: true,
-                    matchBrackets: true,
-                    placeholder: 'Paste your device data sample here...'
-                }
-            );
-
-            codeEditor.on('change', () => handleDataSampleChange(codeEditor.getValue()));
-
-            return () => {
-                codeEditor.toTextArea();
-            };
-        }
-    }, []);
-
-    const handleDataSampleChange = (newDataSample: string) => {
-        setDataSample(newDataSample);
-        try {
-            JsonLint.parse(newDataSample);
-            setDataSampleResult('Valid JSON');
-            setDataSampleValid(true);
-            highlightDataSampleErrorLine(null);
-        }
-        catch (err) {
-            setDataSampleResult(err.toString());
-            setDataSampleValid(false);
-            const lineMatches = err.message.match(/line ([0-9]+)/);
-            if (lineMatches) {
-                highlightDataSampleErrorLine(Number(lineMatches[1]) - 1);
-            }
-        }
-    }
-
-    const highlightDataSampleErrorLine = (line: number | null) => {
-        if (line === dataSampleErrorLine || !codeEditor) {
-            return;
-        }
-        if (typeof line === 'number') {
-            codeEditor.addLineClass(line, 'background', 'iomt-cm-data-error');
-        }
-        if (typeof dataSampleErrorLine === 'number') {
-            codeEditor.removeLineClass(dataSampleErrorLine, 'background', 'iomt-cm-data-error');
-        }
-        dataSampleErrorLine = line;
-    }
 
     const startNormalizationTest = () => {
         setNormTestInProgress(true);
@@ -168,12 +105,10 @@ const MappingTestWidget = (props: { data: Mapping }) => {
                             <div className="pt-2 pb-3">
                                 <span className="h6">Device Data Sample</span>
                             </div>
-                            <textarea className="border overflow-auto p-2" ref={dataSampleRef}
-                                onChange={e => { handleDataSampleChange(e.target.value) }}>
-                            </textarea>
-                            <pre className={`iomt-cm-data-result overflow-auto p-2 ${dataSampleValid ? "text-success" : "text-danger"}`}>
-                                {dataSampleResult}
-                            </pre>
+                            <JsonValidator
+                                onTextChange={setDataSample}
+                                placeholder='device data sample'
+                            />
                         </div>
                     </Col>
                     <Col sm={4}>
