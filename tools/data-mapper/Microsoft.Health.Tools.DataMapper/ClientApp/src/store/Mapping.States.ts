@@ -37,6 +37,13 @@ export interface FhirValue {
     string: string;
 }
 
+export const FhirValueType = {
+    CodeableConcept: "CodeableConcept",
+    Quantity: "Quantity",
+    SampledData: "SampledData",
+    String: "String"
+}
+
 export interface FhirSampledData {
     defaultPeriod: number;
     unit: string;
