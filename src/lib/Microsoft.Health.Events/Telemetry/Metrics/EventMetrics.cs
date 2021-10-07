@@ -54,6 +54,10 @@ namespace Microsoft.Health.Events.Telemetry
                 { _categoryDimension, Category.Traffic },
             });
 
+        public static string DeviceIngressSizeBytes { get; } = "DeviceIngressSizeBytes";
+
+        public static string MeasurementToFhirBytes { get; } = "MeasurementToFhirBytes";
+
         /// <summary>
         /// Signals that an event hub partition has been intialized.
         /// </summary>
@@ -81,9 +85,18 @@ namespace Microsoft.Health.Events.Telemetry
         /// <summary>
         /// Signals that a batch of event hub events was consumed downstream.
         /// </summary>
-        public static Metric EventsConsumed()
+        /// <param name="eventsConsumedLabel">The label that will be given to the metric emitted after the events are consumed</param>
+        /// <param name="connectorStage">The stage of the IoT Connector</param>
+        public static Metric EventsConsumed(string eventsConsumedLabel, string connectorStage)
         {
-            return _eventsConsumed;
+            return new Metric(
+                eventsConsumedLabel,
+                new Dictionary<string, object>
+                {
+                    { _nameDimension, eventsConsumedLabel },
+                    { _categoryDimension, Category.Traffic },
+                    { _operationDimension, connectorStage },
+                });
         }
 
         /// <summary>

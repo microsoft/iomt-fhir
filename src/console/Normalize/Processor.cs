@@ -36,8 +36,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private ITemplateManager _templateManager;
         private ITelemetryLogger _logger;
         private IAsyncCollector<IMeasurement> _collector;
-        private IOptions<NormalizationServiceOptions> _normalizationOptions;
-        private IEventProcessingMeter _eventProcessingMeter = new EventProcessingMeter();
         private AsyncPolicy _retryPolicy;
         private CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
 
@@ -46,14 +44,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             ITemplateManager templateManager,
             IAsyncCollector<IMeasurement> collector,
             ITelemetryLogger logger,
-            IOptions<NormalizationServiceOptions> options,
             CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory)
         {
             _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
             _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
             _collector = EnsureArg.IsNotNull(collector, nameof(collector));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            _normalizationOptions = EnsureArg.IsNotNull(options, nameof(options));
             _retryPolicy = CreateRetryPolicy(logger);
             _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
         }
@@ -101,15 +97,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 
             var dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
             await dataNormalizationService.ProcessAsync(eventHubEvents, _collector).ConfigureAwait(false);
-
-            if (_normalizationOptions.Value.LogDeviceIngressSizeBytes)
-            {
-                var eventStats = await _eventProcessingMeter.CalculateEventStats(eventHubEvents);
-
-                _logger.LogMetric(
-                    IomtMetrics.DeviceIngressSizeBytes(),
-                    eventStats.TotalEventsProcessedBytes);
-            }
         }
 
         private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
