@@ -172,6 +172,10 @@ export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> 
                     }
                 }
 
+                if (subTemplate.value?.valueType && subTemplate.value?.valueType == FhirValueType.CodeableConcept) {
+                    console.log(`FHIR Mapping Template note: CodeableConcept values are not supported in the Data Mapper yet. "${typename}" will be imported without a value.`)
+                }
+
                 const value = {
                     valueType: subTemplate.value?.valueType,
                     valueName: subTemplate.value?.valueName,
@@ -198,6 +202,10 @@ export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> 
                                     system: code.system
                                 } as FhirCoding);
                             }
+                        }
+
+                        if (component.value?.valueType && component.value?.valueType == FhirValueType.CodeableConcept) {
+                            console.log(`FHIR Mapping Template note: CodeableConcept values are not supported in the Data Mapper yet. "${typename}" will be imported without CodeableConcept component values.`)
                         }
 
                         components.push({
