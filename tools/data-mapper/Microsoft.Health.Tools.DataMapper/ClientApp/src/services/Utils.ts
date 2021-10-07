@@ -141,22 +141,24 @@ export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> 
                 }
 
                 let categories: FhirCodeableConcept[] = [];
-                if (subTemplate.value?.valueType && subTemplate.value?.valueType == FhirValueType.CodeableConcept) {
-                    let codes: FhirCoding[] = [];
-                    if (subTemplate.value?.codes) {
-                        for (const code of subTemplate.value?.codes) {
-                            codes.push({
-                                code: code.code,
-                                display: code.display,
-                                system: code.system
-                            } as FhirCoding);
+                if (subTemplate.category) {
+                    for (const category of subTemplate.category) {
+                        let codes: FhirCoding[] = [];
+                        if (category.codes) {
+                            for (const code of category.codes) {
+                                codes.push({
+                                    code: code.code,
+                                    display: code.display,
+                                    system: code.system
+                                } as FhirCoding);
+                            }
                         }
-                    }
 
-                    categories.push({
-                        text: subTemplate.value?.text,
-                        codes: codes
-                    } as FhirCodeableConcept);
+                        categories.push({
+                            text: category.text,
+                            codes: codes
+                        } as FhirCodeableConcept);
+                    }
                 }
 
                 let codes: FhirCoding[] = [];
