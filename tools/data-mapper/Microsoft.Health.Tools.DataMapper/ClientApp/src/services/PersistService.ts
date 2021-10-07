@@ -47,7 +47,11 @@ const getAllMappings = (): Mapping[] => {
 
 const getMapping = (mappingId: string): Mapping => {
     const storage = loadFromLocalStorage();
-    return storage.mappingsById[mappingId];
+    const mappings = storage.mappingsById;
+    if (!mappings) {
+        return {} as Mapping;
+    }
+    return mappings[mappingId];
 }
 
 const createMapping = (typename: string): Promise<Mapping> => {
