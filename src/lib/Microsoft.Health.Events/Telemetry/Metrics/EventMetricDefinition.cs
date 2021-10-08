@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+
 namespace Microsoft.Health.Events.Telemetry
 {
     public sealed class EventMetricDefinition
     {
         private EventMetricDefinition(string metricName)
         {
+            EnsureArg.IsNotNull(metricName, nameof(metricName));
             MetricName = metricName;
         }
 
