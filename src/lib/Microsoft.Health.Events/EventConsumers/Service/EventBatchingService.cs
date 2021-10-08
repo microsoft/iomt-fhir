@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Events.Common;
@@ -125,16 +126,16 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
-        private async Task UpdateCheckpoint(List<IEventMessage> events)
+        private async Task UpdateCheckpoint(IEnumerable<IEventMessage> events)
         {
-            if (events.Count > 0)
+            if (events.Count() > 0)
             {
-                var eventCheckpoint = events[events.Count - 1];
+                var eventCheckpoint = events.ElementAt(events.Count() - 1);
                 await _checkpointClient.SetCheckpointAsync(eventCheckpoint);
             }
         }
 
-        private async Task CompleteProcessing(List<IEventMessage> events)
+        private async Task CompleteProcessing(IEnumerable<IEventMessage> events)
         {
             await _eventConsumerService.ConsumeEvents(events);
             await UpdateCheckpoint(events);

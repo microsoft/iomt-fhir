@@ -134,7 +134,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
             if (applicationType == _normalizationAppType)
             {
-                Metric processingMetric = EventMetrics.EventsConsumed(EventMetrics.DeviceIngressSizeBytes, ConnectorOperation.Normalization);
+                Metric processingMetric = EventMetrics.EventsConsumed(EventMetricDefinition.DeviceIngressSizeBytes(), ConnectorOperation.Normalization);
                 return new Events.Common.EventProcessingMeter(logger, processingMetric);
             }
 

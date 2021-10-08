@@ -46,18 +46,6 @@ namespace Microsoft.Health.Events.Telemetry
                 { _categoryDimension, Category.Traffic },
             });
 
-        private static Metric _eventsConsumed = new Metric(
-            "EventsConsumed",
-            new Dictionary<string, object>
-            {
-                { _nameDimension, "EventsConsumed" },
-                { _categoryDimension, Category.Traffic },
-            });
-
-        public static string DeviceIngressSizeBytes { get; } = "DeviceIngressSizeBytes";
-
-        public static string MeasurementToFhirBytes { get; } = "MeasurementToFhirBytes";
-
         /// <summary>
         /// Signals that an event hub partition has been intialized.
         /// </summary>
@@ -85,15 +73,16 @@ namespace Microsoft.Health.Events.Telemetry
         /// <summary>
         /// Signals that a batch of event hub events was consumed downstream.
         /// </summary>
-        /// <param name="eventsConsumedLabel">The label that will be given to the metric emitted after the events are consumed</param>
+        /// <param name="eventMetricDefinition">The metric definition that contains a metric name for the metric emitted after events are consumed</param>
         /// <param name="connectorStage">The stage of the IoT Connector</param>
-        public static Metric EventsConsumed(string eventsConsumedLabel, string connectorStage)
+        public static Metric EventsConsumed(EventMetricDefinition eventMetricDefinition, string connectorStage)
         {
+            var metricName = eventMetricDefinition.ToString();
             return new Metric(
-                eventsConsumedLabel,
+                metricName,
                 new Dictionary<string, object>
                 {
-                    { _nameDimension, eventsConsumedLabel },
+                    { _nameDimension, metricName },
                     { _categoryDimension, Category.Traffic },
                     { _operationDimension, connectorStage },
                 });
