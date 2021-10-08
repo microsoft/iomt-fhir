@@ -11,7 +11,7 @@ namespace Microsoft.Health.Events.Telemetry
     {
         private EventMetricDefinition(string metricName)
         {
-            EnsureArg.IsNotNull(metricName, nameof(metricName));
+            EnsureArg.IsNotNullOrEmpty(metricName, nameof(metricName));
             MetricName = metricName;
         }
 
