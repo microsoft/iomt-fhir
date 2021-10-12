@@ -46,6 +46,7 @@
     <None Remove="ClientApp\src\services\TestService.ts" />
     <None Remove="ClientApp\src\services\Utils.ts" />
     <None Remove="ClientApp\src\store\Mapping.Actions.ts" />
+    <None Remove="ClientApp\src\store\Mapping.Constants.ts" />
     <None Remove="ClientApp\src\store\Mapping.Reducers.ts" />
     <None Remove="ClientApp\src\store\Mapping.States.ts" />
     <None Remove="ClientApp\src\store\Mapping.ts" />
@@ -77,6 +78,7 @@
     <TypeScriptCompile Include="ClientApp\src\services\TestService.ts" />
     <TypeScriptCompile Include="ClientApp\src\services\Utils.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.Actions.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\Mapping.Constants.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.States.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.Reducers.ts" />
