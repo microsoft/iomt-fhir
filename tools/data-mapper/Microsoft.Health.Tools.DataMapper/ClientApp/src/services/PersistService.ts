@@ -57,6 +57,11 @@ const createMappingsFromTemplates = (deviceTemplate: string, fhirTemplate: strin
                 const currentMappings = getAllMappings();
                 let newMappings: Mapping[] = [];
 
+                if (mappings.length !== 2) {
+                    reject(`System error: ${mappings.length} set(s) of mappings were generated.
+                        Please ensure there are no other errors and try again.`);
+                    return;
+                }
                 const deviceMappings = mappings[0];
                 let fhirMappings = mappings[1];
 
