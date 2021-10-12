@@ -103,6 +103,39 @@ export const generateDeviceTemplate = (mappings: Mapping[]) => {
     return JSON.stringify(deviceTemplates, null, 4);
 }
 
+const generateFhirCodesMapping = (codes: any): FhirCoding[] => {
+    let codings: FhirCoding[] = [];
+    if (codes) {
+        for (const code of codes) {
+            codings.push({
+                code: code.code,
+                display: code.display,
+                system: code.system
+            } as FhirCoding);
+        }
+    }
+    return codings;
+}
+
+const generateFhirValueMapping = (value: any): FhirValue => {
+    if (value) {
+        return {
+            valueType: value.valueType,
+            valueName: value.valueName,
+            sampledData: value.valueType == FhirValueType.SampledData && {
+                defaultPeriod: value.defaultPeriod,
+                unit: value.unit
+            },
+            quantity: value.valueType == FhirValueType.Quantity && {
+                unit: value.unit,
+                code: value.code,
+                system: value.system
+            }
+        } as FhirValue;
+    }
+    return {} as FhirValue;
+}
+
 export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> => {
     return new Promise((resolve, reject) => {
         let mappings: Mapping[] = [];
@@ -143,32 +176,10 @@ export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> 
                 let categories: FhirCodeableConcept[] = [];
                 if (subTemplate.category) {
                     for (const category of subTemplate.category) {
-                        let codes: FhirCoding[] = [];
-                        if (category.codes) {
-                            for (const code of category.codes) {
-                                codes.push({
-                                    code: code.code,
-                                    display: code.display,
-                                    system: code.system
-                                } as FhirCoding);
-                            }
-                        }
-
                         categories.push({
                             text: category.text,
-                            codes: codes
+                            codes: generateFhirCodesMapping(category.codes)
                         } as FhirCodeableConcept);
-                    }
-                }
-
-                let codes: FhirCoding[] = [];
-                if (subTemplate.codes) {
-                    for (const code of subTemplate.codes) {
-                        codes.push({
-                            code: code.code,
-                            display: code.display,
-                            system: code.system
-                        } as FhirCoding);
                     }
                 }
 
@@ -176,53 +187,16 @@ export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> 
                     console.log(`FHIR Mapping Template note: CodeableConcept values are not supported in the Data Mapper yet. "${typename}" will be imported without a value.`)
                 }
 
-                const value = {
-                    valueType: subTemplate.value?.valueType,
-                    valueName: subTemplate.value?.valueName,
-                    sampledData: subTemplate.value?.valueType == FhirValueType.SampledData && {
-                        defaultPeriod: subTemplate.value?.defaultPeriod,
-                        unit: subTemplate.value?.unit
-                    },
-                    quantity: subTemplate.value?.valueType == FhirValueType.Quantity && {
-                        unit: subTemplate.value?.unit,
-                        code: subTemplate.value?.code,
-                        system: subTemplate.value?.system
-                    }
-                } as FhirValue;
-
                 let components: FhirComponent[] = [];
                 if (subTemplate.components) {
                     for (const component of subTemplate.components) {
-                        let codes: FhirCoding[] = [];
-                        if (component.codes) {
-                            for (const code of component.codes) {
-                                codes.push({
-                                    code: code.code,
-                                    display: code.display,
-                                    system: code.system
-                                } as FhirCoding);
-                            }
-                        }
-
                         if (component.value?.valueType && component.value?.valueType == FhirValueType.CodeableConcept) {
                             console.log(`FHIR Mapping Template note: CodeableConcept values are not supported in the Data Mapper yet. "${typename}" will be imported without CodeableConcept component values.`)
                         }
 
                         components.push({
-                            value: {
-                                valueType: component.value?.valueType,
-                                valueName: component.value?.valueName,
-                                sampledData: component.value?.valueType == FhirValueType.SampledData && {
-                                    defaultPeriod: component.value?.defaultPeriod,
-                                    unit: component.value?.unit
-                                },
-                                quantity: component.value?.valueType == FhirValueType.Quantity && {
-                                    unit: component.value?.unit,
-                                    code: component.value?.code,
-                                    system: component.value?.system
-                                }
-                            },
-                            codes: codes
+                            value: generateFhirValueMapping(component.value),
+                            codes: generateFhirCodesMapping(component.codes)
                         } as FhirComponent);
                     }
                 }
@@ -230,8 +204,8 @@ export const generateFhirMappings = (fhirTemplates: string): Promise<Mapping[]> 
                 let fhirMapping = {
                     periodInterval: subTemplate.periodInterval,
                     category: categories,
-                    codes: codes,
-                    value: value,
+                    codes: generateFhirCodesMapping(subTemplate.codes),
+                    value: generateFhirValueMapping(subTemplate.value),
                     components: components
                 } as FhirMapping;
 
