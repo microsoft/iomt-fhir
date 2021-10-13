@@ -6,8 +6,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service.Infrastructure;
 using Microsoft.Health.Events.Model;
@@ -21,11 +24,12 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private int _maxEvents;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
+        private IEventProcessingMetricMeters _eventProcessingMetricMeters;
         private ICheckpointClient _checkpointClient;
         private ITelemetryLogger _logger;
         private const int _timeBuffer = -5;
 
-        public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger)
+        public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger, IEventProcessingMetricMeters eventProcessingMetricMeters = null)
         {
             EnsureArg.IsNotNull(options);
             EnsureArg.IsInt(options.MaxEvents);
@@ -33,6 +37,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
             _eventPartitions = new ConcurrentDictionary<string, EventPartition>();
             _eventConsumerService = eventConsumerService;
+            _eventProcessingMetricMeters = eventProcessingMetricMeters;
             _maxEvents = options.MaxEvents;
             _flushTimespan = TimeSpan.FromSeconds(options.FlushTimespan);
             _checkpointClient = checkpointClient;
@@ -99,8 +104,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         {
             _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
             var events = await GetPartition(partitionId).Flush(_maxEvents);
-            await _eventConsumerService.ConsumeEvents(events);
-            await UpdateCheckpoint(events);
+            await CompleteProcessing(events);
         }
 
         private async Task ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
@@ -110,8 +114,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
-            await _eventConsumerService.ConsumeEvents(events);
-            await UpdateCheckpoint(events);
+            await CompleteProcessing(events);
         }
 
         private async Task ThresholdWaitReached(string partitionId, DateTime windowEnd)
@@ -120,18 +123,31 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             {
                 _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
                 var events = await GetPartition(partitionId).Flush(windowEnd);
-                await _eventConsumerService.ConsumeEvents(events);
-                await UpdateCheckpoint(events);
+                await CompleteProcessing(events);
             }
         }
 
-        private async Task UpdateCheckpoint(List<IEventMessage> events)
+        private async Task UpdateCheckpoint(IEnumerable<IEventMessage> events, IEnumerable<KeyValuePair<Metric, double>> eventMetrics)
         {
-            if (events.Count > 0)
+            if (events.Count() > 0)
             {
-                var eventCheckpoint = events[events.Count - 1];
-                await _checkpointClient.SetCheckpointAsync(eventCheckpoint);
+                var eventCheckpoint = events.ElementAt(events.Count() - 1);
+                await _checkpointClient.SetCheckpointAsync(eventCheckpoint, eventMetrics);
             }
+        }
+
+        private async Task CompleteProcessing(IEnumerable<IEventMessage> events)
+        {
+            await _eventConsumerService.ConsumeEvents(events);
+
+            IEnumerable<KeyValuePair<Metric, double>> eventMetrics = null;
+
+            if (_eventProcessingMetricMeters != null)
+            {
+                eventMetrics = await _eventProcessingMetricMeters.GetMetrics(events);
+            }
+
+            await UpdateCheckpoint(events, eventMetrics);
         }
 
         public Task ConsumeEvents(IEnumerable<IEventMessage> events)
