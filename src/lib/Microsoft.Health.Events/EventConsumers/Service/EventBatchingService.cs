@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service.Infrastructure;
@@ -23,12 +24,12 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private int _maxEvents;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
-        private IEventProcessingMeter _eventProcessingMeter;
+        private IEventProcessingMetricMeters _eventProcessingMetricMeters;
         private ICheckpointClient _checkpointClient;
         private ITelemetryLogger _logger;
         private const int _timeBuffer = -5;
 
-        public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger, IEventProcessingMeter eventProcessingMeter = null)
+        public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger, IEventProcessingMetricMeters eventProcessingMetricMeters = null)
         {
             EnsureArg.IsNotNull(options);
             EnsureArg.IsInt(options.MaxEvents);
@@ -36,7 +37,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
             _eventPartitions = new ConcurrentDictionary<string, EventPartition>();
             _eventConsumerService = eventConsumerService;
-            _eventProcessingMeter = eventProcessingMeter;
+            _eventProcessingMetricMeters = eventProcessingMetricMeters;
             _maxEvents = options.MaxEvents;
             _flushTimespan = TimeSpan.FromSeconds(options.FlushTimespan);
             _checkpointClient = checkpointClient;
@@ -126,25 +127,27 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
-        private async Task UpdateCheckpoint(IEnumerable<IEventMessage> events)
+        private async Task UpdateCheckpoint(IEnumerable<IEventMessage> events, IEnumerable<KeyValuePair<Metric, double>> eventMetrics)
         {
             if (events.Count() > 0)
             {
                 var eventCheckpoint = events.ElementAt(events.Count() - 1);
-                await _checkpointClient.SetCheckpointAsync(eventCheckpoint);
+                await _checkpointClient.SetCheckpointAsync(eventCheckpoint, eventMetrics);
             }
         }
 
         private async Task CompleteProcessing(IEnumerable<IEventMessage> events)
         {
             await _eventConsumerService.ConsumeEvents(events);
-            await UpdateCheckpoint(events);
 
-            if (_eventProcessingMeter != null)
+            IEnumerable<KeyValuePair<Metric, double>> eventMetrics = null;
+
+            if (_eventProcessingMetricMeters != null)
             {
-                var eventStats = await _eventProcessingMeter.CalculateEventStats(events);
-                _eventProcessingMeter.LogEventsProcessedMetric(eventStats);
+                eventMetrics = await _eventProcessingMetricMeters.GetMetrics(events);
             }
+
+            await UpdateCheckpoint(events, eventMetrics);
         }
 
         public Task ConsumeEvents(IEnumerable<IEventMessage> events)

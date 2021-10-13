@@ -51,7 +51,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             services.AddSingleton(ResolveTemplateManager);
             services.AddSingleton(ResolveEventConsumers);
             services.AddSingleton(ResolveCheckpointClient);
-            services.AddSingleton(ResolveEventProcessingMeter);
+            services.AddSingleton(ResolveEventProcessingMetricMeters);
             services.AddSingleton(ResolveEventConsumerService);
             services.AddSingleton(ResolveEventProcessorClient);
             services.AddSingleton(ResolveEventProcessor);
@@ -127,15 +127,16 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return checkpointClient;
         }
 
-        public virtual IEventProcessingMeter ResolveEventProcessingMeter(IServiceProvider serviceProvider)
+        public virtual IEventProcessingMetricMeters ResolveEventProcessingMetricMeters(IServiceProvider serviceProvider)
         {
             var applicationType = GetConsoleApplicationType();
-            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
             if (applicationType == _normalizationAppType)
             {
                 Metric processingMetric = EventMetrics.EventsConsumed(EventMetricDefinition.DeviceIngressSizeBytes(), ConnectorOperation.Normalization);
-                return new Events.Common.EventProcessingMeter(logger, processingMetric);
+                var meter = new Events.Common.EventProcessingMeter(processingMetric);
+                var meters = new EventProcessingMetricMeters(new List<IEventProcessingMeter>() { meter });
+                return meters;
             }
 
             return null;
@@ -189,12 +190,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public virtual EventProcessor ResolveEventProcessor(IServiceProvider serviceProvider)
         {
             var eventConsumerService = serviceProvider.GetRequiredService<IEventConsumerService>();
-            var eventProcessingMeter = serviceProvider.GetService<IEventProcessingMeter>();
+            var eventProcessingMetricMeters = serviceProvider.GetService<IEventProcessingMetricMeters>();
             var checkpointClient = serviceProvider.GetRequiredService<StorageCheckpointClient>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             var eventBatchingOptions = new EventBatchingOptions();
             Configuration.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
-            var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger, eventProcessingMeter);
+            var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger, eventProcessingMetricMeters);
             var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient, logger);
             return eventHubReader;
         }

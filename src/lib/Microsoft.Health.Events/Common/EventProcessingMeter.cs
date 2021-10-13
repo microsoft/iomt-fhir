@@ -9,27 +9,23 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Model;
-using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.Common
 {
     public class EventProcessingMeter : IEventProcessingMeter
     {
-        private ITelemetryLogger _logger;
-
         public EventProcessingMeter()
         {
         }
 
-        public EventProcessingMeter(ITelemetryLogger logger, Metric metric)
+        public EventProcessingMeter(Metric metric)
         {
-            _logger = logger;
             EventsProcessedMetric = metric;
         }
 
         public Metric EventsProcessedMetric { get; set; }
 
-        public Task<EventStats> CalculateEventStats(IEnumerable<IEventMessage> events)
+        public Task<KeyValuePair<Metric, double>> GetMetric(IEnumerable<IEventMessage> events)
         {
             double totalBytes = 0;
 
@@ -39,23 +35,13 @@ namespace Microsoft.Health.Events.Common
                 totalBytes = totalBytes + bodySizeBytes + CalculateDictionarySizeBytes(e.Properties) + CalculateDictionarySizeBytes(e.SystemProperties);
             }
 
-            var eventStats = new EventStats()
-            {
-                TotalEventsProcessedBytes = totalBytes,
-            };
-
-            return Task.FromResult(eventStats);
+            return Task.FromResult(new KeyValuePair<Metric, double>(EventsProcessedMetric, totalBytes));
         }
 
         private double CalculateDictionarySizeBytes(IEnumerable<KeyValuePair<string, object>> dictionary)
         {
             double bytes = dictionary.Aggregate(0, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
             return bytes;
-        }
-
-        public void LogEventsProcessedMetric(EventStats eventStats)
-        {
-            _logger.LogMetric(EventsProcessedMetric, eventStats.TotalEventsProcessedBytes);
         }
     }
 }

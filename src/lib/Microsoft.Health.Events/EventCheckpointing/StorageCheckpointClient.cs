@@ -16,6 +16,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
@@ -30,6 +31,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private readonly ConcurrentDictionary<string, Checkpoint> _checkpoints;
         private readonly int _lastCheckpointMaxCount;
         private readonly ConcurrentDictionary<string, int> _lastCheckpointTracker;
+        private readonly ConcurrentDictionary<string, List<KeyValuePair<Metric, double>>> _postCheckpointMetrics;
         private readonly ITelemetryLogger _log;
         private readonly BlobContainerClient _storageClient;
 
@@ -50,6 +52,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             _lastCheckpointMaxCount = int.Parse(storageCheckpointOptions.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
+            _postCheckpointMetrics = new ConcurrentDictionary<string, List<KeyValuePair<Metric, double>>>();
             _storageClient = containerClient;
             _log = log;
         }
@@ -135,7 +138,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public async Task SetCheckpointAsync(IEventMessage eventArgs)
+        public async Task SetCheckpointAsync(IEventMessage eventArgs, IEnumerable<KeyValuePair<Metric, double>> metrics = null)
         {
             EnsureArg.IsNotNull(eventArgs);
             EnsureArg.IsNotNullOrWhiteSpace(eventArgs.PartitionId);
@@ -151,11 +154,34 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 _checkpoints[partitionId] = checkpoint;
                 var count = _lastCheckpointTracker.AddOrUpdate(partitionId, 1, (key, value) => value + 1);
 
+                if (metrics != null)
+                {
+                    _postCheckpointMetrics.TryGetValue(partitionId, out var partitionExists);
+
+                    if (partitionExists == null)
+                    {
+                        _postCheckpointMetrics[partitionId] = new List<KeyValuePair<Metric, double>>();
+                    }
+
+                    foreach (var metric in metrics)
+                    {
+                        _postCheckpointMetrics[partitionId].Add(metric);
+                    }
+                }
+
                 if (count >= _lastCheckpointMaxCount)
                 {
                     await PublishCheckpointAsync(partitionId);
                     _log.LogMetric(EventMetrics.EventWatermark(partitionId, eventArgs.EnqueuedTime.UtcDateTime), 1);
                     _lastCheckpointTracker[partitionId] = 0;
+
+                    _postCheckpointMetrics.TryGetValue(partitionId, out var postCheckpointMetrics);
+                    postCheckpointMetrics?.ForEach(m =>
+                    {
+                        _log.LogMetric(m.Key, m.Value);
+                    });
+
+                    postCheckpointMetrics?.Clear();
                 }
             }
 #pragma warning disable CA1031

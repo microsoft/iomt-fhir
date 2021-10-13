@@ -8,16 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Model;
 
-namespace Microsoft.Health.Events.EventCheckpointing
+namespace Microsoft.Health.Events.Common
 {
-    public interface ICheckpointClient
+    public interface IEventProcessingMetricMeters
     {
-        Task SetCheckpointAsync(IEventMessage eventArg, IEnumerable<KeyValuePair<Metric, double>> metrics = null);
-
-        Task PublishCheckpointAsync(string partitionId);
-
-        Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId);
-
-        Task ResetCheckpointsAsync();
+        Task<IEnumerable<KeyValuePair<Metric, double>>> GetMetrics(IEnumerable<IEventMessage> events);
     }
 }

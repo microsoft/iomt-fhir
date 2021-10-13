@@ -14,8 +14,6 @@ namespace Microsoft.Health.Events.Common
     {
         Metric EventsProcessedMetric { get; set; }
 
-        Task<EventStats> CalculateEventStats(IEnumerable<IEventMessage> events);
-
-        void LogEventsProcessedMetric(EventStats eventStats);
+        Task<KeyValuePair<Metric, double>> GetMetric(IEnumerable<IEventMessage> events);
     }
 }
