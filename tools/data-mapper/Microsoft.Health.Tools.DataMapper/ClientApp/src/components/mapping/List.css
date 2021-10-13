@@ -1,3 +1,11 @@
 ﻿.iomt-cm-export-modal {
     max-width: 70%;
 }
+
+.iomt-cm-import-modal {
+    max-width: 70%;
+}
+
+.iomt-cm-modal-description {
+    margin-bottom: 30px;
+}

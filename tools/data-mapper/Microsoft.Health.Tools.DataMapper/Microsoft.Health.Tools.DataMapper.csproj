@@ -33,17 +33,20 @@
   <ItemGroup>
     <None Remove="ClientApp\src\components\Constants.ts" />
     <None Remove="ClientApp\src\components\Icons.tsx" />
+    <None Remove="ClientApp\src\components\JsonValidator.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail - Copy.DeviceEdit.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Fhir.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Forms.Tutorials.tsx" />
     <None Remove="ClientApp\src\components\mapping\Detail.Page.tsx" />
     <None Remove="ClientApp\src\components\mapping\List.Modals.Export.tsx" />
+    <None Remove="ClientApp\src\components\mapping\List.Modals.Import.tsx" />
     <None Remove="ClientApp\src\components\mapping\List.Modals.Name.tsx" />
     <None Remove="ClientApp\src\components\mapping\List.Page.tsx" />
     <None Remove="ClientApp\src\services\PersistService.ts" />
     <None Remove="ClientApp\src\services\TestService.ts" />
     <None Remove="ClientApp\src\services\Utils.ts" />
     <None Remove="ClientApp\src\store\Mapping.Actions.ts" />
+    <None Remove="ClientApp\src\store\Mapping.Constants.ts" />
     <None Remove="ClientApp\src\store\Mapping.Reducers.ts" />
     <None Remove="ClientApp\src\store\Mapping.States.ts" />
     <None Remove="ClientApp\src\store\Mapping.ts" />
@@ -62,17 +65,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\components\JsonValidator.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\Constants.ts" />
     <TypeScriptCompile Include="ClientApp\src\components\Icons.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\Detail.Forms.Tutorials.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\Detail.Page.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Modals.Export.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Modals.Import.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Modals.Name.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\mapping\List.Page.tsx" />
     <TypeScriptCompile Include="ClientApp\src\services\PersistService.ts" />
     <TypeScriptCompile Include="ClientApp\src\services\TestService.ts" />
     <TypeScriptCompile Include="ClientApp\src\services\Utils.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.Actions.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\Mapping.Constants.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.States.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\Mapping.Reducers.ts" />

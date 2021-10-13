@@ -74,7 +74,7 @@ const MappingExportModal = (props: { mappings: Mapping[] }) => {
     return (
         <span>
             <button className="btn iomt-cm-btn" onClick={toggle}
-                disabled={props.mappings?.length === 0}>Export Mappings</button>
+                disabled={props.mappings?.length === 0}>Export mappings</button>
             {renderModal()}
         </span>
     );
