@@ -16,6 +16,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Expressions;
+using Microsoft.Health.Fhir.Ingest;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
@@ -88,7 +89,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     events.Length);
 
                 IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
-                await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
+                await dataNormalizationService.ProcessAsync(events, new BatchingAsyncCollectorFacade<IMeasurement>(output)).ConfigureAwait(false);
 
                 if (normalizationSettings.Value.LogDeviceIngressSizeBytes)
                 {

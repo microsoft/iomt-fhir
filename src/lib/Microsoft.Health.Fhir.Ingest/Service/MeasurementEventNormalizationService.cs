@@ -41,7 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _maxParallelism = maxParallelism;
         }
 
-        public async Task ProcessAsync(IEnumerable<EventData> data, IAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer = null)
+        public async Task ProcessAsync(IEnumerable<EventData> data, IBatchingAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer = null)
         {
             EnsureArg.IsNotNull(data, nameof(data));
             EnsureArg.IsNotNull(collector, nameof(collector));
@@ -69,10 +69,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return producer;
         }
 
-        private async Task StartConsumer(ISourceBlock<EventData> producer, IAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer)
+        private async Task StartConsumer(ISourceBlock<EventData> producer, IBatchingAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer)
         {
             // Collect non operation canceled exceptions as they occur to ensure the entire data stream is processed
             var exceptions = new ConcurrentBag<Exception>();
+            var measurements = new ConcurrentBag<IMeasurement>();
             var cts = new CancellationTokenSource();
             var consumer = new ActionBlock<EventData>(
                 async evt =>
@@ -92,11 +93,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
                             measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
-                            await collector.AddAsync(measurement).ConfigureAwait(false);
-
-                            _log.LogMetric(
-                                IomtMetrics.NormalizedEvent(),
-                                1);
+                            measurements.Add(measurement);
                         }
                     }
                     catch (OperationCanceledException)
@@ -120,12 +117,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             await consumer.Completion
                 .ContinueWith(
-                    task =>
+                    async task =>
                     {
                         if (!exceptions.IsEmpty)
                         {
                             throw new AggregateException(exceptions);
                         }
+
+                        await collector.AddAsync(measurements, cts.Token);
+                        _log.LogMetric(
+                            IomtMetrics.NormalizedEvent(),
+                            measurements.Count);
                     },
                     cts.Token,
                     AsyncContinueOnSuccess,

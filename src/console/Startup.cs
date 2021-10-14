@@ -149,7 +149,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventConsumerService(eventConsumers, logger);
         }
 
-        public virtual IAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
+        public virtual IBatchingAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
         {
             var eventHubProducerOptions = new EventHubClientOptions();
             Configuration.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);

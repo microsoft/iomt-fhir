@@ -35,14 +35,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private string _templateDefinition;
         private ITemplateManager _templateManager;
         private ITelemetryLogger _logger;
-        private IAsyncCollector<IMeasurement> _collector;
+        private IBatchingAsyncCollector<IMeasurement> _collector;
         private AsyncPolicy _retryPolicy;
         private CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
 
         public Processor(
             string templateDefinition,
             ITemplateManager templateManager,
-            IAsyncCollector<IMeasurement> collector,
+            IBatchingAsyncCollector<IMeasurement> collector,
             ITelemetryLogger logger,
             CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory)
         {

@@ -28,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var log = Substitute.For<ITelemetryLogger>();
 
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
+            var consumer = Substitute.For<IBatchingAsyncCollector<IMeasurement>>();
 
             var srv = new MeasurementEventNormalizationService(log, template);
             await srv.ProcessAsync(events, consumer);
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var log = Substitute.For<ITelemetryLogger>();
 
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
+            var consumer = Substitute.For<IBatchingAsyncCollector<IMeasurement>>();
 
             var srv = new MeasurementEventNormalizationService(log, template, converter, 3);
             await srv.ProcessAsync(events.Keys, consumer);
@@ -90,7 +90,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var log = Substitute.For<ITelemetryLogger>();
 
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
+            var consumer = Substitute.For<IBatchingAsyncCollector<IMeasurement>>();
 
             var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
             await srv.ProcessAsync(events, consumer);
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var log = Substitute.For<ITelemetryLogger>();
 
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
+            var consumer = Substitute.For<IBatchingAsyncCollector<IMeasurement>>();
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new Exception()));
 
             var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
@@ -140,7 +140,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var log = Substitute.For<ITelemetryLogger>();
 
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
+            var consumer = Substitute.For<IBatchingAsyncCollector<IMeasurement>>();
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new OperationCanceledException()));
 
             var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
@@ -162,7 +162,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var log = Substitute.For<ITelemetryLogger>();
 
-            var consumer = Substitute.For<IAsyncCollector<IMeasurement>>();
+            var consumer = Substitute.For<IBatchingAsyncCollector<IMeasurement>>();
             consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new TaskCanceledException()));
 
             var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
