@@ -10,26 +10,31 @@ namespace Microsoft.Health.Common.Telemetry
         /// <summary>
         /// The setup stage of the IoMT Connector
         /// </summary>
-        public static string Setup => nameof(ConnectorOperation.Setup);
+        public static string Setup => nameof(Setup);
 
         /// <summary>
         /// The normalization stage of the IoMT Connector
         /// </summary>
-        public static string Normalization => nameof(ConnectorOperation.Normalization);
+        public static string Normalization => nameof(Normalization);
 
         /// <summary>
         /// The grouping stage of the IoMT Connector
         /// </summary>
-        public static string Grouping => nameof(ConnectorOperation.Grouping);
+        public static string Grouping => nameof(Grouping);
 
         /// <summary>
         /// The FHIR conversion stage of the IoMT Connector
         /// </summary>
-        public static string FHIRConversion => nameof(ConnectorOperation.FHIRConversion);
+        public static string FHIRConversion => nameof(FHIRConversion);
+
+        /// <summary>
+        /// The measurement to event hub stage of the IoMT Connector.
+        /// </summary>
+        public static string MeasurementToEventHub => nameof(MeasurementToEventHub);
 
         /// <summary>
         /// If a stage is not determined.
         /// </summary>
-        public static string Unknown => nameof(ConnectorOperation.Unknown);
+        public static string Unknown => nameof(Unknown);
     }
 }

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -45,7 +46,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         {
             EnsureArg.IsNotNull(events);
 
-            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
+            if (events.Any())
+            {
+                await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
+            }
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)

@@ -58,7 +58,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         {
             EnsureArg.IsNotNull(events);
 
-            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
+            if (events.Any())
+            {
+                await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
+            }
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)
@@ -68,7 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             var template = templateContext.Template;
 
             _logger.LogMetric(
-                IomtMetrics.DeviceEvent(),
+                IomtMetrics.DeviceEvent(events.First().PartitionId),
                     events.Count());
 
             IEnumerable<EventData> eventHubEvents = events
@@ -82,14 +85,21 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                         x.Offset.ToString(),
                         x.PartitionId);
 
-                    foreach (KeyValuePair<string, object> entry in x.Properties)
+                    if (x.Properties != null)
                     {
-                        eventData.Properties[entry.Key] = entry.Value;
+                        foreach (KeyValuePair<string, object> entry in x.Properties)
+                        {
+                            eventData.Properties[entry.Key] = entry.Value;
+                        }
                     }
 
-                    foreach (KeyValuePair<string, object> entry in x.SystemProperties)
+                    if (x.SystemProperties != null)
                     {
-                        eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
+
+                        foreach (KeyValuePair<string, object> entry in x.SystemProperties)
+                        {
+                            eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
+                        }
                     }
 
                     return eventData;

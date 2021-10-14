@@ -3,17 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Common.Telemetry;
-using System;
-
-namespace Microsoft.Health.Logging.Telemetry
+namespace Microsoft.Health.Common.Telemetry
 {
-    public interface ITelemetryLogger
+    public static class MetricExtension
     {
-        void LogMetric(Metric metric, object metricValue);
-
-        void LogError(Exception ex);
-
-        void LogTrace(string message);
+        public static Metric AddDimension(this Metric metric, string dimensionName, string dimensionValue)
+        {
+            metric.Dimensions.Add(dimensionName, dimensionValue);
+            return metric;
+        }
     }
 }

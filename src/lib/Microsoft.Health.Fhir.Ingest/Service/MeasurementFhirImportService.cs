@@ -116,7 +116,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .Select(g =>
                 {
                     var measurements = g.ToList();
-                    _ = CalculateMetricsAsync(measurements, log).ConfigureAwait(false);
+                    _ = CalculateMetricsAsync(measurements, log, data.First().PartitionId).ConfigureAwait(false);
                     return new MeasurementGroup
                     {
                         Data = measurements,
@@ -130,18 +130,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .ToArray();
         }
 
-        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log)
+        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log, string partitionId = null)
         {
             await Task.Run(() =>
             {
                 DateTime nowRef = DateTime.UtcNow;
 
                 log.LogMetric(
-                    IomtMetrics.MeasurementGroup(),
+                    IomtMetrics.MeasurementGroup(partitionId),
                     1);
 
                 log.LogMetric(
-                    IomtMetrics.Measurement(),
+                    IomtMetrics.Measurement(partitionId),
                     measurements.Count);
 
                 for (int i = 0; i < measurements.Count; i++)

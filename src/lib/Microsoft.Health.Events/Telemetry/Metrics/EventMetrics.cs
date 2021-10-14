@@ -21,61 +21,33 @@ namespace Microsoft.Health.Events.Telemetry
         private static string _errorTypeDimension = DimensionNames.ErrorType;
         private static string _errorSeverityDimension = DimensionNames.ErrorSeverity;
         private static string _operationDimension = DimensionNames.Operation;
+        private static string _reasonDimension = DimensionNames.Reason;
 
-        private static Metric _eventHubPartitionInitialized = new Metric(
-            "EventHubPartitionInitialized",
-            new Dictionary<string, object>
-            {
-                { _nameDimension, "EventHubPartitionInitialized" },
-                { _categoryDimension, Category.Traffic },
-            });
-
-        private static Metric _eventBatchCreated = new Metric(
-            "EventBatchCreated",
-            new Dictionary<string, object>
-            {
-                { _nameDimension, "EventBatchCreated" },
-                { _categoryDimension, Category.Traffic },
-            });
-
-        private static Metric _eventsFlushed = new Metric(
-            "EventsFlushed",
-            new Dictionary<string, object>
-            {
-                { _nameDimension, "EventsFlushed" },
-                { _categoryDimension, Category.Traffic },
-            });
+        public static string ConnectorOperation { get; set; } = Health.Common.Telemetry.ConnectorOperation.Unknown;
 
         /// <summary>
         /// Signals that an event hub partition has been intialized.
         /// </summary>
-        public static Metric EventHubPartitionInitialized()
+        /// <param name="partitionId">The partition id of the event hub</param>
+        public static Metric EventHubPartitionInitialized(string partitionId)
         {
-            return _eventHubPartitionInitialized;
-        }
-
-        /// <summary>
-        /// Signals that a batch of event hub events was created.
-        /// </summary>
-        public static Metric EventBatchCreated()
-        {
-            return _eventBatchCreated;
+            return CreateBaseEventMetric(EventMetricNames.EventHubPartitionInitialized, partitionId, Category.Traffic);
         }
 
         /// <summary>
         /// Signals that a batch of event hub events was flushed.
         /// </summary>
-        public static Metric EventsFlushed()
+        /// <param name="partitionId">The partition id of the event hub</param>
+        public static Metric EventsFlushed(string partitionId)
         {
-            return _eventsFlushed;
+            return CreateBaseEventMetric(EventMetricNames.EventsFlushed, partitionId, Category.Traffic);
         }
 
         /// <summary>
         /// Signals that a batch of event hub events was consumed downstream.
         /// </summary>
-        /// <param name="eventMetricDefinition">The metric definition that contains a metric name for the metric emitted after events are consumed</param>
-        /// <param name="connectorStage">The stage of the IoT Connector</param>
-        public static Metric EventsConsumed(EventMetricDefinition eventMetricDefinition, string connectorStage)
+        /// <param name="eventMetricDefinition">The metric definition that contains a metric name for the metric emitted after events are consumed</param>\
+        public static Metric EventsConsumed(EventMetricDefinition eventMetricDefinition)
         {
             var metricName = eventMetricDefinition.ToString();
             return new Metric(
@@ -84,7 +56,7 @@ namespace Microsoft.Health.Events.Telemetry
                 {
                     { _nameDimension, metricName },
                     { _categoryDimension, Category.Traffic },
-                    { _operationDimension, connectorStage },
+                    { _operationDimension, ConnectorOperation },
                 });
         }
 
@@ -95,15 +67,19 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="dateTime">The datetime of the watermark</param>
         public static Metric EventWatermark(string partitionId, DateTime dateTime)
         {
-            return new Metric(
-                "EventsWatermarkUpdated",
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, "EventsWatermarkUpdated" },
-                    { _timeDimension, dateTime.ToString() },
-                    { _partitionDimension, partitionId },
-                    { _categoryDimension, Category.Latency },
-                });
+            return CreateBaseEventMetric(EventMetricNames.EventsWatermarkUpdated, partitionId, Category.Traffic)
+                .AddDimension(_timeDimension, dateTime.ToString());
+        }
+
+        /// <summary>
+        /// Signals the timestamp corresponding to the last processed event per partition.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the event hub</param>
+        /// <param name="triggerReason">The trigger that caused the events to be flushed and processed </param>
+        public static Metric EventTimestampLastProcessedPerPartition(string partitionId, string triggerReason)
+        {
+            return CreateBaseEventMetric(EventMetricNames.EventTimestampLastProcessedPerPartition, partitionId, Category.Latency)
+                .AddDimension(_reasonDimension, triggerReason);
         }
 
         /// <summary>
@@ -122,6 +98,20 @@ namespace Microsoft.Health.Events.Telemetry
                     { _errorTypeDimension, ErrorType.EventHubError },
                     { _errorSeverityDimension, ErrorSeverity.Critical },
                     { _operationDimension, connectorStage },
+                });
+        }
+
+        private static Metric CreateBaseEventMetric(EventMetricNames metricName, string partitionId, string category)
+        {
+            var metricNameString = metricName.ToString();
+            return new Metric(
+                metricNameString,
+                new Dictionary<string, object>
+                {
+                    { _nameDimension, metricNameString },
+                    { _partitionDimension, partitionId },
+                    { _categoryDimension, category },
+                    { _operationDimension, ConnectorOperation },
                 });
         }
     }

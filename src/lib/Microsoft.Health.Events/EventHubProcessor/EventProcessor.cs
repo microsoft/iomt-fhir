@@ -76,7 +76,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     var checkpoint = await _checkpointClient.GetCheckpointForPartitionAsync(partitionId);
                     initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
                     _logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
-                    _logger.LogMetric(EventMetrics.EventHubPartitionInitialized(), 1);
+                    _logger.LogMetric(EventMetrics.EventHubPartitionInitialized(partitionId), 1);
                 }
 #pragma warning disable CA1031
                 catch (Exception ex)

@@ -29,6 +29,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public string CorrelationId { get; set; }
 
+        public string PartitionId { get; set; }
+
 #pragma warning disable CA2227
         public IList<MeasurementProperty> Properties { get; set; }
 #pragma warning restore CA2227
