@@ -155,9 +155,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             Configuration.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
 
             var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
+            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);
 
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient));
+            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient), logger);
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
