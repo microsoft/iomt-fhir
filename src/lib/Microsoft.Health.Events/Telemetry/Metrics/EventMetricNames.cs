@@ -8,6 +8,11 @@ namespace Microsoft.Health.Events.Telemetry
     public enum EventMetricNames
     {
         /// <summary>
+        /// Signals that the event hub was changed.
+        /// </summary>
+        EventHubChanged,
+
+        /// <summary>
         /// Signals that an event hub partition has been intialized.
         /// </summary>
         EventHubPartitionInitialized,

@@ -26,6 +26,24 @@ namespace Microsoft.Health.Events.Telemetry
         public static string ConnectorOperation { get; set; } = Health.Common.Telemetry.ConnectorOperation.Unknown;
 
         /// <summary>
+        /// Signals that an event hub was changed.
+        /// </summary>
+        /// <param name="eventHubName">The name of the event hub</param>
+        public static Metric EventHubChanged(string eventHubName)
+        {
+            var metricName = EventMetricNames.EventHubChanged.ToString();
+            return new Metric(
+                metricName,
+                new Dictionary<string, object>
+                {
+                    { _nameDimension, metricName },
+                    { _categoryDimension, Category.Traffic },
+                    { _operationDimension, ConnectorOperation },
+                    { _reasonDimension, eventHubName },
+                });
+        }
+
+        /// <summary>
         /// Signals that an event hub partition has been intialized.
         /// </summary>
         /// <param name="partitionId">The partition id of the event hub</param>

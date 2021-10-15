@@ -202,7 +202,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
             {
                 _logger.LogTrace($"Entering {nameof(ResetCheckpointsAsync)}...");
 
-                foreach (BlobItem blob in _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None))
+                var hasEventHubChanged = false;
+
+                var blobs = _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None);
+
+                foreach (BlobItem blob in blobs)
                 {
                     if (!blob.Name.Contains(_blobPath, StringComparison.OrdinalIgnoreCase))
                     {
@@ -210,12 +214,18 @@ namespace Microsoft.Health.Events.EventCheckpointing
                         {
                             await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: CancellationToken.None);
                             _logger.LogTrace($"Blob checkpoint path changed to {_blobPath}. Deleted checkpoint {blob.Name}.");
+                            hasEventHubChanged = true;
                         }
                         catch (Exception ex)
                         {
                             _logger.LogError(new StorageCheckpointClientException($"Unable to delete checkpoint {blob.Name} with error {ex.Message}", ex));
                         }
                     }
+                }
+
+                if (blobs.Count() == 0 || hasEventHubChanged)
+                {
+                    _log.LogMetric(EventMetrics.EventHubChanged(_blobPath.Replace(_blobCheckpointPrefix, string.Empty)), 1);
                 }
 
                 _logger.LogTrace($"Exiting {nameof(ResetCheckpointsAsync)}.");

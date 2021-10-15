@@ -84,7 +84,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 else
                 {
                     // If we received the timer event and there are no enqueued events in the partition, then simply update the data freshness.
-                    UpdateDataFreshness(partitionId, triggerReason: nameof(ThresholdWaitReached));
+                    LogDataFreshness(partitionId, triggerReason: nameof(ThresholdWaitReached));
                 }
             }
             else
@@ -155,7 +155,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
             await UpdateCheckpoint(events, eventMetrics);
 
-            UpdateDataFreshness(partitionId, triggerReason, events);
+            LogDataFreshness(partitionId, triggerReason, events);
         }
 
         public Task ConsumeEvents(IEnumerable<IEventMessage> events)
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             throw new NotImplementedException();
         }
 
-        private void UpdateDataFreshness(string partitionId, string triggerReason, IEnumerable<IEventMessage> events = null)
+        private void LogDataFreshness(string partitionId, string triggerReason, IEnumerable<IEventMessage> events = null)
         {
             // To determine the data freshness per partition (i.e. latest event data processed in a partition), use the enqueued time of the last event for the batch.
             // If no events were flushed for the partition (eg: trigger reason is ThresholdWaitReached - due to receival of MaxTimeEvent), then use the current timestamp.
