@@ -42,6 +42,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                     catch (Exception e)
                     {
                         _logger.LogError(e);
+                        throw e;
                     }
                 }
             }
