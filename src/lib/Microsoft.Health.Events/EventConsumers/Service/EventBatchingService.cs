@@ -168,7 +168,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             // To determine the data freshness per partition (i.e. latest event data processed in a partition), use the enqueued time of the last event for the batch.
             // If no events were flushed for the partition (eg: trigger reason is ThresholdWaitReached - due to receival of MaxTimeEvent), then use the current timestamp.
             var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
-            _logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), long.Parse(eventTimestampLastProcessed.ToString("yyyyMMddHHmmss")));
+            _logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(eventTimestampLastProcessed.ToString("yyyyMMddHHmmss")));
         }
     }
 }

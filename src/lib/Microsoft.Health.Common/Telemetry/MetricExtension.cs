@@ -9,6 +9,11 @@ namespace Microsoft.Health.Common.Telemetry
     {
         public static Metric AddDimension(this Metric metric, string dimensionName, string dimensionValue)
         {
+            if (dimensionValue == null)
+            {
+                return metric;
+            }
+
             metric.Dimensions.Add(dimensionName, dimensionValue);
             return metric;
         }

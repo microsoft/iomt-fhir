@@ -22,15 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         private static string _operationDimension = DimensionNames.Operation;
         private static string _partitionDimension = DimensionNames.Identifier;
 
-        private static Metric _measurementIngestionLatency = CreateBaseIoMTMetric(IomtMetricNames.MeasurementIngestionLatency, Category.Traffic, ConnectorOperation.FHIRConversion);
-
-        private static Metric _measurementIngestionLatencyMs = CreateBaseIoMTMetric(IomtMetricNames.MeasurementIngestionLatencyMs, Category.Traffic, ConnectorOperation.FHIRConversion);
-
-        private static Metric _deviceEventProcessingLatency = CreateBaseIoMTMetric(IomtMetricNames.DeviceEventProcessingLatency, Category.Latency, ConnectorOperation.Normalization);
-
-        private static Metric _deviceEventProcessingLatencyMs = CreateBaseIoMTMetric(IomtMetricNames.DeviceEventProcessingLatencyMs, Category.Latency, ConnectorOperation.Normalization);
-
-        private static Metric _deviceIngressSizeBytes = CreateBaseIoMTMetric(IomtMetricNames.DeviceIngressSizeBytes, Category.Traffic, ConnectorOperation.Normalization);
+        private static Metric _deviceIngressSizeBytes = CreateBaseIomtMetric(IomtMetricName.DeviceIngressSizeBytes, Category.Traffic, ConnectorOperation.Normalization);
 
         private static Metric _notSupported = new Metric(
             "NotSupportedException",
@@ -46,17 +38,21 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <summary>
         /// The latency between event ingestion and output to FHIR processor.
         /// </summary>
-        public static Metric MeasurementIngestionLatency()
+        /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
+        public static Metric MeasurementIngestionLatency(string partitionId = null)
         {
-            return _measurementIngestionLatency;
+            return CreateBaseIomtMetric(IomtMetricName.MeasurementIngestionLatency, Category.Latency, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
         /// The latency between event ingestion and output to FHIR processor, in milliseconds.
         /// </summary>
-        public static Metric MeasurementIngestionLatencyMs()
+        /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
+        public static Metric MeasurementIngestionLatencyMs(string partitionId = null)
         {
-            return _measurementIngestionLatencyMs;
+            return CreateBaseIomtMetric(IomtMetricName.MeasurementIngestionLatencyMs, Category.Latency, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -65,8 +61,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
         public static Metric MeasurementGroup(string partitionId = null)
         {
-            var metric = CreateBaseIoMTMetric(IomtMetricNames.MeasurementGroup, Category.Traffic, ConnectorOperation.FHIRConversion);
-            return string.IsNullOrEmpty(partitionId) ? metric : metric.AddDimension(_partitionDimension, partitionId);
+            return CreateBaseIomtMetric(IomtMetricName.MeasurementGroup, Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -75,8 +71,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
         public static Metric Measurement(string partitionId = null)
         {
-            var metric = CreateBaseIoMTMetric(IomtMetricNames.Measurement, Category.Traffic, ConnectorOperation.FHIRConversion);
-            return string.IsNullOrEmpty(partitionId) ? metric : metric.AddDimension(_partitionDimension, partitionId);
+            return CreateBaseIomtMetric(IomtMetricName.Measurement, Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -85,8 +81,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
         public static Metric DeviceEvent(string partitionId = null)
         {
-            var metric = CreateBaseIoMTMetric(IomtMetricNames.DeviceEvent, Category.Traffic, ConnectorOperation.Normalization);
-            return string.IsNullOrEmpty(partitionId) ? metric : metric.AddDimension(_partitionDimension, partitionId);
+            return CreateBaseIomtMetric(IomtMetricName.DeviceEvent, Category.Traffic, ConnectorOperation.Normalization)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -95,24 +91,28 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
         public static Metric NormalizedEvent(string partitionId = null)
         {
-            var metric = CreateBaseIoMTMetric(IomtMetricNames.NormalizedEvent, Category.Traffic, ConnectorOperation.Normalization);
-            return string.IsNullOrEmpty(partitionId) ? metric : metric.AddDimension(_partitionDimension, partitionId);
+            return CreateBaseIomtMetric(IomtMetricName.NormalizedEvent, Category.Traffic, ConnectorOperation.Normalization)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
         /// The latency between the event ingestion time and normalization processing. An increase here indicates a backlog of messages to process.
         /// </summary>
-        public static Metric DeviceEventProcessingLatency()
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
+        public static Metric DeviceEventProcessingLatency(string partitionId = null)
         {
-            return _deviceEventProcessingLatency;
+           return CreateBaseIomtMetric(IomtMetricName.DeviceEventProcessingLatency, Category.Latency, ConnectorOperation.Normalization)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
         /// The latency between the event ingestion time and normalization processing, in milliseconds. An increase here indicates a backlog of messages to process.
         /// </summary>
-        public static Metric DeviceEventProcessingLatencyMs()
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
+        public static Metric DeviceEventProcessingLatencyMs(string partitionId = null)
         {
-            return _deviceEventProcessingLatencyMs;
+            return CreateBaseIomtMetric(IomtMetricName.DeviceEventProcessingLatencyMs, Category.Latency, ConnectorOperation.Normalization)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 });
         }
 
-        private static Metric CreateBaseIoMTMetric(IomtMetricNames metricName, string category, string operation)
+        private static Metric CreateBaseIomtMetric(IomtMetricName metricName, string category, string operation)
         {
             var metricNameString = metricName.ToString();
             return new Metric(

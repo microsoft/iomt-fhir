@@ -31,7 +31,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="eventHubName">The name of the event hub</param>
         public static Metric EventHubChanged(string eventHubName)
         {
-            var metricName = EventMetricNames.EventHubChanged.ToString();
+            var metricName = EventMetricName.EventHubChanged.ToString();
             return new Metric(
                 metricName,
                 new Dictionary<string, object>
@@ -49,7 +49,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventHubPartitionInitialized(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricNames.EventHubPartitionInitialized, partitionId, Category.Traffic);
+            return CreateBaseEventMetric(EventMetricName.EventHubPartitionInitialized, partitionId, Category.Traffic);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventsFlushed(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricNames.EventsFlushed, partitionId, Category.Traffic);
+            return CreateBaseEventMetric(EventMetricName.EventsFlushed, partitionId, Category.Traffic);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="dateTime">The datetime of the watermark</param>
         public static Metric EventWatermark(string partitionId, DateTime dateTime)
         {
-            return CreateBaseEventMetric(EventMetricNames.EventsWatermarkUpdated, partitionId, Category.Traffic)
+            return CreateBaseEventMetric(EventMetricName.EventsWatermarkUpdated, partitionId, Category.Latency)
                 .AddDimension(_timeDimension, dateTime.ToString());
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="triggerReason">The trigger that caused the events to be flushed and processed </param>
         public static Metric EventTimestampLastProcessedPerPartition(string partitionId, string triggerReason)
         {
-            return CreateBaseEventMetric(EventMetricNames.EventTimestampLastProcessedPerPartition, partitionId, Category.Latency)
+            return CreateBaseEventMetric(EventMetricName.EventTimestampLastProcessedPerPartition, partitionId, Category.Latency)
                 .AddDimension(_reasonDimension, triggerReason);
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.Health.Events.Telemetry
                 });
         }
 
-        private static Metric CreateBaseEventMetric(EventMetricNames metricName, string partitionId, string category)
+        private static Metric CreateBaseEventMetric(EventMetricName metricName, string partitionId, string category)
         {
             var metricNameString = metricName.ToString();
             return new Metric(

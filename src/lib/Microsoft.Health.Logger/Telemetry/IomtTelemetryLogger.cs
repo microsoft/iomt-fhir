@@ -20,7 +20,7 @@ namespace Microsoft.Health.Logging.Telemetry
             EnsureArg.IsNotNull(_telemetryClient);
         }
 
-        public virtual void LogMetric(Common.Telemetry.Metric metric, object metricValue)
+        public virtual void LogMetric(Common.Telemetry.Metric metric, double metricValue)
         {
             EnsureArg.IsNotNull(metric);
             LogMetricWithDimensions(metric, metricValue);
@@ -48,7 +48,7 @@ namespace Microsoft.Health.Logging.Telemetry
             _telemetryClient.TrackTrace(message);
         }
 
-        public void LogMetricWithDimensions(Common.Telemetry.Metric metric, object metricValue)
+        public void LogMetricWithDimensions(Common.Telemetry.Metric metric, double metricValue)
         {
             EnsureArg.IsNotNull(metric);
             metric.LogMetric(_telemetryClient, metricValue);

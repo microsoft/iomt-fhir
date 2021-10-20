@@ -14,7 +14,7 @@ namespace Microsoft.Health.Logging.Metrics.Telemetry
     {
         private static string _namespace = MetricIdentifier.DefaultMetricNamespace;
 
-        public static void LogMetric(this Common.Telemetry.Metric metric, TelemetryClient telemetryClient, object metricValue)
+        public static void LogMetric(this Common.Telemetry.Metric metric, TelemetryClient telemetryClient, double metricValue)
         {
             EnsureArg.IsNotNull(metric);
             EnsureArg.IsNotNull(telemetryClient);

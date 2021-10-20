@@ -10,7 +10,7 @@ namespace Microsoft.Health.Logging.Telemetry
 {
     public interface ITelemetryLogger
     {
-        void LogMetric(Metric metric, object metricValue);
+        void LogMetric(Metric metric, double metricValue);
 
         void LogError(Exception ex);
 

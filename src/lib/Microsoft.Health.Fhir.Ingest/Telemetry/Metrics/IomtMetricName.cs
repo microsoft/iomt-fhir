@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
-    public enum IomtMetricNames
+    public enum IomtMetricName
     {
         /// <summary>
         /// The number of input events received.
