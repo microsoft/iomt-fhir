@@ -22,7 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         private static string _operationDimension = DimensionNames.Operation;
         private static string _partitionDimension = DimensionNames.Identifier;
 
-        private static Metric _deviceIngressSizeBytes = CreateBaseIomtMetric(IomtMetricName.DeviceIngressSizeBytes, Category.Traffic, ConnectorOperation.Normalization);
+        private static Metric _deviceIngressSizeBytes = CreateBaseIomtMetric(IomtMetricDefinition.DeviceIngressSizeBytes, Category.Traffic, ConnectorOperation.Normalization);
 
         private static Metric _notSupported = new Metric(
             "NotSupportedException",
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
         public static Metric MeasurementIngestionLatency(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.MeasurementIngestionLatency, Category.Latency, ConnectorOperation.FHIRConversion)
+            return CreateBaseIomtMetric(IomtMetricDefinition.MeasurementIngestionLatency, Category.Latency, ConnectorOperation.FHIRConversion)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
         public static Metric MeasurementIngestionLatencyMs(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.MeasurementIngestionLatencyMs, Category.Latency, ConnectorOperation.FHIRConversion)
+            return CreateBaseIomtMetric(IomtMetricDefinition.MeasurementIngestionLatencyMs, Category.Latency, ConnectorOperation.FHIRConversion)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
         public static Metric MeasurementGroup(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.MeasurementGroup, Category.Traffic, ConnectorOperation.FHIRConversion)
+            return CreateBaseIomtMetric(IomtMetricDefinition.MeasurementGroup, Category.Traffic, ConnectorOperation.FHIRConversion)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition </param>
         public static Metric Measurement(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.Measurement, Category.Traffic, ConnectorOperation.FHIRConversion)
+            return CreateBaseIomtMetric(IomtMetricDefinition.Measurement, Category.Traffic, ConnectorOperation.FHIRConversion)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
         public static Metric DeviceEvent(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.DeviceEvent, Category.Traffic, ConnectorOperation.Normalization)
+            return CreateBaseIomtMetric(IomtMetricDefinition.DeviceEvent, Category.Traffic, ConnectorOperation.Normalization)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
         public static Metric NormalizedEvent(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.NormalizedEvent, Category.Traffic, ConnectorOperation.Normalization)
+            return CreateBaseIomtMetric(IomtMetricDefinition.NormalizedEvent, Category.Traffic, ConnectorOperation.Normalization)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
         public static Metric DeviceEventProcessingLatency(string partitionId = null)
         {
-           return CreateBaseIomtMetric(IomtMetricName.DeviceEventProcessingLatency, Category.Latency, ConnectorOperation.Normalization)
+           return CreateBaseIomtMetric(IomtMetricDefinition.DeviceEventProcessingLatency, Category.Latency, ConnectorOperation.Normalization)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
         public static Metric DeviceEventProcessingLatencyMs(string partitionId = null)
         {
-            return CreateBaseIomtMetric(IomtMetricName.DeviceEventProcessingLatencyMs, Category.Latency, ConnectorOperation.Normalization)
+            return CreateBaseIomtMetric(IomtMetricDefinition.DeviceEventProcessingLatencyMs, Category.Latency, ConnectorOperation.Normalization)
                 .AddDimension(_partitionDimension, partitionId);
         }
 
@@ -177,14 +177,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 });
         }
 
-        private static Metric CreateBaseIomtMetric(IomtMetricName metricName, string category, string operation)
+        private static Metric CreateBaseIomtMetric(IomtMetricDefinition iomtMetric, string category, string operation)
         {
-            var metricNameString = metricName.ToString();
+            var metricName = iomtMetric.ToString();
             return new Metric(
-                metricNameString,
+                metricName,
                 new Dictionary<string, object>
                 {
-                    { _nameDimension, metricNameString },
+                    { _nameDimension, metricName },
                     { _categoryDimension, category },
                     { _operationDimension, operation },
                 });

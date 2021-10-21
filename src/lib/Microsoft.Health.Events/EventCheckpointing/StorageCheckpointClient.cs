@@ -169,7 +169,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 if (count >= _lastCheckpointMaxCount)
                 {
                     await PublishCheckpointAsync(partitionId);
+<<<<<<< HEAD
                     _logger.LogMetric(EventMetrics.EventWatermark(partitionId, eventArgs.EnqueuedTime.UtcDateTime), 1);
+=======
+                    _log.LogMetric(EventMetrics.EventWatermark(partitionId), 1);
+>>>>>>> 42e99f0 (addressing PR comments)
                     _lastCheckpointTracker[partitionId] = 0;
 
                     _postCheckpointMetrics.TryGetValue(partitionId, out var postCheckpointMetrics);

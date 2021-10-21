@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 
@@ -16,7 +15,6 @@ namespace Microsoft.Health.Events.Telemetry
     {
         private static string _nameDimension = DimensionNames.Name;
         private static string _categoryDimension = DimensionNames.Category;
-        private static string _timeDimension = DimensionNames.Timestamp;
         private static string _partitionDimension = DimensionNames.Identifier;
         private static string _errorTypeDimension = DimensionNames.ErrorType;
         private static string _errorSeverityDimension = DimensionNames.ErrorSeverity;
@@ -31,7 +29,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="eventHubName">The name of the event hub</param>
         public static Metric EventHubChanged(string eventHubName)
         {
-            var metricName = EventMetricName.EventHubChanged.ToString();
+            var metricName = EventMetricDefinition.EventHubChanged.ToString();
             return new Metric(
                 metricName,
                 new Dictionary<string, object>
@@ -49,7 +47,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventHubPartitionInitialized(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricName.EventHubPartitionInitialized, partitionId, Category.Traffic);
+            return CreateBaseEventMetric(EventMetricDefinition.EventHubPartitionInitialized, partitionId, Category.Traffic);
         }
 
         /// <summary>
@@ -58,7 +56,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventsFlushed(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricName.EventsFlushed, partitionId, Category.Traffic);
+            return CreateBaseEventMetric(EventMetricDefinition.EventsFlushed, partitionId, Category.Traffic);
         }
 
         /// <summary>
@@ -82,11 +80,9 @@ namespace Microsoft.Health.Events.Telemetry
         /// Signals that a new watermark was published for a partition.
         /// </summary>
         /// <param name="partitionId">The partition id of the event hub</param>
-        /// <param name="dateTime">The datetime of the watermark</param>
-        public static Metric EventWatermark(string partitionId, DateTime dateTime)
+        public static Metric EventWatermark(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricName.EventsWatermarkUpdated, partitionId, Category.Latency)
-                .AddDimension(_timeDimension, dateTime.ToString());
+            return CreateBaseEventMetric(EventMetricDefinition.EventsWatermarkUpdated, partitionId, Category.Latency);
         }
 
         /// <summary>
@@ -96,7 +92,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="triggerReason">The trigger that caused the events to be flushed and processed </param>
         public static Metric EventTimestampLastProcessedPerPartition(string partitionId, string triggerReason)
         {
-            return CreateBaseEventMetric(EventMetricName.EventTimestampLastProcessedPerPartition, partitionId, Category.Latency)
+            return CreateBaseEventMetric(EventMetricDefinition.EventTimestampLastProcessedPerPartition, partitionId, Category.Latency)
                 .AddDimension(_reasonDimension, triggerReason);
         }
 
@@ -119,14 +115,14 @@ namespace Microsoft.Health.Events.Telemetry
                 });
         }
 
-        private static Metric CreateBaseEventMetric(EventMetricName metricName, string partitionId, string category)
+        private static Metric CreateBaseEventMetric(EventMetricDefinition eventMetric, string partitionId, string category)
         {
-            var metricNameString = metricName.ToString();
+            var metricName = eventMetric.ToString();
             return new Metric(
-                metricNameString,
+                metricName,
                 new Dictionary<string, object>
                 {
-                    { _nameDimension, metricNameString },
+                    { _nameDimension, metricName },
                     { _partitionDimension, partitionId },
                     { _categoryDimension, category },
                     { _operationDimension, ConnectorOperation },
