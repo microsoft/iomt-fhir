@@ -22,7 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var body = Encoding.UTF8.GetBytes("22 characters to bytes");
             var evt = new EventData(body);
 
-            // 93 bytes
+            // 93 bytes on Linux, 94 bytes on Windows
             evt.SystemProperties = new SystemPropertiesCollection(1, DateTime.MinValue, "1", "1");
 
             // 14 bytes
@@ -44,7 +44,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             else
             {
                 // DateTime.MinValue = "1/1/0001 12:00:00 AM" on Windows
-                Assert.Equal(144, stats.TotalEventsProcessedBytes); // 22 + 94 + 14 + 14 = 143
+                Assert.Equal(144, stats.TotalEventsProcessedBytes); // 22 + 94 + 14 + 14 = 144
             }
 
 
