@@ -43,11 +43,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             else
             {
-                // DateTime.MinValue = "1/1/0001 12:00:00 AM" on Windows
                 Assert.Equal(144, stats.TotalEventsProcessedBytes); // 22 + 94 + 14 + 14 = 144
             }
-
-
         }
     }
 }
