@@ -38,16 +38,15 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
         public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger logger)
         {
-            EnsureArg.IsNotNull(containerClient, nameof(containerClient));
+            _storageClient = EnsureArg.IsNotNull(containerClient, nameof(containerClient));
             EnsureArg.IsNotNull(storageCheckpointOptions, nameof(storageCheckpointOptions));
             EnsureArg.IsNotNull(eventHubClientOptions, nameof(eventHubClientOptions));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
             _lastCheckpointMaxCount = int.Parse(storageCheckpointOptions.CheckpointBatchCount);
             _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
             _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
             _postCheckpointMetrics = new ConcurrentDictionary<string, List<KeyValuePair<Metric, double>>>();
-            _storageClient = containerClient;
-            _logger = logger;
 
             (string eventHubNamespaceFQDN, string eventHubName) = GetEventHubProperties(eventHubClientOptions);
             EnsureArg.IsNotNullOrWhiteSpace(eventHubNamespaceFQDN, nameof(eventHubNamespaceFQDN));
