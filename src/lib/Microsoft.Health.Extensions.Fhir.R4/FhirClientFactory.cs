@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -13,60 +14,34 @@ using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
-using Microsoft.Health.Common.Auth;
-using Microsoft.Health.Common.Telemetry;
-using Microsoft.Health.Extensions.Fhir.Config;
-using Microsoft.Health.Extensions.Fhir.Telemetry.Metrics;
-using Microsoft.Health.Extensions.Host.Auth;
-using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
-    public class FhirClientFactory : IFactory<FhirClient>
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+    public class FhirClientFactory : IFactory<BaseFhirClient>, IDisposable
+#pragma warning restore CA1063 // Implement IDisposable Correctly
     {
-        private readonly bool _useManagedIdentity = false;
-        private readonly IAzureCredentialProvider _tokenCredentialProvider;
-        private readonly ITelemetryLogger _logger;
+        private readonly FhirClientFactoryOptions _options;
+        private HttpClient _httpClient;
+        private readonly SemaphoreSlim _semaphoreSlim;
 
-        public FhirClientFactory(IOptions<FhirClientFactoryOptions> options, ITelemetryLogger logger)
-            : this(EnsureArg.IsNotNull(options, nameof(options)).Value.UseManagedIdentity, logger)
+        public FhirClientFactory(IOptions<FhirClientFactoryOptions> options)
         {
+            _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+            _semaphoreSlim = new SemaphoreSlim(1, 1);
         }
 
-        private FhirClientFactory()
-            : this(useManagedIdentity: false, logger: null)
+        public BaseFhirClient Create()
         {
+            EnsureArg.IsNotNull(_options.CredentialProvider);
+            var tokenCredential = _options.CredentialProvider.GetCredential();
+            return CreateClient(tokenCredential);
         }
 
-        private FhirClientFactory(bool useManagedIdentity, ITelemetryLogger logger)
-        {
-            _useManagedIdentity = useManagedIdentity;
-            _logger = logger;
-        }
-
-        public FhirClientFactory(IAzureCredentialProvider provider, ITelemetryLogger logger)
-        {
-            _tokenCredentialProvider = provider;
-            _logger = logger;
-        }
-
-        public static IFactory<FhirClient> Instance { get; } = new FhirClientFactory();
-
-        public FhirClient Create()
-        {
-            if (_tokenCredentialProvider != null)
-            {
-                return CreateClient(_tokenCredentialProvider.GetCredential(), _logger);
-            }
-
-            return _useManagedIdentity ? CreateManagedIdentityClient(_logger) : CreateConfidentialApplicationClient(_logger);
-        }
-
-        private static FhirClient CreateClient(TokenCredential tokenCredential, ITelemetryLogger logger)
+        private BaseFhirClient CreateClient(TokenCredential tokenCredential)
         {
             var url = Environment.GetEnvironmentVariable("FhirService:Url");
             EnsureArg.IsNotNullOrEmpty(url, nameof(url));
-            var uri = new Uri(url);
 
             EnsureArg.IsNotNull(tokenCredential, nameof(tokenCredential));
 
@@ -75,32 +50,61 @@ namespace Microsoft.Health.Extensions.Fhir
                 PreferredFormat = ResourceFormat.Json,
             };
 
-            var client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(uri, tokenCredential, logger));
+            var uri = new Uri(url);
+            var httpClient = GetHttpClient(() =>
+                new BearerTokenAuthorizationMessageHandler(url, tokenCredential)
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                });
+            var requester = new Client.HttpClientRequester(uri, fhirClientSettings, httpClient);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var client = new Client.FhirClient(uri, requester, fhirClientSettings);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             return client;
         }
 
-        private static FhirClient CreateManagedIdentityClient(ITelemetryLogger logger)
+        private HttpClient GetHttpClient(Func<HttpClientHandler> handlerGenerator)
         {
-            return CreateClient(new ManagedIdentityAuthService(), logger);
+            if (_httpClient == null)
+            {
+                try
+                {
+                    _semaphoreSlim.Wait();
+                    if (_httpClient == null)
+                    {
+                        _httpClient = new HttpClient(handlerGenerator.Invoke());
+                        _httpClient.DefaultRequestHeaders.Add("User-Agent", $".NET FhirClient for FHIR");
+                        _httpClient.Timeout = TimeSpan.FromSeconds(30);
+                    }
+                }
+                finally
+                {
+                    _semaphoreSlim.Release();
+                }
+            }
+
+            return _httpClient;
         }
 
-        private static FhirClient CreateConfidentialApplicationClient(ITelemetryLogger logger)
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+        public void Dispose()
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
+#pragma warning restore CA1063 // Implement IDisposable Correctly
         {
-            return CreateClient(new OAuthConfidentialClientAuthService(), logger);
+            _httpClient.Dispose();
         }
 
         private class BearerTokenAuthorizationMessageHandler : HttpClientHandler
         {
-            public BearerTokenAuthorizationMessageHandler(Uri uri, TokenCredential tokenCredentialProvider, ITelemetryLogger logger)
+            public BearerTokenAuthorizationMessageHandler(string url, TokenCredential tokenCredential)
             {
-                TokenCredential = EnsureArg.IsNotNull(tokenCredentialProvider, nameof(tokenCredentialProvider));
-                Uri = EnsureArg.IsNotNull(uri);
-                Scopes = new string[] { Uri + ".default" };
-                Logger = logger;
+                TokenCredential = EnsureArg.IsNotNull(tokenCredential, nameof(tokenCredential));
+                Uri = new Uri(url);
+                Scopes = new string[] { $"{Uri}.default" };
             }
-
-            private ITelemetryLogger Logger { get; }
 
             private TokenCredential TokenCredential { get; }
 
@@ -108,27 +112,19 @@ namespace Microsoft.Health.Extensions.Fhir
 
             private string[] Scopes { get; }
 
+            private AccessToken AccessToken { get; set; }
+
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 var requestContext = new TokenRequestContext(Scopes);
-                var accessToken = await TokenCredential.GetTokenAsync(requestContext, CancellationToken.None);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
-                var response = await base.SendAsync(request, cancellationToken);
 
-                if (Logger != null && !response.IsSuccessStatusCode)
+                if (string.IsNullOrEmpty(AccessToken.Token) || (AccessToken.ExpiresOn < DateTime.UtcNow.AddMinutes(1)))
                 {
-                    var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                    {
-                        Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ErrorSeverity.Informational, ConnectorOperation.FHIRConversion), 1);
-                    }
-                    else
-                    {
-                        Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ErrorSeverity.Critical, ConnectorOperation.FHIRConversion), 1);
-                    }
+                    AccessToken = await TokenCredential.GetTokenAsync(requestContext, CancellationToken.None);
                 }
 
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken.Token);
+                var response = await base.SendAsync(request, cancellationToken);
                 return response;
             }
         }
