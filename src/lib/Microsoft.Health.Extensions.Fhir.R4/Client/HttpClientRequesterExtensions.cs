@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using EnsureThat;
 using Hl7.Fhir.Rest;
 using Hl7.Fhir.Serialization;
@@ -19,12 +18,6 @@ namespace Microsoft.Health.Extensions.Fhir.Client
 {
     public static class HttpClientRequesterExtensions
     {
-        /// <summary>
-        /// Flag to control the setting of the User Agent string (different platforms have different abilities)
-        /// </summary>
-        public static bool SetUserAgentUsingReflection = true;
-        public static bool SetUserAgentUsingDirectHeaderManipulation = true;
-
         public static EntryResponse ToEntryResponse(this HttpResponseMessage response, byte[] body)
         {
             EnsureArg.IsNotNull(response, nameof(response));
@@ -215,7 +208,6 @@ namespace Microsoft.Health.Extensions.Fhir.Client
 
             var request = (HttpWebRequest)WebRequest.Create(location.Uri);
             request.Method = entry.Method.ToString();
-            SetAgent(request, ".NET FhirClient for FHIR " + entry.Agent);
 
             if (!settings.UseFormatParameter)
             {
@@ -279,42 +271,6 @@ namespace Microsoft.Health.Extensions.Fhir.Client
                  entry.Type == InteractionType.Patch;
 
             return request;
-        }
-
-        private static void SetAgent(HttpWebRequest request, string agent)
-        {
-            bool userAgentSet = false;
-            if (SetUserAgentUsingReflection)
-            {
-                try
-                {
-                    PropertyInfo prop = request.GetType().GetRuntimeProperty("UserAgent");
-
-                    if (prop != null)
-
-                        prop.SetValue(request, agent, null);
-                    userAgentSet = true;
-                }
-                catch (Exception)
-                {
-                    // This approach doesn't work on this platform, so don't try it again.
-                    SetUserAgentUsingReflection = false;
-                }
-            }
-
-            if (!userAgentSet && SetUserAgentUsingDirectHeaderManipulation)
-            {
-                // platform does not support UserAgent property...too bad
-                try
-                {
-                    request.UserAgent = agent;
-                }
-                catch (ArgumentException)
-                {
-                    SetUserAgentUsingDirectHeaderManipulation = false;
-                    throw;
-                }
-            }
         }
     }
 }

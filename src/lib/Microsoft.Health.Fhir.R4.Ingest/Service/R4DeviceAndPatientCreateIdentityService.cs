@@ -6,7 +6,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
-using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
@@ -20,13 +19,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     [ResourceIdentityService(nameof(R4DeviceAndPatientCreateIdentityService))]
     public class R4DeviceAndPatientCreateIdentityService : R4DeviceAndPatientLookupIdentityService
     {
-        public R4DeviceAndPatientCreateIdentityService(FhirClient fhirClient)
-            : base(fhirClient)
-        {
-        }
-
-        public R4DeviceAndPatientCreateIdentityService(FhirClient fhirClient, ResourceManagementService resourceIdService)
-            : base(fhirClient, resourceIdService)
+        public R4DeviceAndPatientCreateIdentityService(ResourceManagementService resourceIdService)
+            : base(resourceIdService, ResourceIdentityServiceType.Create)
         {
         }
 
@@ -70,14 +64,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Begin critical section
 
             var patient = await ResourceManagementService.EnsureResourceByIdentityAsync<Model.Patient>(
-                FhirClient,
                 input.PatientId,
                 null,
                 (p, id) => p.Identifier = new List<Model.Identifier> { id })
                 .ConfigureAwait(false);
 
             var device = await ResourceManagementService.EnsureResourceByIdentityAsync<Model.Device>(
-                FhirClient,
                 GetDeviceIdentity(input),
                 ResourceIdentityOptions?.DefaultDeviceIdentifierSystem,
                 (d, id) =>
@@ -92,7 +84,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             if (device.Patient == null)
             {
                 device.Patient = patient.ToReference();
-                device = await FhirClient.UpdateAsync<Model.Device>(device, true).ConfigureAwait(false);
+                device = await ResourceManagementService.FhirServerRepository.UpdateResourceAsync(device, true).ConfigureAwait(false);
             }
             else if (device.Patient.GetId<Model.Patient>() != patient.Id)
             {

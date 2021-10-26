@@ -10,6 +10,7 @@ using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Extensions.Fhir;
+using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Search;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
@@ -23,17 +24,23 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class R4FhirImportService :
         FhirImportService
     {
-        private readonly FhirClient _client;
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
         private readonly IMemoryCache _observationCache;
         private readonly ITelemetryLogger _logger;
+        private readonly IFhirServerRepository _fhirServerRepository;
 
-        public R4FhirImportService(IResourceIdentityService resourceIdentityService, FhirClient fhirClient, IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor, IMemoryCache observationCache, ITelemetryLogger logger)
+        public R4FhirImportService(
+            IResourceIdentityService resourceIdentityService,
+            IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>,
+            Model.Observation> fhirTemplateProcessor,
+            IMemoryCache observationCache,
+            ITelemetryLogger logger,
+            IFhirServerRepository fhirServerRepository)
         {
             _fhirTemplateProcessor = EnsureArg.IsNotNull(fhirTemplateProcessor, nameof(fhirTemplateProcessor));
-            _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
             _observationCache = EnsureArg.IsNotNull(observationCache, nameof(observationCache));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            _fhirServerRepository = EnsureArg.IsNotNull(fhirServerRepository, nameof(fhirServerRepository));
 
             ResourceIdentityService = EnsureArg.IsNotNull(resourceIdentityService, nameof(resourceIdentityService));
         }
@@ -67,7 +74,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             if (existingObservation == null)
             {
                 var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
-                result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
+                result = await _fhirServerRepository.CreateResourceAsync(newObservation).ConfigureAwait(false);
                 _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created), 1);
             }
             else
@@ -81,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                      .ExecuteAndCaptureAsync(async () =>
                      {
                          var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
-                         return await _client.UpdateAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
+                         return await _fhirServerRepository.UpdateResourceAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
                      }).ConfigureAwait(false);
 
                 var exception = policyResult.FinalException;
@@ -147,8 +154,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         protected virtual async Task<Model.Observation> GetObservationFromServerAsync(Model.Identifier identifier)
         {
             var searchParams = identifier.ToSearchParams();
-            var result = await _client.SearchAsync<Model.Observation>(searchParams).ConfigureAwait(false);
-            return await result.ReadOneFromBundleWithContinuationAsync<Model.Observation>(_client);
+            var result = await _fhirServerRepository.SearchForResourceAsync<Model.Observation>(searchParams).ConfigureAwait(false);
+            return await result.ReadOneFromBundleWithContinuationAsync<Model.Observation>(_fhirServerRepository);
         }
     }
 }

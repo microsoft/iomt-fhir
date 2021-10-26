@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -48,10 +50,20 @@ namespace Microsoft.Health.Extensions.Fhir.Repository
             }
         }
 
-        public async Task<T> ContinueBundleAsync<T>(Bundle bundle, PageDirection pageDirection = PageDirection.Next, CancellationToken cancellationToken = default)
-            where T : Resource
+        public async IAsyncEnumerable<Bundle> IterateOverAdditionalBundlesAsync(Bundle bundle, PageDirection pageDirection = PageDirection.Next, [EnumeratorCancellation]CancellationToken cancellationToken = default)
         {
-
+            using (var client = _fhirClientFactory.Create())
+            {
+                Bundle trackedBundle = bundle;
+                while (trackedBundle != null)
+                {
+                    trackedBundle = await client.ContinueAsync(trackedBundle).ConfigureAwait(false);
+                    if (trackedBundle != null)
+                    {
+                        yield return trackedBundle;
+                    }
+                }
+            }
         }
     }
 }

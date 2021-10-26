@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
-using Microsoft.Health.Extensions.Fhir.Config;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -38,16 +37,21 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.Configure<ResourceIdentityOptions>(Configuration.GetSection("ResourceIdentity"));
             services.Configure<FhirClientFactoryOptions>(Configuration.GetSection("FhirClient"));
 
-            services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
-            services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
+            services.TryAddSingleton<IFactory<BaseFhirClient>, FhirClientFactory>();
+            services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<BaseFhirClient>>().Create());
             services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            services.TryAddSingleton(ResolveResourceIdentityService);
             services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
             services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
             services.TryAddSingleton<MeasurementFhirImportOptions>();
             services.TryAddSingleton<MeasurementFhirImportService>();
             services.TryAddSingleton(ResolveMeasurementImportProvider);
+
+            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientCreateIdentityService>();
+            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientLookupIdentityService>();
+            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientWithEncounterLookupIdentityService>();
+            services.TryAddSingleton<IFactory<IResourceIdentityService>, ResourceIdentityServiceFactory>();
+            services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<IResourceIdentityService>>().Create());
         }
 
         private MeasurementFhirImportProvider ResolveMeasurementImportProvider(IServiceProvider serviceProvider)
@@ -59,15 +63,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             var measurementImportService = new MeasurementFhirImportProvider(Configuration, options, logger, serviceProvider);
 
             return measurementImportService;
-        }
-
-        private static IResourceIdentityService ResolveResourceIdentityService(IServiceProvider serviceProvider)
-        {
-            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-
-            var fhirClient = serviceProvider.GetRequiredService<FhirClient>();
-            var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
         }
     }
 }

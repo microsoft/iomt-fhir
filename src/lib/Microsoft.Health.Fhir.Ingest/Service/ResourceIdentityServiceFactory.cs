@@ -7,85 +7,38 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Ingest.Config;
-using Microsoft.Health.Fhir.Ingest.Host;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService, ResourceIdentityOptions>
+    public class ResourceIdentityServiceFactory : IFactory<IResourceIdentityService>
     {
-        private const string TargetAssemblyPrefix = "Microsoft.Health";
-        private static readonly IDictionary<string, Type> _identityServiceRegistry = GetResourceIdentityServiceRegistry();
+        private readonly IDictionary<string, IResourceIdentityService> _resourceIdentityServices;
+        private readonly ResourceIdentityOptions config;
 
-        private ResourceIdentityServiceFactory()
+        public ResourceIdentityServiceFactory(
+            IList<IResourceIdentityService> resourceIdentityServices,
+            IOptions<ResourceIdentityOptions> resourceIdentityOptions)
         {
+            EnsureArg.IsNotNull(resourceIdentityServices);
+            config = EnsureArg.IsNotNull(resourceIdentityOptions?.Value, nameof(resourceIdentityOptions));
+            _resourceIdentityServices = resourceIdentityServices.ToDictionary((service) => service.GetResourceIdentityServiceType().ToString());
         }
 
-        public static IFactory<IResourceIdentityService, ResourceIdentityOptions> Instance { get; } = new ResourceIdentityServiceFactory();
-
-        public IResourceIdentityService Create(ResourceIdentityOptions config, params object[] constructorParams)
+        public IResourceIdentityService Create()
         {
-            EnsureArg.IsNotNull(config, nameof(config));
+            IResourceIdentityService resourceIdentityService = _resourceIdentityServices[config.ResourceIdentityServiceType];
 
-            if (!_identityServiceRegistry.TryGetValue(config.ResourceIdentityServiceType, out Type serviceClassType))
+            if (resourceIdentityService == null)
             {
-                throw new NotSupportedException($"IResourceIdentityService type {config.ResourceIdentityServiceType} not found.");
+                throw new ArgumentException($"Unsupported Resource Identity Service Type {config.ResourceIdentityServiceType}");
             }
 
-            var ctorParamTypes = constructorParams
-                .Select(p => p.GetType())
-                .ToArray();
-
-            var ctor = serviceClassType.GetConstructor(ctorParamTypes);
-
-            if (ctor == null)
-            {
-                throw new NotSupportedException($"IResourceIdentityService type {config.ResourceIdentityServiceType} does not support constructor parameter type(s) {string.Join<Type>(", ", ctorParamTypes)}");
-            }
-
-            var resourceIdentityService = (IResourceIdentityService)ctor.Invoke(constructorParams);
             resourceIdentityService.Initialize(config);
 
             return resourceIdentityService;
-        }
-
-        /// <summary>
-        /// Returns the registry of resource identity service classes. The class needs to be declared with the ResourceIdentityServiceAttribute
-        /// explicitly and built in the assembly. There should be only one service class registered for each ResourceIdentityServiceType. The
-        /// dynamic types will not get loaded.
-        /// </summary>
-        /// <returns>The registry of resource identity service class types.</returns>
-        private static IDictionary<string, Type> GetResourceIdentityServiceRegistry()
-        {
-            IDictionary<string, Type> serviceTypeRegistry = new Dictionary<string, Type>();
-
-            AppDomain.CurrentDomain
-                .GetAssemblies()
-                .Where(assembly => assembly.FullName.StartsWith(TargetAssemblyPrefix) && !assembly.IsDynamic)
-                .ToList()
-                .ForEach(assembly =>
-                {
-                    foreach (Type classType in assembly.GetTypes())
-                    {
-                        if (typeof(IResourceIdentityService).IsAssignableFrom(classType) && classType.IsClass && !classType.IsAbstract)
-                        {
-                            foreach (ResourceIdentityServiceAttribute attribute in classType.GetCustomAttributes(typeof(ResourceIdentityServiceAttribute), false) as ResourceIdentityServiceAttribute[])
-                            {
-                                if (!serviceTypeRegistry.TryGetValue(attribute.Type, out Type existClassType))
-                                {
-                                    serviceTypeRegistry.Add(attribute.Type, classType);
-                                }
-                                else
-                                {
-                                    throw new TypeLoadException($"Duplicate class types found for IResourceIdentityService type '{attribute.Type}': '{existClassType.FullName}', '{classType.FullName}'.");
-                                }
-                            }
-                        }
-                    }
-                });
-
-            return serviceTypeRegistry;
         }
     }
 }
