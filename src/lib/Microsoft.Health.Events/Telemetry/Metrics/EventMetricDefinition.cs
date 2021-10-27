@@ -3,19 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Events.Telemetry
 {
-    public sealed class EventMetricDefinition
+    public sealed class EventMetricDefinition : MetricDefinition
     {
         private EventMetricDefinition(string metricName)
+            : base(metricName)
         {
-            EnsureArg.IsNotNullOrEmpty(metricName, nameof(metricName));
-            MetricName = metricName;
         }
-
-        public string MetricName { get; }
 
         public static EventMetricDefinition EventsFlushed { get; } = new EventMetricDefinition(nameof(EventsFlushed));
 
@@ -30,10 +27,5 @@ namespace Microsoft.Health.Events.Telemetry
         public static EventMetricDefinition DeviceIngressSizeBytes { get; } = new EventMetricDefinition(nameof(DeviceIngressSizeBytes));
 
         public static EventMetricDefinition MeasurementToFhirBytes { get; } = new EventMetricDefinition(nameof(MeasurementToFhirBytes));
-
-        public override string ToString()
-        {
-            return MetricName;
-        }
     }
 }

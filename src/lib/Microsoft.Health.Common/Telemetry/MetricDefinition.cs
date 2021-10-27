@@ -3,19 +3,23 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+
 namespace Microsoft.Health.Common.Telemetry
 {
-    public static class MetricExtension
+    public class MetricDefinition
     {
-        public static Metric AddDimension(this Metric metric, string dimensionName, string dimensionValue)
+        public MetricDefinition(string metricName)
         {
-            if (string.IsNullOrEmpty(dimensionValue))
-            {
-                return metric;
-            }
+            EnsureArg.IsNotNullOrEmpty(metricName, nameof(metricName));
+            MetricName = metricName;
+        }
 
-            metric.Dimensions.Add(dimensionName, dimensionValue);
-            return metric;
+        public string MetricName { get; }
+
+        public override string ToString()
+        {
+            return MetricName;
         }
     }
 }

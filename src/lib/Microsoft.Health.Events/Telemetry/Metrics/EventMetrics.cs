@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 
@@ -13,15 +14,25 @@ namespace Microsoft.Health.Events.Telemetry
     /// </summary>
     public static class EventMetrics
     {
-        private static string _nameDimension = DimensionNames.Name;
-        private static string _categoryDimension = DimensionNames.Category;
-        private static string _partitionDimension = DimensionNames.Identifier;
-        private static string _errorTypeDimension = DimensionNames.ErrorType;
-        private static string _errorSeverityDimension = DimensionNames.ErrorSeverity;
-        private static string _operationDimension = DimensionNames.Operation;
-        private static string _reasonDimension = DimensionNames.Reason;
+        private static readonly string _nameDimension = DimensionNames.Name;
+        private static readonly string _categoryDimension = DimensionNames.Category;
+        private static readonly string _partitionDimension = DimensionNames.Identifier;
+        private static readonly string _errorTypeDimension = DimensionNames.ErrorType;
+        private static readonly string _errorSeverityDimension = DimensionNames.ErrorSeverity;
+        private static readonly string _operationDimension = DimensionNames.Operation;
+        private static readonly string _reasonDimension = DimensionNames.Reason;
 
-        public static string ConnectorOperation { get; set; } = Health.Common.Telemetry.ConnectorOperation.Unknown;
+        private static string _connectorOperation = ConnectorOperation.Unknown;
+
+        public static void SetConnectorOperation(string connectorOperation)
+        {
+            if (_connectorOperation != ConnectorOperation.Unknown)
+            {
+                throw new InvalidOperationException($"Connector operation can only be assinged once. Current value - {_connectorOperation}");
+            }
+
+            _connectorOperation = connectorOperation;
+        }
 
         /// <summary>
         /// Signals that an event hub was changed.
@@ -29,16 +40,9 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="eventHubName">The name of the event hub</param>
         public static Metric EventHubChanged(string eventHubName)
         {
-            var metricName = EventMetricDefinition.EventHubChanged.ToString();
-            return new Metric(
-                metricName,
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, metricName },
-                    { _categoryDimension, Category.Traffic },
-                    { _operationDimension, ConnectorOperation },
-                    { _reasonDimension, eventHubName },
-                });
+            return EventMetricDefinition.EventHubChanged
+                .CreateBaseMetric(Category.Traffic, _connectorOperation)
+                .AddDimension(_reasonDimension, eventHubName);
         }
 
         /// <summary>
@@ -47,7 +51,9 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventHubPartitionInitialized(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricDefinition.EventHubPartitionInitialized, partitionId, Category.Traffic);
+            return EventMetricDefinition.EventHubPartitionInitialized
+                .CreateBaseMetric(Category.Traffic, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -56,7 +62,9 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventsFlushed(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricDefinition.EventsFlushed, partitionId, Category.Traffic);
+            return EventMetricDefinition.EventsFlushed
+                .CreateBaseMetric(Category.Traffic, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -65,15 +73,8 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="eventMetricDefinition">The metric definition that contains a metric name for the metric emitted after events are consumed</param>\
         public static Metric EventsConsumed(EventMetricDefinition eventMetricDefinition)
         {
-            var metricName = eventMetricDefinition.ToString();
-            return new Metric(
-                metricName,
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, metricName },
-                    { _categoryDimension, Category.Traffic },
-                    { _operationDimension, ConnectorOperation },
-                });
+            return eventMetricDefinition
+                .CreateBaseMetric(Category.Traffic, _connectorOperation);
         }
 
         /// <summary>
@@ -82,7 +83,9 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="partitionId">The partition id of the event hub</param>
         public static Metric EventWatermark(string partitionId)
         {
-            return CreateBaseEventMetric(EventMetricDefinition.EventsWatermarkUpdated, partitionId, Category.Latency);
+            return EventMetricDefinition.EventsWatermarkUpdated
+                .CreateBaseMetric(Category.Latency, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
@@ -92,7 +95,9 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="triggerReason">The trigger that caused the events to be flushed and processed </param>
         public static Metric EventTimestampLastProcessedPerPartition(string partitionId, string triggerReason)
         {
-            return CreateBaseEventMetric(EventMetricDefinition.EventTimestampLastProcessedPerPartition, partitionId, Category.Latency)
+            return EventMetricDefinition.EventTimestampLastProcessedPerPartition
+                .CreateBaseMetric(Category.Latency, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId)
                 .AddDimension(_reasonDimension, triggerReason);
         }
 
@@ -112,20 +117,6 @@ namespace Microsoft.Health.Events.Telemetry
                     { _errorTypeDimension, ErrorType.EventHubError },
                     { _errorSeverityDimension, ErrorSeverity.Critical },
                     { _operationDimension, connectorStage },
-                });
-        }
-
-        private static Metric CreateBaseEventMetric(EventMetricDefinition eventMetric, string partitionId, string category)
-        {
-            var metricName = eventMetric.ToString();
-            return new Metric(
-                metricName,
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, metricName },
-                    { _partitionDimension, partitionId },
-                    { _categoryDimension, category },
-                    { _operationDimension, ConnectorOperation },
                 });
         }
     }

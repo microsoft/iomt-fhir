@@ -83,7 +83,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
                 var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, collectionContentFactory);
                 eventConsumers.Add(deviceDataNormalization);
-                EventMetrics.ConnectorOperation = ConnectorOperation.Normalization;
+                EventMetrics.SetConnectorOperation(ConnectorOperation.Normalization);
             }
             else if (applicationType == _measurementToFhirAppType)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var importService = serviceProvider.GetRequiredService<MeasurementFhirImportService>();
                 var measurementCollectionToFhir = new MeasurementCollectionToFhir.Processor(template, templateManager, importService, logger);
                 eventConsumers.Add(measurementCollectionToFhir);
-                EventMetrics.ConnectorOperation = ConnectorOperation.FHIRConversion;
+                EventMetrics.SetConnectorOperation(ConnectorOperation.FHIRConversion);
             }
             else
             {
