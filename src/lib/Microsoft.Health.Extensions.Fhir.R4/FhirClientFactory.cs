@@ -33,6 +33,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
         public BaseFhirClient Create()
         {
+            // TODO Configure a Credential Provider for OSS
             EnsureArg.IsNotNull(_options.CredentialProvider);
             var tokenCredential = _options.CredentialProvider.GetCredential();
             return CreateClient(tokenCredential);
@@ -50,6 +51,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 PreferredFormat = ResourceFormat.Json,
             };
 
+            // **** Building Fhir Client which uses singleton HttpClient
             var uri = new Uri(url);
             var httpClient = GetHttpClient(() =>
                 new BearerTokenAuthorizationMessageHandler(url, tokenCredential)
@@ -61,6 +63,12 @@ namespace Microsoft.Health.Extensions.Fhir
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var client = new Client.FhirClient(uri, requester, fhirClientSettings);
 #pragma warning restore CA2000 // Dispose objects before losing scope
+
+            // *********
+
+            // **** Building Fhir Client which uses a new HttpClient
+            // var client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(url, tokenCredential));
+            // *********
 
             return client;
         }
@@ -94,7 +102,10 @@ namespace Microsoft.Health.Extensions.Fhir
 #pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
 #pragma warning restore CA1063 // Implement IDisposable Correctly
         {
-            _httpClient.Dispose();
+            if (_httpClient != null)
+            {
+                _httpClient.Dispose();
+            }
         }
 
         private class BearerTokenAuthorizationMessageHandler : HttpClientHandler
