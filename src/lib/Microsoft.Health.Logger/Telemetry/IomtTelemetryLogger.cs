@@ -36,6 +36,10 @@ namespace Microsoft.Health.Logging.Telemetry
             else
             {
                 _telemetryClient.TrackException(ex);
+                if (ex.InnerException != null)
+                {
+                    _telemetryClient.TrackException(ex.InnerException);
+                }
             }
         }
 
