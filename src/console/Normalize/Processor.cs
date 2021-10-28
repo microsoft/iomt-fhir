@@ -14,7 +14,6 @@ using Azure.Identity;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.Model;
