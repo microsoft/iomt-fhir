@@ -7,6 +7,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Processor;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
 using EnsureThat;
@@ -23,6 +24,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         private readonly ILogger<DeviceEventProcessor> _logger;
         private readonly IConverter<EventData, JToken> _converter = null;
         private readonly ITemplateLoader _templateLoader;
+        private readonly IConversionResultWriter _conversionResultWriter;
         private int _maxParallelism = 4;
 
         public DeviceEventProcessor(
@@ -30,13 +32,17 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             ILogger<DeviceEventProcessor> logger,
             IConverter<EventData, JToken> converter,
             ITemplateLoader templateLoader,
-            TimeSpan maximumTimeToReadEvents)
+            IConversionResultWriter conversionResultWriter,
+            IOptions<EventProcessorOptions> eventProcessorOptions)
         {
             _eventHubConsumerClient = EnsureArg.IsNotNull(eventHubConsumerClient, nameof(eventHubConsumerClient));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            _eventReadTimeout = maximumTimeToReadEvents;
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _templateLoader = EnsureArg.IsNotNull(templateLoader, nameof(templateLoader));
+            _conversionResultWriter = EnsureArg.IsNotNull(conversionResultWriter, nameof(conversionResultWriter));
+            
+            var options = EnsureArg.IsNotNull(eventProcessorOptions.Value, nameof(eventProcessorOptions));
+            _eventReadTimeout = options.EventReadTimeout;
         }
 
         public async Task RunAsync(CancellationToken cancellationToken)
@@ -53,26 +59,41 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             _ = Task.Run(async () =>
               {
                   int count = 0;
-                  await foreach(var partitionEvent in _eventHubConsumerClient.ReadEventsAsync(cancellationToken))
+                  try
                   {
-                      // TODO Filter out messages here...
+                        var readOptions = new ReadEventOptions()
+                        {
+                            MaximumWaitTime = _eventReadTimeout,
+                        };
 
-                      // Determine if we should stop processing events. For now, hard code this to just process 5 messages
-                      if (++count > 5)
-                      {
-                        break;
-                      }
+                        await foreach(var partitionEvent in _eventHubConsumerClient.ReadEventsAsync(readOptions, cancellationToken))
+                        {
+                            // TODO Filter out messages here...
+                            if (partitionEvent.Data == null)
+                            {
+                                // Azure EventHubs has sent us an empty message indicating no new events to process within the _eventReadTimeout limit, end program
+                                _logger.LogInformation($"No new events on EventHub within {_eventReadTimeout.TotalSeconds} seconds. Ending program");
+                                break;
+                            }
 
-                      // Do stuff with the message
-                      _logger.LogInformation($"Received a message from partition {partitionEvent.Partition.PartitionId}. Enqueued time: {partitionEvent.Data.EnqueuedTime}, Sequence Id: {partitionEvent.Data.SequenceNumber}");
+                            // Determine if we should stop processing events. For now, hard code this to just process 5 messages
+                            if (++count > 5)
+                            {
+                                break;
+                            }
 
-                      while (!await producer.SendAsync(partitionEvent.Data))
-                      {
-                          await Task.Yield();
-                      }
+                            while (!await producer.SendAsync(partitionEvent.Data))
+                            {
+                                await Task.Yield();
+                            }
+                        }
+                  } catch (OperationCanceledException ex)
+                  {
+                      _logger.LogInformation(ex,"Timeout reached while reading from EventHub");
+                  } finally
+                  {
+                      producer.Complete();
                   }
-
-                  producer.Complete();
               });
 
             return producer;
@@ -84,6 +105,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 evt =>
                 {
                     var conversionResult = new ConversionResult();
+                    conversionResult.SequenceNumber = evt.SequenceNumber;
                     try
                     {
                         var token = _converter.Convert(evt);
@@ -106,10 +128,10 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });
 
             var consumer = new ActionBlock<ConversionResult>(
-                result =>
+                async result =>
                 {
                     // Do cool stuff with the result. 
-                    _logger.LogInformation(result.DeviceEvent.ToString());
+                    await _conversionResultWriter.StoreConversionResult(result, cancellationToken);
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });
 

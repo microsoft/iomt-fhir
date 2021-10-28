@@ -10,5 +10,6 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         public JToken DeviceEvent {get; set;} 
         public IList<Measurement> Measurements {get; set;} = new List<Measurement>();
         public IList<Exception> Exceptions {get; set;} = new List<Exception>();
+        public long SequenceNumber {get; set;}
     }
 }

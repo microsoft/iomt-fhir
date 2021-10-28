@@ -4,10 +4,12 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Processor;
 using Microsoft.Health.Tools.EventDebugger.EventProcessor;
+using Microsoft.Health.Tools.EventDebugger.Extensions;
 using Microsoft.Health.Tools.EventDebugger.TemplateLoader;
 using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -28,32 +30,36 @@ namespace Microsoft.Health.Tools.EventDebugger
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<EventProcessorOptions>(_configuration.GetSection(EventProcessorOptions.Category));
+            services.Configure<EventConsumerOptions>(_configuration.GetSection(EventConsumerOptions.Category));
+            
             services.AddSingleton(_configuration);
             services.AddSingleton<ITelemetryLogger, SimpleTelemetryLogger>();
+            services.AddSingleton<IConversionResultWriter, LocalConversionResultWriter>();
             AddContentTemplateFactories(services);
             services.AddSingleton<ITemplateLoader>(sp => 
             {
-                var deviceTemplatePath = GetArgument("DeviceTemplatePath", true);
+                var deviceTemplatePath = _configuration.GetArgument("DeviceTemplatePath", true);
                 var contentFactory = sp.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
                 return new DeviceTemplateLoader(deviceTemplatePath, contentFactory);
             });
             services.AddSingleton(sp => 
             {
-                var connectionString = GetArgument("ConnectionString", true);
-                var consumerGroup = GetArgument("ConsumerGroup", true);
+                var options = sp.GetRequiredService<IOptions<EventConsumerOptions>>();
+                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(options?.Value.ConnectionString, nameof(options.Value.ConnectionString));
+                var consumerGroup = EnsureArg.IsNotNullOrWhiteSpace(options?.Value.ConsumerGroup, nameof(options.Value.ConsumerGroup));
                 var eventConsumerClient = new EventHubConsumerClient(consumerGroup, connectionString);
                 return eventConsumerClient;
             });
             services.AddSingleton(sp => 
             {
-                var connectionString = GetArgument("ConnectionString", true);
-                var consumerGroup = GetArgument("ConsumerGroup", true);
                 var eventConsumerClient = new DeviceEventProcessor(
                     sp.GetRequiredService<EventHubConsumerClient>(),
                     sp.GetRequiredService<ILogger<DeviceEventProcessor>>(),
                     new EventDataJTokenConverter(),
                     sp.GetRequiredService<ITemplateLoader>(),
-                    TimeSpan.FromMinutes(10));
+                    sp.GetRequiredService<IConversionResultWriter>(),
+                    sp.GetRequiredService<IOptions<EventProcessorOptions>>());
                 return eventConsumerClient;
             });
         }
@@ -75,16 +81,6 @@ namespace Microsoft.Health.Tools.EventDebugger
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotCentralJsonPathContentTemplateFactory>();
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, CalculatedFunctionContentTemplateFactory>();
             services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>, CollectionContentTemplateFactory>();
-        }
-
-        private string GetArgument(string key, bool required = false)
-        {
-            var value = _configuration[key];
-            if (required && string.IsNullOrWhiteSpace(value)) 
-            {
-                throw new ArgumentException($"Missing value for configuration item {key}");
-            }
-            return value;
         }
     }
 }
