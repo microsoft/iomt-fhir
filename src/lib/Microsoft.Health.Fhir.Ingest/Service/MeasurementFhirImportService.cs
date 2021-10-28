@@ -110,7 +110,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
         {
-            var partitionId = data.First().PartitionId;
+            var partitionId = data.FirstOrDefault()?.PartitionId;
 
             // Deserialize events into measurements and then group according to the device, type, and other factors
             return data.Select(e => JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray())))

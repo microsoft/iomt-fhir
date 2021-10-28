@@ -46,10 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         {
             EnsureArg.IsNotNull(events);
 
-            if (events.Any())
-            {
-                await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
-            }
+            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)

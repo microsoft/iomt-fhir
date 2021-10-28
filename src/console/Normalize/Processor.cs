@@ -58,10 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         {
             EnsureArg.IsNotNull(events);
 
-            if (events.Any())
-            {
-                await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
-            }
+            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)
@@ -71,7 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             var template = templateContext.Template;
 
             _logger.LogMetric(
-                IomtMetrics.DeviceEvent(events.First().PartitionId),
+                IomtMetrics.DeviceEvent(events.FirstOrDefault()?.PartitionId),
                     events.Count());
 
             IEnumerable<EventData> eventHubEvents = events
