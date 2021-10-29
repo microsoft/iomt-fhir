@@ -6,6 +6,6 @@ namespace Microsoft.Health.Tools.EventDebugger
     {
         public static string Category = "EventProcessor";
         
-        public TimeSpan EventReadTimeout {get; set;} = TimeSpan.FromSeconds(15);
+        public TimeSpan EventReadTimeout {get; set;} = TimeSpan.FromSeconds(60);
     }
 }

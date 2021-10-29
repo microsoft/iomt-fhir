@@ -76,6 +76,11 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                                 break;
                             }
 
+                            if (++count % 10 == 0)
+                            {
+                                _logger.LogInformation($"Received {count} events");
+                            }
+
                             // Determine if we should stop processing events. For now, hard code this to just process 5 messages
                             if (++count > 5)
                             {

@@ -47,6 +47,11 @@ namespace Microsoft.Health.Tools.EventDebugger
             {
                 var options = sp.GetRequiredService<IOptions<EventConsumerOptions>>();
                 var connectionString = EnsureArg.IsNotNullOrWhiteSpace(options?.Value.ConnectionString, nameof(options.Value.ConnectionString));
+
+                if (string.IsNullOrWhiteSpace(options.Value.ConsumerGroup))
+                {
+                    throw new ArgumentException("Missing [Consumer Group] argument. If supplying on the command line ensure '$' are escaped (i.e. \\$Default)");
+                }
                 var consumerGroup = EnsureArg.IsNotNullOrWhiteSpace(options?.Value.ConsumerGroup, nameof(options.Value.ConsumerGroup));
                 var eventConsumerClient = new EventHubConsumerClient(consumerGroup, connectionString);
                 return eventConsumerClient;
