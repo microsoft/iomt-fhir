@@ -107,24 +107,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 
         private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
         {
+            // Retry on any unhandled exceptions.
+            // TODO (WI - 86288): Handled exceptions (eg: data errors) will not be retried upon indefinitely.
             bool ExceptionRetryableFilter(Exception ee)
             {
-                switch (ee)
-                {
-                    case AggregateException ae when ae.InnerExceptions.Any(ExceptionRetryableFilter):
-                    case OperationCanceledException _:
-                    case HttpRequestException _:
-                    case AzureMessagingEventHubs.EventHubsException _:
-                    case AuthenticationFailedException _:
-                    case RequestFailedException _:
-                    case ValidationException _:
-                        break;
-                    default:
-                        TrackExceptionMetric(ee, logger);
-                        return false;
-                }
-
-                logger.LogTrace($"Encountered retryable exception {ee.GetType()}");
+                logger.LogTrace($"Encountered retryable/unhandled exception {ee.GetType()}");
                 logger.LogError(ee);
                 TrackExceptionMetric(ee, logger);
                 return true;
