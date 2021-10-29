@@ -3,33 +3,29 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Events.Telemetry
 {
-    public sealed class EventMetricDefinition
+    public sealed class EventMetricDefinition : MetricDefinition
     {
         private EventMetricDefinition(string metricName)
+            : base(metricName)
         {
-            EnsureArg.IsNotNullOrEmpty(metricName, nameof(metricName));
-            MetricName = metricName;
         }
 
-        public string MetricName { get; }
+        public static EventMetricDefinition EventsFlushed { get; } = new EventMetricDefinition(nameof(EventsFlushed));
 
-        public static EventMetricDefinition DeviceIngressSizeBytes()
-        {
-            return new EventMetricDefinition(nameof(DeviceIngressSizeBytes));
-        }
+        public static EventMetricDefinition EventHubChanged { get; } = new EventMetricDefinition(nameof(EventHubChanged));
 
-        public static EventMetricDefinition MeasurementToFhirBytes()
-        {
-            return new EventMetricDefinition(nameof(MeasurementToFhirBytes));
-        }
+        public static EventMetricDefinition EventHubPartitionInitialized { get; } = new EventMetricDefinition(nameof(EventHubPartitionInitialized));
 
-        public override string ToString()
-        {
-            return MetricName;
-        }
+        public static EventMetricDefinition EventTimestampLastProcessedPerPartition { get; } = new EventMetricDefinition(nameof(EventTimestampLastProcessedPerPartition));
+
+        public static EventMetricDefinition EventsWatermarkUpdated { get; } = new EventMetricDefinition(nameof(EventsWatermarkUpdated));
+
+        public static EventMetricDefinition DeviceIngressSizeBytes { get; } = new EventMetricDefinition(nameof(DeviceIngressSizeBytes));
+
+        public static EventMetricDefinition MeasurementToFhirBytes { get; } = new EventMetricDefinition(nameof(MeasurementToFhirBytes));
     }
 }

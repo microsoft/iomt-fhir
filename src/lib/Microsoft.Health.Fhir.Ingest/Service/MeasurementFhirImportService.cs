@@ -110,13 +110,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
         {
+            var partitionId = data.FirstOrDefault()?.PartitionId;
+
             // Deserialize events into measurements and then group according to the device, type, and other factors
             return data.Select(e => JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray())))
                 .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
                 .Select(g =>
                 {
                     var measurements = g.ToList();
-                    _ = CalculateMetricsAsync(measurements, log).ConfigureAwait(false);
+                    _ = CalculateMetricsAsync(measurements, log, partitionId).ConfigureAwait(false);
                     return new MeasurementGroup
                     {
                         Data = measurements,
@@ -130,18 +132,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .ToArray();
         }
 
-        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log)
+        private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log, string partitionId = null)
         {
             await Task.Run(() =>
             {
                 DateTime nowRef = DateTime.UtcNow;
 
                 log.LogMetric(
-                    IomtMetrics.MeasurementGroup(),
+                    IomtMetrics.MeasurementGroup(partitionId),
                     1);
 
                 log.LogMetric(
-                    IomtMetrics.Measurement(),
+                    IomtMetrics.Measurement(partitionId),
                     measurements.Count);
 
                 for (int i = 0; i < measurements.Count; i++)
@@ -153,11 +155,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     }
 
                     log.LogMetric(
-                        IomtMetrics.MeasurementIngestionLatency(),
+                        IomtMetrics.MeasurementIngestionLatency(partitionId),
                         (nowRef - m.IngestionTimeUtc.Value).TotalSeconds);
 
                     log.LogMetric(
-                        IomtMetrics.MeasurementIngestionLatencyMs(),
+                        IomtMetrics.MeasurementIngestionLatencyMs(partitionId),
                         (nowRef - m.IngestionTimeUtc.Value).TotalMilliseconds);
                 }
             }).ConfigureAwait(false);

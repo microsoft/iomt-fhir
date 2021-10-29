@@ -10,36 +10,36 @@ namespace Microsoft.Health.Common.Telemetry
         /// <summary>
         /// An metric dimension for category
         /// </summary>
-        public static string Category => nameof(DimensionNames.Category);
+        public static string Category => nameof(Category);
 
         /// <summary>
         /// A metric dimension for a specific metric name.
         /// </summary>
-        public static string Name => nameof(DimensionNames.Name);
+        public static string Name => nameof(Name);
 
         /// <summary>
         /// A metric dimension that represents each ingestion stage of the IoMT Connector.
         /// </summary>
-        public static string Operation => nameof(DimensionNames.Operation);
-
-        /// <summary>
-        /// A metric dimension that represents a timestamp property of a metric.
-        /// </summary>
-        public static string Timestamp => nameof(DimensionNames.Timestamp);
+        public static string Operation => nameof(Operation);
 
         /// <summary>
         /// A metric dimension that represents an identifier related to the metric emitted.
         /// </summary>
-        public static string Identifier => nameof(DimensionNames.Identifier);
+        public static string Identifier => nameof(Identifier);
 
         /// <summary>
         /// A metric dimension for a error type.
         /// </summary>
-        public static string ErrorType => nameof(DimensionNames.ErrorType);
+        public static string ErrorType => nameof(ErrorType);
 
         /// <summary>
         /// A metric dimension for error severity.
         /// </summary>
-        public static string ErrorSeverity => nameof(DimensionNames.ErrorSeverity);
+        public static string ErrorSeverity => nameof(ErrorSeverity);
+
+        /// <summary>
+        /// A metric dimension that represents the reason that caused the metric to be emitted.
+        /// </summary>
+        public static string Reason => nameof(Reason);
     }
 }

@@ -14,6 +14,7 @@ using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service.Infrastructure;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventConsumers.Service
@@ -80,6 +81,11 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                     var windowThresholdTime = GetPartition(partitionId).GetPartitionWindow();
                     await ThresholdWaitReached(partitionId, windowThresholdTime);
                 }
+                else
+                {
+                    // If we received the timer event and there are no enqueued events in the partition, then simply update the data freshness.
+                    LogDataFreshness(partitionId, triggerReason: nameof(ThresholdWaitReached));
+                }
             }
             else
             {
@@ -104,7 +110,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         {
             _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
             var events = await GetPartition(partitionId).Flush(_maxEvents);
-            await CompleteProcessing(events);
+            await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdCountReached));
         }
 
         private async Task ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
@@ -114,7 +120,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
-            await CompleteProcessing(events);
+            await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdTimeReached));
         }
 
         private async Task ThresholdWaitReached(string partitionId, DateTime windowEnd)
@@ -123,7 +129,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             {
                 _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
                 var events = await GetPartition(partitionId).Flush(windowEnd);
-                await CompleteProcessing(events);
+                await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdWaitReached));
             }
         }
 
@@ -136,7 +142,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
-        private async Task CompleteProcessing(IEnumerable<IEventMessage> events)
+        private async Task CompleteProcessing(string partitionId, IEnumerable<IEventMessage> events, string triggerReason)
         {
             await _eventConsumerService.ConsumeEvents(events);
 
@@ -148,11 +154,21 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
 
             await UpdateCheckpoint(events, eventMetrics);
+
+            LogDataFreshness(partitionId, triggerReason, events);
         }
 
         public Task ConsumeEvents(IEnumerable<IEventMessage> events)
         {
             throw new NotImplementedException();
+        }
+
+        private void LogDataFreshness(string partitionId, string triggerReason, IEnumerable<IEventMessage> events = null)
+        {
+            // To determine the data freshness per partition (i.e. latest event data processed in a partition), use the enqueued time of the last event for the batch.
+            // If no events were flushed for the partition (eg: trigger reason is ThresholdWaitReached - due to receival of MaxTimeEvent), then use the current timestamp.
+            var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
+            _logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(eventTimestampLastProcessed.ToString("yyyyMMddHHmmss")));
         }
     }
 }

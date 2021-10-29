@@ -70,7 +70,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             }
 
             _logger.LogTrace($"Flushed {events.Count} events on partition {_partitionId}");
-            _logger.LogMetric(EventMetrics.EventsFlushed(), events.Count);
+            _logger.LogMetric(EventMetrics.EventsFlushed(_partitionId), events.Count);
             return Task.FromResult(events);
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             }
 
             _logger.LogTrace($"Flushed {events.Count} events up to {dateTime} on partition {_partitionId}");
-            _logger.LogMetric(EventMetrics.EventsFlushed(), events.Count);
+            _logger.LogMetric(EventMetrics.EventsFlushed(_partitionId), events.Count);
             return Task.FromResult(events);
         }
     }
