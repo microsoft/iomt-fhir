@@ -27,6 +27,9 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         private readonly IConversionResultWriter _conversionResultWriter;
         private int _maxParallelism = 4;
 
+        private int totalSuccessfulEvents;
+        private int totalFailedEvents;
+
         public DeviceEventProcessor(
             EventHubConsumerClient eventHubConsumerClient,
             ILogger<DeviceEventProcessor> logger,
@@ -121,11 +124,13 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                             // TODO If we only want errors then do not store the Measurement
                             measurement.IngestionTimeUtc = evt.EnqueuedTime.DateTime;
                             conversionResult.Measurements.Add(measurement);
+                            Interlocked.Increment(ref totalSuccessfulEvents);
                         }
                     }
                     catch (Exception ex)
                     {
                         conversionResult.Exceptions.Add(ex);
+                        Interlocked.Increment(ref totalFailedEvents);
                     }
 
                     return conversionResult;
@@ -147,7 +152,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 .ContinueWith(
                     task =>
                     {
-                        _logger.LogInformation("Finished processing device events");
+                        _logger.LogInformation($"Finished processing {totalFailedEvents + totalSuccessfulEvents} device events. Events with errors: {totalFailedEvents}");
                     },
                     cancellationToken,
                     AsyncContinueOnSuccess,
