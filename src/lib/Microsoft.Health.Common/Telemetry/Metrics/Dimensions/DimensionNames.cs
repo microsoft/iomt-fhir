@@ -41,5 +41,10 @@ namespace Microsoft.Health.Common.Telemetry
         /// A metric dimension that represents the reason that caused the metric to be emitted.
         /// </summary>
         public static string Reason => nameof(Reason);
+
+        /// <summary>
+        /// A metric dimension to identify the error source, e.g. the user or system.
+        /// </summary>
+        public static string ErrorSource => nameof(ErrorSource);
     }
 }
