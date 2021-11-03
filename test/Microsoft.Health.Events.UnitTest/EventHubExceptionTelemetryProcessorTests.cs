@@ -18,12 +18,13 @@ namespace Microsoft.Health.Events.UnitTest
     public class EventHubExceptionTelemetryProcessorTests
     {
         [Theory]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ConsumerDisconnected }, "EventHubErrorInstanceError")]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorInstanceError")]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, "EventHubErrorInstanceError")]
+        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ConsumerDisconnected }, "EventHubErrorConfigurationError")]
+        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorConfigurationError")]
+        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.GeneralError }, "EventHubErrorGeneralError")]
-        [InlineData(typeof(InvalidOperationException), null, "EventHubErrorInstanceError")]
-        [InlineData(typeof(SocketException), null, "EventHubErrorNamespaceError")]
+        [InlineData(typeof(InvalidOperationException), null, "EventHubErrorConfigurationError")]
+        [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, "EventHubErrorConfigurationError")]
+        [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, "EventHubErrorGeneralError")]
         [InlineData(typeof(UnauthorizedAccessException), null, "EventHubErrorAuthorizationError")]
         [InlineData(typeof(Exception), null, "EventHubErrorGeneralError")]
         public void GivenExceptionTypes_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName)
@@ -38,19 +39,6 @@ namespace Microsoft.Health.Events.UnitTest
                 m.Name.Equals(expectedErrorMetricName) &&
                 ValidateEventHubErrorMetricProperties(m)),
                 1);
-        }
-
-        [Theory]
-        [InlineData(typeof(SocketException))]
-        public void GivenExceptionAndShouldNotLogMetric_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricNotLogged_Test(Type exType)
-        {
-            var logger = Substitute.For<ITelemetryLogger>();
-            var ex = Activator.CreateInstance(exType) as Exception;
-
-            EventHubExceptionTelemetryProcessor.ProcessException(ex, logger, shouldLogMetric: false);
-
-            logger.ReceivedWithAnyArgs(1).LogError(ex);
-            logger.DidNotReceiveWithAnyArgs().LogMetric(null, default);
         }
 
         [Theory]
@@ -75,7 +63,8 @@ namespace Microsoft.Health.Events.UnitTest
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, typeof(InvalidEventHubException))]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.GeneralError }, typeof(EventHubsException))]
         [InlineData(typeof(InvalidOperationException), null, typeof(InvalidEventHubException))]
-        [InlineData(typeof(SocketException), null, typeof(InvalidEventHubException))]
+        [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, typeof(InvalidEventHubException))]
+        [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, typeof(SocketException))]
         [InlineData(typeof(UnauthorizedAccessException), null, typeof(UnauthorizedAccessEventHubException))]
         [InlineData(typeof(Exception), null, typeof(Exception))]
         public void GivenExceptionType_WhenCustomizeException_ThenCustomExceptionTypeReturned_Test(Type exType, object[] param, Type customExType)

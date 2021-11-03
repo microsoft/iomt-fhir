@@ -8,19 +8,14 @@ namespace Microsoft.Health.Events.Telemetry
     public enum EventHubErrorCode
     {
         /// <summary>
-        /// Error code for an issue relating to an Event Hub (e.g. invalid name or consumer group)
-        /// </summary>
-        InstanceError,
-
-        /// <summary>
-        /// Error code for an issue relating to an Event Hubs Namespace (e.g. invalid FQDN)
-        /// </summary>
-        NamespaceError,
-
-        /// <summary>
         /// Error code that indicates failures in initializing event hub partition
         /// </summary>
         EventHubPartitionInitFailed,
+
+        /// <summary>
+        /// Error code that categorizes invalid configurations (e.g. invalid namespace/FQDN, event hub name, or consumer group)
+        /// </summary>
+        ConfigurationError,
 
         /// <summary>
         /// Error code that categorizes authentication errors (eg: exceptions of the type UnauthorizedAccessException)

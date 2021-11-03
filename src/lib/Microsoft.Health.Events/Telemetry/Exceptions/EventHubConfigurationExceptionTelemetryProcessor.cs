@@ -13,7 +13,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
     public class EventHubConfigurationExceptionTelemetryProcessor
     {
-        private readonly HashSet<Type> _handledExceptions;
+        private readonly ISet<Type> _handledExceptions;
 
         public EventHubConfigurationExceptionTelemetryProcessor()
             : this(

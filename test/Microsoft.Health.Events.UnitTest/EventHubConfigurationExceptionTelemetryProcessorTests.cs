@@ -20,7 +20,8 @@ namespace Microsoft.Health.Events.UnitTest
         public void GivenHandledExceptionType_WhenHandleExpection_ThenMetricLoggedAndTrueReturned_Test(Type exType)
         {
             var logger = Substitute.For<ITelemetryLogger>();
-            var ex = Activator.CreateInstance(exType) as Exception;
+            var testEx = Substitute.For<Exception>();
+            var ex = Activator.CreateInstance(exType, new object[] { "test", testEx, "test", "test" }) as Exception;
 
             var processor = new EventHubConfigurationExceptionTelemetryProcessor();
             var handled = processor.HandleException(ex, logger, ConnectorOperation.Setup);

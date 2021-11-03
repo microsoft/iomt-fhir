@@ -14,10 +14,11 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
     public static class EventHubExceptionTelemetryProcessor
     {
+        private static readonly EventHubConfigurationExceptionTelemetryProcessor _exceptionTelemetryProcessor = new EventHubConfigurationExceptionTelemetryProcessor();
+
         public static void ProcessException(
             Exception exception,
             ITelemetryLogger logger,
-            bool shouldLogMetric = true,
             string errorMetricName = null)
         {
             EnsureArg.IsNotNull(exception, nameof(exception));
@@ -27,21 +28,17 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 
             logger.LogError(ex);
 
-            if (shouldLogMetric)
+            if (ex.Equals(exception))
             {
-                if (ex.Equals(exception))
-                {
-                    logger.LogMetric(
-                        EventMetrics.HandledException(
-                            errorMetricName ?? $"{ErrorType.EventHubError}{EventHubErrorCode.GeneralError}",
-                            ConnectorOperation.Setup),
-                        1);
-                }
-                else
-                {
-                    var processor = new EventHubConfigurationExceptionTelemetryProcessor();
-                    processor.HandleException(ex, logger, ConnectorOperation.Setup);
-                }
+                logger.LogMetric(
+                    EventMetrics.HandledException(
+                        errorMetricName ?? $"{ErrorType.EventHubError}{EventHubErrorCode.GeneralError}",
+                        ConnectorOperation.Setup),
+                    1);
+            }
+            else
+            {
+                _exceptionTelemetryProcessor.HandleException(ex, logger, ConnectorOperation.Setup);
             }
         }
 
@@ -57,7 +54,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     switch (eventHubsException.Reason)
                     {
                         case EventHubsException.FailureReason.ConsumerDisconnected:
-                            message = "Verify that the provided Event Hub is not already receiving data for another IoT connector or Azure resource.";
+                            message = "Verify that the provided Event Hub's consumer group is not already receiving data for another IoT connector or Azure resource.";
                             break;
                         case EventHubsException.FailureReason.ResourceNotFound:
                             message = "Verify that the provided Event Hubs Namespace contains the provided Event Hub and that the provided Event Hub contains the provided consumer group.";
@@ -69,15 +66,22 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                             return exception;
                     }
 
-                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.InstanceError.ToString());
+                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.ConfigurationError.ToString());
 
                 case InvalidOperationException _:
                     message = "Verify that the provided Event Hub contains the provided consumer group.";
-                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.InstanceError.ToString());
+                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.ConfigurationError.ToString());
 
                 case SocketException _:
-                    message = "Verify that the provided Event Hubs Namespace exists.";
-                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.NamespaceError.ToString());
+                    SocketException socketException = (SocketException)exception;
+                    switch (socketException.SocketErrorCode)
+                    {
+                        case SocketError.HostNotFound:
+                            message = "Verify that the provided Event Hubs Namespace exists.";
+                            return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.ConfigurationError.ToString());
+                        default:
+                            return exception;
+                    }
 
                 case UnauthorizedAccessException _:
                     message = "Verify that the provided Event Hub's 'Azure Event Hubs Data Receiver' role has been assigned to the applicable Azure Active Directory security principal or managed identity.";

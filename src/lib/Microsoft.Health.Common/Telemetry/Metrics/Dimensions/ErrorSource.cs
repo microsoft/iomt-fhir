@@ -5,16 +5,16 @@
 
 namespace Microsoft.Health.Common.Telemetry
 {
-    public static class ErrorSource
+    public enum ErrorSource
     {
         /// <summary>
-        /// A system error.
+        /// A service error.
         /// </summary>
-        public static string System => nameof(System);
+        Service,
 
         /// <summary>
         /// A user error.
         /// </summary>
-        public static string User => nameof(User);
+        User,
     }
 }
