@@ -26,6 +26,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await _client.CloseAsync().ConfigureAwait(false);
         }
 
+        public async ValueTask<EventDataBatch> CreateEventDataBatchAsync()
+        {
+            return await _client.CreateBatchAsync();
+        }
+
         public async Task SendAsync(EventDataBatch eventData, CancellationToken token)
         {
             await _client.SendAsync(eventData, token);

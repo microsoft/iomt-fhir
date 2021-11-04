@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -75,10 +76,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Collect non operation canceled exceptions as they occur to ensure the entire data stream is processed
             var exceptions = new ConcurrentBag<Exception>();
             var cts = new CancellationTokenSource();
-            var transformingConsumer = new TransformManyBlock<EventData, IMeasurement>(
+            var transformingConsumer = new TransformManyBlock<EventData, (string, IMeasurement)>(
                 async evt =>
                 {
-                    var createdMeasurements = new List<IMeasurement>();
+                    var createdMeasurements = new List<(string, IMeasurement)>();
                     try
                     {
                         string partitionId = evt.SystemProperties.PartitionKey;
@@ -97,7 +98,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
                             measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
-                            createdMeasurements.Add(measurement);
+                            createdMeasurements.Add((partitionId, measurement));
                         }
                     }
                     catch (Exception ex)
@@ -111,15 +112,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     return createdMeasurements;
                 });
 
-            var asyncCollectorConsumer = new ActionBlock<IMeasurement[]>(
-                async measurements =>
+            var asyncCollectorConsumer = new ActionBlock<(string, IMeasurement)[]>(
+                async partitionIdAndeasurements =>
                 {
                     try
                     {
+                        var measurements = partitionIdAndeasurements.Select(pm => pm.Item2);
                         await collector.AddAsync(measurements, cts.Token).ConfigureAwait(false);
-                        _log.LogMetric(
-                            IomtMetrics.NormalizedEvent(partitionId),
-                            measurements.Length);
+
+                        foreach (var partitionAndMeasurment in partitionIdAndeasurements)
+                        {
+                            _log.LogMetric(IomtMetrics.NormalizedEvent(partitionAndMeasurment.Item1), 1);
+                        }
                     }
                     catch (OperationCanceledException)
                     {
@@ -137,7 +141,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             producer.LinkTo(transformingConsumer, new DataflowLinkOptions { PropagateCompletion = true });
 
             // Batch the produced IMeasurements
-            var batchBlock = new BatchBlock<IMeasurement>(_asyncCollectorBatchSize);
+            var batchBlock = new BatchBlock<(string, IMeasurement)>(_asyncCollectorBatchSize);
             transformingConsumer.LinkTo(batchBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
             // Connect the final action of writing events into EventHub

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,8 +11,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
@@ -22,15 +25,16 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         private readonly IEventHubMessageService _eventHubService;
         private readonly int _partitionCount;
         private readonly IHashCodeFactory _hashCodeFactory;
+        private readonly ITelemetryLogger _telemetryLogger;
 
         public MeasurementToEventMessageAsyncCollector(
             IEventHubMessageService eventHubService,
             IHashCodeFactory hashCodeFactory,
-            int partitionCount = 16)
+            ITelemetryLogger telemetryLogger)
         {
             _eventHubService = EnsureArg.IsNotNull(eventHubService, nameof(eventHubService));
-            _partitionCount = EnsureArg.IsGt(partitionCount, 0, nameof(partitionCount));
             _hashCodeFactory = EnsureArg.IsNotNull(hashCodeFactory, nameof(hashCodeFactory));
+            _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
         }
 
         public async Task AddAsync(IMeasurement item, CancellationToken cancellationToken = default(CancellationToken))
@@ -63,16 +67,36 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Select(async grp =>
                 {
                     var partitionKey = grp.Key;
-                    var eventList = new List<EventData>();
+                    Stack<EventDataBatch> eventDataBatches = new Stack<EventDataBatch>();
+                    eventDataBatches.Push(await _eventHubService.CreateEventDataBatchAsync());
+
                     foreach (var m in grp)
                     {
                         var measurementContent = JsonConvert.SerializeObject(m, Formatting.None);
                         var contentBytes = Encoding.UTF8.GetBytes(measurementContent);
                         var eventData = new EventData(contentBytes);
-                        eventList.Add(eventData);
+
+                        if (!eventDataBatches.Peek().TryAdd(eventData))
+                        {
+                            // The current EventDataBatch cannot hold any more events. Create a new EventDataBatch and add this new message to it.
+                            var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync();
+                            if (!newEventDataBatch.TryAdd(eventData))
+                            {
+                                // The measurement event is greater than the size allowed by EventHub. Log and discard.
+                                // TODO in this case we should send this to a dead letter queue. We'd need to see how we can send it, as it is too big for EventHub...
+                                _telemetryLogger.LogError(new ArgumentOutOfRangeException("A measurement event exceeded the maximum message size for the event hub. It will be skipped."));
+                            }
+                            else
+                            {
+                                eventDataBatches.Push(newEventDataBatch);
+                            }
+                        }
                     }
 
-                    await _eventHubService.SendAsync(eventList, partitionKey, cancellationToken).ConfigureAwait(false);
+                    foreach (var eventBatch in eventDataBatches)
+                    {
+                        await _eventHubService.SendAsync(eventBatch, cancellationToken);
+                    }
                 });
 
                 await Task.WhenAll(submissionTasks);
