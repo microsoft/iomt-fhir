@@ -71,7 +71,7 @@ namespace Microsoft.Health.Events.UnitTest
         {
             var ex = Activator.CreateInstance(exType, param) as Exception;
 
-            var customEx = EventHubExceptionTelemetryProcessor.CustomizeException(ex);
+            var (customEx, errName) = EventHubExceptionTelemetryProcessor.CustomizeException(ex);
 
             Assert.IsType(customExType, customEx);
         }

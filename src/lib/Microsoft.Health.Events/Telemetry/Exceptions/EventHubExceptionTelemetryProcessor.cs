@@ -23,7 +23,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            var customException = CustomizeException(exception);
+            var (customException, errorName) = CustomizeException(exception);
 
             logger.LogError(customException);
 
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             {
                 logger.LogMetric(
                     EventMetrics.HandledException(
-                        errorMetricName ?? GetErrorMetricName(exception),
+                        errorMetricName ?? $"{ErrorType.EventHubError}{errorName}",
                         ConnectorOperation.Setup),
                     1);
             }
@@ -41,17 +41,18 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             }
         }
 
-        public static Exception CustomizeException(Exception exception)
+        public static (Exception customException, string errorName) CustomizeException(Exception exception)
         {
             EnsureArg.IsNotNull(exception, nameof(exception));
 
             string message = exception.Message;
+            string errorName;
 
             switch (exception)
             {
                 case EventHubsException _:
-                    EventHubsException eventHubsException = (EventHubsException)exception;
-                    switch (eventHubsException.Reason)
+                    var reason = ((EventHubsException)exception).Reason;
+                    switch (reason)
                     {
                         case EventHubsException.FailureReason.ConsumerDisconnected:
                             message = "Verify that the provided Event Hub's consumer group is not already receiving data for another IoT connector or Azure resource.";
@@ -63,56 +64,38 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                             message = "Verify that the provided Event Hub Namespace, Event Hub name, and consumer group are correct and that access permissions to the provided Event Hub have been granted.";
                             break;
                         default:
-                            return exception;
+                            return (exception, reason.ToString());
                     }
 
-                    return new InvalidEventHubException(message, exception, nameof(EventHubErrorCode.ConfigurationError));
+                    errorName = nameof(EventHubErrorCode.ConfigurationError);
+                    return (new InvalidEventHubException(message, exception, errorName), errorName);
 
                 case InvalidOperationException _:
                     message = "Verify that the provided Event Hub contains the provided consumer group.";
-                    return new InvalidEventHubException(message, exception, nameof(EventHubErrorCode.ConfigurationError));
+                    errorName = nameof(EventHubErrorCode.ConfigurationError);
+                    return (new InvalidEventHubException(message, exception, errorName), errorName);
 
                 case SocketException _:
-                    SocketException socketException = (SocketException)exception;
-                    switch (socketException.SocketErrorCode)
+                    var socketErrorCode = ((SocketException)exception).SocketErrorCode;
+                    switch (socketErrorCode)
                     {
                         case SocketError.HostNotFound:
                             message = "Verify that the provided Event Hubs Namespace exists.";
-                            return new InvalidEventHubException(message, exception, nameof(EventHubErrorCode.ConfigurationError));
+                            errorName = nameof(EventHubErrorCode.ConfigurationError);
+                            return (new InvalidEventHubException(message, exception, errorName), errorName);
                         default:
-                            return exception;
+                            return (exception, socketErrorCode.ToString());
                     }
 
                 case UnauthorizedAccessException _:
                     message = "Verify that the provided Event Hub's 'Azure Event Hubs Data Receiver' role has been assigned to the applicable Azure Active Directory security principal or managed identity.";
                     string helpLink = "https://docs.microsoft.com/azure/event-hubs/authenticate-application";
-                    return new UnauthorizedAccessEventHubException(message, exception, helpLink, nameof(EventHubErrorCode.AuthorizationError));
+                    errorName = nameof(EventHubErrorCode.AuthorizationError);
+                    return (new UnauthorizedAccessEventHubException(message, exception, helpLink, errorName), errorName);
 
                 default:
-                    return exception;
+                    return (exception, nameof(EventHubErrorCode.GeneralError));
             }
-        }
-
-        private static string GetErrorMetricName(Exception exception)
-        {
-            string errorName;
-
-            switch (exception)
-            {
-                case EventHubsException _:
-                    EventHubsException eventHubsException = (EventHubsException)exception;
-                    errorName = eventHubsException.Reason.ToString();
-                    break;
-                case SocketException _:
-                    SocketException socketException = (SocketException)exception;
-                    errorName = socketException.SocketErrorCode.ToString();
-                    break;
-                default:
-                    errorName = nameof(EventHubErrorCode.GeneralError);
-                    break;
-            }
-
-            return $"{ErrorType.EventHubError}{errorName}";
         }
     }
 }
