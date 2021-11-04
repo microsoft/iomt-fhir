@@ -10,6 +10,8 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
     public sealed class InvalidEventHubException : IomtTelemetryFormattableException
     {
+        private static readonly string _errorType = ErrorType.EventHubError;
+
         public InvalidEventHubException(
             string message,
             Exception innerException,
@@ -17,12 +19,12 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             : base(
                   message,
                   innerException,
-                  name: $"{ErrorType.EventHubError}{errorName}",
+                  name: $"{_errorType}{errorName}",
                   operation: ConnectorOperation.Setup)
         {
         }
 
-        public override string ErrType => ErrorType.EventHubError;
+        public override string ErrType => _errorType;
 
         public override string ErrSource => nameof(ErrorSource.User);
     }

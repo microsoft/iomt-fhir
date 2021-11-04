@@ -31,6 +31,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
         {
             EnsureArg.IsNotNull(ex, nameof(ex));
             EnsureArg.IsNotNull(logger, nameof(logger));
+            EnsureArg.IsNotNullOrWhiteSpace(connectorStage, nameof(connectorStage));
 
             var exType = ex.GetType();
 

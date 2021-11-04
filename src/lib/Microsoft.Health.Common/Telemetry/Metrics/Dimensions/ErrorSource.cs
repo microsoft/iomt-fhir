@@ -8,6 +8,11 @@ namespace Microsoft.Health.Common.Telemetry
     public enum ErrorSource
     {
         /// <summary>
+        /// An error with an undefined source.
+        /// </summary>
+        Undefined,
+
+        /// <summary>
         /// A service error.
         /// </summary>
         Service,
@@ -16,10 +21,5 @@ namespace Microsoft.Health.Common.Telemetry
         /// A user error.
         /// </summary>
         User,
-
-        /// <summary>
-        /// An error with an undefined source.
-        /// </summary>
-        Undefined,
     }
 }

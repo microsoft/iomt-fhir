@@ -21,10 +21,10 @@ namespace Microsoft.Health.Events.UnitTest
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ConsumerDisconnected }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, "EventHubErrorConfigurationError")]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.GeneralError }, "EventHubErrorGeneralError")]
+        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ClientClosed }, "EventHubErrorClientClosed")]
         [InlineData(typeof(InvalidOperationException), null, "EventHubErrorConfigurationError")]
         [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, "EventHubErrorConfigurationError")]
-        [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, "EventHubErrorGeneralError")]
+        [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, "EventHubErrorSocketError")]
         [InlineData(typeof(UnauthorizedAccessException), null, "EventHubErrorAuthorizationError")]
         [InlineData(typeof(Exception), null, "EventHubErrorGeneralError")]
         public void GivenExceptionType_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName)

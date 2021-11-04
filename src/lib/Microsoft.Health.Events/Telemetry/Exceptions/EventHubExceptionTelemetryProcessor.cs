@@ -21,29 +21,30 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             ITelemetryLogger logger,
             string errorMetricName = null)
         {
-            EnsureArg.IsNotNull(exception, nameof(exception));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            var ex = CustomizeException(exception);
+            var customException = CustomizeException(exception);
 
-            logger.LogError(ex);
+            logger.LogError(customException);
 
-            if (ex.Equals(exception))
+            if (customException.Equals(exception))
             {
                 logger.LogMetric(
                     EventMetrics.HandledException(
-                        errorMetricName ?? $"{ErrorType.EventHubError}{EventHubErrorCode.GeneralError}",
+                        errorMetricName ?? GetErrorMetricName(exception),
                         ConnectorOperation.Setup),
                     1);
             }
             else
             {
-                _exceptionTelemetryProcessor.HandleException(ex, logger, ConnectorOperation.Setup);
+                _exceptionTelemetryProcessor.HandleException(customException, logger, ConnectorOperation.Setup);
             }
         }
 
         public static Exception CustomizeException(Exception exception)
         {
+            EnsureArg.IsNotNull(exception, nameof(exception));
+
             string message = exception.Message;
 
             switch (exception)
@@ -65,11 +66,11 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                             return exception;
                     }
 
-                    return new InvalidEventHubException(message, exception, EventHubErrorCode.ConfigurationError.ToString());
+                    return new InvalidEventHubException(message, exception, nameof(EventHubErrorCode.ConfigurationError));
 
                 case InvalidOperationException _:
                     message = "Verify that the provided Event Hub contains the provided consumer group.";
-                    return new InvalidEventHubException(message, exception, EventHubErrorCode.ConfigurationError.ToString());
+                    return new InvalidEventHubException(message, exception, nameof(EventHubErrorCode.ConfigurationError));
 
                 case SocketException _:
                     SocketException socketException = (SocketException)exception;
@@ -77,7 +78,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     {
                         case SocketError.HostNotFound:
                             message = "Verify that the provided Event Hubs Namespace exists.";
-                            return new InvalidEventHubException(message, exception, EventHubErrorCode.ConfigurationError.ToString());
+                            return new InvalidEventHubException(message, exception, nameof(EventHubErrorCode.ConfigurationError));
                         default:
                             return exception;
                     }
@@ -85,11 +86,33 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                 case UnauthorizedAccessException _:
                     message = "Verify that the provided Event Hub's 'Azure Event Hubs Data Receiver' role has been assigned to the applicable Azure Active Directory security principal or managed identity.";
                     string helpLink = "https://docs.microsoft.com/azure/event-hubs/authenticate-application";
-                    return new UnauthorizedAccessEventHubException(message, exception, helpLink, EventHubErrorCode.AuthorizationError.ToString());
+                    return new UnauthorizedAccessEventHubException(message, exception, helpLink, nameof(EventHubErrorCode.AuthorizationError));
 
                 default:
                     return exception;
             }
+        }
+
+        private static string GetErrorMetricName(Exception exception)
+        {
+            string errorName;
+
+            switch (exception)
+            {
+                case EventHubsException _:
+                    EventHubsException eventHubsException = (EventHubsException)exception;
+                    errorName = eventHubsException.Reason.ToString();
+                    break;
+                case SocketException _:
+                    SocketException socketException = (SocketException)exception;
+                    errorName = socketException.SocketErrorCode.ToString();
+                    break;
+                default:
+                    errorName = nameof(EventHubErrorCode.GeneralError);
+                    break;
+            }
+
+            return $"{ErrorType.EventHubError}{errorName}";
         }
     }
 }

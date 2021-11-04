@@ -10,6 +10,8 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
     public sealed class UnauthorizedAccessEventHubException : IomtTelemetryFormattableException
     {
+        private static readonly string _errorType = ErrorType.EventHubError;
+
         public UnauthorizedAccessEventHubException(
             string message,
             Exception innerException,
@@ -18,13 +20,13 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             : base(
                   message,
                   innerException,
-                  name: $"{ErrorType.EventHubError}{errorName}",
+                  name: $"{_errorType}{errorName}",
                   operation: ConnectorOperation.Setup)
         {
             HelpLink = helpLink;
         }
 
-        public override string ErrType => ErrorType.EventHubError;
+        public override string ErrType => _errorType;
 
         public override string ErrSource => nameof(ErrorSource.User);
     }
