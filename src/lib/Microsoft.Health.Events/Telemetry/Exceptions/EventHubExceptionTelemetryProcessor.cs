@@ -45,7 +45,6 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
         public static Exception CustomizeException(Exception exception)
         {
             string message = exception.Message;
-            string helpLink = exception.HelpLink;
 
             switch (exception)
             {
@@ -66,11 +65,11 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                             return exception;
                     }
 
-                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.ConfigurationError.ToString());
+                    return new InvalidEventHubException(message, exception, EventHubErrorCode.ConfigurationError.ToString());
 
                 case InvalidOperationException _:
                     message = "Verify that the provided Event Hub contains the provided consumer group.";
-                    return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.ConfigurationError.ToString());
+                    return new InvalidEventHubException(message, exception, EventHubErrorCode.ConfigurationError.ToString());
 
                 case SocketException _:
                     SocketException socketException = (SocketException)exception;
@@ -78,14 +77,14 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     {
                         case SocketError.HostNotFound:
                             message = "Verify that the provided Event Hubs Namespace exists.";
-                            return new InvalidEventHubException(message, exception, helpLink, EventHubErrorCode.ConfigurationError.ToString());
+                            return new InvalidEventHubException(message, exception, EventHubErrorCode.ConfigurationError.ToString());
                         default:
                             return exception;
                     }
 
                 case UnauthorizedAccessException _:
                     message = "Verify that the provided Event Hub's 'Azure Event Hubs Data Receiver' role has been assigned to the applicable Azure Active Directory security principal or managed identity.";
-                    helpLink = "https://docs.microsoft.com/azure/event-hubs/authenticate-application";
+                    string helpLink = "https://docs.microsoft.com/azure/event-hubs/authenticate-application";
                     return new UnauthorizedAccessEventHubException(message, exception, helpLink, EventHubErrorCode.AuthorizationError.ToString());
 
                 default:

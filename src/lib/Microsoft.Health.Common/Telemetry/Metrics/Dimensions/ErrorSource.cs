@@ -16,5 +16,10 @@ namespace Microsoft.Health.Common.Telemetry
         /// A user error.
         /// </summary>
         User,
+
+        /// <summary>
+        /// An error with an undefined source.
+        /// </summary>
+        Undefined,
     }
 }

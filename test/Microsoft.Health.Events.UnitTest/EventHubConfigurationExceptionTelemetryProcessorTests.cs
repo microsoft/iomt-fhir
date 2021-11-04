@@ -16,32 +16,47 @@ namespace Microsoft.Health.Events.UnitTest
     {
         [Theory]
         [InlineData(typeof(InvalidEventHubException))]
-        [InlineData(typeof(UnauthorizedAccessEventHubException))]
-        public void GivenHandledExceptionType_WhenHandleExpection_ThenMetricLoggedAndTrueReturned_Test(Type exType)
+        public void GivenCustomExceptionTypeWithoutHelpLink_WhenHandleExpection_ThenHandledAndMetricLogged_Test(Type exType)
         {
-            var logger = Substitute.For<ITelemetryLogger>();
+            var testEx = Substitute.For<Exception>();
+            var ex = Activator.CreateInstance(exType, new object[] { "test", testEx, "test" }) as Exception;
+
+            GivenException_WhenHandleExpection_ThenHandledAndMetricLogged_Test(ex);
+        }
+
+        [Theory]
+        [InlineData(typeof(UnauthorizedAccessEventHubException))]
+        public void GivenCustomExceptionTypeWithHelpLink_WhenHandleExpection_ThenHandledAndMetricLogged_Test(Type exType)
+        {
             var testEx = Substitute.For<Exception>();
             var ex = Activator.CreateInstance(exType, new object[] { "test", testEx, "test", "test" }) as Exception;
 
-            var processor = new EventHubConfigurationExceptionTelemetryProcessor();
-            var handled = processor.HandleException(ex, logger, ConnectorOperation.Setup);
-            Assert.True(handled);
-
-            logger.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
+            GivenException_WhenHandleExpection_ThenHandledAndMetricLogged_Test(ex);
         }
 
         [Theory]
         [InlineData(typeof(Exception))]
-        public void GivenUnhandledExceptionType_WhenHandleExpection_ThenNoMetricLoggedAndFalseReturned_Test(Type exType)
+        public void GivenSystemExceptionType_WhenHandleExpection_ThenUnhandledAndNoMetricLogged_Test(Type exType)
         {
             var logger = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
-
             var processor = new EventHubConfigurationExceptionTelemetryProcessor();
-            var handled = processor.HandleException(ex, logger, ConnectorOperation.Setup);
-            Assert.False(handled);
 
+            var handled = processor.HandleException(ex, logger, ConnectorOperation.Setup);
+
+            Assert.False(handled);
             logger.DidNotReceiveWithAnyArgs().LogMetric(null, default(double));
+        }
+
+        private void GivenException_WhenHandleExpection_ThenHandledAndMetricLogged_Test(Exception ex)
+        {
+            var logger = Substitute.For<ITelemetryLogger>();
+            var processor = new EventHubConfigurationExceptionTelemetryProcessor();
+
+            var handled = processor.HandleException(ex, logger, ConnectorOperation.Setup);
+
+            Assert.True(handled);
+            logger.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
         }
     }
 }

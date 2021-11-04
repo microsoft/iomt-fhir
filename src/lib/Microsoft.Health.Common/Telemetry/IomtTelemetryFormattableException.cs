@@ -9,49 +9,43 @@ using EnsureThat;
 
 namespace Microsoft.Health.Common.Telemetry
 {
-    public class IomtException :
+    public class IomtTelemetryFormattableException :
         Exception,
         ITelemetryFormattable
     {
         private readonly string _name;
-        private readonly string _errorType;
-        private readonly string _errorSeverity;
-        private readonly string _errorSource;
         private readonly string _operation;
 
-        public IomtException()
+        public IomtTelemetryFormattableException()
         {
         }
 
-        public IomtException(string message)
+        public IomtTelemetryFormattableException(string message)
             : base(message)
         {
         }
 
-        public IomtException(string message, Exception innerException)
+        public IomtTelemetryFormattableException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
 
-        public IomtException(
+        public IomtTelemetryFormattableException(
             string message,
             Exception innerException,
-            string helpLink,
             string name,
-            string errorType,
-            string errorSeverity,
-            string errorSource,
             string operation)
             : base(message, innerException)
         {
             _name = EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
-
-            HelpLink = helpLink;
-            _errorType = errorType;
-            _errorSeverity = errorSeverity;
-            _errorSource = errorSource;
-            _operation = operation;
+            _operation = EnsureArg.IsNotNullOrWhiteSpace(operation, nameof(operation));
         }
+
+        public virtual string ErrType => ErrorType.GeneralError;
+
+        public virtual string ErrSeverity => ErrorSeverity.Warning;
+
+        public virtual string ErrSource => nameof(ErrorSource.Undefined);
 
         public Metric ToMetric => new Metric(
             EnsureArg.IsNotNullOrWhiteSpace(_name, nameof(_name)),
@@ -60,9 +54,9 @@ namespace Microsoft.Health.Common.Telemetry
                 { DimensionNames.Category, Category.Errors },
             })
             .AddDimension(DimensionNames.Name, _name)
-            .AddDimension(DimensionNames.ErrorType, _errorType)
-            .AddDimension(DimensionNames.ErrorSeverity, _errorSeverity)
-            .AddDimension(DimensionNames.ErrorSource, _errorSource)
-            .AddDimension(DimensionNames.Operation, _operation);
+            .AddDimension(DimensionNames.Operation, _operation)
+            .AddDimension(DimensionNames.ErrorType, ErrType)
+            .AddDimension(DimensionNames.ErrorSeverity, ErrSeverity)
+            .AddDimension(DimensionNames.ErrorSource, ErrSource);
     }
 }

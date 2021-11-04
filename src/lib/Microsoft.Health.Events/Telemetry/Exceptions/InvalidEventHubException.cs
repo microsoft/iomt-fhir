@@ -8,23 +8,22 @@ using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
-    public sealed class InvalidEventHubException : IomtException
+    public sealed class InvalidEventHubException : IomtTelemetryFormattableException
     {
         public InvalidEventHubException(
             string message,
             Exception innerException,
-            string helpLink,
             string errorName)
             : base(
                   message,
                   innerException,
-                  helpLink,
                   name: $"{ErrorType.EventHubError}{errorName}",
-                  errorType: ErrorType.EventHubError,
-                  errorSeverity: ErrorSeverity.Warning,
-                  errorSource: nameof(ErrorSource.User),
                   operation: ConnectorOperation.Setup)
         {
         }
+
+        public override string ErrType => ErrorType.EventHubError;
+
+        public override string ErrSource => nameof(ErrorSource.User);
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.Health.Events.UnitTest
         [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, "EventHubErrorGeneralError")]
         [InlineData(typeof(UnauthorizedAccessException), null, "EventHubErrorAuthorizationError")]
         [InlineData(typeof(Exception), null, "EventHubErrorGeneralError")]
-        public void GivenExceptionTypes_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName)
+        public void GivenExceptionType_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName)
         {
             var logger = Substitute.For<ITelemetryLogger>();
             Exception ex = Activator.CreateInstance(exType, param) as Exception;
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Events.UnitTest
 
         [Theory]
         [InlineData(typeof(Exception))]
-        public void GivenExceptionAndErrorMetricName_WhenProcessExpection_ThenExceptionLoggedAndErrorMetricNameLogged_Test(System.Type exType)
+        public void GivenExceptionTypeAndErrorMetricName_WhenProcessExpection_ThenExceptionLoggedAndErrorMetricNameLogged_Test(Type exType)
         {
             var logger = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
