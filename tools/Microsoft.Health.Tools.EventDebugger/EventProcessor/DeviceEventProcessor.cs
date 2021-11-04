@@ -26,6 +26,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         private readonly ITemplateLoader _templateLoader;
         private readonly IConversionResultWriter _conversionResultWriter;
         private int _maxParallelism = 4;
+        private int _eventsToProcess;
 
         private int totalSuccessfulEvents;
         private int totalFailedEvents;
@@ -46,6 +47,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             
             var options = EnsureArg.IsNotNull(eventProcessorOptions.Value, nameof(eventProcessorOptions));
             _eventReadTimeout = options.EventReadTimeout;
+            _eventsToProcess = eventProcessorOptions.Value.TotalEventsToProcess;
         }
 
         public async Task RunAsync(CancellationToken cancellationToken)
@@ -84,8 +86,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                                 _logger.LogInformation($"Received {count} events");
                             }
 
-                            // Determine if we should stop processing events. For now, hard code this to just process 5 messages
-                            if (++count > 5)
+                            if (count > _eventsToProcess)
                             {
                                 break;
                             }
