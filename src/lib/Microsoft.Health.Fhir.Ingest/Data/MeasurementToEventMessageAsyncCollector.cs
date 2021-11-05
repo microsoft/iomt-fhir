@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
@@ -108,7 +107,6 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         public async Task FlushAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Currently no batching, no flush needed at this time.
             await Task.Yield();
         }
     }
