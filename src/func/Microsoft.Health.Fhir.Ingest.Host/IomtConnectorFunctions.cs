@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     events.Length);
 
                 IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
-                await dataNormalizationService.ProcessAsync(events, new EnumerableAsyncCollectorFacade<IMeasurement>(output)).ConfigureAwait(false);
+                await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
 
                 if (normalizationSettings.Value.LogDeviceIngressSizeBytes)
                 {

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -24,23 +25,31 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     {
         private const TaskContinuationOptions AsyncContinueOnSuccess = TaskContinuationOptions.RunContinuationsAsynchronously | TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.NotOnCanceled;
         private readonly IContentTemplate _contentTemplate = null;
-        private readonly IConverter<EventData, JToken> _converter = null;
+        private readonly Data.IConverter<EventData, JToken> _converter = null;
         private readonly int _maxParallelism;
         private readonly ITelemetryLogger _log;
         private readonly int _asyncCollectorBatchSize;
 
         public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate)
-            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 3)
+            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 1)
         {
         }
 
-        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, IConverter<EventData, JToken> converter, int maxParallelism, int asyncCollectorBatchSize = 200)
+        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism, int asyncCollectorBatchSize = 200)
         {
             _log = EnsureArg.IsNotNull(log, nameof(log));
             _contentTemplate = EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _maxParallelism = maxParallelism;
             _asyncCollectorBatchSize = EnsureArg.IsGt(asyncCollectorBatchSize, 0, nameof(asyncCollectorBatchSize));
+        }
+
+        public async Task ProcessAsync(IEnumerable<EventData> data, IAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer = null)
+        {
+            EnsureArg.IsNotNull(data, nameof(data));
+            EnsureArg.IsNotNull(collector, nameof(collector));
+
+            await StartConsumer(StartProducer(data), new EnumerableAsyncCollectorFacade<IMeasurement>(collector), errorConsumer ?? ProcessErrorAsync).ConfigureAwait(false);
         }
 
         public async Task ProcessAsync(IEnumerable<EventData> data, IEnumerableAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer = null)

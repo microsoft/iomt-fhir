@@ -6,11 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.WebJobs;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public interface IDataNormalizationService<TData, TOutput>
     {
+        Task ProcessAsync(IEnumerable<TData> data, IAsyncCollector<TOutput> collector, Func<Exception, TData, Task<bool>> errorConsumer = null);
+
         Task ProcessAsync(IEnumerable<TData> data, IEnumerableAsyncCollector<TOutput> collector, Func<Exception, TData, Task<bool>> errorConsumer = null);
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public interface IEventHubMessageService
     {
-        ValueTask<EventDataBatch> CreateEventDataBatchAsync();
+        ValueTask<EventDataBatch> CreateEventDataBatchAsync(string partitionKey);
 
         Task SendAsync(EventDataBatch eventData, CancellationToken token);
 

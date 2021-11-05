@@ -35,7 +35,6 @@ namespace Microsoft.Health.Fhir.Ingest
 
         public Task FlushAsync(CancellationToken cancellationToken = default)
         {
-            // Currently no batching, no flush needed at this time.
             return Task.CompletedTask;
         }
     }

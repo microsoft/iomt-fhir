@@ -159,7 +159,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient), new HashCodeFactory());
+            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient), new HashCodeFactory(), logger);
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)

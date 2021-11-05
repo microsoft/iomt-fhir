@@ -23,7 +23,6 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         IEnumerableAsyncCollector<IMeasurement>
     {
         private readonly IEventHubMessageService _eventHubService;
-        private readonly int _partitionCount;
         private readonly IHashCodeFactory _hashCodeFactory;
         private readonly ITelemetryLogger _telemetryLogger;
 
@@ -60,7 +59,9 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 var submissionTasks = items
                 .GroupBy(m =>
                 {
-                    var partitionKey = hasher.GenerateHashCode(m.DeviceId.ToLower()) % _partitionCount;
+                    // cast as byte to restrict to 256 possible values. This will lead to a greater change of measurements ending up in the same bucket,
+                    // while providing partition keys with enough entropy for EventHub to better distribute them across partitions.
+                    var partitionKey = (byte)hasher.GenerateHashCode(m.DeviceId.ToLower());
                     var partitionKeyAsString = partitionKey.ToString(CultureInfo.InvariantCulture);
                     return partitionKeyAsString;
                 })
@@ -68,7 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 {
                     var partitionKey = grp.Key;
                     Stack<EventDataBatch> eventDataBatches = new Stack<EventDataBatch>();
-                    eventDataBatches.Push(await _eventHubService.CreateEventDataBatchAsync());
+                    eventDataBatches.Push(await _eventHubService.CreateEventDataBatchAsync(partitionKey));
 
                     foreach (var m in grp)
                     {
@@ -79,12 +80,13 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                         if (!eventDataBatches.Peek().TryAdd(eventData))
                         {
                             // The current EventDataBatch cannot hold any more events. Create a new EventDataBatch and add this new message to it.
-                            var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync();
+                            var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
+
                             if (!newEventDataBatch.TryAdd(eventData))
                             {
                                 // The measurement event is greater than the size allowed by EventHub. Log and discard.
                                 // TODO in this case we should send this to a dead letter queue. We'd need to see how we can send it, as it is too big for EventHub...
-                                _telemetryLogger.LogError(new ArgumentOutOfRangeException("A measurement event exceeded the maximum message size for the event hub. It will be skipped."));
+                                _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement event exceeded the maximum message batch size of {newEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
                             }
                             else
                             {
