@@ -68,8 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 .Select(async grp =>
                 {
                     var partitionKey = grp.Key;
-                    Stack<EventDataBatch> eventDataBatches = new Stack<EventDataBatch>();
-                    eventDataBatches.Push(await _eventHubService.CreateEventDataBatchAsync(partitionKey));
+                    var currentEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
 
                     foreach (var m in grp)
                     {
@@ -77,28 +76,30 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                         var contentBytes = Encoding.UTF8.GetBytes(measurementContent);
                         var eventData = new EventData(contentBytes);
 
-                        if (!eventDataBatches.Peek().TryAdd(eventData))
+                        if (!currentEventDataBatch.TryAdd(eventData))
                         {
                             // The current EventDataBatch cannot hold any more events. Create a new EventDataBatch and add this new message to it.
                             var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
 
                             if (!newEventDataBatch.TryAdd(eventData))
                             {
-                                // The measurement event is greater than the size allowed by EventHub. Log and discard.
+                                // The measurement event is greater than the size allowed by EventHub. Log and discard. Keep the existing batch as there may
+                                // be room for more events.
                                 // TODO in this case we should send this to a dead letter queue. We'd need to see how we can send it, as it is too big for EventHub...
                                 _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement event exceeded the maximum message batch size of {newEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
                             }
                             else
                             {
-                                eventDataBatches.Push(newEventDataBatch);
+                                // Submit the current batch, and replace the currentEventDataBatch with newEventDataBatch
+                                await _eventHubService.SendAsync(currentEventDataBatch, cancellationToken);
+                                currentEventDataBatch.Dispose();
+                                currentEventDataBatch = newEventDataBatch;
                             }
                         }
                     }
 
-                    foreach (var eventBatch in eventDataBatches)
-                    {
-                        await _eventHubService.SendAsync(eventBatch, cancellationToken);
-                    }
+                    // Send over the remaining events
+                    await _eventHubService.SendAsync(currentEventDataBatch, cancellationToken);
                 });
 
                 await Task.WhenAll(submissionTasks);
