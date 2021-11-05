@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Globalization;
 using EnsureThat;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
@@ -13,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
         }
 
-        public int GenerateHashCode(string valueToHash)
+        public string GenerateHashCode(string valueToHash)
         {
             EnsureArg.IsNotNull(valueToHash, nameof(valueToHash));
 
@@ -24,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 h = unchecked((31 * h) + c);
             }
 
-            return h;
+            return ((byte)(Math.Abs(h) % 256)).ToString(CultureInfo.InvariantCulture);
         }
     }
 }

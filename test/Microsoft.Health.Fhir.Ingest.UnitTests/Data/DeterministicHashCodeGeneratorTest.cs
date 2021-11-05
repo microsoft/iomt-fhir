@@ -17,14 +17,25 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         }
 
         [Theory]
-        [InlineData("abba", 2987040)]
-        [InlineData("aaabbb", -1425371071)]
-        [InlineData("bbbaaa", -1395789601)]
-        [InlineData("abcdefghijklmnopqrstuvwxyz", 958031277)]
-        [InlineData("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 709306586)]
-        public void When_ValueIsSupplied_HashCode_IsGenerated(string input, int result)
+        [InlineData("abba", "32")]
+        [InlineData("aaabbb", "191")]
+        [InlineData("bbbaaa", "33")]
+        [InlineData("abcdefghijklmnopqrstuvwxyz", "173")]
+        [InlineData("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", "218")]
+        public void When_ValueIsSupplied_HashCode_IsGenerated(string input, string result)
         {
             Assert.Equal(result, _hashCodeGenerator.GenerateHashCode(input));
+        }
+
+        [Theory]
+        [InlineData("abba")]
+        [InlineData("aaabbb")]
+        [InlineData("bbbaaa")]
+        [InlineData("abcdefghijklmnopqrstuvwxyz")]
+        [InlineData("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")]
+        public void When_SameValueIsSupplied_IdenticalHashCode_IsGenerated(string input)
+        {
+            Assert.Equal(_hashCodeGenerator.GenerateHashCode(input), _hashCodeGenerator.GenerateHashCode(input));
         }
     }
 }

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -60,9 +59,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 {
                     // cast as byte to restrict to 256 possible values. This will lead to a greater change of measurements ending up in the same bucket,
                     // while providing partition keys with enough entropy for EventHub to better distribute them across partitions.
-                    var partitionKey = (byte)hasher.GenerateHashCode(m.DeviceId.ToLower());
-                    var partitionKeyAsString = partitionKey.ToString(CultureInfo.InvariantCulture);
-                    return partitionKeyAsString;
+                    return hasher.GenerateHashCode(m.DeviceId.ToLower());
                 })
                 .Select(async grp =>
                 {

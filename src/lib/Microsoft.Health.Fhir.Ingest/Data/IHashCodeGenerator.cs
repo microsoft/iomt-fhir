@@ -13,7 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         /// Generates a hashcode given the supplied input.
         /// </summary>
         /// <param name="value">The value to generate a hash code for</param>
-        /// <returns>The hash code value represented as an integer</returns>
-        int GenerateHashCode(string value);
+        /// <returns>The hash code value represented as a string</returns>
+        string GenerateHashCode(string value);
     }
 }

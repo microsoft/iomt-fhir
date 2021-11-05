@@ -31,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
             _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger);
             _hashCodeGenerator = Substitute.For<IHashCodeGenerator>();
-            _hashCodeGenerator.GenerateHashCode(Arg.Any<string>()).Returns(123);
+            _hashCodeGenerator.GenerateHashCode(Arg.Any<string>()).Returns("123");
             _hashCodeFactory.CreateDeterministicHashCodeGenerator().Returns(_hashCodeGenerator);
         }
 
