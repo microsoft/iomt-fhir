@@ -15,8 +15,9 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
         }
 
-        public string GenerateHashCode(string valueToHash)
+        public string GenerateHashCode(string valueToHash, int range = 256)
         {
+            EnsureArg.IsGt(range, 0, nameof(range));
             EnsureArg.IsNotNull(valueToHash, nameof(valueToHash));
 
             int h = 0;
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 h = unchecked((31 * h) + c);
             }
 
-            return ((byte)(Math.Abs(h) % 256)).ToString(CultureInfo.InvariantCulture);
+            return (Math.Abs(h) % range).ToString(CultureInfo.InvariantCulture);
         }
     }
 }

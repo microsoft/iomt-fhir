@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
@@ -14,6 +15,14 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         public DeterministicHashCodeGeneratorTest()
         {
             _hashCodeGenerator = new DeterministicHashCodeGenerator();
+        }
+
+        [Fact]
+        public void When_ValueSuppliedIsInvalid_ExceptionIsThrown()
+        {
+            Assert.Throws<ArgumentNullException>(() => _hashCodeGenerator.GenerateHashCode(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _hashCodeGenerator.GenerateHashCode("test", 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _hashCodeGenerator.GenerateHashCode("test", -1));
         }
 
         [Theory]
