@@ -18,7 +18,6 @@ namespace Microsoft.Health.Events.UnitTest
     public class EventHubExceptionTelemetryProcessorTests
     {
         [Theory]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ConsumerDisconnected }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ClientClosed }, "EventHubErrorClientClosed")]
@@ -58,7 +57,6 @@ namespace Microsoft.Health.Events.UnitTest
         }
 
         [Theory]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ConsumerDisconnected }, typeof(InvalidEventHubException))]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, typeof(InvalidEventHubException))]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, typeof(InvalidEventHubException))]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.GeneralError }, typeof(EventHubsException))]

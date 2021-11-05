@@ -54,9 +54,6 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     var reason = ((EventHubsException)exception).Reason;
                     switch (reason)
                     {
-                        case EventHubsException.FailureReason.ConsumerDisconnected:
-                            message = "Verify that the provided Event Hub's consumer group is not already receiving data for another IoT connector or Azure resource.";
-                            break;
                         case EventHubsException.FailureReason.ResourceNotFound:
                             message = "Verify that the provided Event Hubs Namespace contains the provided Event Hub and that the provided Event Hub contains the provided consumer group.";
                             break;
