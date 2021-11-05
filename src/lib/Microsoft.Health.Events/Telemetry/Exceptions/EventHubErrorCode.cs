@@ -8,19 +8,14 @@ namespace Microsoft.Health.Events.Telemetry
     public enum EventHubErrorCode
     {
         /// <summary>
-        /// Error code that categorizes exceptions of the type EventHubsException
-        /// </summary>
-        OperationError,
-
-        /// <summary>
         /// Error code that indicates failures in initializing event hub partition
         /// </summary>
         EventHubPartitionInitFailed,
 
         /// <summary>
-        /// Error code that categorizes exceptions of the type SocketException
+        /// Error code that categorizes invalid configurations (e.g. invalid namespace/FQDN, event hub name, or consumer group)
         /// </summary>
-        SocketError,
+        ConfigurationError,
 
         /// <summary>
         /// Error code that categorizes authentication errors (eg: exceptions of the type UnauthorizedAccessException)

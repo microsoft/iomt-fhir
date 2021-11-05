@@ -38,6 +38,11 @@ namespace Microsoft.Health.Common.Telemetry
         public static string ErrorSeverity => nameof(ErrorSeverity);
 
         /// <summary>
+        /// A metric dimension to identify the error source, e.g. the user or service.
+        /// </summary>
+        public static string ErrorSource => nameof(ErrorSource);
+
+        /// <summary>
         /// A metric dimension that represents the reason that caused the metric to be emitted.
         /// </summary>
         public static string Reason => nameof(Reason);
