@@ -19,6 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
     {
         private IEventHubMessageService _eventHubService;
         private IHashCodeFactory _hashCodeFactory;
+        private IHashCodeGenerator _hashCodeGenerator;
         private ITelemetryLogger _telemetryLogger;
         private IEnumerableAsyncCollector<IMeasurement> _measurementCollector;
 
@@ -29,6 +30,9 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             _telemetryLogger = Substitute.For<ITelemetryLogger>();
 
             _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger);
+            _hashCodeGenerator = Substitute.For<IHashCodeGenerator>();
+            _hashCodeGenerator.GenerateHashCode(Arg.Any<string>()).Returns(123);
+            _hashCodeFactory.CreateDeterministicHashCodeGenerator().Returns(_hashCodeGenerator);
         }
 
         [Fact]
@@ -79,7 +83,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
              });
 
             await _measurementCollector.AddAsync(measurements, default);
-
+            await _eventHubService.Received(1).CreateEventDataBatchAsync("123");
             await _eventHubService.Received(1)
                 .SendAsync(
                     Arg.Is<EventDataBatch>(data => data.Count == 100),
@@ -118,7 +122,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
             await _measurementCollector.AddAsync(measurements, default);
 
-            await _eventHubService.Received(2).CreateEventDataBatchAsync(Arg.Any<string>());
+            await _eventHubService.Received(2).CreateEventDataBatchAsync("123");
             await _eventHubService.Received(2)
                 .SendAsync(
                     Arg.Is<EventDataBatch>(data => data.Count == 5),
@@ -152,7 +156,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
             await _measurementCollector.AddAsync(measurements, default);
 
-            await _eventHubService.Received(2).CreateEventDataBatchAsync(Arg.Any<string>());
+            await _eventHubService.Received(2).CreateEventDataBatchAsync("123");
 
             await _eventHubService.Received(1)
                 .SendAsync(
