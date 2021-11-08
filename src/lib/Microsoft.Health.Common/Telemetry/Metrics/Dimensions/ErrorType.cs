@@ -8,6 +8,11 @@ namespace Microsoft.Health.Common.Telemetry
     public static class ErrorType
     {
         /// <summary>
+        /// A metric type for authentication errors
+        /// </summary>
+        public static string AuthenticationError => nameof(AuthenticationError);
+
+        /// <summary>
         /// A metric type for device template errors
         /// </summary>
         public static string DeviceTemplateError => nameof(DeviceTemplateError);

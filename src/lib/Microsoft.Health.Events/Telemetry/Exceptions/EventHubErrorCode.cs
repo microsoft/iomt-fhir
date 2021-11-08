@@ -26,5 +26,10 @@ namespace Microsoft.Health.Events.Telemetry
         /// Error code that categorizes all other generic Exceptions
         /// </summary>
         GeneralError,
+
+        /// <summary>
+        /// Error code that categorizes general request failed exceptions (eg: exceptions encountered of type RequestFailedException)
+        /// </summary>
+        RequestFailedError,
     }
 }

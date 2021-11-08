@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
@@ -18,7 +19,9 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
         public EventHubConfigurationExceptionTelemetryProcessor()
             : this(
                 typeof(InvalidEventHubException),
-                typeof(UnauthorizedAccessEventHubException))
+                typeof(UnauthorizedAccessEventHubException),
+                typeof(ManagedIdentityCredentialNotFound),
+                typeof(ManagedIdentityAuthenticationError))
         {
         }
 

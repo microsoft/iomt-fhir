@@ -39,4 +39,17 @@
     <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\EventResources.Designer.cs">
+      <DependentUpon>EventResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\EventResources.resx">
+      <LastGenOutput>EventResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
