@@ -26,6 +26,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await _client.CloseAsync().ConfigureAwait(false);
         }
 
+        public async ValueTask<EventDataBatch> CreateEventDataBatchAsync(string partitionKey)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(partitionKey, nameof(partitionKey));
+            return await _client.CreateBatchAsync(new CreateBatchOptions()
+            {
+                PartitionKey = partitionKey,
+            });
+        }
+
         public async Task SendAsync(EventDataBatch eventData, CancellationToken token)
         {
             await _client.SendAsync(eventData, token);

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -27,21 +28,31 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly Data.IConverter<EventData, JToken> _converter = null;
         private readonly int _maxParallelism;
         private readonly ITelemetryLogger _log;
+        private readonly int _asyncCollectorBatchSize;
 
         public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate)
-            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 3)
+            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 1)
         {
         }
 
-        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism)
+        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism, int asyncCollectorBatchSize = 200)
         {
             _log = EnsureArg.IsNotNull(log, nameof(log));
             _contentTemplate = EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _maxParallelism = maxParallelism;
+            _asyncCollectorBatchSize = EnsureArg.IsGt(asyncCollectorBatchSize, 0, nameof(asyncCollectorBatchSize));
         }
 
         public async Task ProcessAsync(IEnumerable<EventData> data, IAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer = null)
+        {
+            EnsureArg.IsNotNull(data, nameof(data));
+            EnsureArg.IsNotNull(collector, nameof(collector));
+
+            await StartConsumer(StartProducer(data), new EnumerableAsyncCollectorFacade<IMeasurement>(collector), errorConsumer ?? ProcessErrorAsync).ConfigureAwait(false);
+        }
+
+        public async Task ProcessAsync(IEnumerable<EventData> data, IEnumerableAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer = null)
         {
             EnsureArg.IsNotNull(data, nameof(data));
             EnsureArg.IsNotNull(collector, nameof(collector));
@@ -54,29 +65,30 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var producer = new BufferBlock<EventData>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
             _ = Task.Run(async () =>
-              {
-                  foreach (var evt in data)
-                  {
-                      while (!await producer.SendAsync(evt))
-                      {
-                          await Task.Yield();
-                      }
-                  }
+            {
+                foreach (var evt in data)
+                {
+                    while (!await producer.SendAsync(evt))
+                    {
+                        await Task.Yield();
+                    }
+                }
 
-                  producer.Complete();
-              });
+                producer.Complete();
+            });
 
             return producer;
         }
 
-        private async Task StartConsumer(ISourceBlock<EventData> producer, IAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer)
+        private async Task StartConsumer(ISourceBlock<EventData> producer, IEnumerableAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer)
         {
             // Collect non operation canceled exceptions as they occur to ensure the entire data stream is processed
             var exceptions = new ConcurrentBag<Exception>();
             var cts = new CancellationTokenSource();
-            var consumer = new ActionBlock<EventData>(
+            var transformingConsumer = new TransformManyBlock<EventData, (string, IMeasurement)>(
                 async evt =>
                 {
+                    var createdMeasurements = new List<(string, IMeasurement)>();
                     try
                     {
                         string partitionId = evt.SystemProperties.PartitionKey;
@@ -95,19 +107,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         foreach (var measurement in _contentTemplate.GetMeasurements(token))
                         {
                             measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
-                            await collector.AddAsync(measurement).ConfigureAwait(false);
-
-                            _log.LogMetric(
-                                IomtMetrics.NormalizedEvent(partitionId),
-                                1);
+                            createdMeasurements.Add((partitionId, measurement));
                         }
                     }
-                    catch (OperationCanceledException)
-                    {
-                        cts.Cancel();
-                        throw;
-                    }
-#pragma warning disable CA1031
                     catch (Exception ex)
                     {
                         if (await errorConsumer(ex, evt).ConfigureAwait(false))
@@ -115,13 +117,46 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             exceptions.Add(ex);
                         }
                     }
-#pragma warning restore CA1031
+
+                    return createdMeasurements;
+                });
+
+            var asyncCollectorConsumer = new ActionBlock<(string, IMeasurement)[]>(
+                async partitionIdAndeasurements =>
+                {
+                    try
+                    {
+                        var measurements = partitionIdAndeasurements.Select(pm => pm.Item2);
+                        await collector.AddAsync(measurements, cts.Token).ConfigureAwait(false);
+
+                        foreach (var partitionAndMeasurment in partitionIdAndeasurements)
+                        {
+                            _log.LogMetric(IomtMetrics.NormalizedEvent(partitionAndMeasurment.Item1), 1);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        cts.Cancel();
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Add(ex);
+                    }
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cts.Token });
 
-            _ = producer.LinkTo(consumer, new DataflowLinkOptions { PropagateCompletion = true });
+            // Connect the input EventData to the transformer block
+            producer.LinkTo(transformingConsumer, new DataflowLinkOptions { PropagateCompletion = true });
 
-            await consumer.Completion
+            // Batch the produced IMeasurements
+            var batchBlock = new BatchBlock<(string, IMeasurement)>(_asyncCollectorBatchSize);
+            transformingConsumer.LinkTo(batchBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+            // Connect the final action of writing events into EventHub
+            batchBlock.LinkTo(asyncCollectorConsumer, new DataflowLinkOptions { PropagateCompletion = true });
+
+            await asyncCollectorConsumer.Completion
                 .ContinueWith(
                     task =>
                     {
