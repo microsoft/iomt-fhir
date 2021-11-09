@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
@@ -27,15 +26,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
         }
 
-        public Metric ToMetric => new Metric(
-            "PatientDeviceMismatchException",
-            new Dictionary<string, object>
-            {
-                { DimensionNames.Name, "PatientDeviceMismatchException" },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.FHIRResourceError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                { DimensionNames.Operation, ConnectorOperation.FHIRConversion },
-            });
+        public Metric ToMetric => nameof(PatientDeviceMismatchException).ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.FHIRResourceError, ErrorSeverity.Warning);
     }
 }

@@ -28,6 +28,8 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 
         public override string ErrType => _errorType;
 
+        public override string ErrSeverity => ErrorSeverity.Critical;
+
         public override string ErrSource => nameof(ErrorSource.User);
     }
 }

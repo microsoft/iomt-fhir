@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 
@@ -38,15 +37,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public string EventName => $"{FhirResourceType}IdentityNotDefinedException";
 
-        public Metric ToMetric => new Metric(
-            $"{EventName}",
-            new Dictionary<string, object>
-            {
-                { DimensionNames.Name, $"{EventName}" },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.FHIRResourceError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                { DimensionNames.Operation, ConnectorOperation.FHIRConversion },
-            });
+        public Metric ToMetric => EventName.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.FHIRResourceError, ErrorSeverity.Warning);
     }
 }

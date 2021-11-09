@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -13,17 +12,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         Exception,
         ITelemetryFormattable
     {
-        private static Metric _templateNotFound = new Metric(
-            "TemplateNotFoundException",
-            new Dictionary<string, object>
-            {
-                { DimensionNames.Name, "TemplateNotFoundException" },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.GeneralError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Critical },
-                { DimensionNames.Operation, ConnectorOperation.Unknown },
-            });
-
         public TemplateNotFoundException(string message)
             : base(message)
         {
@@ -38,6 +26,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public Metric ToMetric => _templateNotFound;
+        public Metric ToMetric => nameof(TemplateNotFoundException).ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.GeneralError, ErrorSeverity.Critical);
     }
 }

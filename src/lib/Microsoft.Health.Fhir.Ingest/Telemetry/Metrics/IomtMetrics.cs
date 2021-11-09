@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
@@ -24,16 +25,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 
         private static Metric _deviceIngressSizeBytes = IomtMetricDefinition.DeviceIngressSizeBytes.CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization);
 
-        private static Metric _notSupported = new Metric(
-            "NotSupportedException",
-            new Dictionary<string, object>
-            {
-                { _nameDimension, "NotSupportedException" },
-                { _categoryDimension, Category.Errors },
-                { _errorTypeDimension, ErrorType.FHIRResourceError },
-                { _errorSeverityDimension, ErrorSeverity.Warning },
-                { _operationDimension, ConnectorOperation.FHIRConversion },
-            });
+        private static Metric _notSupported = nameof(NotSupportedException).ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.FHIRResourceError, ErrorSeverity.Warning);
 
         /// <summary>
         /// The latency between event ingestion and output to FHIR processor.
@@ -159,30 +151,14 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric UnhandledException(string exceptionName, string connectorStage)
         {
             EnsureArg.IsNotNull(exceptionName);
-            return new Metric(
-                "UnhandledException",
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, exceptionName },
-                    { _categoryDimension, Category.Errors },
-                    { _errorTypeDimension, ErrorType.GeneralError },
-                    { _errorSeverityDimension, ErrorSeverity.Critical },
-                    { _operationDimension, connectorStage },
-                });
+            var metricName = "UnhandledException";
+            return metricName.ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical, errorName: exceptionName);
         }
 
         public static Metric HandledException(string exceptionName, string connectorStage)
         {
-            return new Metric(
-                exceptionName,
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, exceptionName },
-                    { _categoryDimension, Category.Errors },
-                    { _errorTypeDimension, ErrorType.GeneralError },
-                    { _errorSeverityDimension, ErrorSeverity.Critical },
-                    { _operationDimension, connectorStage },
-                });
+            EnsureArg.IsNotNull(exceptionName);
+            return exceptionName.ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical);
         }
     }
 }
