@@ -150,14 +150,13 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 
         public static Metric UnhandledException(string exceptionName, string connectorStage)
         {
-            EnsureArg.IsNotNull(exceptionName);
-            var metricName = "UnhandledException";
-            return metricName.ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical, errorName: exceptionName);
+            EnsureArg.IsNotNullOrWhiteSpace(exceptionName);
+
+            return nameof(UnhandledException).ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical, errorName: exceptionName);
         }
 
         public static Metric HandledException(string exceptionName, string connectorStage)
         {
-            EnsureArg.IsNotNull(exceptionName);
             return exceptionName.ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical);
         }
     }

@@ -16,6 +16,7 @@ namespace Microsoft.Health.Common.Telemetry
 
         public static Metric CreateBaseMetric(this MetricDefinition iomtMetric, string category, string operation)
         {
+            EnsureArg.IsNotNull(iomtMetric);
             EnsureArg.IsNotNullOrWhiteSpace(category, nameof(category));
             EnsureArg.IsNotNullOrWhiteSpace(operation, nameof(operation));
 
@@ -32,7 +33,7 @@ namespace Microsoft.Health.Common.Telemetry
 
         public static Metric AddDimension(this Metric metric, string dimensionName, string dimensionValue)
         {
-            if (string.IsNullOrEmpty(dimensionValue))
+            if (string.IsNullOrWhiteSpace(dimensionValue))
             {
                 return metric;
             }
@@ -52,7 +53,7 @@ namespace Microsoft.Health.Common.Telemetry
                 metricName,
                 new Dictionary<string, object>
                 {
-                    { DimensionNames.Name, string.IsNullOrEmpty(errorName) ? metricName : errorName },
+                    { DimensionNames.Name, string.IsNullOrWhiteSpace(errorName) ? metricName : errorName },
                     { DimensionNames.Category, Category.Errors },
                     { DimensionNames.ErrorType, errorType },
                     { DimensionNames.ErrorSeverity, errorSeverity },
