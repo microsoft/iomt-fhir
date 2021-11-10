@@ -5,10 +5,14 @@
 
 using System;
 using System.Net.Sockets;
+using Azure;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
+using Microsoft.Health.Events.Resources;
 using Microsoft.Health.Logging.Telemetry;
+using Microsoft.Identity.Client;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
@@ -55,10 +59,10 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     switch (reason)
                     {
                         case EventHubsException.FailureReason.ResourceNotFound:
-                            message = "Verify that the provided Event Hubs Namespace contains the provided Event Hub and that the provided Event Hub contains the provided consumer group.";
+                            message = EventResources.EventHubResourceNotFound;
                             break;
                         case EventHubsException.FailureReason.ServiceCommunicationProblem:
-                            message = "Verify that the provided Event Hub Namespace, Event Hub name, and consumer group are correct and that access permissions to the provided Event Hub have been granted.";
+                            message = EventResources.EventHubServiceCommunicationProblem;
                             break;
                         default:
                             return (exception, reason.ToString());
@@ -68,16 +72,32 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     return (new InvalidEventHubException(message, exception, errorName), errorName);
 
                 case InvalidOperationException _:
-                    message = "Verify that the provided Event Hub contains the provided consumer group.";
+                    message = EventResources.EventHubInvalidConsumerGroup;
                     errorName = nameof(EventHubErrorCode.ConfigurationError);
                     return (new InvalidEventHubException(message, exception, errorName), errorName);
+
+                case MsalServiceException _:
+                    var msalErrorCode = ((MsalServiceException)exception).ErrorCode;
+                    message = EventResources.ManagedIdentityAuthenticationError;
+                    return (new ManagedIdentityAuthenticationError(message, exception, msalErrorCode), msalErrorCode);
+
+                case RequestFailedException _:
+                    var errorCode = ((RequestFailedException)exception).ErrorCode;
+
+                    if (string.Equals(errorCode, EventResources.SecretNotFound, StringComparison.CurrentCultureIgnoreCase) || message.Contains(EventResources.SecretNotFound, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        message = EventResources.ManagedIdentityCredentialNotFound;
+                        return (new ManagedIdentityCredentialNotFound(message, exception), errorCode);
+                    }
+
+                    return (exception, $"{EventHubErrorCode.RequestFailedError}{errorCode}");
 
                 case SocketException _:
                     var socketErrorCode = ((SocketException)exception).SocketErrorCode;
                     switch (socketErrorCode)
                     {
                         case SocketError.HostNotFound:
-                            message = "Verify that the provided Event Hubs Namespace exists.";
+                            message = EventResources.EventHubHostNotFound;
                             errorName = nameof(EventHubErrorCode.ConfigurationError);
                             return (new InvalidEventHubException(message, exception, errorName), errorName);
                         default:
@@ -85,7 +105,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     }
 
                 case UnauthorizedAccessException _:
-                    message = "Verify that the provided Event Hub's 'Azure Event Hubs Data Receiver' role has been assigned to the applicable Azure Active Directory security principal or managed identity.";
+                    message = EventResources.EventHubAuthorizationError;
                     string helpLink = "https://docs.microsoft.com/azure/event-hubs/authenticate-application";
                     errorName = nameof(EventHubErrorCode.AuthorizationError);
                     return (new UnauthorizedAccessEventHubException(message, exception, helpLink, errorName), errorName);

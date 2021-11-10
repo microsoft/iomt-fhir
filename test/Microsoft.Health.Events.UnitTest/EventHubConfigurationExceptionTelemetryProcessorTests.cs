@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
@@ -14,22 +15,15 @@ namespace Microsoft.Health.Events.UnitTest
 {
     public class EventHubConfigurationExceptionTelemetryProcessorTests
     {
-        [Theory]
-        [InlineData(typeof(InvalidEventHubException))]
-        public void GivenCustomExceptionTypeWithoutHelpLink_WhenHandleExpection_ThenHandledAndMetricLogged_Test(Type exType)
-        {
-            var testEx = Substitute.For<Exception>();
-            var ex = Activator.CreateInstance(exType, new object[] { "test", testEx, "test" }) as Exception;
-
-            GivenException_WhenHandleExpection_ThenHandledAndMetricLogged_Test(ex);
-        }
 
         [Theory]
-        [InlineData(typeof(UnauthorizedAccessEventHubException))]
-        public void GivenCustomExceptionTypeWithHelpLink_WhenHandleExpection_ThenHandledAndMetricLogged_Test(Type exType)
+        [InlineData(typeof(InvalidEventHubException), new object[] { "test", null, "test" })]
+        [InlineData(typeof(UnauthorizedAccessEventHubException), new object[] { "test", null, "test", "test" })]
+        [InlineData(typeof(ManagedIdentityCredentialNotFound), new object[] { "test", null})]
+        [InlineData(typeof(ManagedIdentityAuthenticationError), new object[] { "test", null, "test" })]
+        public void GivenCustomExceptionTypeWithoutHelpLink_WhenHandleExpection_ThenHandledAndMetricLogged_Test(Type exType, object[] param)
         {
-            var testEx = Substitute.For<Exception>();
-            var ex = Activator.CreateInstance(exType, new object[] { "test", testEx, "test", "test" }) as Exception;
+            var ex = Activator.CreateInstance(exType, param) as Exception;
 
             GivenException_WhenHandleExpection_ThenHandledAndMetricLogged_Test(ex);
         }
