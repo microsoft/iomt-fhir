@@ -1,21 +1,20 @@
 
 using System;
+using Azure.Messaging.EventHubs.Consumer;
+using DevLab.JmesPath;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Consumer;
-using Azure.Messaging.EventHubs.Processor;
-using Microsoft.Health.Tools.EventDebugger.EventProcessor;
-using Microsoft.Health.Tools.EventDebugger.Extensions;
-using Microsoft.Health.Tools.EventDebugger.TemplateLoader;
 using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
-using DevLab.JmesPath;
+using Microsoft.Health.Tools.EventDebugger.EventProcessor;
+using Microsoft.Health.Tools.EventDebugger.Extensions;
+using Microsoft.Health.Tools.EventDebugger.TemplateLoader;
+
 
 namespace Microsoft.Health.Tools.EventDebugger
 {
@@ -45,26 +44,11 @@ namespace Microsoft.Health.Tools.EventDebugger
             });
             services.AddSingleton(sp => 
             {
-                var options = sp.GetRequiredService<IOptions<EventConsumerOptions>>();
-                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(options?.Value.ConnectionString, nameof(options.Value.ConnectionString));
-
-                if (string.IsNullOrWhiteSpace(options.Value.ConsumerGroup))
-                {
-                    throw new ArgumentException("Missing [Consumer Group] argument. If supplying on the command line ensure '$' are escaped (i.e. \\$Default)");
-                }
-                var consumerGroup = EnsureArg.IsNotNullOrWhiteSpace(options?.Value.ConsumerGroup, nameof(options.Value.ConsumerGroup));
-                var eventConsumerClient = new EventHubConsumerClient(consumerGroup, connectionString);
-                return eventConsumerClient;
-            });
-            services.AddSingleton(sp => 
-            {
                 var eventConsumerClient = new DeviceEventProcessor(
-                    sp.GetRequiredService<EventHubConsumerClient>(),
                     sp.GetRequiredService<ILogger<DeviceEventProcessor>>(),
                     new EventDataJTokenConverter(),
                     sp.GetRequiredService<ITemplateLoader>(),
-                    sp.GetRequiredService<IConversionResultWriter>(),
-                    sp.GetRequiredService<IOptions<EventProcessorOptions>>());
+                    sp.GetRequiredService<IConversionResultWriter>());
                 return eventConsumerClient;
             });
         }

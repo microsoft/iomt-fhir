@@ -19,39 +19,43 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
     public class DeviceEventProcessor
     {
         private const TaskContinuationOptions AsyncContinueOnSuccess = TaskContinuationOptions.RunContinuationsAsynchronously | TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.NotOnCanceled;
-        private readonly EventHubConsumerClient _eventHubConsumerClient;
-        private readonly TimeSpan _eventReadTimeout;
         private readonly ILogger<DeviceEventProcessor> _logger;
         private readonly IConverter<EventData, JToken> _converter = null;
         private readonly ITemplateLoader _templateLoader;
         private readonly IConversionResultWriter _conversionResultWriter;
+        private EventHubConsumerClient _eventHubConsumerClient;
         private int _maxParallelism = 4;
         private int _eventsToProcess;
+        private TimeSpan _eventReadTimeout;
 
         private int totalSuccessfulEvents;
         private int totalFailedEvents;
 
         public DeviceEventProcessor(
-            EventHubConsumerClient eventHubConsumerClient,
             ILogger<DeviceEventProcessor> logger,
             IConverter<EventData, JToken> converter,
             ITemplateLoader templateLoader,
-            IConversionResultWriter conversionResultWriter,
-            IOptions<EventProcessorOptions> eventProcessorOptions)
-        {
-            _eventHubConsumerClient = EnsureArg.IsNotNull(eventHubConsumerClient, nameof(eventHubConsumerClient));
+            IConversionResultWriter conversionResultWriter)
+        {            
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _templateLoader = EnsureArg.IsNotNull(templateLoader, nameof(templateLoader));
             _conversionResultWriter = EnsureArg.IsNotNull(conversionResultWriter, nameof(conversionResultWriter));
             
-            var options = EnsureArg.IsNotNull(eventProcessorOptions.Value, nameof(eventProcessorOptions));
-            _eventReadTimeout = options.EventReadTimeout;
-            _eventsToProcess = eventProcessorOptions.Value.TotalEventsToProcess;
+            
         }
 
-        public async Task RunAsync(CancellationToken cancellationToken)
+        public async Task RunAsync(
+            EventProcessorOptions eventProcessorOptions,
+            EventHubConsumerClient eventHubConsumerClient,
+            CancellationToken cancellationToken)
         {
+            _eventHubConsumerClient = EnsureArg.IsNotNull(eventHubConsumerClient, nameof(eventHubConsumerClient));
+
+            var options = EnsureArg.IsNotNull(eventProcessorOptions, nameof(eventProcessorOptions));
+            _eventReadTimeout = options.EventReadTimeout;
+            _eventsToProcess = eventProcessorOptions.TotalEventsToProcess;
+
             var template = await _templateLoader.LoadTemplate();
 
             await StartConsumer(StartProducer(cancellationToken), template, cancellationToken).ConfigureAwait(false);
