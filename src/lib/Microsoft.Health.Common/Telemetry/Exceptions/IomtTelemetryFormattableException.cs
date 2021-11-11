@@ -4,17 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using EnsureThat;
 
-namespace Microsoft.Health.Common.Telemetry
+namespace Microsoft.Health.Common.Telemetry.Exceptions
 {
     public class IomtTelemetryFormattableException :
         Exception,
         ITelemetryFormattable
     {
         private readonly string _name;
-        private readonly string _operation;
+        private readonly string _operation = ConnectorOperation.Unknown;
 
         public IomtTelemetryFormattableException()
         {
@@ -47,16 +46,10 @@ namespace Microsoft.Health.Common.Telemetry
 
         public virtual string ErrSource => nameof(ErrorSource.Undefined);
 
-        public Metric ToMetric => new Metric(
-            EnsureArg.IsNotNullOrWhiteSpace(_name, nameof(_name)),
-            new Dictionary<string, object>
-            {
-                { DimensionNames.Category, Category.Errors },
-            })
-            .AddDimension(DimensionNames.Name, _name)
-            .AddDimension(DimensionNames.Operation, _operation)
-            .AddDimension(DimensionNames.ErrorType, ErrType)
-            .AddDimension(DimensionNames.ErrorSeverity, ErrSeverity)
-            .AddDimension(DimensionNames.ErrorSource, ErrSource);
+        public virtual string ErrName => _name;
+
+        public virtual string Operation => _operation;
+
+        public Metric ToMetric => ErrName.ToErrorMetric(Operation, ErrType, ErrSeverity, ErrSource);
     }
 }

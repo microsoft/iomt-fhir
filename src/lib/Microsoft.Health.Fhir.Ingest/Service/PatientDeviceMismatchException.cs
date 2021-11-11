@@ -4,15 +4,18 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class PatientDeviceMismatchException :
-        Exception,
-        ITelemetryFormattable
+    public class PatientDeviceMismatchException : IomtTelemetryFormattableException
     {
+        public PatientDeviceMismatchException()
+            : base()
+        {
+        }
+
         public PatientDeviceMismatchException(string message)
             : base(message)
         {
@@ -23,19 +26,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
         }
 
-        public PatientDeviceMismatchException()
-        {
-        }
+        public override string ErrName => nameof(PatientDeviceMismatchException);
 
-        public Metric ToMetric => new Metric(
-            "PatientDeviceMismatchException",
-            new Dictionary<string, object>
-            {
-                { DimensionNames.Name, "PatientDeviceMismatchException" },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.FHIRResourceError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                { DimensionNames.Operation, ConnectorOperation.FHIRConversion },
-            });
+        public override string ErrType => ErrorType.FHIRResourceError;
+
+        public override string Operation => ConnectorOperation.FHIRConversion;
     }
 }

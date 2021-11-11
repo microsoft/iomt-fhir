@@ -25,7 +25,6 @@ using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Polly;
 using static Microsoft.Azure.EventHubs.EventData;
-using AzureMessagingEventHubs = Azure.Messaging.EventHubs;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 {
@@ -125,17 +124,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
         {
             var type = exception.GetType().ToString();
-            var ToMetric = new Metric(
-                type,
-                new Dictionary<string, object>
-                {
-                    { DimensionNames.Name, type },
-                    { DimensionNames.Category, Category.Errors },
-                    { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                    { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                    { DimensionNames.Operation, ConnectorOperation.Normalization},
-                });
-            logger.LogMetric(ToMetric, 1);
+            var metric = type.ToErrorMetric(ConnectorOperation.Normalization, ErrorType.DeviceMessageError, ErrorSeverity.Warning);
+            logger.LogMetric(metric, 1);
         }
     }
 }

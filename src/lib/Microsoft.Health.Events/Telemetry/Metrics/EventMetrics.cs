@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Events.Telemetry
@@ -108,16 +107,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// <param name="connectorStage">The stage of the connector</param>
         public static Metric HandledException(string exceptionName, string connectorStage)
         {
-            return new Metric(
-                exceptionName,
-                new Dictionary<string, object>
-                {
-                    { _nameDimension, exceptionName },
-                    { _categoryDimension, Category.Errors },
-                    { _errorTypeDimension, ErrorType.EventHubError },
-                    { _errorSeverityDimension, ErrorSeverity.Critical },
-                    { _operationDimension, connectorStage },
-                });
+            return exceptionName.ToErrorMetric(connectorStage, ErrorType.EventHubError, ErrorSeverity.Critical);
         }
     }
 }

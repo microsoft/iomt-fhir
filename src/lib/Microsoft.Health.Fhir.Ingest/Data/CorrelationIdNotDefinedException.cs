@@ -4,14 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public class CorrelationIdNotDefinedException :
-        Exception,
-        ITelemetryFormattable
+    public class CorrelationIdNotDefinedException : IomtTelemetryFormattableException
     {
         public CorrelationIdNotDefinedException(string message)
             : base(message)
@@ -27,15 +25,12 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
         }
 
-        public Metric ToMetric => new Metric(
-            "CorrelationIdNotDefinedException",
-            new Dictionary<string, object>
-           {
-                { DimensionNames.Name, "CorrelationIdNotDefinedException" },
-                { DimensionNames.Category, Category.Errors },
-                { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                { DimensionNames.ErrorSeverity, ErrorSeverity.Critical },
-                { DimensionNames.Operation, ConnectorOperation.Grouping },
-           });
+        public override string ErrName => nameof(CorrelationIdNotDefinedException);
+
+        public override string ErrType => ErrorType.DeviceMessageError;
+
+        public override string ErrSeverity => ErrorSeverity.Critical;
+
+        public override string Operation => ConnectorOperation.Grouping;
     }
 }

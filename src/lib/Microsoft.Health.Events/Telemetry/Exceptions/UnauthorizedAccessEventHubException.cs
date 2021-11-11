@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
@@ -27,6 +28,8 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
         }
 
         public override string ErrType => _errorType;
+
+        public override string ErrSeverity => ErrorSeverity.Critical;
 
         public override string ErrSource => nameof(ErrorSource.User);
     }

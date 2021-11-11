@@ -71,17 +71,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
         {
             var type = exception.GetType().ToString();
-            var ToMetric = new Metric(
-                type,
-                new Dictionary<string, object>
-                {
-                    { DimensionNames.Name, type },
-                    { DimensionNames.Category, Category.Errors },
-                    { DimensionNames.ErrorType, ErrorType.GeneralError },
-                    { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                    { DimensionNames.Operation, ConnectorOperation.FHIRConversion},
-                });
-            logger.LogMetric(ToMetric, 1);
+            var metric = type.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.GeneralError, ErrorSeverity.Warning);
+            logger.LogMetric(metric, 1);
         }
     }
 }
