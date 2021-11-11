@@ -5,12 +5,11 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class TemplateNotFoundException :
-        Exception,
-        ITelemetryFormattable
+    public class TemplateNotFoundException : IomtTelemetryFormattableException
     {
         public TemplateNotFoundException(string message)
             : base(message)
@@ -26,6 +25,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
         }
 
-        public Metric ToMetric => nameof(TemplateNotFoundException).ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.GeneralError, ErrorSeverity.Critical);
+        public override string ErrName => nameof(TemplateNotFoundException);
+
+        public override string ErrType => ErrorType.GeneralError;
+
+        public override string ErrSeverity => ErrorSeverity.Critical;
+
+        public override string Operation => ConnectorOperation.FHIRConversion;
     }
 }

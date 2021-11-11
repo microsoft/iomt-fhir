@@ -5,13 +5,12 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest
 {
-    public class FhirResourceNotFoundException :
-        Exception,
-        ITelemetryFormattable
+    public class FhirResourceNotFoundException : IomtTelemetryFormattableException
     {
         public FhirResourceNotFoundException(ResourceType resourceType)
            : base($"Fhir resource of type {resourceType} not found.")
@@ -35,8 +34,10 @@ namespace Microsoft.Health.Fhir.Ingest
 
         public ResourceType FhirResourceType { get; private set; }
 
-        public string EventName => $"{FhirResourceType}NotFoundException";
+        public override string ErrName => $"{FhirResourceType}NotFoundException";
 
-        public Metric ToMetric => EventName.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.FHIRResourceError, ErrorSeverity.Warning);
+        public override string ErrType => ErrorType.FHIRResourceError;
+
+        public override string Operation => ConnectorOperation.FHIRConversion;
     }
 }

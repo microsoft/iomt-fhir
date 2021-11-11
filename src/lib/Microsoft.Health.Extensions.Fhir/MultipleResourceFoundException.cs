@@ -5,12 +5,11 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
-    public class MultipleResourceFoundException<T> :
-        Exception,
-        ITelemetryFormattable
+    public class MultipleResourceFoundException<T> : IomtTelemetryFormattableException
     {
         public MultipleResourceFoundException(int resourceCount)
             : base($"Multiple resources {resourceCount} of type {typeof(T)} found, expected one")
@@ -31,8 +30,10 @@ namespace Microsoft.Health.Extensions.Fhir
         {
         }
 
-        public string EventName => $"Multiple{typeof(T).Name}FoundException";
+        public override string ErrName => $"Multiple{typeof(T).Name}FoundException";
 
-        public Metric ToMetric => EventName.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.FHIRResourceError, ErrorSeverity.Warning);
+        public override string ErrType => ErrorType.FHIRResourceError;
+
+        public override string Operation => ConnectorOperation.FHIRConversion;
     }
 }
