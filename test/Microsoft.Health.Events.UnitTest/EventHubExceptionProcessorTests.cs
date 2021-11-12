@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.Health.Events.UnitTest
 {
-    public class EventHubExceptionTelemetryProcessorTests
+    public class EventHubExceptionProcessorTests
     {
         [Theory]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorConfigurationError")]
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Events.UnitTest
             var logger = Substitute.For<ITelemetryLogger>();
             Exception ex = Activator.CreateInstance(exType, param) as Exception;
 
-            EventHubExceptionTelemetryProcessor.ProcessException(ex, logger);
+            EventHubExceptionProcessor.ProcessException(ex, logger);
 
             logger.ReceivedWithAnyArgs(1).LogError(ex);
             logger.Received(1).LogMetric(Arg.Is<Metric>(m =>
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Events.UnitTest
             var logger = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
 
-            EventHubExceptionTelemetryProcessor.ProcessException(ex, logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
+            EventHubExceptionProcessor.ProcessException(ex, logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
 
             logger.Received(1).LogError(ex);
             logger.Received(1).LogMetric(Arg.Is<Metric>(m =>
@@ -76,7 +76,7 @@ namespace Microsoft.Health.Events.UnitTest
         {
             var ex = Activator.CreateInstance(exType, param) as Exception;
 
-            var (customEx, errName) = EventHubExceptionTelemetryProcessor.CustomizeException(ex);
+            var (customEx, errName) = EventHubExceptionProcessor.CustomizeException(ex);
 
             Assert.IsType(customExType, customEx);
         }

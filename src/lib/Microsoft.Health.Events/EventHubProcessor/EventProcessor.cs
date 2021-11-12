@@ -61,7 +61,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // todo: consider retry
             Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
             {
-                EventHubExceptionTelemetryProcessor.ProcessException(eventArgs.Exception, _logger);
+                EventHubExceptionProcessor.ProcessException(eventArgs.Exception, _logger);
 
                 return Task.CompletedTask;
             }
@@ -83,7 +83,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 #pragma warning restore CA1031
                 {
                     _logger.LogTrace($"Failed to initialize partition {partitionId} from checkpoint");
-                    EventHubExceptionTelemetryProcessor.ProcessException(ex, _logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
+                    EventHubExceptionProcessor.ProcessException(ex, _logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
                 }
             }
 

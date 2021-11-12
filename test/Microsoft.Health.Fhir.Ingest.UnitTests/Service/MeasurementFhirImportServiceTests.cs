@@ -9,10 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Health.Common.Config;
-using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
-using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
@@ -94,9 +92,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
-            options.ExceptionService.HandleException(null, null, null).ReturnsForAnyArgs(true);
+            options.ExceptionService.HandleException(null, null).ReturnsForAnyArgs(true);
 
             var exception = new InvalidOperationException();
+
             var fhirService = Substitute.For<FhirImportService>();
             fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
@@ -108,7 +107,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-            options.ExceptionService.Received(2).HandleException(exception, log, ConnectorOperation.FHIRConversion);
+            options.ExceptionService.Received(2).HandleException(exception, log);
         }
 
         [Fact]
