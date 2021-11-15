@@ -23,6 +23,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         [InlineData(typeof(FhirResourceNotFoundException))]
         [InlineData(typeof(ResourceIdentityNotDefinedException))]
         [InlineData(typeof(TemplateNotFoundException))]
+        [InlineData(typeof(InvalidQuantityFhirValueException))]
         public void GivenHandledExceptionTypes_WhenHandleExpection_ThenMetricLoggedAndTrueReturned_Test(System.Type exType)
         {
             var log = Substitute.For<ITelemetryLogger>();

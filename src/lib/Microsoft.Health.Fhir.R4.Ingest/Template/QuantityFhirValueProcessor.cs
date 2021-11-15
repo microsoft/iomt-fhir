@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Fhir.Ingest.Service;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
@@ -20,9 +21,21 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(inValue, nameof(inValue));
             IEnumerable<(DateTime, string)> values = EnsureArg.IsNotNull(inValue.Data, nameof(IObservationData.Data));
 
+            decimal value;
+            try
+            {
+                value = decimal.Parse(values.Single().Item2, CultureInfo.InvariantCulture);
+            }
+            catch (Exception ex)
+            {
+                var valuesCount = values.Count();
+                var message = valuesCount == 1 ? $"Error encountered processing value: {values.First().Item2}." : $"Expected 1 value. Received {valuesCount}.";
+                throw new InvalidQuantityFhirValueException(message, ex);
+            }
+
             return new Quantity
             {
-                Value = decimal.Parse(values.Single().Item2, CultureInfo.InvariantCulture),
+                Value = value,
                 Unit = template.Unit,
                 System = template.System,
                 Code = template.Code,
