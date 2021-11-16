@@ -1,0 +1,13 @@
+﻿{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "typeName": "hr",
+    "periodInterval": 60,
+    "value": {
+      "defaultPeriod": 5000,
+      "unit": "bpm",
+      "valueName": "hr",
+      "valueType": "sampledData"
+    }
+  }
+}

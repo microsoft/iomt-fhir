@@ -293,6 +293,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Contains("TypeName", ex.Message);
         }
 
+        [Theory]
+        [FileData(@"TestInput/data_CodeValueFhirTemplateInvalid_MissingCodeField.json")]
+        public void GivenInvalidTemplateJsonMissingCodeField_WhenFactoryCreate_ThenTemplateCreated_Test(string json)
+        {
+            var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
+
+            var factory = new CodeValueFhirTemplateFactory();
+
+            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            Assert.NotNull(ex);
+            Assert.Contains("Codes", ex.Message);
+        }
+
         [Fact]
         public void GivenInvalidTemplateTargetType_WhenFactoryCreate_ThenInvalidTemplateExceptionThrown_Test()
         {

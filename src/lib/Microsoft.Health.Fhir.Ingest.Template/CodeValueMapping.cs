@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class CodeValueMapping
     {
 #pragma warning disable CA2227
+        [JsonProperty(Required = Required.Always)]
         public IList<FhirCode> Codes { get; set; }
 #pragma warning restore CA2227
 
