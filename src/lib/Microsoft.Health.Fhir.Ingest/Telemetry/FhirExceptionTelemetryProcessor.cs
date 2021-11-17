@@ -26,7 +26,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 typeof(FhirResourceNotFoundException),
                 typeof(MultipleResourceFoundException<>),
                 typeof(TemplateNotFoundException),
-                typeof(CorrelationIdNotDefinedException))
+                typeof(CorrelationIdNotDefinedException),
+                typeof(InvalidQuantityFhirValueException))
         {
         }
 
