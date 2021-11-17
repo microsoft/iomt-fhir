@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json.Linq;
@@ -20,43 +21,48 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public class MeasurementEventNormalizationServiceTests
     {
+        private IContentTemplate _template;
+        private IEnumerableAsyncCollector<IMeasurement> _consumer;
+        private IConverter<EventData, JToken> _converter;
+        private ITelemetryLogger _logger;
+        private IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
+
+        public MeasurementEventNormalizationServiceTests()
+        {
+            _template = Substitute.For<IContentTemplate>();
+            _consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
+            _converter = Substitute.For<IConverter<EventData, JToken>>();
+            _logger = Substitute.For<ITelemetryLogger>();
+            _exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
+        }
+
         [Fact]
         public async Task GivenMultipleEventsWithOneResultPer_WhenProcessAsync_ThenEachEventConsumed_Test()
         {
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ITelemetryLogger>();
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _exceptionTelemetryProcessor);
+            await srv.ProcessAsync(events, _consumer);
 
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
-
-            var srv = new MeasurementEventNormalizationService(log, template);
-            await srv.ProcessAsync(events, consumer);
-
-            template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
-            await consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 10), Arg.Any<CancellationToken>());
+            _template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
+            await _consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 10), Arg.Any<CancellationToken>());
         }
 
         [Fact]
         public async Task GivenMultipleEventsWithOneResultPer_WhenTotalMeauresmentsProcessed_AreGreaterThanBatchSize_ThenEachEventConsumedInMultipleBatches_Test()
         {
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
             var events = Enumerable.Range(0, 51).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ITelemetryLogger>();
-            var converter = Substitute.For<IConverter<EventData, JToken>>();
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 3, 25);
+            await srv.ProcessAsync(events, _consumer);
 
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 3, 25);
-            await srv.ProcessAsync(events, consumer);
-
-            template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
+            _template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
 
             // 51 Events with a batch size of 25 =  2 * 25 measurement batches and 1 * 1 measurement batch
-            await consumer.Received(2).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 25), Arg.Any<CancellationToken>());
-            await consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 1), Arg.Any<CancellationToken>());
+            await _consumer.Received(2).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 25), Arg.Any<CancellationToken>());
+            await _consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 1), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -66,34 +72,27 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                    .Select(i => BuildEvent(i))
                    .ToDictionary(ed => ed, ed => JToken.FromObject(new object()));
 
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>(), Substitute.For<Measurement>() });
-            var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
-            converter.Convert(null).ReturnsForAnyArgs(args => events[args.Arg<EventData>()]);
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>(), Substitute.For<Measurement>() });
+            _converter.Convert(null).ReturnsForAnyArgs(args => events[args.Arg<EventData>()]);
 
-            var log = Substitute.For<ITelemetryLogger>();
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 3);
+            await srv.ProcessAsync(events.Keys, _consumer);
 
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
-
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 3);
-            await srv.ProcessAsync(events.Keys, consumer);
-
-            template.ReceivedWithAnyArgs(events.Count).GetMeasurements(null);
-            converter.ReceivedWithAnyArgs(events.Count).Convert(null);
-            await consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == events.Count * 2), Arg.Any<CancellationToken>());
+            _template.ReceivedWithAnyArgs(events.Count).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(events.Count).Convert(null);
+            await _consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == events.Count * 2), Arg.Any<CancellationToken>());
 
             foreach (var evt in events)
             {
-                converter.Received(1).Convert(evt.Key);
-                template.Received(1).GetMeasurements(evt.Value);
+                _converter.Received(1).Convert(evt.Key);
+                _template.Received(1).GetMeasurements(evt.Value);
             }
         }
 
         [Fact]
         public async Task GivenEvents_WhenProcessAsync_ThenIngestionTimeUtcSet_Test()
         {
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null)
+            _template.GetMeasurements(null)
                 .ReturnsForAnyArgs(
                     new[] { new Measurement() },
                     new[] { new Measurement() },
@@ -106,20 +105,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     new[] { new Measurement() },
                     new[] { new Measurement() });
 
-            var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
-
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ITelemetryLogger>();
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
+            await srv.ProcessAsync(events, _consumer);
 
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
-
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
-            await srv.ProcessAsync(events, consumer);
-
-            template.ReceivedWithAnyArgs(10).GetMeasurements(null);
-            converter.ReceivedWithAnyArgs(10).Convert(null);
-            await consumer.Received(1).AddAsync(
+            _template.ReceivedWithAnyArgs(10).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(10).Convert(null);
+            await _consumer.Received(1).AddAsync(
                 Arg.Is<IEnumerable<IMeasurement>>(
                     measurements =>
                         measurements.Count() == 10 &&
@@ -130,68 +123,72 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async Task GivenEventsAndDefaultErrorConsumer_WhenProcessAsyncAndConsumerErrors_ThenEachEventResultConsumed_And_ErrorPerBatchProprogated_Test()
         {
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
-            var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ITelemetryLogger>();
+            _consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new Exception()));
 
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
-            consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new Exception()));
-
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 1, 5); // Set asyncCollectorBatchSize to 5 to produce 2 batches
-            var exception = await Assert.ThrowsAsync<AggregateException>(() => srv.ProcessAsync(events, consumer));
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1, 5); // Set asyncCollectorBatchSize to 5 to produce 2 batches
+            var exception = await Assert.ThrowsAsync<AggregateException>(() => srv.ProcessAsync(events, _consumer));
             Assert.Equal(2, exception.InnerExceptions.Count);
 
-            template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
-            converter.ReceivedWithAnyArgs(events.Length).Convert(null);
-            await consumer.Received(2).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 5), Arg.Any<CancellationToken>());
+            _template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(events.Length).Convert(null);
+            await _consumer.Received(2).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 5), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenEventsAndDefaultErrorConsumer_WhenProcessAsyncAndHandleableConsumerErrors_ThenExceptionNotThrown_Test()
+        {
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
+
+            var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
+
+            _converter.Convert(null).ReturnsForAnyArgs(v => throw new IncompatibleDataException());
+
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
+            await srv.ProcessAsync(events, _consumer);
+
+            _template.ReceivedWithAnyArgs(0).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(events.Length).Convert(null);
+            await _consumer.ReceivedWithAnyArgs(0).AddAsync(null);
         }
 
         [Fact]
         public async Task GivenEventsAndOperationCancellationException_WhenProcessAsync_ThenExecutionHalted_Test()
         {
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>(), Substitute.For<Measurement>() });
-            var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>(), Substitute.For<Measurement>() });
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ITelemetryLogger>();
+            _consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new OperationCanceledException()));
 
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
-            consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new OperationCanceledException()));
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
+            var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => srv.ProcessAsync(events, _consumer));
 
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
-            var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => srv.ProcessAsync(events, consumer));
-
-            template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
-            converter.ReceivedWithAnyArgs(events.Length).Convert(null);
-            await consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == events.Length * 2), Arg.Any<CancellationToken>());
+            _template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(events.Length).Convert(null);
+            await _consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == events.Length * 2), Arg.Any<CancellationToken>());
         }
 
         [Fact]
         public async Task GivenEventsAndTaskCancellationException_WhenProcessAsync_ThenExecutionHalted_Test()
         {
-            var template = Substitute.For<IContentTemplate>();
-            template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>(), Substitute.For<Measurement>() });
-            var converter = Substitute.For<Data.IConverter<EventData, JToken>>();
+            _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>(), Substitute.For<Measurement>() });
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var log = Substitute.For<ITelemetryLogger>();
+            _consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new TaskCanceledException()));
 
-            var consumer = Substitute.For<IEnumerableAsyncCollector<IMeasurement>>();
-            consumer.AddAsync(null).ReturnsForAnyArgs(v => Task.FromException(new TaskCanceledException()));
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
+            var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => srv.ProcessAsync(events, _consumer));
 
-            var srv = new MeasurementEventNormalizationService(log, template, converter, 1);
-            var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => srv.ProcessAsync(events, consumer));
-
-            template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
-            converter.ReceivedWithAnyArgs(events.Length).Convert(null);
-            await consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == events.Length * 2), Arg.Any<CancellationToken>());
+            _template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(events.Length).Convert(null);
+            await _consumer.Received(1).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == events.Length * 2), Arg.Any<CancellationToken>());
         }
 
         private static EventData BuildEvent(int? sequence = 0)

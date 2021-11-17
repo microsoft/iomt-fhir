@@ -67,7 +67,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         }
                         catch (Exception e)
                         {
-                            exceptions.Add(new InvalidOperationException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e));
+                            exceptions.Add(new IncompatibleDataException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e));
                         }
                     }
                 }
@@ -76,15 +76,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     if (exceptions.Count > 0)
                     {
-                        throw new InvalidOperationException($"Unable to extract required value for [{name}]", new AggregateException(exceptions));
+                        throw new IncompatibleDataException($"Unable to extract required value for [{name}]", new AggregateException(exceptions));
                     }
 
-                    throw new InvalidOperationException($"Unable to extract required value for [{name}] using {string.Join(",", expressions.Select(e => e.Value).ToArray())}");
+                    throw new IncompatibleDataException($"Unable to extract required value for [{name}] using {string.Join(",", expressions.Select(e => e.Value).ToArray())}");
                 }
             }
             else if (isRequired)
             {
-                throw new InvalidOperationException($"An expression must be set for [{name}]");
+                throw new IncompatibleDataException($"An expression must be set for [{name}]");
             }
 
             return default;

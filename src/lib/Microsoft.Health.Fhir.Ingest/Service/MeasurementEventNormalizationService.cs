@@ -29,17 +29,28 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly int _maxParallelism;
         private readonly ITelemetryLogger _log;
         private readonly int _asyncCollectorBatchSize;
+        private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
-        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate)
-            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), 1)
+        public MeasurementEventNormalizationService(
+            ITelemetryLogger log,
+            IContentTemplate contentTemplate,
+            IExceptionTelemetryProcessor exceptionTelemetryProcessor)
+            : this(log, contentTemplate, new EventDataWithJsonBodyToJTokenConverter(), exceptionTelemetryProcessor, 1)
         {
         }
 
-        public MeasurementEventNormalizationService(ITelemetryLogger log, IContentTemplate contentTemplate, Data.IConverter<EventData, JToken> converter, int maxParallelism, int asyncCollectorBatchSize = 200)
+        public MeasurementEventNormalizationService(
+            ITelemetryLogger log,
+            IContentTemplate contentTemplate,
+            Data.IConverter<EventData, JToken> converter,
+            IExceptionTelemetryProcessor exceptionTelemetryProcessor,
+            int maxParallelism,
+            int asyncCollectorBatchSize = 200)
         {
             _log = EnsureArg.IsNotNull(log, nameof(log));
             _contentTemplate = EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
+            _exceptionTelemetryProcessor = EnsureArg.IsNotNull(exceptionTelemetryProcessor, nameof(exceptionTelemetryProcessor));
             _maxParallelism = maxParallelism;
             _asyncCollectorBatchSize = EnsureArg.IsGt(asyncCollectorBatchSize, 0, nameof(asyncCollectorBatchSize));
         }
@@ -171,10 +182,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 .ConfigureAwait(false);
         }
 
-        private async Task<bool> ProcessErrorAsync(Exception ex, EventData data)
+        /// <summary>
+        /// Default error processor that returns true if the exception is handled and false otherwise.
+        /// </summary>
+        /// <param name="ex">The exception to be processed.</param>
+        /// <param name="data">Event data that encountered an error upon processing.</param>
+        /// <returns>Returns true if the exception is handled and false otherwise.</returns>
+        private Task<bool> ProcessErrorAsync(Exception ex, EventData data)
         {
-            // Default error processor
-            return await Task.FromResult(true).ConfigureAwait(false);
+            var handled = _exceptionTelemetryProcessor.HandleException(ex, _log);
+            return Task.FromResult(!handled);
         }
     }
 }
