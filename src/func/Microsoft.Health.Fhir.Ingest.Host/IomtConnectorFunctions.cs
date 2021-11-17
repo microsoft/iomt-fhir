@@ -28,6 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     {
         private readonly ITelemetryLogger _logger;
         private readonly CollectionContentTemplateFactory _collectionContentTemplateFactory;
+        private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
         public IomtConnectorFunctions(ITelemetryLogger logger)
         {
@@ -41,6 +42,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 new IotCentralJsonPathContentTemplateFactory(),
                 new CalculatedFunctionContentTemplateFactory(
                     new TemplateExpressionEvaluatorFactory(jmesPath), _logger));
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
@@ -87,7 +89,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     IomtMetrics.DeviceEvent(),
                     events.Length);
 
-                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
+                IDataNormalizationService<EventData, IMeasurement> dataNormalizationService = new MeasurementEventNormalizationService(_logger, template, _exceptionTelemetryProcessor);
                 await dataNormalizationService.ProcessAsync(events, output).ConfigureAwait(false);
 
                 if (normalizationSettings.Value.LogDeviceIngressSizeBytes)

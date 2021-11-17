@@ -36,6 +36,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private IEnumerableAsyncCollector<IMeasurement> _collector;
         private AsyncPolicy _retryPolicy;
         private CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
+        private IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
         public Processor(
             string templateDefinition,
@@ -50,6 +51,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _retryPolicy = CreateRetryPolicy(logger);
             _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
@@ -100,7 +102,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                     return eventData;
                 });
 
-            var dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
+            var dataNormalizationService = new MeasurementEventNormalizationService(_logger, template, _exceptionTelemetryProcessor);
             await dataNormalizationService.ProcessAsync(eventHubEvents, _collector).ConfigureAwait(false);
         }
 
