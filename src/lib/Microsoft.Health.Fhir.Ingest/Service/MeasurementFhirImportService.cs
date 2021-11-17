@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.Service;
-using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -74,9 +73,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             catch (Exception ex)
                             {
-                                if (!Options.ExceptionService.HandleException(ex, log, ConnectorOperation.FHIRConversion))
+                                if (!Options.ExceptionService.HandleException(ex, log))
                                 {
-                                    log.LogError(ex);
                                     throw;
                                 }
                             }

@@ -6,6 +6,7 @@
 using Microsoft.Health.Common.Config;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Config
 {
@@ -13,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Config
     {
         public virtual ParallelTaskOptions ParallelTaskOptions { get; } = new ParallelTaskOptions { MaxConcurrency = 10 };
 
-        public virtual ExceptionTelemetryProcessor ExceptionService { get; } = new ExceptionTelemetryProcessor();
+        public virtual IExceptionTelemetryProcessor ExceptionService { get; } = new FhirExceptionTelemetryProcessor();
 
         public virtual ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>> TemplateFactory { get; } = CollectionFhirTemplateFactory.Default;
     }
