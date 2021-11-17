@@ -30,6 +30,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public override string ErrType => ErrorType.DeviceMessageError;
 
+        public override string ErrSource => nameof(ErrorSource.User);
+
         public override string Operation => ConnectorOperation.Normalization;
     }
 }
