@@ -172,7 +172,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     },
                 });
 
-            Assert.Throws<InvalidOperationException>(() => template.GetMeasurements(token).ToArray());
+            Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
         }
 
         [Theory]
@@ -415,7 +415,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
 
-            var ex = Assert.Throws<InvalidOperationException>(() => template.GetMeasurements(token).ToArray());
+            var ex = Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
             Assert.Contains("Unable to extract required value for [CorrelationIdExpression]", ex.Message);
         }
 

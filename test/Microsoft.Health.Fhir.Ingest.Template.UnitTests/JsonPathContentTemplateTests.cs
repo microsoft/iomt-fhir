@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -251,7 +250,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { systolic = "120", device = "abc", date = time });
 
-            Assert.Throws<InvalidOperationException>(() => MultiValueRequiredTemplate.GetMeasurements(token).ToArray());
+            Assert.Throws<IncompatibleDataException>(() => MultiValueRequiredTemplate.GetMeasurements(token).ToArray());
         }
 
         [Fact]
@@ -471,7 +470,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
 
-            var ex = Assert.Throws<InvalidOperationException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
+            var ex = Assert.Throws<IncompatibleDataException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
             Assert.StartsWith("Unable to extract required value for [CorrelationIdExpression]", ex.Message);
         }
 
