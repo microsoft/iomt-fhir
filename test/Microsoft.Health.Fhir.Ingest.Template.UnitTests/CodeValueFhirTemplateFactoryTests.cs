@@ -218,7 +218,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.NotNull(value);
             Assert.Equal("reasonText", value.ValueName);
 
-            Assert.Null(codeValueTemplate.Codes);
+            Assert.NotNull(codeValueTemplate.Codes);
         }
 
         [Theory]
