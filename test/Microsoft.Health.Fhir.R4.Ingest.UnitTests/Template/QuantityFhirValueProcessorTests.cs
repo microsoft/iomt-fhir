@@ -5,6 +5,7 @@
 
 using System;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -34,6 +35,39 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal("mySystem", result.System);
             Assert.Equal("myCode", result.Code);
             Assert.Equal(22.4m, result.Value);
+        }
+
+        [Fact]
+        public void GivenInvalidDataValue_WhenCreateValue_ThenInvalidQuantityFhirValueExceptionThrown_Test()
+        {
+            var processor = new QuantityFhirValueProcessor();
+            var template = new QuantityFhirValueType
+            {
+                Unit = "myUnit",
+                System = "mySystem",
+                Code = "myCode",
+            };
+
+            // invalid format for data value
+            var data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "NaN") }));
+
+            Assert.Throws<InvalidQuantityFhirValueException>(() => processor.CreateValue(template, data));
+
+            // multiple data values
+            data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { (DateTime.UtcNow, "22.4"), (DateTime.UtcNow, "22.4") }));
+
+            Assert.Throws<InvalidQuantityFhirValueException>(() => processor.CreateValue(template, data));
+
+            // no data value
+            data = Substitute.For<IObservationData>()
+                .Mock(m => m.DataPeriod.Returns((DateTime.UtcNow, DateTime.UtcNow)))
+                .Mock(m => m.Data.Returns(new (DateTime, string)[] { }));
+
+            Assert.Throws<InvalidQuantityFhirValueException>(() => processor.CreateValue(template, data));
         }
 
         [Fact]

@@ -16,9 +16,9 @@ using Microsoft.Identity.Client;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
-    public static class EventHubExceptionTelemetryProcessor
+    public static class EventHubExceptionProcessor
     {
-        private static readonly EventHubConfigurationExceptionTelemetryProcessor _exceptionTelemetryProcessor = new EventHubConfigurationExceptionTelemetryProcessor();
+        private static readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor = new ExceptionTelemetryProcessor();
 
         public static void ProcessException(
             Exception exception,
@@ -31,18 +31,8 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
 
             logger.LogError(customException);
 
-            if (customException.Equals(exception))
-            {
-                logger.LogMetric(
-                    EventMetrics.HandledException(
-                        errorMetricName ?? $"{ErrorType.EventHubError}{errorName}",
-                        ConnectorOperation.Setup),
-                    1);
-            }
-            else
-            {
-                _exceptionTelemetryProcessor.HandleException(customException, logger, ConnectorOperation.Setup);
-            }
+            errorMetricName = customException.Equals(exception) ? errorMetricName ?? $"{ErrorType.EventHubError}{errorName}" : customException.GetType().Name;
+            _exceptionTelemetryProcessor.LogExceptionMetric(customException, logger, EventMetrics.HandledException(errorMetricName, ConnectorOperation.Setup));
         }
 
         public static (Exception customException, string errorName) CustomizeException(Exception exception)
