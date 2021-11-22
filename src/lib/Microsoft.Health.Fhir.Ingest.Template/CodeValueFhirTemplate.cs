@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
@@ -14,6 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 #pragma warning restore CA2227
 
 #pragma warning disable CA2227
+        [JsonProperty(Required = Required.Always)]
         public virtual IList<FhirCode> Codes { get; set; }
 #pragma warning restore CA2227
 

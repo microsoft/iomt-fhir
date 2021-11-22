@@ -1,8 +1,14 @@
 {
   "templateType": "CodeValueFhir",
   "template": {
-    "periodInterval": 0,
     "typeName": "stringDetail",
+    "codes": [
+      {
+        "code": "8867-4",
+        "system": "http://loinc.org"
+      }
+    ],
+    "periodInterval": 0,
     "value": {
       "valueName": "reasonText",
       "valueType": "String"
