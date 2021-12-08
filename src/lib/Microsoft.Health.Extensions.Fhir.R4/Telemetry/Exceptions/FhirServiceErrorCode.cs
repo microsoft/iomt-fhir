@@ -13,7 +13,7 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
         ConfigurationError,
 
         /// <summary>
-        /// Error code that categorizes authentication errors (e.g. HTTP status 401/Unauthorized)
+        /// Error code that categorizes authorization errors (e.g. missing role with permission to write FHIR data)
         /// </summary>
         AuthorizationError,
 
