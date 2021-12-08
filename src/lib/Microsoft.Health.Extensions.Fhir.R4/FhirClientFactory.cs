@@ -129,7 +129,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
                 if (Logger != null && !response.IsSuccessStatusCode)
                 {
-                    var errorType = ErrorType.FHIRServerError;
+                    var errorType = ErrorType.FHIRServiceError;
                     var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
 
                     if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)

@@ -11,7 +11,7 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 {
     public sealed class InvalidFhirServiceException : IomtTelemetryFormattableException
     {
-        private static readonly string _errorType = ErrorType.FHIRServerError;
+        private static readonly string _errorType = ErrorType.FHIRServiceError;
 
         public InvalidFhirServiceException()
         {

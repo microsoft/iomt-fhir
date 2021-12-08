@@ -27,7 +27,7 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 
             logger.LogError(customException);
 
-            string exceptionName = customException.Equals(exception) ? $"{ErrorType.FHIRServerError}{errorName}" : customException.GetType().Name;
+            string exceptionName = customException.Equals(exception) ? $"{ErrorType.FHIRServiceError}{errorName}" : customException.GetType().Name;
             _exceptionTelemetryProcessor.LogExceptionMetric(customException, logger, FhirClientMetrics.HandledException(exceptionName, ErrorSeverity.Critical));
         }
 
