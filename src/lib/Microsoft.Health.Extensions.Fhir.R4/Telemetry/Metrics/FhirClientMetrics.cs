@@ -14,10 +14,9 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Metrics
         /// </summary>
         /// <param name="exceptionName">The name of the exception</param>
         /// <param name="severity">The severity of the error</param>
-        /// <param name="connectorStage">The stage of the connector</param>
-        public static Metric HandledException(string exceptionName, string severity, string connectorStage)
+        public static Metric HandledException(string exceptionName, string severity)
         {
-            return exceptionName.ToErrorMetric(connectorStage, ErrorType.GeneralError, severity);
+            return exceptionName.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.FHIRServerError, severity);
         }
     }
 }

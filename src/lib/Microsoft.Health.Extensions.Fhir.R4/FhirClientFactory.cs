@@ -16,6 +16,7 @@ using Microsoft.Health.Common;
 using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Metrics;
 using Microsoft.Health.Extensions.Host.Auth;
 using Microsoft.Health.Logging.Telemetry;
@@ -64,18 +65,29 @@ namespace Microsoft.Health.Extensions.Fhir
 
         private static FhirClient CreateClient(TokenCredential tokenCredential, ITelemetryLogger logger)
         {
+            EnsureArg.IsNotNull(tokenCredential, nameof(tokenCredential));
+
             var url = Environment.GetEnvironmentVariable("FhirService:Url");
             EnsureArg.IsNotNullOrEmpty(url, nameof(url));
             var uri = new Uri(url);
-
-            EnsureArg.IsNotNull(tokenCredential, nameof(tokenCredential));
 
             var fhirClientSettings = new FhirClientSettings
             {
                 PreferredFormat = ResourceFormat.Json,
             };
 
-            var client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(uri, tokenCredential, logger));
+            FhirClient client;
+            try
+            {
+                client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(uri, tokenCredential, logger));
+            }
+            catch (Exception ex)
+            {
+                client = null;
+                FhirServiceExceptionProcessor.ProcessException(ex, logger);
+            }
+
+            FhirServiceValidator.ValidateFhirService(client, logger);
 
             return client;
         }
@@ -117,15 +129,16 @@ namespace Microsoft.Health.Extensions.Fhir
 
                 if (Logger != null && !response.IsSuccessStatusCode)
                 {
+                    var errorType = ErrorType.FHIRServerError;
                     var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
 
                     if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                     {
-                        Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ErrorSeverity.Informational, ConnectorOperation.FHIRConversion), 1);
+                        Logger.LogMetric(FhirClientMetrics.HandledException($"{errorType}{statusDescription}", ErrorSeverity.Informational), 1);
                     }
                     else
                     {
-                        Logger.LogMetric(FhirClientMetrics.HandledException($"FhirServerError{statusDescription}", ErrorSeverity.Critical, ConnectorOperation.FHIRConversion), 1);
+                        Logger.LogMetric(FhirClientMetrics.HandledException($"{errorType}{statusDescription}", ErrorSeverity.Critical), 1);
                     }
                 }
 

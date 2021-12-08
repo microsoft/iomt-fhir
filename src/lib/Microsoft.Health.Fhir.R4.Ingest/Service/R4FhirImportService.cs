@@ -11,6 +11,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Search;
+using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -63,17 +64,29 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
             }
 
-            Model.Observation result;
+            Model.Observation result = null;
             if (existingObservation == null)
             {
                 var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
-                result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
+
+                try
+                {
+                    result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
+                }
+                catch (FhirOperationException ex)
+                {
+                    FhirServiceExceptionProcessor.ProcessException(ex, _logger);
+                }
+
                 _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created), 1);
             }
             else
             {
                 var policyResult = await Policy<Model.Observation>
-                     .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
+                     .Handle<FhirOperationException>(ex =>
+                         ex.Status == System.Net.HttpStatusCode.Forbidden
+                         || ex.Status == System.Net.HttpStatusCode.Conflict
+                         || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
                      .RetryAsync(2, async (polyRes, attempt) =>
                      {
                          existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
@@ -88,6 +101,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                 if (exception != null)
                 {
+                    FhirServiceExceptionProcessor.ProcessException(exception, _logger);
                     throw exception;
                 }
 
