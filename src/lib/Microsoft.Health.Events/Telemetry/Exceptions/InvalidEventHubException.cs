@@ -16,12 +16,13 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
         public InvalidEventHubException(
             string message,
             Exception innerException,
-            string errorName)
+            string errorName,
+            string operation)
             : base(
                   message,
                   innerException,
                   name: $"{_errorType}{errorName}",
-                  operation: ConnectorOperation.Setup)
+                  operation: operation)
         {
         }
 
