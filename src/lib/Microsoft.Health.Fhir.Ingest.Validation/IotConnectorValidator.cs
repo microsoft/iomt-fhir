@@ -55,7 +55,10 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 fhirTemplate = LoadFhirTemplate(fhirMappingContent, validationResult);
             }
 
-            CheckForTemplateCompatibility();
+            if (contentTemplate != null && fhirTemplate != null)
+            {
+                CheckForTemplateCompatibility(contentTemplate, fhirTemplate, validationResult);
+            }
 
             if (validationResult.Exceptions.Count > 0)
             {
@@ -111,9 +114,66 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             return null;
         }
 
-        private void CheckForTemplateCompatibility()
+        private void CheckForTemplateCompatibility(IContentTemplate contentTemplate, ILookupTemplate<IFhirTemplate> fhirTemplate, ValidationResult validationResult)
         {
-            // Check if device and fhir templates are compatible with each other
+            var deviceTemplates = new List<MeasurementExtractor>();
+            var fhirTemplates = new List<CodeValueFhirTemplate>();
+            var availableFhirTemplates = string.Empty;
+
+            // TODO: Confirm that outer template factories are always collections for both Device and Fhir Mappings. This implies that
+            // customers must always wrap their templates inside of a CollectionXXX Template.
+
+            if (contentTemplate is CollectionContentTemplate collectionContentTemplate)
+            {
+                deviceTemplates.AddRange(collectionContentTemplate.Templates.Select(t => t as MeasurementExtractor));
+            }
+
+            if (fhirTemplate is FhirLookupTemplate fhirLookupTemplate)
+            {
+                fhirTemplates.AddRange(fhirLookupTemplate.Templates.Select(t => t as CodeValueFhirTemplate));
+                availableFhirTemplates = string.Join(",", fhirTemplates.Select(t => t.TypeName));
+            }
+
+            foreach (var extractor in deviceTemplates)
+            {
+                try
+                {
+                    var innerTemplate = extractor.Template;
+                    var matchingFhirTemplate = fhirTemplate.GetTemplate(innerTemplate.TypeName) as CodeValueFhirTemplate;
+                    var fhirTemplateValues = new List<FhirValueType>();
+                    fhirTemplateValues.Add(matchingFhirTemplate.Value);
+
+                    if (matchingFhirTemplate.Components != null)
+                    {
+                        foreach (var c in matchingFhirTemplate.Components)
+                        {
+                            fhirTemplateValues.Add(c.Value);
+                        }
+                    }
+
+                    var availableFhirValueNames = fhirTemplateValues.Where(v => v != null).Select(v => v.ValueName).ToHashSet();
+
+                    // Ensure all values are present
+                    if (extractor.Template.Values != null)
+                    {
+                        foreach (var v in extractor.Template.Values)
+                        {
+                            if (!availableFhirValueNames.Contains(v.ValueName))
+                            {
+                                validationResult.Warnings.Add($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. No value will appear inside of Observations.");
+                            }
+                        }
+                    }
+                }
+                catch (TemplateNotFoundException)
+                {
+                    validationResult.Warnings.Add($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}] ");
+                }
+                catch (Exception e)
+                {
+                    CaptureException(validationResult, e);
+                }
+            }
         }
 
         private void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, ValidationResult validationResult)
@@ -150,6 +210,10 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
                 // Build HL7 Observation
                 validationResult.Observations.Add(_fhirTemplateProcessor.CreateObservation(fhirTemplate, observationGroup));
+            }
+            catch (TemplateNotFoundException e)
+            {
+                validationResult.Exceptions.Add($"No Fhir Template exists with the type name [{e.Message}]. Ensure that all Fhir Template type names match Device Mapping type names (including casing)");
             }
             catch (Exception e)
             {

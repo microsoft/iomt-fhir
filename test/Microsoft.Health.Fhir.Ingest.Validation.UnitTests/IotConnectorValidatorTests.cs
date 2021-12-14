@@ -4,15 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using EnsureThat;
-using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json.Linq;
-using Model = Hl7.Fhir.Model;
 using Xunit;
+using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
 {
@@ -118,6 +114,56 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 (error) => error.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir"));
             Assert.Empty(result.Measurements);
             Assert.Null(result.DeviceEvent);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateMissingTypeInvalid.json")]
+        public void Given_ValidDeviceMapping_And_FhirMapping_WithMissingTypeName_Warnings_Found(string deviceMapping, string fhirMapping)
+        {
+            // [0]"Validation errors:\nFailed to deserialize the JsonPathContentTemplate content: \n  Required property 'DeviceIdExpression' not found in JSON. \n  Required property 'TimestampExpression' not found in JSON. \nFailed to deserialize the IotJsonPathContentTemplate content: \n  Required property 'TypeMatchExpression' not found in JSON. "   string
+            // "Validation errors:\nExpected TemplateType value CollectionFhirTemplate, actual CodeValueFhir."
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(new
+            {
+                systolic = "60",
+                diastolic = "80",
+                device = "abc",
+                date = time,
+                session = "abcdefg",
+                patient = "patient123",
+            });
+            var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
+            Assert.Collection(
+                result.Exceptions,
+                e => e.StartsWith("No Fhir Template exists with the type name [bloodpressure]"));
+            Assert.Collection(
+                result.Warnings,
+                (error) => error.Contains("No matching Fhir Template exists for Device Mapping [bloodpressure]"));
+            Assert.Single(result.Measurements);
+            Assert.NotNull(result.DeviceEvent);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateIncorrectValueNameInvalid.json")]
+        public void Given_ValidDeviceMapping_And_FhirMapping_WithIncorrectValueName_Warnings_Found(string deviceMapping, string fhirMapping)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(new
+            {
+                systolic = "60",
+                diastolic = "80",
+                device = "abc",
+                date = time,
+                session = "abcdefg",
+                patient = "patient123",
+            });
+            var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
+            Assert.Empty(result.Exceptions);
+            Assert.Collection(
+               result.Warnings,
+               (error) => error.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template"));
+            Assert.Single(result.Measurements);
+            Assert.NotNull(result.DeviceEvent);
         }
     }
 }
