@@ -62,9 +62,14 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     return (new InvalidEventHubException(message, exception, errorName), errorName);
 
                 case InvalidOperationException _:
-                    message = EventResources.EventHubInvalidConsumerGroup;
-                    errorName = nameof(EventHubErrorCode.ConfigurationError);
-                    return (new InvalidEventHubException(message, exception, errorName), errorName);
+                    if (message.Contains(EventResources.ConsumerGroup, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        message = EventResources.EventHubInvalidConsumerGroup;
+                        errorName = nameof(EventHubErrorCode.ConfigurationError);
+                        return (new InvalidEventHubException(message, exception, errorName), errorName);
+                    }
+
+                    return (exception, $"{EventHubErrorCode.InvalidOperationError}");
 
                 case MsalServiceException _:
                     var msalErrorCode = ((MsalServiceException)exception).ErrorCode;

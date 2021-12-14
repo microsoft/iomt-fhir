@@ -28,6 +28,11 @@ namespace Microsoft.Health.Events.Telemetry
         GeneralError,
 
         /// <summary>
+        /// Error code that categorizes general invalid operation exceptions (eg: exceptions encountered of type InvalidOperationException)
+        /// </summary>
+        InvalidOperationError,
+
+        /// <summary>
         /// Error code that categorizes general request failed exceptions (eg: exceptions encountered of type RequestFailedException)
         /// </summary>
         RequestFailedError,

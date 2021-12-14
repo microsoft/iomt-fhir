@@ -24,14 +24,15 @@ namespace Microsoft.Health.Events.UnitTest
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ClientClosed }, "EventHubErrorClientClosed")]
-        [InlineData(typeof(InvalidOperationException), null, "EventHubErrorConfigurationError")]
+        [InlineData(typeof(InvalidOperationException), new object[] { "ConsumerGroup" }, "EventHubErrorConfigurationError")]
+        [InlineData(typeof(InvalidOperationException), null, "EventHubErrorInvalidOperationError")]
         [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, "EventHubErrorConfigurationError")]
         [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, "EventHubErrorSocketError")]
         [InlineData(typeof(UnauthorizedAccessException), null, "EventHubErrorAuthorizationError")]
         [InlineData(typeof(RequestFailedException), new object[] { "SecretNotFound" }, "ManagedIdentityCredentialNotFound", nameof(ErrorType.AuthenticationError))]
         [InlineData(typeof(MsalServiceException), new object[] { "testErrorCode", "testError" }, "ManagedIdentityAuthenticationErrortestErrorCode", nameof(ErrorType.AuthenticationError))]
         [InlineData(typeof(Exception), null, "EventHubErrorGeneralError")]
-        public void GivenExceptionType_WhenProcessExpection_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName, string expectedErrorTypeName = nameof(ErrorType.EventHubError))
+        public void GivenExceptionType_WhenProcessException_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName, string expectedErrorTypeName = nameof(ErrorType.EventHubError))
         {
             var logger = Substitute.For<ITelemetryLogger>();
             Exception ex = Activator.CreateInstance(exType, param) as Exception;
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Events.UnitTest
 
         [Theory]
         [InlineData(typeof(Exception))]
-        public void GivenExceptionTypeAndErrorMetricName_WhenProcessExpection_ThenExceptionLoggedAndErrorMetricNameLogged_Test(Type exType)
+        public void GivenExceptionTypeAndErrorMetricName_WhenProcessException_ThenExceptionLoggedAndErrorMetricNameLogged_Test(Type exType)
         {
             var logger = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
@@ -65,7 +66,8 @@ namespace Microsoft.Health.Events.UnitTest
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, typeof(InvalidEventHubException))]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, typeof(InvalidEventHubException))]
         [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.GeneralError }, typeof(EventHubsException))]
-        [InlineData(typeof(InvalidOperationException), null, typeof(InvalidEventHubException))]
+        [InlineData(typeof(InvalidOperationException), new object[] { "ConsumerGroup" }, typeof(InvalidEventHubException))]
+        [InlineData(typeof(InvalidOperationException), null, typeof(InvalidOperationException))]
         [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, typeof(InvalidEventHubException))]
         [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, typeof(SocketException))]
         [InlineData(typeof(UnauthorizedAccessException), null, typeof(UnauthorizedAccessEventHubException))]
