@@ -13,17 +13,19 @@ namespace Microsoft.Health.Extensions.Fhir
 {
     public static class FhirServiceValidator
     {
-        public static void ValidateFhirService(FhirClient client, ITelemetryLogger logger)
+        public static bool ValidateFhirService(FhirClient client, ITelemetryLogger logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
 
             try
             {
                 client.CapabilityStatement(SummaryType.True);
+                return true;
             }
             catch (Exception exception)
             {
                 FhirServiceExceptionProcessor.ProcessException(exception, logger);
+                return false;
             }
         }
     }
