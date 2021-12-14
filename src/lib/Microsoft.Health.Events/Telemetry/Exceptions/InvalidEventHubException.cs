@@ -13,6 +13,20 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
     {
         private static readonly string _errorType = ErrorType.EventHubError;
 
+        public InvalidEventHubException()
+        {
+        }
+
+        public InvalidEventHubException(string message)
+            : base(message)
+        {
+        }
+
+        public InvalidEventHubException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
         public InvalidEventHubException(
             string message,
             Exception innerException,
