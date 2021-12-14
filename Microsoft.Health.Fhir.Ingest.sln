@@ -100,9 +100,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Expression
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Expressions.UnitTests", "test\Microsoft.Health.Expressions.UnitTests\Microsoft.Health.Expressions.UnitTests.csproj", "{9BF918FE-E09B-4072-8CC5-2BE479230719}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation", "src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj", "{7F507901-30BD-41CD-99B8-FD8FA103D70A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation", "src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj", "{3371DA00-44CD-4514-B83C-8F10C45C347D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Validation.UnitTests\Microsoft.Health.Fhir.Ingest.Validation.UnitTests.csproj", "{34B7EABB-DC53-47AC-86E0-35596FF18312}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Validation.UnitTests\Microsoft.Health.Fhir.Ingest.Validation.UnitTests.csproj", "{2F840B00-FC46-4540-895E-7DC17FE0BCE4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -202,14 +202,14 @@ Global
 		{9BF918FE-E09B-4072-8CC5-2BE479230719}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BF918FE-E09B-4072-8CC5-2BE479230719}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BF918FE-E09B-4072-8CC5-2BE479230719}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7F507901-30BD-41CD-99B8-FD8FA103D70A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F507901-30BD-41CD-99B8-FD8FA103D70A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F507901-30BD-41CD-99B8-FD8FA103D70A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F507901-30BD-41CD-99B8-FD8FA103D70A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3371DA00-44CD-4514-B83C-8F10C45C347D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3371DA00-44CD-4514-B83C-8F10C45C347D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3371DA00-44CD-4514-B83C-8F10C45C347D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3371DA00-44CD-4514-B83C-8F10C45C347D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F840B00-FC46-4540-895E-7DC17FE0BCE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F840B00-FC46-4540-895E-7DC17FE0BCE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F840B00-FC46-4540-895E-7DC17FE0BCE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F840B00-FC46-4540-895E-7DC17FE0BCE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -244,8 +244,8 @@ Global
 		{657FB6EC-2F58-43B6-AD14-5EDE9D73C1E5} = {75D08B93-4CE1-4967-B0C3-DAA792F1D19A}
 		{0BC152B5-DF88-4750-A7CC-1B7429D879F6} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
 		{9BF918FE-E09B-4072-8CC5-2BE479230719} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
-		{7F507901-30BD-41CD-99B8-FD8FA103D70A} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
-		{34B7EABB-DC53-47AC-86E0-35596FF18312} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
+		{3371DA00-44CD-4514-B83C-8F10C45C347D} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
+		{2F840B00-FC46-4540-895E-7DC17FE0BCE4} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A358924D-F948-4AE8-8CD0-A0F56225CE0C}
