@@ -103,7 +103,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateInvalid.json", @"TestInput/data_CodeValueFhirTemplateInvalid_MissingFields.json")]
-        public void Given_InValidMappingFiles_Exceptions_Found(string deviceMapping, string fhirMapping)
+        public void Given_InvalidMappingFiles_Exceptions_Found(string deviceMapping, string fhirMapping)
         {
             // [0]"Validation errors:\nFailed to deserialize the JsonPathContentTemplate content: \n  Required property 'DeviceIdExpression' not found in JSON. \n  Required property 'TimestampExpression' not found in JSON. \nFailed to deserialize the IotJsonPathContentTemplate content: \n  Required property 'TypeMatchExpression' not found in JSON. "   string
             // "Validation errors:\nExpected TemplateType value CollectionFhirTemplate, actual CodeValueFhir."
@@ -163,6 +163,40 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                result.Warnings,
                (error) => error.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template"));
             Assert.Single(result.Measurements);
+            Assert.NotNull(result.DeviceEvent);
+            Assert.Collection(result.Observations, o =>
+            {
+                Assert.Equal("bloodpressure", o.Code.Text);
+                Assert.Collection(
+                    o.Component,
+                    c =>
+                    {
+                        Assert.Equal("diastolic", c.Code.Text);
+                        Assert.Contains("80", (c.Value as Model.SampledData).Data);
+                    });
+            });
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateValid.json")]
+        public void Given_ValidMappingFiles_And_Valid_DeviceMapping_NoMeasurementsAreCreated_With_Bad_DeviceData(string deviceMapping, string fhirMapping)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(new
+            {
+                device = "abc",
+                date = time,
+                session = "abcdefg",
+                patient = "patient123",
+            });
+
+            var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
+            Assert.Empty(result.Exceptions);
+            Assert.Collection(
+              result.Warnings,
+              (error) => error.StartsWith("No measurements were produced"));
+            Assert.Empty(result.Measurements);
+            Assert.Empty(result.Observations);
             Assert.NotNull(result.DeviceEvent);
         }
     }

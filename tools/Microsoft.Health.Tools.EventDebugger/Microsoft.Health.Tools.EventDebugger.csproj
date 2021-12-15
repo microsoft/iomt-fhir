@@ -11,6 +11,7 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="2.0.1" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.3.0-alpha.21216.1">
         <IncludeAssets>buildMultitargeting;compile;runtime</IncludeAssets>
     </PackageReference>
@@ -19,9 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
-     <ProjectReference Include="..\..\src\lib\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
-    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj" />
     <ProjectReference Include="..\..\src\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
   </ItemGroup>
 

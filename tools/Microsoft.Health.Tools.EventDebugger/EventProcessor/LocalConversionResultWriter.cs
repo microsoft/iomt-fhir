@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Health.Tools.EventDebugger.Extensions;
+using Microsoft.Health.Fhir.Ingest.Validation;
+using Microsoft.Health.Tools.EventDebugger;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
@@ -14,31 +16,39 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
     {
         private readonly DirectoryInfo _outputDirectory;
         private readonly DateTime _timeOfExecution;
-        public LocalConversionResultWriter(IConfiguration configuration)
+        private readonly JsonSerializer _jsonSerializer;
+        public LocalConversionResultWriter(
+            DirectoryInfo runDirectory)
         {
-            EnsureArg.IsNotNull(configuration, nameof(configuration));
-            var outputDirectory = configuration.GetArgument("OutputDirectory", true);
-            var runDirectory = Directory.CreateDirectory(outputDirectory);
+            EnsureArg.IsNotNull(runDirectory, nameof(runDirectory));
+            runDirectory.Create();
             _timeOfExecution = DateTime.Now;
             _outputDirectory = runDirectory.CreateSubdirectory($"run_{_timeOfExecution.ToString("s")}");
+            _jsonSerializer = new JsonSerializer()
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                ContractResolver = SkipEmptyCollectionsContractResolver.Instance,
+            };
         }
 
-        public async Task StoreConversionResult(ConversionResult conversionResult, CancellationToken cancellationToken = default)
+        public async Task StoreConversionResult(ValidationResult conversionResult, CancellationToken cancellationToken = default)
         {
             // Create a datetime stamped folder if needed
             var storageFolder = CreateStorageFolder(conversionResult);
-            var errors = conversionResult.Exceptions.Select(e => e.Message);
             // Store a new JToken which holds the DeviceEvent, Measurements and Exceptions. Store in a file with the Sequence Id as the name
-            var data = new { DeviceEvent = conversionResult.DeviceEvent, Measurements = conversionResult.Measurements, Exceptions = errors };
+            var data = new { DeviceEvent = conversionResult.DeviceEvent, Measurements = conversionResult.Measurements, Exceptions = conversionResult.Exceptions };
             await File.WriteAllTextAsync( 
                 Path.Join(storageFolder.ToString(), $"{conversionResult.SequenceNumber}.json"),
-                JToken.FromObject(data).ToString(),
+                JToken.FromObject(data, _jsonSerializer).ToString(),
                 cancellationToken);
         }
 
-        private DirectoryInfo CreateStorageFolder(ConversionResult result)
+        private DirectoryInfo CreateStorageFolder(ValidationResult result)
         {
-            if (result.Exceptions.Count == 0)
+            if ((result.Exceptions.Count + result.Warnings.Count) == 0)
             {
                 return _outputDirectory.CreateSubdirectory("success");
             }

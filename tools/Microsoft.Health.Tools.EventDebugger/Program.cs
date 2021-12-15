@@ -10,7 +10,11 @@ using Azure.Messaging.EventHubs.Consumer;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Health.Fhir.Ingest.Validation;
+using Microsoft.Health.Tools.EventDebugger.Commands;
 using Microsoft.Health.Tools.EventDebugger.EventProcessor;
+using Microsoft.Extensions.Logging;
+using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Tools.EventDebugger
 {
@@ -41,7 +45,8 @@ namespace Microsoft.Health.Tools.EventDebugger
         private static CommandLineBuilder BuildCommandLine(CancellationToken cancellationToken)
         {
             var root = new RootCommand("debugger"){
-                BuildReplayCommand(cancellationToken)
+                BuildReplayCommand(cancellationToken),
+                new ValidationCommand(),
             };
 
             return new CommandLineBuilder(root);
@@ -49,31 +54,18 @@ namespace Microsoft.Health.Tools.EventDebugger
 
         private static Command BuildReplayCommand(CancellationToken cancellationToken)
         {
-            var command = new Command("replay"){
-                    new Option<int>("--TotalEventsToProcess", getDefaultValue: () => 100){
-                        IsRequired = false,
-                        Description = "Total number of events that should be replayed",
-                    },
-                    new Option<TimeSpan>("--EventReadTimeout", getDefaultValue: () => TimeSpan.FromMinutes(5)){
-                        IsRequired = false,
-                        Description = "The amount of time to wait for new messages to appear. Specified as a .Net Timespan. Application will end if this timeout is reached."
-                    },
-                    new Option<string>("--ConnectionString"){
-                        IsRequired = true,
-                        Description = "The connection string to the EventHub"
-                    },
-                    new Option<string>("--ConsumerGroup"){
-                        IsRequired = true,
-                        Description = "The EventHub consumer group"
-                    }
-                };
+            var command = new ReplayCommand();
 
             command.Handler = CommandHandler.Create(
-                async (EventProcessorOptions eventProcessorOptions, EventConsumerOptions eventConsumerOptions, IHost host) =>
+                async (EventProcessorOptions eventProcessorOptions, EventConsumerOptions eventConsumerOptions, ValidationOptions validationOptions, IHost host) =>
                 {
                     var serviceProvider = host.Services;
-                    var deviceEventProcessor = serviceProvider.GetRequiredService<DeviceEventProcessor>();
-                    await deviceEventProcessor.RunAsync(eventProcessorOptions, BuildEventHubClient(eventConsumerOptions), cancellationToken);
+                    var processor = new DeviceEventProcessor(
+                        serviceProvider.GetRequiredService<ILogger<DeviceEventProcessor>>(),
+                        new EventDataJTokenConverter(),
+                        serviceProvider.GetRequiredService<IIotConnectorValidator>(),
+                        new LocalConversionResultWriter(eventProcessorOptions.OutputDirectory));
+                    await processor.RunAsync(validationOptions, eventProcessorOptions, BuildEventHubClient(eventConsumerOptions), cancellationToken);
                 });
             return command;
         }
@@ -85,7 +77,5 @@ namespace Microsoft.Health.Tools.EventDebugger
             var eventConsumerClient = new EventHubConsumerClient(consumerGroup, connectionString);
             return eventConsumerClient;
         }
-
-
     }
 }

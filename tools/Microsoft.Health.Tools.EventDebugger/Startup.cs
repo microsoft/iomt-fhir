@@ -3,6 +3,7 @@ using System;
 using Azure.Messaging.EventHubs.Consumer;
 using DevLab.JmesPath;
 using EnsureThat;
+using Hl7.Fhir.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Fhir.Ingest.Validation;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tools.EventDebugger.EventProcessor;
 using Microsoft.Health.Tools.EventDebugger.Extensions;
@@ -34,22 +36,22 @@ namespace Microsoft.Health.Tools.EventDebugger
             
             services.AddSingleton(_configuration);
             services.AddSingleton<ITelemetryLogger, SimpleTelemetryLogger>();
-            services.AddSingleton<IConversionResultWriter, LocalConversionResultWriter>();
             AddContentTemplateFactories(services);
+            services.AddSingleton<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>(sp => CollectionFhirTemplateFactory.Default);
+            services.AddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>(sp => new R4FhirLookupTemplateProcessor());
             services.AddSingleton<ITemplateLoader>(sp => 
             {
                 var deviceTemplatePath = _configuration.GetArgument("DeviceTemplatePath", true);
                 var contentFactory = sp.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
                 return new DeviceTemplateLoader(deviceTemplatePath, contentFactory);
             });
-            services.AddSingleton(sp => 
+            services.AddSingleton<IIotConnectorValidator>(sp => 
             {
-                var eventConsumerClient = new DeviceEventProcessor(
-                    sp.GetRequiredService<ILogger<DeviceEventProcessor>>(),
-                    new EventDataJTokenConverter(),
-                    sp.GetRequiredService<ITemplateLoader>(),
-                    sp.GetRequiredService<IConversionResultWriter>());
-                return eventConsumerClient;
+                return new IotConnectorValidator(
+                    sp.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>(),
+                    sp.GetRequiredService<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>(),
+                    sp.GetRequiredService<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>()
+                );
             });
         }
 

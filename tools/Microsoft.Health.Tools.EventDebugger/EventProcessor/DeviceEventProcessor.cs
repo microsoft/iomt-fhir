@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -10,8 +11,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Fhir.Ingest.Validation;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
+using Microsoft.Health.Tools.EventDebugger;
 using Microsoft.Health.Tools.EventDebugger.TemplateLoader;
 
 namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
@@ -21,7 +24,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         private const TaskContinuationOptions AsyncContinueOnSuccess = TaskContinuationOptions.RunContinuationsAsynchronously | TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.NotOnCanceled;
         private readonly ILogger<DeviceEventProcessor> _logger;
         private readonly IConverter<EventData, JToken> _converter = null;
-        private readonly ITemplateLoader _templateLoader;
+        private readonly IIotConnectorValidator _iotConnectorValidator;
         private readonly IConversionResultWriter _conversionResultWriter;
         private EventHubConsumerClient _eventHubConsumerClient;
         private int _maxParallelism = 4;
@@ -34,18 +37,17 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         public DeviceEventProcessor(
             ILogger<DeviceEventProcessor> logger,
             IConverter<EventData, JToken> converter,
-            ITemplateLoader templateLoader,
+            IIotConnectorValidator iotConnectorValidator,
             IConversionResultWriter conversionResultWriter)
         {            
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
-            _templateLoader = EnsureArg.IsNotNull(templateLoader, nameof(templateLoader));
+            _iotConnectorValidator = EnsureArg.IsNotNull(iotConnectorValidator, nameof(iotConnectorValidator));
             _conversionResultWriter = EnsureArg.IsNotNull(conversionResultWriter, nameof(conversionResultWriter));
-            
-            
         }
 
         public async Task RunAsync(
+            ValidationOptions validationOptions,
             EventProcessorOptions eventProcessorOptions,
             EventHubConsumerClient eventHubConsumerClient,
             CancellationToken cancellationToken)
@@ -56,9 +58,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             _eventReadTimeout = options.EventReadTimeout;
             _eventsToProcess = eventProcessorOptions.TotalEventsToProcess;
 
-            var template = await _templateLoader.LoadTemplate();
-
-            await StartConsumer(StartProducer(cancellationToken), template, cancellationToken).ConfigureAwait(false);
+            await StartConsumer(StartProducer(cancellationToken), validationOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private ISourceBlock<EventData> StartProducer(CancellationToken cancellationToken)
@@ -112,29 +112,31 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             return producer;
         }
 
-        private async Task StartConsumer(ISourceBlock<EventData> producer, IContentTemplate contentTemplate, CancellationToken cancellationToken)
+        private async Task StartConsumer(ISourceBlock<EventData> producer, ValidationOptions validationOptions, CancellationToken cancellationToken)
         {
-            var transformer = new TransformBlock<EventData, ConversionResult>(
+            var deviceMappingContent = await File.ReadAllTextAsync(validationOptions.DeviceMapping.FullName, cancellationToken);
+            var fhirMappingContent = string.Empty;
+
+            if (validationOptions.FhirMapping != null)
+            {
+                fhirMappingContent = await File.ReadAllTextAsync(validationOptions.FhirMapping.FullName, cancellationToken);
+            }
+
+            var transformer = new TransformBlock<EventData, ValidationResult>(
                 evt =>
                 {
-                    var conversionResult = new ConversionResult();
+                    var conversionResult = new ValidationResult();
                     conversionResult.SequenceNumber = evt.SequenceNumber;
                     try
                     {
                         var token = _converter.Convert(evt);
                         conversionResult.DeviceEvent = token;
-
-                        foreach (var measurement in contentTemplate.GetMeasurements(token))
-                        {
-                            // TODO If we only want errors then do not store the Measurement
-                            measurement.IngestionTimeUtc = evt.EnqueuedTime.DateTime;
-                            conversionResult.Measurements.Add(measurement);
-                            Interlocked.Increment(ref totalSuccessfulEvents);
-                        }
+                        conversionResult = _iotConnectorValidator.PerformValidation(token, deviceMappingContent, fhirMappingContent);
+                        Interlocked.Increment(ref totalSuccessfulEvents);
                     }
                     catch (Exception ex)
                     {
-                        conversionResult.Exceptions.Add(ex);
+                        conversionResult.Exceptions.Add(ex.Message);
                         Interlocked.Increment(ref totalFailedEvents);
                     }
 
@@ -142,7 +144,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });
 
-            var consumer = new ActionBlock<ConversionResult>(
+            var consumer = new ActionBlock<ValidationResult>(
                 async result =>
                 {
                     // Do cool stuff with the result. 

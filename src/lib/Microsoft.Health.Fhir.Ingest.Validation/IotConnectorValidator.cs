@@ -14,7 +14,7 @@ using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation
 {
-    public class IotConnectorValidator
+    public class IotConnectorValidator : IIotConnectorValidator
     {
         // R4FhirLookupTemplateProcessor
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
@@ -183,6 +183,11 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 foreach (var m in contentTemplate.GetMeasurements(deviceEvent))
                 {
                     validationResult.Measurements.Add(m);
+                }
+
+                if (validationResult.Measurements.Count == 0)
+                {
+                    validationResult.Warnings.Add("No measurements were produced for the given device data");
                 }
             }
             catch (Exception e)

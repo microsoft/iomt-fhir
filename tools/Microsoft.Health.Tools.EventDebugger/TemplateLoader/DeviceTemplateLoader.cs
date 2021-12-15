@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Template;
 
+
 namespace Microsoft.Health.Tools.EventDebugger.TemplateLoader
 {
     public class DeviceTemplateLoader : ITemplateLoader

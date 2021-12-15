@@ -1,4 +1,4 @@
-namespace Microsoft.Health.Tools.EventDebugger
+namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
 {
     public class EventConsumerOptions
     {
