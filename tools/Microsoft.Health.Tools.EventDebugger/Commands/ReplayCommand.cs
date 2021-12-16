@@ -17,7 +17,7 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
     public class ReplayCommand : BaseCommand
     {
         public ReplayCommand()
-            : base("replay")
+            : base("replay", true)
         {
             AddOption(
                 new Option<int>("--totalEventsToProcess", getDefaultValue: () => 100){
@@ -25,7 +25,7 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                         Description = "Total number of events that should be replayed",
                     });
             AddOption(
-                new Option<TimeSpan>("--eventReadTimeout", getDefaultValue: () => TimeSpan.FromMinutes(5)){
+                new Option<TimeSpan>("--eventReadTimeout", getDefaultValue: () => TimeSpan.FromMinutes(1)){
                         IsRequired = false,
                         Description = "The amount of time to wait for new messages to appear. Specified as a .Net Timespan. Application will end if this timeout is reached."
                     });
@@ -43,8 +43,7 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                 new Option<DirectoryInfo>("--outputDirectory", getDefaultValue: () => new DirectoryInfo(Directory.GetCurrentDirectory())){
                         IsRequired = false,
                         Description = "The directory to write debugging results. Defaults to the current directory"
-                    });
-            
+                    });            
             Handler = CommandHandler.Create(
                 async (
                     EventProcessorOptions eventProcessorOptions,

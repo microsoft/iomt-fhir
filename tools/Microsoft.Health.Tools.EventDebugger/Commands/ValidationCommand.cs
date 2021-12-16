@@ -25,19 +25,27 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
             Handler = CommandHandler.Create(
                 (ValidationOptions validationOptions, IHost host) =>
                 {
-                    var deviceData = validationOptions.DeviceData != null? JToken.Parse(File.ReadAllText(validationOptions.DeviceData.FullName)) : null;
-                    var fhirMapping = validationOptions.FhirMapping != null? File.ReadAllText(validationOptions.FhirMapping.FullName) : null;;
-                    var deviceMapping = File.ReadAllText(validationOptions.DeviceMapping.FullName);
+                    var deviceData = validationOptions.DeviceData != null ? JToken.Parse(File.ReadAllText(validationOptions.DeviceData.FullName)) : null;
+                    var fhirMapping = validationOptions.FhirMapping != null ? File.ReadAllText(validationOptions.FhirMapping.FullName) : null;;
+                    var deviceMapping = validationOptions.DeviceMapping !=null ? File.ReadAllText(validationOptions.DeviceMapping.FullName) : null;
+
                     var serializerSettings = new Newtonsoft.Json.JsonSerializer()
                     {
                         NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
                         ContractResolver = SkipEmptyCollectionsContractResolver.Instance,
                     };
 
-                    var serviceProvider = host.Services;
-                    var validator = serviceProvider.GetRequiredService<IIotConnectorValidator>();
-                    var result = validator.PerformValidation(deviceData, deviceMapping, fhirMapping);
-                    Console.WriteLine(JToken.FromObject(result, serializerSettings).ToString());
+                    if (string.IsNullOrWhiteSpace(deviceMapping) && string.IsNullOrWhiteSpace(fhirMapping))
+                    {
+                        Console.WriteLine("Validation cannot be performed: No device or fhir mapping were supplied.");
+                    }
+                    else
+                    {
+                        var serviceProvider = host.Services;
+                        var validator = serviceProvider.GetRequiredService<IIotConnectorValidator>();
+                        var result = validator.PerformValidation(deviceData, deviceMapping, fhirMapping);
+                        Console.WriteLine(JToken.FromObject(result, serializerSettings).ToString());
+                    }
                 });
         }
     }

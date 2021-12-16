@@ -1,21 +1,15 @@
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
-using Azure.Messaging.EventHubs.Processor;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Fhir.Ingest.Data;
-using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
-using Microsoft.Health.Tools.EventDebugger;
-using Microsoft.Health.Tools.EventDebugger.TemplateLoader;
 
 namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
 {
@@ -77,7 +71,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
 
                         await foreach(var partitionEvent in _eventHubConsumerClient.ReadEventsAsync(readOptions, cancellationToken))
                         {
-                            // TODO Filter out messages here...
+                            // TODO Filter out messages here... Perhaps with JmesPath Expression?
                             if (partitionEvent.Data == null)
                             {
                                 // Azure EventHubs has sent us an empty message indicating no new events to process within the _eventReadTimeout limit, end program
@@ -125,30 +119,36 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             var transformer = new TransformBlock<EventData, ValidationResult>(
                 evt =>
                 {
-                    var conversionResult = new ValidationResult();
+                    var validationResult = new ValidationResult();
                     
                     try
                     {
                         var token = _converter.Convert(evt);
-                        conversionResult.DeviceEvent = token;
-                        conversionResult = _iotConnectorValidator.PerformValidation(token, deviceMappingContent, fhirMappingContent);
-                        conversionResult.SequenceNumber = evt.SequenceNumber;
-                        Interlocked.Increment(ref totalSuccessfulEvents);
+                        validationResult.DeviceEvent = token;
+                        validationResult = _iotConnectorValidator.PerformValidation(token, deviceMappingContent, fhirMappingContent);
+                        validationResult.SequenceNumber = evt.SequenceNumber;
                     }
                     catch (Exception ex)
                     {
-                        conversionResult.Exceptions.Add(ex.Message);
+                        validationResult.Exceptions.Add(ex.Message);
+                    }
+
+                    if (validationResult.Exceptions.Count + validationResult.Warnings.Count == 0)
+                    {
+                        Interlocked.Increment(ref totalSuccessfulEvents);
+                    }
+                    else
+                    {
                         Interlocked.Increment(ref totalFailedEvents);
                     }
 
-                    return conversionResult;
+                    return validationResult;
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });
 
             var consumer = new ActionBlock<ValidationResult>(
                 async result =>
                 {
-                    // Do cool stuff with the result. 
                     await _conversionResultWriter.StoreConversionResult(result, cancellationToken);
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });

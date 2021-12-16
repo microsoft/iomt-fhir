@@ -1,23 +1,12 @@
-
-using System;
-using Azure.Messaging.EventHubs.Consumer;
 using DevLab.JmesPath;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Expressions;
-using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation;
 using Microsoft.Health.Logging.Telemetry;
-using Microsoft.Health.Tools.EventDebugger.EventProcessor;
-using Microsoft.Health.Tools.EventDebugger.Extensions;
-using Microsoft.Health.Tools.EventDebugger.TemplateLoader;
-
-
 namespace Microsoft.Health.Tools.EventDebugger
 {
     public class Startup

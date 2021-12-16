@@ -5,17 +5,18 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
 {
     public class BaseCommand : Command
     {
-        public BaseCommand(string commandName)
+        public BaseCommand(
+            string commandName,
+            bool isDeviceMappingRequired = false)
             : base(commandName)
         {
             AddOption(
                 new Option<FileInfo>("--deviceMapping"){
-                        IsRequired = true,
+                        IsRequired = isDeviceMappingRequired,
                         Description = "The path to the device mapping template file",
                     });
             AddOption(
                 new Option<FileInfo>("--fhirMapping"){
-                        IsRequired = false,
                         Description = "The path to the fhir mapping template file",
                     });
         }
