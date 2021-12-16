@@ -32,6 +32,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 new R4FhirLookupTemplateProcessor());
         }
 
+        [Fact]
+        public void When_No_MappingFilesAreProvided_Exception_Is_Thrown()
+        {
+            Assert.Throws<ArgumentException>(() => _iotConnectorValidator.PerformValidation(null, null, null));
+        }
+
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateValid.json")]
         public void Given_ValidMappingFiles_And_No_DeviceMapping_No_Exceptions_Or_Warnings_Found(string deviceMapping, string fhirMapping)
@@ -99,6 +105,32 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                     });
             });
             Assert.NotNull(result.DeviceEvent);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateInvalid.json")]
+        public void When_Only_InvalidDeviceMapping_Provided_Only_DeviceMapping_Exceptions_Logged(string deviceMapping)
+        {
+            var result = _iotConnectorValidator.PerformValidation(null, deviceMapping, null);
+            Assert.Collection(
+                result.Exceptions,
+                (error) => error.Contains("Required property 'DeviceIdExpression' not found in JSON"));
+            Assert.Empty(result.Measurements);
+            Assert.Null(result.DeviceEvent);
+            Assert.Empty(result.Observations);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CodeValueFhirTemplateInvalid_MissingFields.json")]
+        public void When_Only_InvalidFhirMapping_Provided_Only_FhirMapping_Exceptions_Logged(string fhirMapping)
+        {
+            var result = _iotConnectorValidator.PerformValidation(null, null, fhirMapping);
+            Assert.Collection(
+                result.Exceptions,
+                (error) => error.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir"));
+            Assert.Empty(result.Measurements);
+            Assert.Null(result.DeviceEvent);
+            Assert.Empty(result.Observations);
         }
 
         [Theory]

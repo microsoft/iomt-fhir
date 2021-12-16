@@ -126,12 +126,13 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 evt =>
                 {
                     var conversionResult = new ValidationResult();
-                    conversionResult.SequenceNumber = evt.SequenceNumber;
+                    
                     try
                     {
                         var token = _converter.Convert(evt);
                         conversionResult.DeviceEvent = token;
                         conversionResult = _iotConnectorValidator.PerformValidation(token, deviceMappingContent, fhirMappingContent);
+                        conversionResult.SequenceNumber = evt.SequenceNumber;
                         Interlocked.Increment(ref totalSuccessfulEvents);
                     }
                     catch (Exception ex)

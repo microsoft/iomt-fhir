@@ -1,6 +1,16 @@
 using System;
 using System.CommandLine;
 using System.IO;
+using System.CommandLine.Invocation;
+using System.Threading;
+using Azure.Messaging.EventHubs.Consumer;
+using EnsureThat;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Health.Fhir.Ingest.Validation;
+using Microsoft.Health.Tools.EventDebugger.EventProcessor;
+using Microsoft.Extensions.Logging;
+using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Tools.EventDebugger.Commands
 {
@@ -34,6 +44,31 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                         IsRequired = false,
                         Description = "The directory to write debugging results. Defaults to the current directory"
                     });
+            
+            Handler = CommandHandler.Create(
+                async (
+                    EventProcessorOptions eventProcessorOptions,
+                    EventConsumerOptions eventConsumerOptions,
+                    ValidationOptions validationOptions,
+                    IHost host,
+                    CancellationToken cancellationToken) =>
+                {
+                    var serviceProvider = host.Services;
+                    var processor = new DeviceEventProcessor(
+                        serviceProvider.GetRequiredService<ILogger<DeviceEventProcessor>>(),
+                        new EventDataJTokenConverter(),
+                        serviceProvider.GetRequiredService<IIotConnectorValidator>(),
+                        new LocalConversionResultWriter(eventProcessorOptions.OutputDirectory));
+                    await processor.RunAsync(validationOptions, eventProcessorOptions, BuildEventHubClient(eventConsumerOptions), cancellationToken);
+                });
+        }
+
+        private static EventHubConsumerClient BuildEventHubClient(EventConsumerOptions eventConsumerOptions)
+        {
+            var connectionString = EnsureArg.IsNotNullOrWhiteSpace(eventConsumerOptions.ConnectionString, nameof(eventConsumerOptions.ConnectionString));
+            var consumerGroup = EnsureArg.IsNotNullOrWhiteSpace(eventConsumerOptions.ConsumerGroup, nameof(eventConsumerOptions.ConsumerGroup));
+            var eventConsumerClient = new EventHubConsumerClient(consumerGroup, connectionString);
+            return eventConsumerClient;
         }
     }
 }

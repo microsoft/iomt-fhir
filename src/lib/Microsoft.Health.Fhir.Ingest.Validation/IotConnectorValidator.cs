@@ -37,6 +37,11 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             string deviceMappingContent,
             string fhirMappingContent)
         {
+            if (string.IsNullOrWhiteSpace(deviceMappingContent) && string.IsNullOrWhiteSpace(fhirMappingContent))
+            {
+                throw new ArgumentException($"At least one of [{nameof(deviceMappingContent)}] or [{nameof(fhirMappingContent)}] must be provided");
+            }
+
             var validationResult = new ValidationResult()
             {
                 DeviceEvent = deviceEvent,
