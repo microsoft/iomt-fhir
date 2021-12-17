@@ -37,49 +37,61 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             string deviceMappingContent,
             string fhirMappingContent)
         {
+            return PerformValidation(new List<JToken>() { deviceEvent }, deviceMappingContent, fhirMappingContent);
+        }
+
+        public ValidationResult PerformValidation(
+            IEnumerable<JToken> deviceEvents,
+            string deviceMappingContent,
+            string fhirMappingContent)
+        {
             if (string.IsNullOrWhiteSpace(deviceMappingContent) && string.IsNullOrWhiteSpace(fhirMappingContent))
             {
                 throw new ArgumentException($"At least one of [{nameof(deviceMappingContent)}] or [{nameof(fhirMappingContent)}] must be provided");
             }
 
-            var validationResult = new ValidationResult()
-            {
-                DeviceEvent = deviceEvent,
-            };
+            var validationResult = new ValidationResult();
 
             IContentTemplate contentTemplate = null;
             ILookupTemplate<IFhirTemplate> fhirTemplate = null;
 
             if (!string.IsNullOrEmpty(deviceMappingContent))
             {
-                contentTemplate = LoadDeviceTemplate(deviceMappingContent, validationResult);
+                contentTemplate = LoadDeviceTemplate(deviceMappingContent, validationResult.TemplateResult);
             }
 
             if (!string.IsNullOrEmpty(fhirMappingContent))
             {
-                fhirTemplate = LoadFhirTemplate(fhirMappingContent, validationResult);
+                fhirTemplate = LoadFhirTemplate(fhirMappingContent, validationResult.TemplateResult);
             }
 
             if (contentTemplate != null && fhirTemplate != null)
             {
-                CheckForTemplateCompatibility(contentTemplate, fhirTemplate, validationResult);
+                CheckForTemplateCompatibility(contentTemplate, fhirTemplate, validationResult.TemplateResult);
             }
 
-            if (validationResult.Exceptions.Count > 0)
+            if (validationResult.TemplateResult.Exceptions.Count > 0)
             {
-                // Fail early since there errors with the template.
+                // Fail early since there are errors with the template.
                 return validationResult;
             }
 
-            if (deviceEvent != null && contentTemplate != null)
+            foreach (var payload in deviceEvents)
             {
-                ProcessDeviceEvent(deviceEvent, contentTemplate, validationResult);
-
-                if (fhirTemplate != null)
+                if (payload != null && contentTemplate != null)
                 {
-                    foreach (var m in validationResult.Measurements)
+                    var deviceResult = new DeviceResult();
+                    deviceResult.DeviceEvent = payload;
+                    validationResult.DeviceResults.Add(deviceResult);
+
+                    ProcessDeviceEvent(payload, contentTemplate, deviceResult);
+
+                    if (fhirTemplate != null)
                     {
-                        ProcessNormalizedeEvent(m, fhirTemplate, validationResult);
+                        foreach (var m in deviceResult.Measurements)
+                        {
+                            ProcessNormalizedeEvent(m, fhirTemplate, deviceResult);
+                        }
                     }
                 }
             }
@@ -87,7 +99,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             return validationResult;
         }
 
-        private IContentTemplate LoadDeviceTemplate(string deviceMappingContent, ValidationResult validationResult)
+        private IContentTemplate LoadDeviceTemplate(string deviceMappingContent, TemplateResult validationResult)
         {
             try
             {
@@ -103,7 +115,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             return null;
         }
 
-        private ILookupTemplate<IFhirTemplate> LoadFhirTemplate(string fhirMappingContent, ValidationResult validationResult)
+        private ILookupTemplate<IFhirTemplate> LoadFhirTemplate(string fhirMappingContent, TemplateResult validationResult)
         {
             try
             {
@@ -119,7 +131,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             return null;
         }
 
-        private void CheckForTemplateCompatibility(IContentTemplate contentTemplate, ILookupTemplate<IFhirTemplate> fhirTemplate, ValidationResult validationResult)
+        private void CheckForTemplateCompatibility(IContentTemplate contentTemplate, ILookupTemplate<IFhirTemplate> fhirTemplate, TemplateResult validationResult)
         {
             var deviceTemplates = new List<MeasurementExtractor>();
             var fhirTemplates = new List<CodeValueFhirTemplate>();
@@ -182,7 +194,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
         }
 
-        private void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, ValidationResult validationResult)
+        private void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, DeviceResult validationResult)
         {
             try
             {
@@ -202,7 +214,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
         }
 
-        private void ProcessNormalizedeEvent(Measurement normalizedEvent, ILookupTemplate<IFhirTemplate> fhirTemplate, ValidationResult validationResult)
+        private void ProcessNormalizedeEvent(Measurement normalizedEvent, ILookupTemplate<IFhirTemplate> fhirTemplate, DeviceResult validationResult)
         {
             var measurementGroup = new MeasurementGroup
             {
@@ -232,7 +244,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
         }
 
-        private static void CaptureException(ValidationResult validationResult, Exception exception)
+        private static void CaptureException(IResult validationResult, Exception exception)
         {
             EnsureArg.IsNotNull(validationResult, nameof(validationResult));
             EnsureArg.IsNotNull(exception, nameof(exception));

@@ -7,10 +7,10 @@ using System.Collections.Generic;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation
 {
-    public class ValidationResult
+    public class TemplateResult : IResult
     {
-        public TemplateResult TemplateResult { get; set; } = new TemplateResult();
+        public IList<string> Exceptions { get; set; } = new List<string>();
 
-        public IList<DeviceResult> DeviceResults { get; set; } = new List<DeviceResult>();
+        public IList<string> Warnings { get; set; } = new List<string>();
     }
 }

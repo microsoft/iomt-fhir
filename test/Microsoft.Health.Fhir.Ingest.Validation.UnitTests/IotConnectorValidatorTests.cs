@@ -43,10 +43,9 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
         public void Given_ValidMappingFiles_And_No_DeviceMapping_No_Exceptions_Or_Warnings_Found(string deviceMapping, string fhirMapping)
         {
             var result = _iotConnectorValidator.PerformValidation(null, deviceMapping, fhirMapping);
-            Assert.Empty(result.Exceptions);
-            Assert.Empty(result.Warnings);
-            Assert.Empty(result.Measurements);
-            Assert.Null(result.DeviceEvent);
+            Assert.Empty(result.TemplateResult.Exceptions);
+            Assert.Empty(result.TemplateResult.Warnings);
+            Assert.Empty(result.DeviceResults);
         }
 
         [Theory]
@@ -65,46 +64,52 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
             });
 
             var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
-            Assert.Empty(result.Exceptions);
-            Assert.Empty(result.Warnings);
-            Assert.Collection(result.Measurements, m =>
+            Assert.Empty(result.TemplateResult.Exceptions);
+            Assert.Empty(result.TemplateResult.Warnings);
+            Assert.Collection(result.DeviceResults, d =>
             {
-                Assert.Equal("bloodpressure", m.Type);
-                Assert.Equal(time, m.OccurrenceTimeUtc);
-                Assert.Equal("abc", m.DeviceId);
-                Assert.Equal("patient123", m.PatientId);
-                Assert.Null(m.CorrelationId);
-                Assert.Null(m.EncounterId);
-                Assert.Collection(
-                    m.Properties,
-                    p =>
-                    {
-                        Assert.Equal("systolic", p.Name);
-                        Assert.Equal("60", p.Value);
-                    },
-                    p =>
-                    {
-                        Assert.Equal("diastolic", p.Name);
-                        Assert.Equal("80", p.Value);
-                    });
+                Assert.Collection(d.Measurements, m =>
+                {
+                    Assert.Equal("bloodpressure", m.Type);
+                    Assert.Equal(time, m.OccurrenceTimeUtc);
+                    Assert.Equal("abc", m.DeviceId);
+                    Assert.Equal("patient123", m.PatientId);
+                    Assert.Null(m.CorrelationId);
+                    Assert.Null(m.EncounterId);
+                    Assert.Collection(
+                        m.Properties,
+                        p =>
+                        {
+                            Assert.Equal("systolic", p.Name);
+                            Assert.Equal("60", p.Value);
+                        },
+                        p =>
+                        {
+                            Assert.Equal("diastolic", p.Name);
+                            Assert.Equal("80", p.Value);
+                        });
+                });
             });
-            Assert.Collection(result.Observations, o =>
+
+            Assert.Collection(result.DeviceResults, d =>
             {
-                Assert.Equal("bloodpressure", o.Code.Text);
-                Assert.Collection(
-                    o.Component,
-                    c =>
-                    {
-                        Assert.Equal("diastolic", c.Code.Text);
-                        Assert.Contains("80", (c.Value as Model.SampledData).Data);
-                    },
-                    c =>
-                    {
-                        Assert.Equal("systolic", c.Code.Text);
-                        Assert.Contains("60", (c.Value as Model.SampledData).Data);
-                    });
+                Assert.Collection(d.Observations, o =>
+                {
+                    Assert.Equal("bloodpressure", o.Code.Text);
+                    Assert.Collection(
+                        o.Component,
+                        c =>
+                        {
+                            Assert.Equal("diastolic", c.Code.Text);
+                            Assert.Contains("80", (c.Value as Model.SampledData).Data);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("systolic", c.Code.Text);
+                            Assert.Contains("60", (c.Value as Model.SampledData).Data);
+                        });
+                });
             });
-            Assert.NotNull(result.DeviceEvent);
         }
 
         [Theory]
@@ -113,11 +118,9 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
         {
             var result = _iotConnectorValidator.PerformValidation(null, deviceMapping, null);
             Assert.Collection(
-                result.Exceptions,
+                result.TemplateResult.Exceptions,
                 (error) => error.Contains("Required property 'DeviceIdExpression' not found in JSON"));
-            Assert.Empty(result.Measurements);
-            Assert.Null(result.DeviceEvent);
-            Assert.Empty(result.Observations);
+            Assert.Empty(result.DeviceResults);
         }
 
         [Theory]
@@ -126,11 +129,9 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
         {
             var result = _iotConnectorValidator.PerformValidation(null, null, fhirMapping);
             Assert.Collection(
-                result.Exceptions,
+                result.TemplateResult.Exceptions,
                 (error) => error.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir"));
-            Assert.Empty(result.Measurements);
-            Assert.Null(result.DeviceEvent);
-            Assert.Empty(result.Observations);
+            Assert.Empty(result.DeviceResults);
         }
 
         [Theory]
@@ -141,19 +142,16 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
             // "Validation errors:\nExpected TemplateType value CollectionFhirTemplate, actual CodeValueFhir."
             var result = _iotConnectorValidator.PerformValidation(null, deviceMapping, fhirMapping);
             Assert.Collection(
-                result.Exceptions,
+                result.TemplateResult.Exceptions,
                 (error) => error.Contains("Required property 'DeviceIdExpression' not found in JSON"),
                 (error) => error.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir"));
-            Assert.Empty(result.Measurements);
-            Assert.Null(result.DeviceEvent);
+            Assert.Empty(result.DeviceResults);
         }
 
         [Theory]
         [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateMissingTypeInvalid.json")]
         public void Given_ValidDeviceMapping_And_FhirMapping_WithMissingTypeName_Warnings_Found(string deviceMapping, string fhirMapping)
         {
-            // [0]"Validation errors:\nFailed to deserialize the JsonPathContentTemplate content: \n  Required property 'DeviceIdExpression' not found in JSON. \n  Required property 'TimestampExpression' not found in JSON. \nFailed to deserialize the IotJsonPathContentTemplate content: \n  Required property 'TypeMatchExpression' not found in JSON. "   string
-            // "Validation errors:\nExpected TemplateType value CollectionFhirTemplate, actual CodeValueFhir."
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new
             {
@@ -165,14 +163,20 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 patient = "patient123",
             });
             var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
+            Assert.Empty(result.TemplateResult.Exceptions);
             Assert.Collection(
-                result.Exceptions,
-                e => e.StartsWith("No Fhir Template exists with the type name [bloodpressure]"));
-            Assert.Collection(
-                result.Warnings,
+                result.TemplateResult.Warnings,
                 (error) => error.Contains("No matching Fhir Template exists for Device Mapping [bloodpressure]"));
-            Assert.Single(result.Measurements);
-            Assert.NotNull(result.DeviceEvent);
+            Assert.Collection(result.DeviceResults, d =>
+            {
+                Assert.Collection(
+                    d.Exceptions,
+                    e => e.StartsWith("No Fhir Template exists with the type name [bloodpressure]"));
+                Assert.Single(d.Measurements);
+                Assert.NotNull(d.DeviceEvent);
+                Assert.Empty(d.Observations);
+                Assert.Empty(d.Warnings);
+            });
         }
 
         [Theory]
@@ -190,22 +194,28 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 patient = "patient123",
             });
             var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
-            Assert.Empty(result.Exceptions);
+            Assert.Empty(result.TemplateResult.Exceptions);
             Assert.Collection(
-               result.Warnings,
+               result.TemplateResult.Warnings,
                (error) => error.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template"));
-            Assert.Single(result.Measurements);
-            Assert.NotNull(result.DeviceEvent);
-            Assert.Collection(result.Observations, o =>
+
+            Assert.Collection(result.DeviceResults, d =>
             {
-                Assert.Equal("bloodpressure", o.Code.Text);
-                Assert.Collection(
-                    o.Component,
-                    c =>
-                    {
-                        Assert.Equal("diastolic", c.Code.Text);
-                        Assert.Contains("80", (c.Value as Model.SampledData).Data);
-                    });
+                Assert.Single(d.Measurements);
+                Assert.NotNull(d.DeviceEvent);
+                Assert.Empty(d.Warnings);
+                Assert.Empty(d.Exceptions);
+                Assert.Collection(d.Observations, o =>
+                {
+                    Assert.Equal("bloodpressure", o.Code.Text);
+                    Assert.Collection(
+                        o.Component,
+                        c =>
+                        {
+                            Assert.Equal("diastolic", c.Code.Text);
+                            Assert.Contains("80", (c.Value as Model.SampledData).Data);
+                        });
+                });
             });
         }
 
@@ -223,13 +233,19 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
             });
 
             var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
-            Assert.Empty(result.Exceptions);
-            Assert.Collection(
-              result.Warnings,
-              (error) => error.StartsWith("No measurements were produced"));
-            Assert.Empty(result.Measurements);
-            Assert.Empty(result.Observations);
-            Assert.NotNull(result.DeviceEvent);
+            Assert.Empty(result.TemplateResult.Exceptions);
+            Assert.Empty(result.TemplateResult.Warnings);
+
+            Assert.Collection(result.DeviceResults, d =>
+            {
+                Assert.Collection(
+                  d.Warnings,
+                  (error) => error.StartsWith("No measurements were produced"));
+                Assert.Empty(d.Measurements);
+                Assert.Empty(d.Observations);
+                Assert.NotNull(d.DeviceEvent);
+                Assert.Empty(d.Exceptions);
+            });
         }
     }
 }
