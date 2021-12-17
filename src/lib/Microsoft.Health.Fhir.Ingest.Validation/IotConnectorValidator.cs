@@ -16,7 +16,6 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 {
     public class IotConnectorValidator : IIotConnectorValidator
     {
-        // R4FhirLookupTemplateProcessor
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
 
         private readonly CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
