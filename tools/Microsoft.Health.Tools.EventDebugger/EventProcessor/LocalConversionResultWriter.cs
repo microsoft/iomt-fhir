@@ -39,7 +39,13 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             // Create a datetime stamped folder if needed
             var storageFolder = CreateStorageFolder(conversionResult);
             // Store a new JToken which holds the DeviceEvent, Measurements and Exceptions. Store in a file with the Sequence Id as the name
-            var data = new { DeviceEvent = conversionResult.DeviceEvent, Measurements = conversionResult.Measurements, Exceptions = conversionResult.Exceptions };
+            var data = new { 
+                DeviceEvent = conversionResult.DeviceEvent,
+                Measurements = conversionResult.Measurements,
+                Observations = conversionResult.Observations,
+                Exceptions = conversionResult.Exceptions,
+                Warnings = conversionResult.Warnings
+                };
             await File.WriteAllTextAsync( 
                 Path.Join(storageFolder.ToString(), $"{conversionResult.SequenceNumber}.json"),
                 JToken.FromObject(data, _jsonSerializer).ToString(),

@@ -136,7 +136,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             if (fhirTemplate is FhirLookupTemplate fhirLookupTemplate)
             {
                 fhirTemplates.AddRange(fhirLookupTemplate.Templates.Select(t => t as CodeValueFhirTemplate));
-                availableFhirTemplates = string.Join(",", fhirTemplates.Select(t => t.TypeName));
+                availableFhirTemplates = string.Join(" ,", fhirTemplates.Select(t => t.TypeName));
             }
 
             foreach (var extractor in deviceTemplates)
@@ -157,6 +157,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                     }
 
                     var availableFhirValueNames = fhirTemplateValues.Where(v => v != null).Select(v => v.ValueName).ToHashSet();
+                    var availableFhirValueNamesDisplay = string.Join(" ,", availableFhirValueNames);
 
                     // Ensure all values are present
                     if (extractor.Template.Values != null)
@@ -165,14 +166,14 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                         {
                             if (!availableFhirValueNames.Contains(v.ValueName))
                             {
-                                validationResult.Warnings.Add($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. No value will appear inside of Observations.");
+                                validationResult.Warnings.Add($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.");
                             }
                         }
                     }
                 }
                 catch (TemplateNotFoundException)
                 {
-                    validationResult.Warnings.Add($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}] ");
+                    validationResult.Warnings.Add($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].");
                 }
                 catch (Exception e)
                 {
@@ -192,7 +193,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
                 if (validationResult.Measurements.Count == 0)
                 {
-                    validationResult.Warnings.Add("No measurements were produced for the given device data");
+                    validationResult.Warnings.Add("No measurements were produced for the given device data.");
                 }
             }
             catch (Exception e)
