@@ -9,19 +9,21 @@ using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Fhir.Ingest.Validation.Extensions;
+using Microsoft.Health.Fhir.Ingest.Validation.Models;
 using Newtonsoft.Json.Linq;
 using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation
 {
-    public class IotConnectorValidator : IIotConnectorValidator
+    public class MappingValidator : IMappingValidator
     {
         private readonly IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> _fhirTemplateProcessor;
 
         private readonly CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
         private readonly ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>> _fhirTemplateFactory;
 
-        public IotConnectorValidator(
+        public MappingValidator(
             CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory,
             ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>> fhirTemplateFactory,
             IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation> fhirTemplateProcessor)
@@ -69,7 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 CheckForTemplateCompatibility(contentTemplate, fhirTemplate, validationResult.TemplateResult);
             }
 
-            if (validationResult.TemplateResult.Exceptions.Count > 0)
+            if (validationResult.TemplateResult.GetErrors(ErrorLevel.ERROR).Count() > 0)
             {
                 // Fail early since there are errors with the template.
                 return validationResult;
@@ -108,7 +110,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (Exception e)
             {
-                CaptureException(validationResult, e);
+                validationResult.CaptureException(e);
             }
 
             return null;
@@ -124,7 +126,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (Exception e)
             {
-                CaptureException(validationResult, e);
+                validationResult.CaptureException(e);
             }
 
             return null;
@@ -177,18 +179,18 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                         {
                             if (!availableFhirValueNames.Contains(v.ValueName))
                             {
-                                validationResult.Warnings.Add($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.");
+                                validationResult.CaptureWarning($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.");
                             }
                         }
                     }
                 }
                 catch (TemplateNotFoundException)
                 {
-                    validationResult.Warnings.Add($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].");
+                    validationResult.CaptureWarning($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].");
                 }
                 catch (Exception e)
                 {
-                    CaptureException(validationResult, e);
+                    validationResult.CaptureException(e);
                 }
             }
         }
@@ -204,12 +206,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
                 if (validationResult.Measurements.Count == 0)
                 {
-                    validationResult.Warnings.Add("No measurements were produced for the given device data.");
+                    validationResult.CaptureWarning("No measurements were produced for the given device data.");
                 }
             }
             catch (Exception e)
             {
-                CaptureException(validationResult, e);
+                validationResult.CaptureException(e);
             }
         }
 
@@ -235,20 +237,14 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (TemplateNotFoundException e)
             {
-                validationResult.Exceptions.Add($"No Fhir Template exists with the type name [{e.Message}]. Ensure that all Fhir Template type names match Device Mapping type names (including casing)");
+                validationResult.CaptureError(
+                    $"No Fhir Template exists with the type name [{e.Message}]. Ensure that all Fhir Template type names match Device Mapping type names (including casing)",
+                    ErrorLevel.ERROR);
             }
             catch (Exception e)
             {
-                CaptureException(validationResult, e);
+                validationResult.CaptureException(e);
             }
-        }
-
-        private static void CaptureException(IResult validationResult, Exception exception)
-        {
-            EnsureArg.IsNotNull(validationResult, nameof(validationResult));
-            EnsureArg.IsNotNull(exception, nameof(exception));
-
-            validationResult.Exceptions.Add(exception.Message);
         }
     }
 }

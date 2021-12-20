@@ -5,12 +5,10 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Fhir.Ingest.Validation
+namespace Microsoft.Health.Fhir.Ingest.Validation.Models
 {
     public interface IResult
     {
-        IList<string> Exceptions { get; set; }
-
-        IList<string> Warnings { get; set; }
+        IList<ValidationError> Exceptions { get; set; }
     }
 }

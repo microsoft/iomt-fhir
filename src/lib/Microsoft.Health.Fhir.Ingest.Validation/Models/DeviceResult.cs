@@ -8,7 +8,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 using Newtonsoft.Json.Linq;
 using Model = Hl7.Fhir.Model;
 
-namespace Microsoft.Health.Fhir.Ingest.Validation
+namespace Microsoft.Health.Fhir.Ingest.Validation.Models
 {
     public class DeviceResult : IResult
     {
@@ -18,8 +18,6 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
         public IList<Model.Observation> Observations { get; set; } = new List<Model.Observation>();
 
-        public IList<string> Exceptions { get; set; } = new List<string>();
-
-        public IList<string> Warnings { get; set; } = new List<string>();
+        public IList<ValidationError> Exceptions { get; set; } = new List<ValidationError>();
     }
 }

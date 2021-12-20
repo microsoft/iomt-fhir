@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Fhir.Ingest.Validation.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation
 {
-    public interface IIotConnectorValidator
+    public interface IMappingValidator
     {
         /// <summary>
         /// Performs validation of Device and Fhir Mapping templates. The templates will be first be validated individually and then validated for compatibility

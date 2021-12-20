@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Fhir.Ingest.Validation
+namespace Microsoft.Health.Fhir.Ingest.Validation.Models
 {
     public class ValidationResult
     {

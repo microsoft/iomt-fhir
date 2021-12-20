@@ -5,12 +5,10 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Health.Fhir.Ingest.Validation
+namespace Microsoft.Health.Fhir.Ingest.Validation.Models
 {
     public class TemplateResult : IResult
     {
-        public IList<string> Exceptions { get; set; } = new List<string>();
-
-        public IList<string> Warnings { get; set; } = new List<string>();
+        public IList<ValidationError> Exceptions { get; set; } = new List<ValidationError>();
     }
 }
