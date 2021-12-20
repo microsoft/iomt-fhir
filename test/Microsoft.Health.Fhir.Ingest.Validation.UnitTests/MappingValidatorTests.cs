@@ -193,34 +193,61 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 session = "abcdefg",
                 patient = "patient123",
             });
+            var token2 = JToken.FromObject(new
+            {
+                systolic = "60",
+                diastolic = "180",
+                device = "abc",
+                date = time,
+                session = "abcdefg",
+                patient = "patient123",
+            });
 
-            var result = _iotConnectorValidator.PerformValidation(new List<JToken>() { token, token }, deviceMapping, fhirMapping);
+            var result = _iotConnectorValidator.PerformValidation(new List<JToken>() { token, token2 }, deviceMapping, fhirMapping);
 
             Assert.Empty(result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR));
             Assert.Collection(
                result.TemplateResult.GetErrors(Models.ErrorLevel.WARN),
                (error) => error.Message.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template"));
 
-            Action<Models.DeviceResult> deviceResultAction = (d) =>
-            {
-                Assert.Single(d.Measurements);
-                Assert.NotNull(d.DeviceEvent);
-                Assert.Empty(d.GetErrors(Models.ErrorLevel.WARN));
-                Assert.Empty(d.Exceptions);
-                Assert.Collection(d.Observations, o =>
+            Assert.Collection(
+                result.DeviceResults,
+                d =>
                 {
-                    Assert.Equal("bloodpressure", o.Code.Text);
-                    Assert.Collection(
-                        o.Component,
-                        c =>
-                        {
-                            Assert.Equal("diastolic", c.Code.Text);
-                            Assert.Contains("80", (c.Value as Model.SampledData).Data);
-                        });
+                    Assert.Single(d.Measurements);
+                    Assert.NotNull(d.DeviceEvent);
+                    Assert.Empty(d.GetErrors(Models.ErrorLevel.WARN));
+                    Assert.Empty(d.Exceptions);
+                    Assert.Collection(d.Observations, o =>
+                    {
+                        Assert.Equal("bloodpressure", o.Code.Text);
+                        Assert.Collection(
+                            o.Component,
+                            c =>
+                            {
+                                Assert.Equal("diastolic", c.Code.Text);
+                                Assert.Contains("80", (c.Value as Model.SampledData).Data);
+                            });
+                    });
+                },
+                d =>
+                {
+                    Assert.Single(d.Measurements);
+                    Assert.NotNull(d.DeviceEvent);
+                    Assert.Empty(d.GetErrors(Models.ErrorLevel.WARN));
+                    Assert.Empty(d.Exceptions);
+                    Assert.Collection(d.Observations, o =>
+                    {
+                        Assert.Equal("bloodpressure", o.Code.Text);
+                        Assert.Collection(
+                            o.Component,
+                            c =>
+                            {
+                                Assert.Equal("diastolic", c.Code.Text);
+                                Assert.Contains("180", (c.Value as Model.SampledData).Data);
+                            });
+                    });
                 });
-            };
-
-            Assert.Collection(result.DeviceResults, deviceResultAction, deviceResultAction);
         }
 
         [Theory]
