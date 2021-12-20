@@ -158,18 +158,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 {
                     var innerTemplate = extractor.Template;
                     var matchingFhirTemplate = fhirTemplate.GetTemplate(innerTemplate.TypeName) as CodeValueFhirTemplate;
-                    var fhirTemplateValues = new List<FhirValueType>();
-                    fhirTemplateValues.Add(matchingFhirTemplate.Value);
-
-                    if (matchingFhirTemplate.Components != null)
-                    {
-                        foreach (var c in matchingFhirTemplate.Components)
-                        {
-                            fhirTemplateValues.Add(c.Value);
-                        }
-                    }
-
-                    var availableFhirValueNames = fhirTemplateValues.Where(v => v != null).Select(v => v.ValueName).ToHashSet();
+                    var availableFhirValueNames = GetFhirValues(matchingFhirTemplate).Select(v => v.ValueName).ToHashSet();
                     var availableFhirValueNamesDisplay = string.Join(" ,", availableFhirValueNames);
 
                     // Ensure all values are present
@@ -245,6 +234,25 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             {
                 validationResult.CaptureException(e);
             }
+        }
+
+        private static ISet<FhirValueType> GetFhirValues(CodeValueFhirTemplate codeValueFhirTemplate)
+        {
+            var fhirTemplateValues = new HashSet<FhirValueType>();
+
+            if (codeValueFhirTemplate.Components != null)
+            {
+                foreach (var c in codeValueFhirTemplate.Components)
+                {
+                    fhirTemplateValues.Add(c.Value);
+                }
+            }
+            else
+            {
+                fhirTemplateValues.Add(codeValueFhirTemplate.Value);
+            }
+
+            return fhirTemplateValues;
         }
     }
 }
