@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation.Extensions;
 using Microsoft.Health.Tests.Common;
@@ -192,13 +193,15 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 session = "abcdefg",
                 patient = "patient123",
             });
-            var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
+
+            var result = _iotConnectorValidator.PerformValidation(new List<JToken>() { token, token }, deviceMapping, fhirMapping);
+
             Assert.Empty(result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR));
             Assert.Collection(
                result.TemplateResult.GetErrors(Models.ErrorLevel.WARN),
                (error) => error.Message.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template"));
 
-            Assert.Collection(result.DeviceResults, d =>
+            Action<Models.DeviceResult> deviceResultAction = (d) =>
             {
                 Assert.Single(d.Measurements);
                 Assert.NotNull(d.DeviceEvent);
@@ -215,7 +218,9 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                             Assert.Contains("80", (c.Value as Model.SampledData).Data);
                         });
                 });
-            });
+            };
+
+            Assert.Collection(result.DeviceResults, deviceResultAction, deviceResultAction);
         }
 
         [Theory]
