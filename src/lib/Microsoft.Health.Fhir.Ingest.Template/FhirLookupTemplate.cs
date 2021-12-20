@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
@@ -12,6 +13,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class FhirLookupTemplate : ILookupTemplate<IFhirTemplate>
     {
         private readonly IDictionary<string, IFhirTemplate> _templates = new Dictionary<string, IFhirTemplate>(StringComparer.InvariantCultureIgnoreCase);
+
+        public IReadOnlyList<IFhirTemplate> Templates => _templates.Values.ToList().AsReadOnly();
 
         public FhirLookupTemplate RegisterTemplate(IFhirTemplate fhirTemplate)
         {
