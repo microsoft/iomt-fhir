@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1700.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Tools.EventDebugger", "Microsoft.Health.Tools.EventDebugger.csproj", "{FE84E783-11E2-4431-8B08-1EB270BFFDD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest", "..\..\src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj", "{F5969DE5-A2E0-4BF2-AD61-95D7DD380EE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.UnitTests", "..\..\test\Microsoft.Health.Fhir.Ingest.UnitTests\Microsoft.Health.Fhir.Ingest.UnitTests.csproj", "{A8C41486-B685-4824-BFC4-1B08F6162A36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.R4.Ingest.UnitTests", "..\..\test\Microsoft.Health.Fhir.R4.Ingest.UnitTests\Microsoft.Health.Fhir.R4.Ingest.UnitTests.csproj", "{4312CA8E-FE77-428E-B0E3-806367AAAAC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Expressions", "..\..\src\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj", "{1E72B87B-BC36-4396-AB7D-0DC7C47DFA18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation", "..\..\src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj", "{711AB6F8-5A14-456D-9E79-83AB9EFB2FFD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE84E783-11E2-4431-8B08-1EB270BFFDD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE84E783-11E2-4431-8B08-1EB270BFFDD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE84E783-11E2-4431-8B08-1EB270BFFDD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE84E783-11E2-4431-8B08-1EB270BFFDD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5969DE5-A2E0-4BF2-AD61-95D7DD380EE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5969DE5-A2E0-4BF2-AD61-95D7DD380EE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5969DE5-A2E0-4BF2-AD61-95D7DD380EE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5969DE5-A2E0-4BF2-AD61-95D7DD380EE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8C41486-B685-4824-BFC4-1B08F6162A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8C41486-B685-4824-BFC4-1B08F6162A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8C41486-B685-4824-BFC4-1B08F6162A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8C41486-B685-4824-BFC4-1B08F6162A36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4312CA8E-FE77-428E-B0E3-806367AAAAC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4312CA8E-FE77-428E-B0E3-806367AAAAC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4312CA8E-FE77-428E-B0E3-806367AAAAC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4312CA8E-FE77-428E-B0E3-806367AAAAC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E72B87B-BC36-4396-AB7D-0DC7C47DFA18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E72B87B-BC36-4396-AB7D-0DC7C47DFA18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E72B87B-BC36-4396-AB7D-0DC7C47DFA18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E72B87B-BC36-4396-AB7D-0DC7C47DFA18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{711AB6F8-5A14-456D-9E79-83AB9EFB2FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{711AB6F8-5A14-456D-9E79-83AB9EFB2FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{711AB6F8-5A14-456D-9E79-83AB9EFB2FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{711AB6F8-5A14-456D-9E79-83AB9EFB2FFD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E1761C44-AB19-452D-95F1-6473A341C434}
+	EndGlobalSection
+EndGlobal

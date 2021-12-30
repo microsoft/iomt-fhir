@@ -7,6 +7,7 @@ using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Validation.Extensions;
 using Microsoft.Health.Fhir.Ingest.Validation.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
@@ -31,6 +32,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 ContractResolver = SkipEmptyCollectionsContractResolver.Instance,
             };
+            _jsonSerializer.Converters.Add(new StringEnumConverter());
         }
 
         public async Task StoreConversionResult(DebugResult conversionResult, CancellationToken cancellationToken = default)

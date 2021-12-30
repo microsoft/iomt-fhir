@@ -43,7 +43,13 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                 new Option<DirectoryInfo>("--outputDirectory", getDefaultValue: () => new DirectoryInfo(Directory.GetCurrentDirectory())){
                         IsRequired = false,
                         Description = "The directory to write debugging results. Defaults to the current directory"
-                    });            
+                    });
+            AddOption(
+                new Option<DateTime>("--enqueuedTime")
+                {
+                    IsRequired = false,
+                    Description = "A specific date and time from which events will begin to be read from the EventHub. If not supplied events will be read from the beginning of the EventHub. Example: '2021-12-01T12:00:00.000-08:00'"
+                });
             Handler = CommandHandler.Create(
                 async (
                     EventProcessorOptions eventProcessorOptions,

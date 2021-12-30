@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+
 namespace Microsoft.Health.Tools.EventDebugger
 {
     public class EventProcessorOptions
@@ -11,5 +12,7 @@ namespace Microsoft.Health.Tools.EventDebugger
         public int TotalEventsToProcess {get; set;} = 10;
 
         public DirectoryInfo OutputDirectory {get; set;}
+
+        public DateTime EnqueuedTime { get; set; }
     }
 }
