@@ -25,9 +25,9 @@ namespace Microsoft.Health.Tools.EventDebugger
             AddContentTemplateFactories(services);
             services.AddSingleton<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>(sp => CollectionFhirTemplateFactory.Default);
             services.AddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>(sp => new R4FhirLookupTemplateProcessor());
-            services.AddSingleton<IIotConnectorValidator>(sp => 
+            services.AddSingleton<IMappingValidator>(sp => 
             {
-                return new IotConnectorValidator(
+                return new MappingValidator(
                     sp.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>(),
                     sp.GetRequiredService<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>(),
                     sp.GetRequiredService<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>()

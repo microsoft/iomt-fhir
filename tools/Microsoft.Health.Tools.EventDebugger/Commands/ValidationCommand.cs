@@ -1,10 +1,7 @@
 using System;
-using System.IO;
 using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Hosting;
 using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
+using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Fhir.Ingest.Validation;
@@ -42,7 +39,7 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                     else
                     {
                         var serviceProvider = host.Services;
-                        var validator = serviceProvider.GetRequiredService<IIotConnectorValidator>();
+                        var validator = serviceProvider.GetRequiredService<IMappingValidator>();
                         var result = validator.PerformValidation(deviceData, deviceMapping, fhirMapping);
                         Console.WriteLine(JToken.FromObject(result, serializerSettings).ToString());
                     }

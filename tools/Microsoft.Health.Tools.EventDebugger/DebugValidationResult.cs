@@ -3,12 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Newtonsoft.Json.Linq;
-
-namespace Microsoft.Health.Fhir.Ingest.Validation
+using Microsoft.Health.Fhir.Ingest.Validation.Models;
+namespace Microsoft.Health.Tools.EventDebugger
 {
-    public interface IIotConnectorValidator
+    public class DebugResult
     {
-        ValidationResult PerformValidation(JToken deviceEvent, string deviceMappingContent, string fhirMappingContent);
+        public ValidationResult ValidationResult { get; set; } = new ValidationResult();
+
+        public long SequenceNumber { get; set; }
     }
 }

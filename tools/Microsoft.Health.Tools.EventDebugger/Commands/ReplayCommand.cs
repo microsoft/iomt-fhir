@@ -56,7 +56,7 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                     var processor = new DeviceEventProcessor(
                         serviceProvider.GetRequiredService<ILogger<DeviceEventProcessor>>(),
                         new EventDataJTokenConverter(),
-                        serviceProvider.GetRequiredService<IIotConnectorValidator>(),
+                        serviceProvider.GetRequiredService<IMappingValidator>(),
                         new LocalConversionResultWriter(eventProcessorOptions.OutputDirectory));
                     await processor.RunAsync(validationOptions, eventProcessorOptions, BuildEventHubClient(eventConsumerOptions), cancellationToken);
                 });

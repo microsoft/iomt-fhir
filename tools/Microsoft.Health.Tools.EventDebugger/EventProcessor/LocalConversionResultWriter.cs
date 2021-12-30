@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Health.Fhir.Ingest.Validation;
-using Microsoft.Health.Tools.EventDebugger;
+using Microsoft.Health.Fhir.Ingest.Validation.Extensions;
+using Microsoft.Health.Fhir.Ingest.Validation.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -34,17 +33,25 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             };
         }
 
-        public async Task StoreConversionResult(ValidationResult conversionResult, CancellationToken cancellationToken = default)
+        public async Task StoreConversionResult(DebugResult conversionResult, CancellationToken cancellationToken = default)
         {
+            var validationResult = conversionResult.ValidationResult;
             // Create a datetime stamped folder if needed
-            var storageFolder = CreateStorageFolder(conversionResult);
+            var storageFolder = CreateStorageFolder(validationResult);
             // Store a new JToken which holds the DeviceEvent, Measurements and Exceptions. Store in a file with the Sequence Id as the name
-            var data = new { 
-                DeviceEvent = conversionResult.DeviceEvent,
-                Measurements = conversionResult.Measurements,
-                Observations = conversionResult.Observations,
-                Exceptions = conversionResult.Exceptions,
-                Warnings = conversionResult.Warnings
+            // The Debugger stores a single DeviceEvent per ValidationResult
+            var deviceData = validationResult.DeviceResults.First();
+
+            var data = new {
+                TemplateDetails = validationResult.TemplateResult,
+                DeviceDetails = new
+                    {
+                        DeviceEvent = deviceData.DeviceEvent,
+                        Exceptions = deviceData.GetErrors(ErrorLevel.ERROR),
+                        Warnings = deviceData.GetErrors(ErrorLevel.WARN),
+                        Measurements = deviceData.Measurements,
+                        Observations = deviceData.Observations,
+                    },
                 };
             await File.WriteAllTextAsync( 
                 Path.Join(storageFolder.ToString(), $"{conversionResult.SequenceNumber}.json"),
@@ -54,13 +61,13 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
 
         private DirectoryInfo CreateStorageFolder(ValidationResult result)
         {
-            if ((result.Exceptions.Count + result.Warnings.Count) == 0)
+            if (result.AnyException(ErrorLevel.ERROR) || result.AnyException(ErrorLevel.WARN))
             {
-                return _outputDirectory.CreateSubdirectory("success");
+                return _outputDirectory.CreateSubdirectory("withErrors");
             }
             else
             {
-                return _outputDirectory.CreateSubdirectory("withErrors");
+                return _outputDirectory.CreateSubdirectory("success");
             }
         }
     }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +10,8 @@ using Azure.Messaging.EventHubs.Consumer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Validation;
+using Microsoft.Health.Fhir.Ingest.Validation.Extensions;
+using Microsoft.Health.Fhir.Ingest.Validation.Models;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -18,7 +22,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         private const TaskContinuationOptions AsyncContinueOnSuccess = TaskContinuationOptions.RunContinuationsAsynchronously | TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.NotOnCanceled;
         private readonly ILogger<DeviceEventProcessor> _logger;
         private readonly IConverter<EventData, JToken> _converter = null;
-        private readonly IIotConnectorValidator _iotConnectorValidator;
+        private readonly IMappingValidator _iotConnectorValidator;
         private readonly IConversionResultWriter _conversionResultWriter;
         private EventHubConsumerClient _eventHubConsumerClient;
         private int _maxParallelism = 4;
@@ -31,9 +35,9 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         public DeviceEventProcessor(
             ILogger<DeviceEventProcessor> logger,
             IConverter<EventData, JToken> converter,
-            IIotConnectorValidator iotConnectorValidator,
+            IMappingValidator iotConnectorValidator,
             IConversionResultWriter conversionResultWriter)
-        {            
+        {
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _iotConnectorValidator = EnsureArg.IsNotNull(iotConnectorValidator, nameof(iotConnectorValidator));
@@ -64,40 +68,44 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                   int count = 0;
                   try
                   {
-                        var readOptions = new ReadEventOptions()
-                        {
-                            MaximumWaitTime = _eventReadTimeout,
-                        };
+                      var readOptions = new ReadEventOptions()
+                      {
+                          MaximumWaitTime = _eventReadTimeout,
+                      };
 
-                        await foreach(var partitionEvent in _eventHubConsumerClient.ReadEventsAsync(readOptions, cancellationToken))
-                        {
-                            // TODO Filter out messages here... Perhaps with JmesPath Expression?
-                            if (partitionEvent.Data == null)
-                            {
-                                // Azure EventHubs has sent us an empty message indicating no new events to process within the _eventReadTimeout limit, end program
-                                _logger.LogInformation($"No new events on EventHub within {_eventReadTimeout.TotalSeconds} seconds. Ending program");
-                                break;
-                            }
+                      var eventPosition = EventPosition.Earliest;
 
-                            if (++count % 10 == 0)
-                            {
-                                _logger.LogInformation($"Received {count} events");
-                            }
+                      await foreach (var partitionEvent in await ReadEventsFromAllPartitions(eventPosition, readOptions, cancellationToken))
+                      {
+                          // TODO Filter out messages here... Perhaps with JmesPath Expression?
+                          if (partitionEvent.Data == null)
+                          {
+                              // Azure EventHubs has sent us an empty message indicating no new events to process within the _eventReadTimeout limit, end program
+                              _logger.LogInformation($"No new events on EventHub within {_eventReadTimeout.TotalSeconds} seconds. Ending program");
+                              break;
+                          }
 
-                            if (count > _eventsToProcess)
-                            {
-                                break;
-                            }
+                          if (++count % 10 == 0)
+                          {
+                              _logger.LogInformation($"Received {count} events");
+                          }
 
-                            while (!await producer.SendAsync(partitionEvent.Data))
-                            {
-                                await Task.Yield();
-                            }
-                        }
-                  } catch (OperationCanceledException ex)
+                          if (count > _eventsToProcess)
+                          {
+                              break;
+                          }
+
+                          while (!await producer.SendAsync(partitionEvent.Data))
+                          {
+                              await Task.Yield();
+                          }
+                      }
+                  }
+                  catch (OperationCanceledException ex)
                   {
-                      _logger.LogInformation(ex,"Timeout reached while reading from EventHub");
-                  } finally
+                      _logger.LogInformation(ex, "Timeout reached while reading from EventHub");
+                  }
+                  finally
                   {
                       producer.Complete();
                   }
@@ -116,37 +124,36 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 fhirMappingContent = await File.ReadAllTextAsync(validationOptions.FhirMapping.FullName, cancellationToken);
             }
 
-            var transformer = new TransformBlock<EventData, ValidationResult>(
+            var transformer = new TransformBlock<EventData, DebugResult>(
                 evt =>
                 {
-                    var validationResult = new ValidationResult();
-                    
+                    var debugResults = new DebugResult();
+
                     try
                     {
                         var token = _converter.Convert(evt);
-                        validationResult.DeviceEvent = token;
-                        validationResult = _iotConnectorValidator.PerformValidation(token, deviceMappingContent, fhirMappingContent);
-                        validationResult.SequenceNumber = evt.SequenceNumber;
+                        debugResults.ValidationResult = _iotConnectorValidator.PerformValidation(token, deviceMappingContent, fhirMappingContent);
+                        debugResults.SequenceNumber = evt.SequenceNumber;
                     }
                     catch (Exception ex)
                     {
-                        validationResult.Exceptions.Add(ex.Message);
+                        debugResults.ValidationResult.TemplateResult.CaptureException(ex);
                     }
 
-                    if (validationResult.Exceptions.Count + validationResult.Warnings.Count == 0)
-                    {
-                        Interlocked.Increment(ref totalSuccessfulEvents);
-                    }
-                    else
+                    if (debugResults.ValidationResult.AnyException(ErrorLevel.ERROR) || debugResults.ValidationResult.AnyException(ErrorLevel.WARN))
                     {
                         Interlocked.Increment(ref totalFailedEvents);
                     }
+                    else
+                    {
+                        Interlocked.Increment(ref totalSuccessfulEvents);
+                    }
 
-                    return validationResult;
+                    return debugResults;
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });
 
-            var consumer = new ActionBlock<ValidationResult>(
+            var consumer = new ActionBlock<DebugResult>(
                 async result =>
                 {
                     await _conversionResultWriter.StoreConversionResult(result, cancellationToken);
@@ -166,6 +173,17 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                     AsyncContinueOnSuccess,
                     TaskScheduler.Current)
                 .ConfigureAwait(false);
+        }
+
+        private async Task<IAsyncEnumerable<PartitionEvent>> ReadEventsFromAllPartitions(
+            EventPosition eventPosition,
+            ReadEventOptions readEventOptions,
+            CancellationToken cancellationToken)
+        {
+            var ids = await _eventHubConsumerClient.GetPartitionIdsAsync(cancellationToken);
+
+            return ids.Select(id => _eventHubConsumerClient.ReadEventsFromPartitionAsync(id, eventPosition, readEventOptions, cancellationToken))
+                .Aggregate((left, right) => left.Concat(right));
         }
     }
 }
