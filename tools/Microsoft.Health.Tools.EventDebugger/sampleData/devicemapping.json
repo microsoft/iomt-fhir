@@ -1,0 +1,60 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@telemetry.RespiratoryRate)]",
+        "timestampExpression": "$.enqueuedTime",
+        "deviceIdExpression": "$.deviceId",
+        "patientIdExpression": "$.enrichments.patientPhone",
+        "values": [
+          {
+            "valueName": "HeartRate",
+            "valueExpression": "$.telemetry.HeartRate",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bodyweight",
+        "typeMatchExpression": "$..[?(@telemetry.BodyWeight)]",
+        "timestampExpression": "$.enqueuedTime",
+        "deviceIdExpression": "$.deviceId",
+        "patientIdExpression": "$.enrichments.patientPhone",
+        "values": [
+          {
+            "valueName": "BodyWeight",
+            "valueExpression": "$.telemetry.BodyWeight"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bloodpressure",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        "timestampExpression": "$.measurementdatetime",
+        "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
+        "values": [
+          {
+            "valueName": "systolic",
+            "valueExpression": "$.systolic",
+            "required": false
+          },
+          {
+            "valueName": "diastolic",
+            "valueExpression": "$.diastolic",
+            "required": false
+          }
+        ]
+      }
+    }
+  ]
+}

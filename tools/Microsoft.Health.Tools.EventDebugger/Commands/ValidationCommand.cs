@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Fhir.Ingest.Validation;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Tools.EventDebugger.Commands
 {
@@ -31,6 +32,7 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
                         NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
                         ContractResolver = SkipEmptyCollectionsContractResolver.Instance,
                     };
+                    serializerSettings.Converters.Add(new StringEnumConverter());
 
                     if (string.IsNullOrWhiteSpace(deviceMapping) && string.IsNullOrWhiteSpace(fhirMapping))
                     {

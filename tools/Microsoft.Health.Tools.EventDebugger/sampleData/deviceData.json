@@ -1,0 +1,8 @@
+{
+    "systolic" : "60",
+    "diastolic" : "80",
+    "deviceid" : "abc",
+    "date" : "2021-12-12T01:01:01.0000000Z",
+    "session" : "abcdefg",
+    "patient" : "patient123"
+}
