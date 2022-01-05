@@ -4,9 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Fhir.Ingest.Validation.Models;
+
 namespace Microsoft.Health.Tools.EventDebugger
 {
-    public class DebugResult
+    public class DebugValidationResult
     {
         public ValidationResult ValidationResult { get; set; } = new ValidationResult();
 

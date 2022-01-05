@@ -1,3 +1,7 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
 using System.Collections;
 using System.Collections.Generic;
@@ -14,7 +18,7 @@ namespace Microsoft.Health.Tools.EventDebugger
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            var property =  base.CreateProperty(member, memberSerialization);
+            var property = base.CreateProperty(member, memberSerialization);
 
             if (property.PropertyType != typeof(string))
             {
@@ -23,6 +27,7 @@ namespace Microsoft.Health.Tools.EventDebugger
                     property.ShouldSerialize = instance => (instance?.GetType().GetProperty(property.PropertyName).GetValue(instance) as IEnumerable<object>)?.Count() > 0;
                 }
             }
+
             return property;
         }
     }

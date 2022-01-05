@@ -1,10 +1,16 @@
-﻿using System.CommandLine;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Tools.EventDebugger.Commands;
+
 namespace Microsoft.Health.Tools.EventDebugger
 {
     public class Program
@@ -18,10 +24,10 @@ namespace Microsoft.Health.Tools.EventDebugger
                 .InvokeAsync(args);
         }
 
-        static IHostBuilder ConfigureServices(IHostBuilder builder)
+        private static IHostBuilder ConfigureServices(IHostBuilder builder)
         {
             return builder
-                .ConfigureServices((hostingContext, serviceCollection ) => 
+                .ConfigureServices((hostingContext, serviceCollection) =>
                 {
                     Startup startup = new Startup(hostingContext.Configuration);
                     startup.ConfigureServices(serviceCollection);
@@ -30,7 +36,8 @@ namespace Microsoft.Health.Tools.EventDebugger
 
         private static CommandLineBuilder BuildCommandLine()
         {
-            var root = new RootCommand("debugger"){
+            var root = new RootCommand("debugger")
+            {
                 new ReplayCommand(),
                 new ValidationCommand(),
             };

@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.IO;
 using System.Linq;
@@ -17,6 +22,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
         private readonly DirectoryInfo _outputDirectory;
         private readonly DateTime _timeOfExecution;
         private readonly JsonSerializer _jsonSerializer;
+
         public LocalConversionResultWriter(
             DirectoryInfo runDirectory)
         {
@@ -35,27 +41,30 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             _jsonSerializer.Converters.Add(new StringEnumConverter());
         }
 
-        public async Task StoreConversionResult(DebugResult conversionResult, CancellationToken cancellationToken = default)
+        public async Task StoreConversionResult(DebugValidationResult conversionResult, CancellationToken cancellationToken = default)
         {
             var validationResult = conversionResult.ValidationResult;
+
             // Create a datetime stamped folder if needed
             var storageFolder = CreateStorageFolder(validationResult);
+
             // Store a new JToken which holds the DeviceEvent, Measurements and Exceptions. Store in a file with the Sequence Id as the name
             // The Debugger stores a single DeviceEvent per ValidationResult
             var deviceData = validationResult.DeviceResults.First();
 
-            var data = new {
+            var data = new
+            {
                 TemplateDetails = validationResult.TemplateResult,
                 DeviceDetails = new
-                    {
-                        DeviceEvent = deviceData.DeviceEvent,
-                        Exceptions = deviceData.GetErrors(ErrorLevel.ERROR),
-                        Warnings = deviceData.GetErrors(ErrorLevel.WARN),
-                        Measurements = deviceData.Measurements,
-                        Observations = deviceData.Observations,
-                    },
-                };
-            await File.WriteAllTextAsync( 
+                {
+                    DeviceEvent = deviceData.DeviceEvent,
+                    Exceptions = deviceData.GetErrors(ErrorLevel.ERROR),
+                    Warnings = deviceData.GetErrors(ErrorLevel.WARN),
+                    Measurements = deviceData.Measurements,
+                    Observations = deviceData.Observations,
+                },
+            };
+            await File.WriteAllTextAsync(
                 Path.Join(storageFolder.ToString(), $"{conversionResult.SequenceNumber}.json"),
                 JToken.FromObject(data, _jsonSerializer).ToString(),
                 cancellationToken);

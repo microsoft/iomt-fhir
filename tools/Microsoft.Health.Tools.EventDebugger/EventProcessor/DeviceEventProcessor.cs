@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -108,10 +113,10 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 fhirMappingContent = await File.ReadAllTextAsync(validationOptions.FhirMapping.FullName, cancellationToken);
             }
 
-            var transformer = new TransformBlock<EventData, DebugResult>(
+            var transformer = new TransformBlock<EventData, DebugValidationResult>(
                 evt =>
                 {
-                    var debugResults = new DebugResult();
+                    var debugResults = new DebugValidationResult();
 
                     try
                     {
@@ -137,7 +142,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = _maxParallelism, SingleProducerConstrained = true, CancellationToken = cancellationToken });
 
-            var consumer = new ActionBlock<DebugResult>(
+            var consumer = new ActionBlock<DebugValidationResult>(
                 async result =>
                 {
                     await _conversionResultWriter.StoreConversionResult(result, cancellationToken);

@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -5,8 +10,8 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Fhir.Ingest.Validation;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Tools.EventDebugger.Commands
 {
@@ -16,16 +21,17 @@ namespace Microsoft.Health.Tools.EventDebugger.Commands
             : base("validate")
         {
             AddOption(
-                new Option<FileInfo>("--deviceData"){
-                        IsRequired = false,
-                        Description = "The path to the file containing sample device data",
-                    });
+                new Option<FileInfo>("--deviceData")
+                {
+                    IsRequired = false,
+                    Description = "The path to the file containing sample device data",
+                });
             Handler = CommandHandler.Create(
                 (ValidationOptions validationOptions, IHost host) =>
                 {
                     var deviceData = validationOptions.DeviceData != null ? JToken.Parse(File.ReadAllText(validationOptions.DeviceData.FullName)) : null;
-                    var fhirMapping = validationOptions.FhirMapping != null ? File.ReadAllText(validationOptions.FhirMapping.FullName) : null;;
-                    var deviceMapping = validationOptions.DeviceMapping !=null ? File.ReadAllText(validationOptions.DeviceMapping.FullName) : null;
+                    var fhirMapping = validationOptions.FhirMapping != null ? File.ReadAllText(validationOptions.FhirMapping.FullName) : null;
+                    var deviceMapping = validationOptions.DeviceMapping != null ? File.ReadAllText(validationOptions.DeviceMapping.FullName) : null;
 
                     var serializerSettings = new Newtonsoft.Json.JsonSerializer()
                     {

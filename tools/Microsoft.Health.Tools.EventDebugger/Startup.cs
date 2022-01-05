@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using DevLab.JmesPath;
 using EnsureThat;
 using Hl7.Fhir.Model;
@@ -7,6 +12,7 @@ using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation;
 using Microsoft.Health.Logging.Telemetry;
+
 namespace Microsoft.Health.Tools.EventDebugger
 {
     public class Startup
@@ -25,13 +31,12 @@ namespace Microsoft.Health.Tools.EventDebugger
             AddContentTemplateFactories(services);
             services.AddSingleton<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>(sp => CollectionFhirTemplateFactory.Default);
             services.AddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>(sp => new R4FhirLookupTemplateProcessor());
-            services.AddSingleton<IMappingValidator>(sp => 
+            services.AddSingleton<IMappingValidator>(sp =>
             {
                 return new MappingValidator(
                     sp.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>(),
                     sp.GetRequiredService<ITemplateFactory<string, ITemplateContext<ILookupTemplate<IFhirTemplate>>>>(),
-                    sp.GetRequiredService<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>()
-                );
+                    sp.GetRequiredService<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>());
             });
         }
 
