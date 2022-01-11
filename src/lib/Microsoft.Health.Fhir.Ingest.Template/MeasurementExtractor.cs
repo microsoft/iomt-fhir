@@ -63,7 +63,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         try
                         {
-                            return evaluatedToken.Value<T>();
+                            var value = evaluatedToken.Value<T>();
+
+                            if (isRequired && value == null)
+                            {
+                                exceptions.Add(new IncompatibleDataException($"A null value was supplied"));
+                            }
+                            else
+                            {
+                                return value;
+                            }
                         }
                         catch (Exception e)
                         {
