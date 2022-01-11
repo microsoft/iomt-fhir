@@ -129,17 +129,9 @@ namespace Microsoft.Health.Extensions.Fhir
 
                 if (Logger != null && !response.IsSuccessStatusCode)
                 {
-                    var errorType = ErrorType.FHIRServiceError;
                     var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                    {
-                        Logger.LogMetric(FhirClientMetrics.HandledException($"{errorType}{statusDescription}", ErrorSeverity.Informational), 1);
-                    }
-                    else
-                    {
-                        Logger.LogMetric(FhirClientMetrics.HandledException($"{errorType}{statusDescription}", ErrorSeverity.Critical), 1);
-                    }
+                    var severity = response.StatusCode == System.Net.HttpStatusCode.TooManyRequests ? ErrorSeverity.Informational : ErrorSeverity.Critical;
+                    Logger.LogMetric(FhirClientMetrics.HandledException($"{ErrorType.FHIRServiceError}{statusDescription}", severity), 1);
                 }
 
                 return response;
