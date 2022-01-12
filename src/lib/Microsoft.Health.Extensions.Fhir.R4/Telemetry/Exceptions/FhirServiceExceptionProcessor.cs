@@ -58,21 +58,44 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                             return (exception, status.ToString());
                     }
 
+                case ArgumentException _:
+                    var paramName = ((ArgumentException)exception).ParamName;
+                    if (paramName.Contains("endpoint", StringComparison.OrdinalIgnoreCase))
+                    {
+                        message = FhirResources.FhirServiceEndpointInvalid;
+                        errorName = nameof(FhirServiceErrorCode.ConfigurationError);
+                        return (new InvalidFhirServiceException(message, exception, errorName), errorName);
+                    }
+
+                    return (exception, $"{nameof(FhirServiceErrorCode.ArgumentError)}_{paramName}");
+
                 case UriFormatException _:
                     message = FhirResources.FhirServiceUriFormatInvalid;
                     errorName = nameof(FhirServiceErrorCode.ConfigurationError);
                     return (new InvalidFhirServiceException(message, exception, errorName), errorName);
 
                 case HttpRequestException _:
-                    message = FhirResources.FhirServiceHttpRequestError;
-                    errorName = nameof(FhirServiceErrorCode.ConfigurationError);
-                    return (new InvalidFhirServiceException(message, exception, errorName), errorName);
+                    // TODO: In .NET 5 and later, check HttpRequestException's StatusCode property instead of the Message property
+                    if (exception.Message.Contains(FhirResources.HttpRequestErrorNotKnown, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        message = FhirResources.FhirServiceHttpRequestError;
+                        errorName = nameof(FhirServiceErrorCode.ConfigurationError);
+                        return (new InvalidFhirServiceException(message, exception, errorName), errorName);
+                    }
+
+                    return (exception, $"{nameof(FhirServiceErrorCode.HttpRequestError)}");
 
                 case MsalServiceException _:
-                    string errorCode = ((MsalServiceException)exception).ErrorCode;
-                    message = FhirResources.FhirServiceMsalServiceError;
-                    errorName = $"{nameof(FhirServiceErrorCode.ConfigurationError)}_{errorCode}";
-                    return (new InvalidFhirServiceException(message, exception, errorName), errorName);
+                    var errorCode = ((MsalServiceException)exception).ErrorCode;
+                    if (string.Equals(errorCode, "invalid_resource", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(errorCode, "invalid_scope", StringComparison.OrdinalIgnoreCase))
+                    {
+                        message = FhirResources.FhirServiceMsalServiceError;
+                        errorName = $"{nameof(FhirServiceErrorCode.ConfigurationError)}";
+                        return (new InvalidFhirServiceException(message, exception, errorName), errorName);
+                    }
+
+                    return (exception, $"{nameof(FhirServiceErrorCode.MsalServiceError)}_{errorCode}");
 
                 default:
                     return (exception, nameof(FhirServiceErrorCode.GeneralError));

@@ -120,6 +120,9 @@
   <data name="FhirServiceAccessForbidden" xml:space="preserve">
     <value>Verify that the provided FHIR service's 'FHIR Data Writer' role has been assigned to the applicable Azure Active Directory security principal or managed identity.</value>
   </data>
+  <data name="FhirServiceEndpointInvalid" xml:space="preserve">
+    <value>Verify that the FHIR service URL is provided and is an absolute URL.</value>
+  </data>
   <data name="FhirServiceHttpRequestError" xml:space="preserve">
     <value>Verify that the provided FHIR service URL exists.</value>
   </data>
@@ -131,5 +134,8 @@
   </data>
   <data name="FhirServiceUriFormatInvalid" xml:space="preserve">
     <value>Verify that the provided FHIR service URL is an absolute URL.</value>
+  </data>
+  <data name="HttpRequestErrorNotKnown" xml:space="preserve">
+    <value>Name or service not known</value>
   </data>
 </root>

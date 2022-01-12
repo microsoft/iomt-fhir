@@ -18,6 +18,21 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
         AuthorizationError,
 
         /// <summary>
+        /// Error code that categorizes invalid arguments (i.e. exceptions encountered of type ArgumentException), which may occur when FhirClient's endpoint is validated
+        /// </summary>
+        ArgumentError,
+
+        /// <summary>
+        /// Error code that categorizes HTTP request exceptions (i.e. exceptions encountered of type HttpRequestException)
+        /// </summary>
+        HttpRequestError,
+
+        /// <summary>
+        /// Error code that categorizes MSAL.NET exceptions (i.e. exceptions encountered of type MsalServiceException)
+        /// </summary>
+        MsalServiceError,
+
+        /// <summary>
         /// Error code that categorizes all other generic exceptions
         /// </summary>
         GeneralError,

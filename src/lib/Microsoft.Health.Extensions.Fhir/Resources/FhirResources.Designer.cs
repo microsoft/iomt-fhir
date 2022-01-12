@@ -70,6 +70,15 @@ namespace Microsoft.Health.Extensions.Fhir.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Verify that the FHIR service URL is provided and is an absolute URL..
+        /// </summary>
+        public static string FhirServiceEndpointInvalid {
+            get {
+                return ResourceManager.GetString("FhirServiceEndpointInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Verify that the provided FHIR service URL exists..
         /// </summary>
         public static string FhirServiceHttpRequestError {
@@ -102,6 +111,15 @@ namespace Microsoft.Health.Extensions.Fhir.Resources {
         public static string FhirServiceUriFormatInvalid {
             get {
                 return ResourceManager.GetString("FhirServiceUriFormatInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name or service not known.
+        /// </summary>
+        public static string HttpRequestErrorNotKnown {
+            get {
+                return ResourceManager.GetString("HttpRequestErrorNotKnown", resourceCulture);
             }
         }
     }

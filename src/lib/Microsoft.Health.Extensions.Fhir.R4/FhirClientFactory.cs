@@ -76,18 +76,16 @@ namespace Microsoft.Health.Extensions.Fhir
                 PreferredFormat = ResourceFormat.Json,
             };
 
-            FhirClient client;
+            FhirClient client = null;
             try
             {
                 client = new FhirClient(url, fhirClientSettings, new BearerTokenAuthorizationMessageHandler(uri, tokenCredential, logger));
+                FhirServiceValidator.ValidateFhirService(client, logger);
             }
             catch (Exception ex)
             {
-                client = null;
                 FhirServiceExceptionProcessor.ProcessException(ex, logger);
             }
-
-            FhirServiceValidator.ValidateFhirService(client, logger);
 
             return client;
         }
