@@ -122,6 +122,14 @@ const createMapping = (typename: string, device?: DeviceMapping, fhir?: FhirMapp
     return updateMapping(id, typename, device, fhir);
 }
 
+const renameMapping = (id: string, typename: string): Promise<Mapping> => {
+    const mapping = getMapping(id);
+    if (!mapping) {
+        return Promise.reject(`The mapping with id ${id} does not exist`);
+    }
+    return updateMapping(id, typename, mapping.device, mapping.fhir);
+}
+
 const updateMapping = (id: string, typename: string, device?: DeviceMapping, fhir?: FhirMapping): Promise<Mapping> => {
     return new Promise((resolve, reject) => {
         if (!typename || typename.trim().length < 1) {
@@ -172,7 +180,7 @@ const PersistService = {
     createMappingsFromTemplates: createMappingsFromTemplates,
     getAllMappings: getAllMappings,
     getMapping: getMapping,
-    renameMapping: updateMapping,
+    renameMapping: renameMapping,
     saveMapping: saveMappingToLocalStorage,
     deleteMapping: deleteMappingInLocalStorage
 }
