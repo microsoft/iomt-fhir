@@ -64,8 +64,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         try
                         {
                             var value = evaluatedToken.Value<T>();
+                            var isNull = value is string s ? string.IsNullOrEmpty(s) : value == null;
 
-                            if (isRequired && value == null)
+                            if (isRequired && isNull)
                             {
                                 exceptions.Add(new IncompatibleDataException($"A null value was supplied"));
                             }

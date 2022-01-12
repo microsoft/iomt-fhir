@@ -203,7 +203,7 @@ The CalculatedContentTemplate allows matching on and extracting values from an E
 | CorrelationIdExpression  | Optional: The expression to extract the correlation identifier. If extracted this value can be used to group values into a single observation in the FHIR mapping template.                                           | $.matchedToken.correlationId |
 | Values[].ValueName       | The name to associate with the value extracted by the subsequent expression. Used to bind the desired value/component in the FHIR mapping template.                                                                   | hr                           |
 | Values[].ValueExpression | The expression to extract the desired value.                                                                                                                                                                          | $.matchedToken.heartRate     |
-| Values[].Required        | Will require the value to be present in the payload. If not found a measurement will not be generated and an InvalidOperationException will be thrown.                                                                | true                         |
+| Values[].Required        | Will require the value to be present in the payload. If not found a measurement will not be generated and an InvalidOperationException will be thrown. A value is considered present within the payload when it is not null. If the value is a String it must also not be empty.                                                              | true                         |
 
 ### Expression Languages
 

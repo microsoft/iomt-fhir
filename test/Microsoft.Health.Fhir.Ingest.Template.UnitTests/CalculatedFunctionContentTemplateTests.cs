@@ -194,6 +194,23 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         [Theory]
         [MemberData(nameof(GetMultiValueRequiredTemplates))]
+        public void GivenMultiValueRequiredTemplateAndValidTokenWithEmptyValue_WhenGetMeasurements_ThenInvalidOperationException_Test(IContentTemplate template)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(
+                new
+                {
+                    Body = new[]
+                    {
+                        new { systolic = "120", diastolic = string.Empty, device = "abc", date = time },
+                    },
+                });
+
+            Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
+        }
+
+        [Theory]
+        [MemberData(nameof(GetMultiValueRequiredTemplates))]
         public void GivenMultiValueRequiredTemplateAndValidTokenWithAllValues_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(IContentTemplate template)
         {
             var time = DateTime.UtcNow;
