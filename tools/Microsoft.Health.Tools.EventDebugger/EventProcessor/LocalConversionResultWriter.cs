@@ -29,7 +29,7 @@ namespace Microsoft.Health.Tools.EventDebugger.EventProcessor
             EnsureArg.IsNotNull(runDirectory, nameof(runDirectory));
             runDirectory.Create();
             _timeOfExecution = DateTime.Now;
-            _outputDirectory = runDirectory.CreateSubdirectory($"run_{_timeOfExecution.ToString("s")}");
+            _outputDirectory = runDirectory.CreateSubdirectory($"run_{_timeOfExecution.ToString("yyyyMMdd'-'HHmmss")}");
             _jsonSerializer = new JsonSerializer()
             {
                 Formatting = Formatting.Indented,
