@@ -68,7 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
                             if (isRequired && isNull)
                             {
-                                exceptions.Add(new IncompatibleDataException($"A null value was supplied for [{name}]"));
+                                exceptions.Add(new IncompatibleDataException($"A null or empty value was supplied for the required field [{name}]"));
                             }
                             else
                             {
