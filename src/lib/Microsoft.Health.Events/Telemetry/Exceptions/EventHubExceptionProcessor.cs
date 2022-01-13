@@ -32,7 +32,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             logger.LogError(customException);
 
             errorMetricName = customException.Equals(exception) ? errorMetricName ?? $"{ErrorType.EventHubError}{errorName}" : customException.GetType().Name;
-            _exceptionTelemetryProcessor.LogExceptionMetric(customException, logger, EventMetrics.HandledException(errorMetricName, EventMetrics.ConnectorOperation));
+            _exceptionTelemetryProcessor.LogExceptionMetric(customException, logger, EventMetrics.HandledException(errorMetricName, ConnectorOperation.Setup));
         }
 
         public static (Exception customException, string errorName) CustomizeException(Exception exception)
@@ -59,14 +59,14 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     }
 
                     errorName = nameof(EventHubErrorCode.ConfigurationError);
-                    return (new InvalidEventHubException(message, exception, errorName, EventMetrics.ConnectorOperation), errorName);
+                    return (new InvalidEventHubException(message, exception, errorName), errorName);
 
                 case InvalidOperationException _:
                     if (message.Contains(EventResources.ConsumerGroup, StringComparison.CurrentCultureIgnoreCase))
                     {
                         message = EventResources.EventHubInvalidConsumerGroup;
                         errorName = nameof(EventHubErrorCode.ConfigurationError);
-                        return (new InvalidEventHubException(message, exception, errorName, EventMetrics.ConnectorOperation), errorName);
+                        return (new InvalidEventHubException(message, exception, errorName), errorName);
                     }
 
                     return (exception, $"{EventHubErrorCode.InvalidOperationError}");
@@ -94,7 +94,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                         case SocketError.HostNotFound:
                             message = EventResources.EventHubHostNotFound;
                             errorName = nameof(EventHubErrorCode.ConfigurationError);
-                            return (new InvalidEventHubException(message, exception, errorName, EventMetrics.ConnectorOperation), errorName);
+                            return (new InvalidEventHubException(message, exception, errorName), errorName);
                         default:
                             return (exception, socketErrorCode.ToString());
                     }
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                     message = EventResources.EventHubAuthorizationError;
                     string helpLink = "https://docs.microsoft.com/azure/event-hubs/authenticate-application";
                     errorName = nameof(EventHubErrorCode.AuthorizationError);
-                    return (new UnauthorizedAccessEventHubException(message, exception, helpLink, errorName, EventMetrics.ConnectorOperation), errorName);
+                    return (new UnauthorizedAccessEventHubException(message, exception, helpLink, errorName), errorName);
 
                 default:
                     return (exception, nameof(EventHubErrorCode.GeneralError));

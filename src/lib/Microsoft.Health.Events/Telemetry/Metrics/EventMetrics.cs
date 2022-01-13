@@ -21,21 +21,16 @@ namespace Microsoft.Health.Events.Telemetry
         private static readonly string _operationDimension = DimensionNames.Operation;
         private static readonly string _reasonDimension = DimensionNames.Reason;
 
-        private static string _connectorOperation = Microsoft.Health.Common.Telemetry.ConnectorOperation.Unknown;
+        private static string _connectorOperation = ConnectorOperation.Unknown;
 
-        public static string ConnectorOperation
+        public static void SetConnectorOperation(string connectorOperation)
         {
-            get => _connectorOperation;
-
-            set
+            if (_connectorOperation != ConnectorOperation.Unknown)
             {
-                if (_connectorOperation != Microsoft.Health.Common.Telemetry.ConnectorOperation.Unknown)
-                {
-                    throw new InvalidOperationException($"Connector operation can only be assigned once. Current value - {_connectorOperation}");
-                }
-
-                _connectorOperation = value;
+                throw new InvalidOperationException($"Connector operation can only be assinged once. Current value - {_connectorOperation}");
             }
+
+            _connectorOperation = connectorOperation;
         }
 
         /// <summary>

@@ -31,13 +31,12 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
             string message,
             Exception innerException,
             string helpLink,
-            string errorName,
-            string operation)
+            string errorName)
             : base(
                   message,
                   innerException,
                   name: $"{_errorType}{errorName}",
-                  operation: operation)
+                  operation: ConnectorOperation.Setup)
         {
             HelpLink = helpLink;
         }
