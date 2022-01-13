@@ -11,8 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Expressions;
-using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Tools.DataMapper
 {

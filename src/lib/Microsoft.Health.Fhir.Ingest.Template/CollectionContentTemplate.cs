@@ -15,6 +15,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         private readonly IList<IContentTemplate> _templates = new List<IContentTemplate>(10);
 
+        public IReadOnlyList<IContentTemplate> Templates => (_templates as List<IContentTemplate>).AsReadOnly();
+
         public CollectionContentTemplate RegisterTemplate(IContentTemplate contentTemplate)
         {
             EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));

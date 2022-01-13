@@ -213,7 +213,7 @@ const FhirValueForm = (props: { data: FhirValue; context: Mapping; onUpdate: Fun
                             data={data.quantity?.code}
                             onUpdate={(updatedCode: number) => {
                                 const updatedQuantity = {
-                                    ...props.data.sampledData,
+                                    ...props.data.quantity,
                                     code: updatedCode
                                 }
                                 const updatedFhirValue = {
@@ -229,7 +229,7 @@ const FhirValueForm = (props: { data: FhirValue; context: Mapping; onUpdate: Fun
                             data={data.quantity?.system}
                             onUpdate={(updatedSystem: number) => {
                                 const updatedQuantity = {
-                                    ...props.data.sampledData,
+                                    ...props.data.quantity,
                                     system: updatedSystem
                                 }
                                 const updatedFhirValue = {
@@ -245,7 +245,7 @@ const FhirValueForm = (props: { data: FhirValue; context: Mapping; onUpdate: Fun
                             data={data.quantity?.unit}
                             onUpdate={(updatedUnit: number) => {
                                 const updatedQuantity = {
-                                    ...props.data.sampledData,
+                                    ...props.data.quantity,
                                     unit: updatedUnit
                                 }
                                 const updatedFhirValue = {
