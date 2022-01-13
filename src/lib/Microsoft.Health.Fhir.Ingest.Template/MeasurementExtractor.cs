@@ -63,7 +63,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         try
                         {
-                            return evaluatedToken.Value<T>();
+                            var value = evaluatedToken.Value<T>();
+                            var isNull = value is string s ? string.IsNullOrWhiteSpace(s) : value == null;
+
+                            if (isRequired && isNull)
+                            {
+                                exceptions.Add(new IncompatibleDataException($"A null or empty value was supplied for the required field [{name}]"));
+                            }
+                            else
+                            {
+                                return value;
+                            }
                         }
                         catch (Exception e)
                         {
