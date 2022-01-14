@@ -13,6 +13,7 @@ using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Identity.Client;
 using NSubstitute;
 using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using Xunit;
 
@@ -20,29 +21,61 @@ namespace Microsoft.Health.Events.UnitTest
 {
     public class EventHubExceptionProcessorTests
     {
+        private static readonly Exception _eventResourceNotFoundEx = new EventHubsException(false, "test", EventHubsException.FailureReason.ResourceNotFound);
+        private static readonly Exception _eventServiceCommunicationProblemEx = new EventHubsException(false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem);
+        private static readonly Exception _eventClientClosedEx = new EventHubsException(false, "test", EventHubsException.FailureReason.ClientClosed);
+        private static readonly Exception _invalidConsumerGroupEx = new InvalidOperationException("ConsumerGroup");
+        private static readonly Exception _invalidEx = new InvalidOperationException();
+        private static readonly Exception _socketHostNotFoundEx = new SocketException((int)SocketError.HostNotFound);
+        private static readonly Exception _socketSocketErrorEx = new SocketException((int)SocketError.SocketError);
+        private static readonly Exception _unauthEx = new UnauthorizedAccessException();
+        private static readonly Exception _requestEx = new RequestFailedException("SecretNotFound");
+        private static readonly Exception _msalEx = new MsalServiceException("testErrorCode", "testError");
+        private static readonly Exception _ex = new Exception();
+
+        public static IEnumerable<object[]> ProcessExceptionData =>
+            new List<object[]>
+            {
+                new object[] { _eventResourceNotFoundEx, "EventHubErrorConfigurationError", nameof(ErrorSource.User) },
+                new object[] { _eventServiceCommunicationProblemEx, "EventHubErrorConfigurationError", nameof(ErrorSource.User) },
+                new object[] { _eventClientClosedEx, "EventHubErrorClientClosed" },
+                new object[] { _invalidConsumerGroupEx, "EventHubErrorConfigurationError", nameof(ErrorSource.User) },
+                new object[] { _invalidEx, "EventHubErrorInvalidOperationError" },
+                new object[] { _socketHostNotFoundEx, "EventHubErrorConfigurationError", nameof(ErrorSource.User) },
+                new object[] { _socketSocketErrorEx, "EventHubErrorSocketError" },
+                new object[] { _unauthEx, "EventHubErrorAuthorizationError", nameof(ErrorSource.User) },
+                new object[] { _requestEx, "ManagedIdentityCredentialNotFound", nameof(ErrorSource.User), nameof(ErrorType.AuthenticationError) },
+                new object[] { _msalEx, "ManagedIdentityAuthenticationErrortestErrorCode", nameof(ErrorSource.User), nameof(ErrorType.AuthenticationError) },
+                new object[] { _ex, "EventHubErrorGeneralError" },
+            };
+
+        public static IEnumerable<object[]> CustomizeExceptionData =>
+            new List<object[]>
+            {
+                new object[] { _eventResourceNotFoundEx, typeof(InvalidEventHubException) },
+                new object[] { _eventServiceCommunicationProblemEx, typeof(InvalidEventHubException) },
+                new object[] { _eventClientClosedEx, typeof(EventHubsException) },
+                new object[] { _invalidConsumerGroupEx, typeof(InvalidEventHubException) },
+                new object[] { _invalidEx, typeof(InvalidOperationException) },
+                new object[] { _socketHostNotFoundEx, typeof(InvalidEventHubException) },
+                new object[] { _socketSocketErrorEx, typeof(SocketException) },
+                new object[] { _unauthEx, typeof(UnauthorizedAccessEventHubException) },
+                new object[] { _requestEx, typeof(ManagedIdentityCredentialNotFound) },
+                new object[] { _msalEx, typeof(ManagedIdentityAuthenticationError) },
+                new object[] { _ex, typeof(Exception) },
+            };
+
         [Theory]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, "EventHubErrorConfigurationError")]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, "EventHubErrorConfigurationError")]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ClientClosed }, "EventHubErrorClientClosed")]
-        [InlineData(typeof(InvalidOperationException), new object[] { "ConsumerGroup" }, "EventHubErrorConfigurationError")]
-        [InlineData(typeof(InvalidOperationException), null, "EventHubErrorInvalidOperationError")]
-        [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, "EventHubErrorConfigurationError")]
-        [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, "EventHubErrorSocketError")]
-        [InlineData(typeof(UnauthorizedAccessException), null, "EventHubErrorAuthorizationError")]
-        [InlineData(typeof(RequestFailedException), new object[] { "SecretNotFound" }, "ManagedIdentityCredentialNotFound", nameof(ErrorType.AuthenticationError))]
-        [InlineData(typeof(MsalServiceException), new object[] { "testErrorCode", "testError" }, "ManagedIdentityAuthenticationErrortestErrorCode", nameof(ErrorType.AuthenticationError))]
-        [InlineData(typeof(Exception), null, "EventHubErrorGeneralError")]
-        public void GivenExceptionType_WhenProcessException_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Type exType, object[] param, string expectedErrorMetricName, string expectedErrorTypeName = nameof(ErrorType.EventHubError))
+        [MemberData(nameof(ProcessExceptionData))]
+        public void GivenExceptionType_WhenProcessException_ThenExceptionLoggedAndEventHubErrorMetricLogged_Test(Exception ex, string expectedErrorMetricName, string expectedErrorSource = null, string expectedErrorTypeName = nameof(ErrorType.EventHubError))
         {
             var logger = Substitute.For<ITelemetryLogger>();
-            Exception ex = Activator.CreateInstance(exType, param) as Exception;
 
             EventHubExceptionProcessor.ProcessException(ex, logger);
 
             logger.ReceivedWithAnyArgs(1).LogError(ex);
             logger.Received(1).LogMetric(Arg.Is<Metric>(m =>
-                m.Name.Equals(expectedErrorMetricName) &&
-                ValidateEventHubErrorMetricProperties(m, expectedErrorTypeName)),
+                ValidateEventHubErrorMetricProperties(m, expectedErrorMetricName, expectedErrorTypeName, expectedErrorSource)),
                 1);
         }
 
@@ -50,43 +83,36 @@ namespace Microsoft.Health.Events.UnitTest
         [InlineData(typeof(Exception))]
         public void GivenExceptionTypeAndErrorMetricName_WhenProcessException_ThenExceptionLoggedAndErrorMetricNameLogged_Test(Type exType)
         {
-            var logger = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
+            var logger = Substitute.For<ITelemetryLogger>();
+            var expectedErrorMetricName = EventHubErrorCode.EventHubPartitionInitFailed.ToString();
 
-            EventHubExceptionProcessor.ProcessException(ex, logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
+            EventHubExceptionProcessor.ProcessException(ex, logger, errorMetricName: expectedErrorMetricName);
 
             logger.Received(1).LogError(ex);
             logger.Received(1).LogMetric(Arg.Is<Metric>(m =>
-                m.Name.Equals(EventHubErrorCode.EventHubPartitionInitFailed.ToString()) &&
-                ValidateEventHubErrorMetricProperties(m, ErrorType.EventHubError)),
+                ValidateEventHubErrorMetricProperties(m, expectedErrorMetricName, ErrorType.EventHubError, null)),
                 1);
         }
 
         [Theory]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ResourceNotFound }, typeof(InvalidEventHubException))]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.ServiceCommunicationProblem }, typeof(InvalidEventHubException))]
-        [InlineData(typeof(EventHubsException), new object[] { false, "test", EventHubsException.FailureReason.GeneralError }, typeof(EventHubsException))]
-        [InlineData(typeof(InvalidOperationException), new object[] { "ConsumerGroup" }, typeof(InvalidEventHubException))]
-        [InlineData(typeof(InvalidOperationException), null, typeof(InvalidOperationException))]
-        [InlineData(typeof(SocketException), new object[] { SocketError.HostNotFound }, typeof(InvalidEventHubException))]
-        [InlineData(typeof(SocketException), new object[] { SocketError.SocketError }, typeof(SocketException))]
-        [InlineData(typeof(UnauthorizedAccessException), null, typeof(UnauthorizedAccessEventHubException))]
-        [InlineData(typeof(RequestFailedException), new object[] { "SecretNotFound" }, typeof(ManagedIdentityCredentialNotFound))]
-        [InlineData(typeof(MsalServiceException), new object[] { "errorCode", "testError" }, typeof(ManagedIdentityAuthenticationError))]
-        [InlineData(typeof(Exception), null, typeof(Exception))]
-        public void GivenExceptionType_WhenCustomizeException_ThenCustomExceptionTypeReturned_Test(Type exType, object[] param, Type customExType)
+        [MemberData(nameof(CustomizeExceptionData))]
+        public void GivenExceptionType_WhenCustomizeException_ThenCustomExceptionTypeReturned_Test(Exception ex, Type customExType)
         {
-            var ex = Activator.CreateInstance(exType, param) as Exception;
-
             var (customEx, errName) = EventHubExceptionProcessor.CustomizeException(ex);
 
             Assert.IsType(customExType, customEx);
         }
 
-        private bool ValidateEventHubErrorMetricProperties(Metric metric, string expectedErrorTypeName)
+        private bool ValidateEventHubErrorMetricProperties(Metric metric, string expectedErrorMetricName, string expectedErrorTypeName, string expectedErrorSource)
         {
-            return metric.Dimensions["Category"].Equals(Category.Errors) &&
-                metric.Dimensions["ErrorType"].Equals(expectedErrorTypeName);
+            return metric.Name.Equals(expectedErrorMetricName) &&
+                metric.Dimensions[DimensionNames.Name].Equals(expectedErrorMetricName) &&
+                metric.Dimensions[DimensionNames.Operation].Equals(ConnectorOperation.Setup) &&
+                metric.Dimensions[DimensionNames.Category].Equals(Category.Errors) &&
+                metric.Dimensions[DimensionNames.ErrorType].Equals(expectedErrorTypeName) &&
+                metric.Dimensions[DimensionNames.ErrorSeverity].Equals(ErrorSeverity.Critical) &&
+                (string.IsNullOrWhiteSpace(expectedErrorSource) ? !metric.Dimensions.ContainsKey(DimensionNames.ErrorSource) : metric.Dimensions[DimensionNames.ErrorSource].Equals(expectedErrorSource));
         }
     }
 }
