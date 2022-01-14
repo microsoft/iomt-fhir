@@ -67,7 +67,7 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                         return (new InvalidFhirServiceException(message, exception, errorName), errorName);
                     }
 
-                    return (exception, $"{nameof(FhirServiceErrorCode.ArgumentError)}_{paramName}");
+                    return (exception, $"{FhirServiceErrorCode.ArgumentError}{paramName}");
 
                 case UriFormatException _:
                     message = FhirResources.FhirServiceUriFormatInvalid;
@@ -83,7 +83,7 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                         return (new InvalidFhirServiceException(message, exception, errorName), errorName);
                     }
 
-                    return (exception, $"{nameof(FhirServiceErrorCode.HttpRequestError)}");
+                    return (exception, nameof(FhirServiceErrorCode.HttpRequestError));
 
                 case MsalServiceException _:
                     var errorCode = ((MsalServiceException)exception).ErrorCode;
@@ -91,11 +91,11 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                         || string.Equals(errorCode, "invalid_scope", StringComparison.OrdinalIgnoreCase))
                     {
                         message = FhirResources.FhirServiceMsalServiceError;
-                        errorName = $"{nameof(FhirServiceErrorCode.ConfigurationError)}";
+                        errorName = nameof(FhirServiceErrorCode.ConfigurationError);
                         return (new InvalidFhirServiceException(message, exception, errorName), errorName);
                     }
 
-                    return (exception, $"{nameof(FhirServiceErrorCode.MsalServiceError)}_{errorCode}");
+                    return (exception, $"{FhirServiceErrorCode.MsalServiceError}{errorCode}");
 
                 default:
                     return (exception, nameof(FhirServiceErrorCode.GeneralError));

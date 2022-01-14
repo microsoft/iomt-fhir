@@ -41,13 +41,13 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
                 new object[] { _fhirBadRequestEx, "FHIRServiceErrorBadRequest" },
                 new object[] { _argEndpointNullEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _argEndpointEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
-                new object[] { _argEx, "FHIRServiceErrorArgumentError_test_param" },
+                new object[] { _argEx, "FHIRServiceErrorArgumentErrortest_param" },
                 new object[] { _uriEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _httpNotKnownEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _httpEx, "FHIRServiceErrorHttpRequestError" },
                 new object[] { _msalInvalidResourceEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _msalInvalidScopeEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
-                new object[] { _msalEx, "FHIRServiceErrorMsalServiceError_test_code" },
+                new object[] { _msalEx, "FHIRServiceErrorMsalServiceErrortest_code" },
                 new object[] { _ex, "FHIRServiceErrorGeneralError" },
             };
 
