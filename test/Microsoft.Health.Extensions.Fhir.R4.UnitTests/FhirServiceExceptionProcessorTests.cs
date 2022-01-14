@@ -36,7 +36,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
         public static IEnumerable<object[]> ProcessExceptionData =>
             new List<object[]>
             {
-                new object[] { _fhirForbiddenEx, "FHIRServiceErrorAuthorizationError" },
+                new object[] { _fhirForbiddenEx, "FHIRServiceErrorAuthorizationError", nameof(ErrorSource.User) },
                 new object[] { _fhirNotFoundEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _fhirBadRequestEx, "FHIRServiceErrorBadRequest" },
                 new object[] { _argEndpointNullEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
                     m.Dimensions[DimensionNames.Category].Equals(Category.Errors) &&
                     m.Dimensions[DimensionNames.ErrorType].Equals(ErrorType.FHIRServiceError) &&
                     m.Dimensions[DimensionNames.ErrorSeverity].Equals(ErrorSeverity.Critical) &&
-                    (expectedErrorSource != null ? m.Dimensions[DimensionNames.ErrorSource].Equals(expectedErrorSource) : true)),
+                    (string.IsNullOrWhiteSpace(expectedErrorSource) ? !m.Dimensions.ContainsKey(DimensionNames.ErrorSource) : m.Dimensions[DimensionNames.ErrorSource].Equals(expectedErrorSource))),
                 1);
         }
 
