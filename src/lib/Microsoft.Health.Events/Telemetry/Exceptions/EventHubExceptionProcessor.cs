@@ -69,7 +69,7 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                         return (new InvalidEventHubException(message, exception, errorName), errorName);
                     }
 
-                    return (exception, $"{EventHubErrorCode.InvalidOperationError}");
+                    return (exception, nameof(EventHubErrorCode.InvalidOperationError));
 
                 case MsalServiceException _:
                     var msalErrorCode = ((MsalServiceException)exception).ErrorCode;
