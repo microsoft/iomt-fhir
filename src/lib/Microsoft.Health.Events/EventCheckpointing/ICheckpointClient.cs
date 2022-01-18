@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Model;
@@ -18,6 +19,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
         Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId);
 
-        Task ResetCheckpointsAsync();
+        Task ResetCheckpointsAsync(CancellationToken cancellationToken = default);
     }
 }

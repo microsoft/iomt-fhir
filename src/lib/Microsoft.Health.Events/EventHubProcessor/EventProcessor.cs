@@ -29,7 +29,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
         public override async Task RunAsync(CancellationToken ct)
         {
             // Reset previous checkpoints corresponding to an older source event hub (i.e. applicable if the source event hub changes)
-            await CheckpointClient.ResetCheckpointsAsync();
+            await CheckpointClient.ResetCheckpointsAsync(ct);
 
             EventProcessorClient.ProcessEventAsync += ProcessEventHandler;
             EventProcessorClient.ProcessErrorAsync += ProcessErrorHandler;
