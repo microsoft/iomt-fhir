@@ -26,12 +26,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var serviceCollection = GetRequiredServiceCollection(config, applicationType);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var incomingEventReader = serviceProvider.GetRequiredService<EventProcessorClient>();
             var eventHubReader = serviceProvider.GetRequiredService<EventProcessor>();
 
             System.Console.WriteLine($"Reading from event hub type: {applicationType}");
             var ct = new CancellationToken();
-            await eventHubReader.RunAsync(incomingEventReader, ct);
+            await eventHubReader.RunAsync(ct);
         }
 
         public static string GetConsoleApplicationType(IConfiguration config)

@@ -197,7 +197,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
         /// <summary>
         /// Deletes the previously recorded checkpoints if the current checkpoint blob path (corresponding to the input event hub) has changed.
         /// </summary>
-        public async Task ResetCheckpointsAsync()
+        public async Task ResetCheckpointsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -205,7 +205,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
                 var hasEventHubChanged = false;
 
-                var blobs = _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None);
+                var blobs = _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: cancellationToken);
 
                 foreach (BlobItem blob in blobs)
                 {
@@ -213,7 +213,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     {
                         try
                         {
-                            await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: CancellationToken.None);
+                            await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: cancellationToken);
                             _logger.LogTrace($"Blob checkpoint path changed to {_blobPath}. Deleted checkpoint {blob.Name}.");
                             hasEventHubChanged = true;
                         }
