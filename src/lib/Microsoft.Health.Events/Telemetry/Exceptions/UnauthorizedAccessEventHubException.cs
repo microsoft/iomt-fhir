@@ -13,6 +13,20 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
     {
         private static readonly string _errorType = ErrorType.EventHubError;
 
+        public UnauthorizedAccessEventHubException()
+        {
+        }
+
+        public UnauthorizedAccessEventHubException(string message)
+            : base(message)
+        {
+        }
+
+        public UnauthorizedAccessEventHubException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
         public UnauthorizedAccessEventHubException(
             string message,
             Exception innerException,

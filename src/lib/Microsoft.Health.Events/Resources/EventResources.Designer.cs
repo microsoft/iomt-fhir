@@ -61,6 +61,15 @@ namespace Microsoft.Health.Events.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ConsumerGroup.
+        /// </summary>
+        internal static string ConsumerGroup {
+            get {
+                return ResourceManager.GetString("ConsumerGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Verify that the provided Event Hub&apos;s &apos;Azure Event Hubs Data Receiver&apos; role has been assigned to the applicable Azure Active Directory security principal or managed identity..
         /// </summary>
         internal static string EventHubAuthorizationError {
