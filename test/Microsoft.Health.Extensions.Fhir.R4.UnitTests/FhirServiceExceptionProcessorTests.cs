@@ -79,14 +79,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
             logger.ReceivedWithAnyArgs(1).LogError(ex);
             logger.Received(1).LogMetric(
-                Arg.Is<Metric>(m =>
-                    m.Name.Equals(expectedErrorMetricName) &&
-                    m.Dimensions[DimensionNames.Name].Equals(expectedErrorMetricName) &&
-                    m.Dimensions[DimensionNames.Operation].Equals(ConnectorOperation.FHIRConversion) &&
-                    m.Dimensions[DimensionNames.Category].Equals(Category.Errors) &&
-                    m.Dimensions[DimensionNames.ErrorType].Equals(ErrorType.FHIRServiceError) &&
-                    m.Dimensions[DimensionNames.ErrorSeverity].Equals(ErrorSeverity.Critical) &&
-                    (string.IsNullOrWhiteSpace(expectedErrorSource) ? !m.Dimensions.ContainsKey(DimensionNames.ErrorSource) : m.Dimensions[DimensionNames.ErrorSource].Equals(expectedErrorSource))),
+                Arg.Is<Metric>(m => ValidateFhirServiceErrorMetricProperties(m, expectedErrorMetricName, expectedErrorSource)),
                 1);
         }
 
@@ -97,6 +90,17 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             var (customEx, errName) = FhirServiceExceptionProcessor.CustomizeException(ex);
 
             Assert.IsType(customExType, customEx);
+        }
+
+        private bool ValidateFhirServiceErrorMetricProperties(Metric metric, string expectedErrorMetricName, string expectedErrorSource)
+        {
+            return metric.Name.Equals(expectedErrorMetricName) &&
+                metric.Dimensions[DimensionNames.Name].Equals(expectedErrorMetricName) &&
+                metric.Dimensions[DimensionNames.Operation].Equals(ConnectorOperation.FHIRConversion) &&
+                metric.Dimensions[DimensionNames.Category].Equals(Category.Errors) &&
+                metric.Dimensions[DimensionNames.ErrorType].Equals(ErrorType.FHIRServiceError) &&
+                metric.Dimensions[DimensionNames.ErrorSeverity].Equals(ErrorSeverity.Critical) &&
+                (string.IsNullOrWhiteSpace(expectedErrorSource) ? !metric.Dimensions.ContainsKey(DimensionNames.ErrorSource) : metric.Dimensions[DimensionNames.ErrorSource].Equals(expectedErrorSource));
         }
     }
 }
