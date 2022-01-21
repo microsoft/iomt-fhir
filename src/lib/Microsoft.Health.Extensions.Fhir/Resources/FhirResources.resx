@@ -124,7 +124,7 @@
     <value>Verify that the FHIR service URL is provided and is an absolute URL.</value>
   </data>
   <data name="FhirServiceHttpRequestError" xml:space="preserve">
-    <value>Verify that the provided FHIR service URL exists.</value>
+    <value>Verify that the provided FHIR service exists.</value>
   </data>
   <data name="FhirServiceMsalServiceError" xml:space="preserve">
     <value>Verify that the provided FHIR service URL is a base URL and exists in the applicable Azure Active Directory tenant.</value>
