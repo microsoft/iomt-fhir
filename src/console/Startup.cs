@@ -195,10 +195,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventProcessingMetricMeters = serviceProvider.GetService<IEventProcessingMetricMeters>();
             var checkpointClient = serviceProvider.GetRequiredService<StorageCheckpointClient>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
+            var eventProcessorClient = serviceProvider.GetRequiredService<EventProcessorClient>();
             var eventBatchingOptions = new EventBatchingOptions();
             Configuration.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
             var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger, eventProcessingMetricMeters);
-            var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient, logger);
+            var eventHubReader = new EventProcessor(eventProcessorClient, eventBatchingService, checkpointClient, logger);
             return eventHubReader;
         }
 
