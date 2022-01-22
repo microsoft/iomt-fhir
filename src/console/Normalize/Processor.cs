@@ -5,18 +5,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Azure;
-using Azure.Identity;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -52,6 +48,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             _retryPolicy = CreateRetryPolicy(logger);
             _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
             _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+
+            EventMetrics.SetConnectorOperation(ConnectorOperation.Normalization);
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
