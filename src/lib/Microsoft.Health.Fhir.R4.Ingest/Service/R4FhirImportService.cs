@@ -11,6 +11,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Search;
+using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -42,14 +43,22 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public override async Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null)
         {
-            // Get required ids
-            var ids = await ResourceIdentityService.ResolveResourceIdentitiesAsync(data).ConfigureAwait(false);
-
-            var grps = _fhirTemplateProcessor.CreateObservationGroups(config, data);
-
-            foreach (var grp in grps)
+            try
             {
-                _ = await SaveObservationAsync(config, grp, ids).ConfigureAwait(false);
+                // Get required ids
+                var ids = await ResourceIdentityService.ResolveResourceIdentitiesAsync(data).ConfigureAwait(false);
+
+                var grps = _fhirTemplateProcessor.CreateObservationGroups(config, data);
+
+                foreach (var grp in grps)
+                {
+                    _ = await SaveObservationAsync(config, grp, ids).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                FhirServiceExceptionProcessor.ProcessException(ex, _logger);
+                throw;
             }
         }
 
@@ -73,16 +82,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             else
             {
                 var policyResult = await Policy<Model.Observation>
-                     .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
-                     .RetryAsync(2, async (polyRes, attempt) =>
-                     {
-                         existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
-                     })
-                     .ExecuteAndCaptureAsync(async () =>
-                     {
-                         var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
-                         return await _client.UpdateAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
-                     }).ConfigureAwait(false);
+                    .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
+                    .RetryAsync(2, async (polyRes, attempt) =>
+                    {
+                        existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
+                    })
+                    .ExecuteAndCaptureAsync(async () =>
+                    {
+                        var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
+                        return await _client.UpdateAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
+                    }).ConfigureAwait(false);
 
                 var exception = policyResult.FinalException;
 
