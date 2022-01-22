@@ -58,6 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             catch (Exception ex)
             {
                 FhirServiceExceptionProcessor.ProcessException(ex, _logger);
+                throw;
             }
         }
 
