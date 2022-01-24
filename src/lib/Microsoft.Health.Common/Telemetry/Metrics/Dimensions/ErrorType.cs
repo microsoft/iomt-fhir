@@ -45,7 +45,7 @@ namespace Microsoft.Health.Common.Telemetry
         /// <summary>
         /// A metric type for errors that occur when interacting with the FHIR server.
         /// </summary>
-        public static string FHIRServerError => nameof(FHIRServerError);
+        public static string FHIRServiceError => nameof(FHIRServiceError);
 
         /// <summary>
         /// A metric type for errors of unknown type (e.g. unhandled exceptions)

@@ -30,4 +30,17 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\FhirResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FhirResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\FhirResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>FhirResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
