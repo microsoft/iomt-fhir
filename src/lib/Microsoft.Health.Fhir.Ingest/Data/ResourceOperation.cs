@@ -16,5 +16,10 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         /// FHIR resource updated
         /// </summary>
         Updated,
+
+        /// <summary>
+        /// FHIR resource no operation performed
+        /// </summary>
+        NoOperation,
     }
 }

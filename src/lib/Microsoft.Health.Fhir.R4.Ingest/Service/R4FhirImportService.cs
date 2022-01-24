@@ -63,24 +63,64 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
             }
 
-            Model.Observation result;
+            Model.Observation result = null;
+            ResourceOperation operationType = ResourceOperation.NoOperation;
+
             if (existingObservation == null)
             {
                 var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
                 result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
-                _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created), 1);
+                operationType = ResourceOperation.Created;
             }
             else
             {
+                Model.Observation mergedObservation = null;
+
                 var policyResult = await Policy<Model.Observation>
                      .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
                      .RetryAsync(2, async (polyRes, attempt) =>
                      {
+                         // 409 Conflict or 412 Precondition Failed can occur if the Observation.meta.versionId does not match the update request.
+                         // This can happen if 2 independent processes are updating the same Observation simultaneously.
+                         // or
+                         // The update operation failed because the Observation no longer exists.
+                         // This can happen if a cached Observation was deleted from the FHIR Server.
+
+                         // Attempt to get the most recent version of the Observation.
                          existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
+
+                         // If the Observation no longer exists on the FHIR Server, it was most likely deleted.
+                         if (existingObservation == null)
+                         {
+                             // Remove the Observation from the cache (this version no longer exists on the FHIR Server.
+                             _observationCache.Remove(cacheKey);
+
+                             // Create a new Observation.
+                             result = await _client.CreateAsync(mergedObservation).ConfigureAwait(false);
+                         }
                      })
                      .ExecuteAndCaptureAsync(async () =>
                      {
-                         var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
+                         if (result != null)
+                         {
+                             // If result is not null, this means that a cached Observation was deleted from the FHIR Server.
+                             // The RetryAsync has handled this condition, so no further action is required, return the result.
+                             operationType = ResourceOperation.Created;
+                             return result;
+                         }
+
+                         // Merge the new data with the existing Observation.
+                         mergedObservation = MergeObservation(config, existingObservation, observationGroup);
+
+                         // Check to see if there are any changes after merging.
+                         if (mergedObservation.IsExactly(existingObservation))
+                         {
+                             // There are no changes to the Observation - Do not update.
+                             return existingObservation;
+                         }
+
+                         // Update the Observation. Some failures will be handled in the RetryAsync block above.
+                         operationType = ResourceOperation.Updated;
                          return await _client.UpdateAsync(mergedObservation, versionAware: true).ConfigureAwait(false);
                      }).ConfigureAwait(false);
 
@@ -92,8 +132,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
 
                 result = policyResult.Result;
-                _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Updated), 1);
             }
+
+            _logger.LogMetric(IomtMetrics.FhirResourceSaved(ResourceType.Observation, operationType), 1);
 
             _observationCache.CreateEntry(cacheKey)
                    .SetAbsoluteExpiration(DateTimeOffset.UtcNow.AddHours(1))
