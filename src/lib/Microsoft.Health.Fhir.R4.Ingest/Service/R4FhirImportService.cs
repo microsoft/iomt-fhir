@@ -83,8 +83,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             else
             {
-                Model.Observation mergedObservation = null;
-
                 var policyResult = await Policy<Model.Observation>
                      .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
                      .RetryAsync(2, async (polyRes, attempt) =>
@@ -95,17 +93,23 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                          // The update operation failed because the Observation no longer exists.
                          // This can happen if a cached Observation was deleted from the FHIR Server.
 
+                         _logger.LogTrace("A conflict or precondition caused an Observation update to fail. Getting the most recent Observation.");
+
                          // Attempt to get the most recent version of the Observation.
                          existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
 
                          // If the Observation no longer exists on the FHIR Server, it was most likely deleted.
                          if (existingObservation == null)
                          {
+                             _logger.LogTrace("A cached version of an Observation was deleted. Creating a new Observation.");
+
                              // Remove the Observation from the cache (this version no longer exists on the FHIR Server.
                              _observationCache.Remove(cacheKey);
 
                              // Create a new Observation.
-                             result = await _client.CreateAsync(mergedObservation).ConfigureAwait(false);
+                             var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
+                             result = await _client.CreateAsync(newObservation).ConfigureAwait(false);
+                             return;
                          }
                      })
                      .ExecuteAndCaptureAsync(async () =>
@@ -119,7 +123,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                          }
 
                          // Merge the new data with the existing Observation.
-                         mergedObservation = MergeObservation(config, existingObservation, observationGroup);
+                         var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
 
                          // Check to see if there are any changes after merging.
                          if (mergedObservation.IsExactly(existingObservation))

@@ -267,7 +267,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var observationGroup = Substitute.For<IObservationGroup>();
 
             var templateProcessor = Substitute.For<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Model.Observation>>()
-                .Mock(m => m.MergeObservation(default, default, default).ReturnsForAnyArgs(savedObservation));
+                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Model.Observation()))
+                .Mock(m => m.MergeObservation(default, default, default).ReturnsForAnyArgs(new Model.Observation { Id = "2" }));
 
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
