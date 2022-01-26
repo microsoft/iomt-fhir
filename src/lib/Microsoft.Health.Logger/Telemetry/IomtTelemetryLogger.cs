@@ -37,10 +37,7 @@ namespace Microsoft.Health.Logging.Telemetry
             else
             {
                 LogExceptionWithProperties(ex);
-                if (ex.InnerException != null)
-                {
-                    LogExceptionWithProperties(ex.InnerException);
-                }
+                LogInnerException(ex);
             }
         }
 
@@ -63,14 +60,22 @@ namespace Microsoft.Health.Logging.Telemetry
 
         private void LogAggregateException(AggregateException e)
         {
-            if (e.InnerException != null)
-            {
-                LogExceptionWithProperties(e.InnerException);
-            }
+            LogInnerException(e);
 
             foreach (var exception in e.InnerExceptions)
             {
                 LogExceptionWithProperties(exception);
+            }
+        }
+
+        private void LogInnerException(Exception ex)
+        {
+            EnsureArg.IsNotNull(ex, nameof(ex));
+
+            var innerException = ex.InnerException;
+            if (innerException != null)
+            {
+                LogExceptionWithProperties(innerException);
             }
         }
     }
