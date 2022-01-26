@@ -16,7 +16,7 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<ProjectReference Include="..\lib\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
 		<ProjectReference Include="..\lib\Microsoft.Health.Events\Microsoft.Health.Events.csproj" />
@@ -24,12 +24,12 @@
 		<ProjectReference Include="..\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj" />
 		<ProjectReference Include="..\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<None Update="local.appsettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
 		</None>
-	</ItemGroup>  
-	
+	</ItemGroup>
+
 </Project>
