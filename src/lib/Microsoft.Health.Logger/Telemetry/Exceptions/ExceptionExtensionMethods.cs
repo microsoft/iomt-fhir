@@ -20,6 +20,7 @@ namespace Microsoft.Health.Logging.Telemetry.Exceptions
             var exceptionTelemetry = new ExceptionTelemetry(ex);
 
             exceptionTelemetry.Properties.Add("message", ex.Message ?? string.Empty);
+            exceptionTelemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
 
             telemetryClient.TrackException(exceptionTelemetry);
         }
