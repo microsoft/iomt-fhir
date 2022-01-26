@@ -7,6 +7,7 @@ using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.Health.Logging.Metrics.Telemetry;
+using Microsoft.Health.Logging.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
@@ -35,10 +36,10 @@ namespace Microsoft.Health.Logging.Telemetry
             }
             else
             {
-                _telemetryClient.TrackException(ex);
+                LogExceptionWithProperties(ex);
                 if (ex.InnerException != null)
                 {
-                    _telemetryClient.TrackException(ex.InnerException);
+                    LogExceptionWithProperties(ex.InnerException);
                 }
             }
         }
@@ -54,16 +55,22 @@ namespace Microsoft.Health.Logging.Telemetry
             metric.LogMetric(_telemetryClient, metricValue);
         }
 
+        private void LogExceptionWithProperties(Exception ex)
+        {
+            EnsureArg.IsNotNull(ex, nameof(ex));
+            ex.LogException(_telemetryClient);
+        }
+
         private void LogAggregateException(AggregateException e)
         {
             if (e.InnerException != null)
             {
-                _telemetryClient.TrackException(e.InnerException);
+                LogExceptionWithProperties(e.InnerException);
             }
 
             foreach (var exception in e.InnerExceptions)
             {
-                _telemetryClient.TrackException(exception);
+                LogExceptionWithProperties(exception);
             }
         }
     }
