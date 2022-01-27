@@ -6,14 +6,12 @@
 using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
-using Microsoft.Health.Logging.Metrics.Telemetry;
-using Microsoft.Health.Logging.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
     public class IomtTelemetryLogger : ITelemetryLogger
     {
-        private TelemetryClient _telemetryClient;
+        private readonly TelemetryClient _telemetryClient;
 
         public IomtTelemetryLogger(TelemetryClient telemetryClient)
         {

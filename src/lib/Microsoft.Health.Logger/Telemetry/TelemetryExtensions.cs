@@ -6,13 +6,27 @@
 using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Metrics;
 
-namespace Microsoft.Health.Logging.Metrics.Telemetry
+namespace Microsoft.Health.Logging.Telemetry
 {
-    public static class MetricExtensionMethods
+    public static class TelemetryExtensions
     {
-        private static string _namespace = MetricIdentifier.DefaultMetricNamespace;
+        private static readonly string _namespace = MetricIdentifier.DefaultMetricNamespace;
+
+        public static void LogException(this Exception ex, TelemetryClient telemetryClient)
+        {
+            EnsureArg.IsNotNull(ex, nameof(ex));
+            EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+
+            var exceptionTelemetry = new ExceptionTelemetry(ex);
+
+            exceptionTelemetry.Properties.Add("message", ex.Message ?? string.Empty);
+            exceptionTelemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
+
+            telemetryClient.TrackException(exceptionTelemetry);
+        }
 
         public static void LogMetric(this Common.Telemetry.Metric metric, TelemetryClient telemetryClient, double metricValue)
         {
