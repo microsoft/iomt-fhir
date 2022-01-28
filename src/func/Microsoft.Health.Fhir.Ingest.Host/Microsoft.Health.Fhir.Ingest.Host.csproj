@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <TargetFramework>net6.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest.Host</AssemblyName>
@@ -30,11 +30,11 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.12" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.12" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.12" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.9.0">
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
     <PackageReference Include="Ensure.That" Version="10.0.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>

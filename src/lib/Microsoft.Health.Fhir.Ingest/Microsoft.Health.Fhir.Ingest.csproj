@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest</AssemblyName>
@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.12" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.12" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.9.0">
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
