@@ -47,13 +47,13 @@ namespace Microsoft.Health.Logging.Telemetry
         public void LogMetricWithDimensions(Common.Telemetry.Metric metric, double metricValue)
         {
             EnsureArg.IsNotNull(metric);
-            metric.LogMetric(_telemetryClient, metricValue);
+            _telemetryClient.LogMetric(metric, metricValue);
         }
 
         private void LogExceptionWithProperties(Exception ex)
         {
             EnsureArg.IsNotNull(ex, nameof(ex));
-            ex.LogException(_telemetryClient);
+            _telemetryClient.LogException(ex);
         }
 
         private void LogAggregateException(AggregateException e)

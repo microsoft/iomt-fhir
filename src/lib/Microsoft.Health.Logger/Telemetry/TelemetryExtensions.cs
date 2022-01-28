@@ -15,10 +15,10 @@ namespace Microsoft.Health.Logging.Telemetry
     {
         private static readonly string _namespace = MetricIdentifier.DefaultMetricNamespace;
 
-        public static void LogException(this Exception ex, TelemetryClient telemetryClient)
+        public static void LogException(this TelemetryClient telemetryClient, Exception ex)
         {
-            EnsureArg.IsNotNull(ex, nameof(ex));
             EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+            EnsureArg.IsNotNull(ex, nameof(ex));
 
             var exceptionTelemetry = new ExceptionTelemetry(ex);
 
@@ -28,10 +28,10 @@ namespace Microsoft.Health.Logging.Telemetry
             telemetryClient.TrackException(exceptionTelemetry);
         }
 
-        public static void LogMetric(this Common.Telemetry.Metric metric, TelemetryClient telemetryClient, double metricValue)
+        public static void LogMetric(this TelemetryClient telemetryClient, Common.Telemetry.Metric metric, double metricValue)
         {
-            EnsureArg.IsNotNull(metric);
             EnsureArg.IsNotNull(telemetryClient);
+            EnsureArg.IsNotNull(metric);
 
             var metricName = metric.Name;
             var dimensions = metric.Dimensions;
