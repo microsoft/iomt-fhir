@@ -6,13 +6,12 @@
 using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
-using Microsoft.Health.Logging.Metrics.Telemetry;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
     public class IomtTelemetryLogger : ITelemetryLogger
     {
-        private TelemetryClient _telemetryClient;
+        private readonly TelemetryClient _telemetryClient;
 
         public IomtTelemetryLogger(TelemetryClient telemetryClient)
         {
@@ -35,11 +34,8 @@ namespace Microsoft.Health.Logging.Telemetry
             }
             else
             {
-                _telemetryClient.TrackException(ex);
-                if (ex.InnerException != null)
-                {
-                    _telemetryClient.TrackException(ex.InnerException);
-                }
+                LogExceptionWithProperties(ex);
+                LogInnerException(ex);
             }
         }
 
@@ -51,19 +47,33 @@ namespace Microsoft.Health.Logging.Telemetry
         public void LogMetricWithDimensions(Common.Telemetry.Metric metric, double metricValue)
         {
             EnsureArg.IsNotNull(metric);
-            metric.LogMetric(_telemetryClient, metricValue);
+            _telemetryClient.LogMetric(metric, metricValue);
+        }
+
+        private void LogExceptionWithProperties(Exception ex)
+        {
+            EnsureArg.IsNotNull(ex, nameof(ex));
+            _telemetryClient.LogException(ex);
         }
 
         private void LogAggregateException(AggregateException e)
         {
-            if (e.InnerException != null)
-            {
-                _telemetryClient.TrackException(e.InnerException);
-            }
+            LogInnerException(e);
 
             foreach (var exception in e.InnerExceptions)
             {
-                _telemetryClient.TrackException(exception);
+                LogExceptionWithProperties(exception);
+            }
+        }
+
+        private void LogInnerException(Exception ex)
+        {
+            EnsureArg.IsNotNull(ex, nameof(ex));
+
+            var innerException = ex.InnerException;
+            if (innerException != null)
+            {
+                LogExceptionWithProperties(innerException);
             }
         }
     }

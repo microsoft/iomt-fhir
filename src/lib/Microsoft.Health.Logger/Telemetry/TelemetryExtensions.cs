@@ -6,18 +6,32 @@
 using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Metrics;
 
-namespace Microsoft.Health.Fhir.Ingest.Telemetry.Metrics
+namespace Microsoft.Health.Logging.Telemetry
 {
-    public static class MetricExtensionMethods
+    public static class TelemetryExtensions
     {
-        private static string _namespace = MetricIdentifier.DefaultMetricNamespace;
+        private static readonly string _namespace = MetricIdentifier.DefaultMetricNamespace;
 
-        public static void LogMetric(this Common.Telemetry.Metric metric, TelemetryClient telemetryClient, double metricValue)
+        public static void LogException(this TelemetryClient telemetryClient, Exception ex)
         {
-            EnsureArg.IsNotNull(metric);
+            EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+            EnsureArg.IsNotNull(ex, nameof(ex));
+
+            var exceptionTelemetry = new ExceptionTelemetry(ex);
+
+            exceptionTelemetry.Properties.Add("message", ex.Message ?? string.Empty);
+            exceptionTelemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
+
+            telemetryClient.TrackException(exceptionTelemetry);
+        }
+
+        public static void LogMetric(this TelemetryClient telemetryClient, Common.Telemetry.Metric metric, double metricValue)
+        {
             EnsureArg.IsNotNull(telemetryClient);
+            EnsureArg.IsNotNull(metric);
 
             var metricName = metric.Name;
             var dimensions = metric.Dimensions;
