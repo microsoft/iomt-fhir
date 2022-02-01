@@ -37,7 +37,7 @@ To check NodeJS installation, use below commands:
 
 ### Server
 
-- **.NET Core** version 3.1.9 and above
+- **.NET Core** version 6.0.0 and above
 
 To check .NET installation, use below commands:
 
