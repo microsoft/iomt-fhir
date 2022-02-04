@@ -34,7 +34,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 .Where(t => _baseType.IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
                 .ToDictionary(t => TrimBaseType(t.Name, _baseType.Name), StringComparer.InvariantCultureIgnoreCase);
 
-            _knownTypeSettings = new JsonSerializerSettings { ContractResolver = new KnownTypeContractResolver(baseType) };
+            _knownTypeSettings = new JsonSerializerSettings
+            {
+                ContractResolver = new KnownTypeContractResolver(baseType),
+                TypeNameHandling = TypeNameHandling.None,
+            };
         }
 
         public override bool CanConvert(Type objectType)
