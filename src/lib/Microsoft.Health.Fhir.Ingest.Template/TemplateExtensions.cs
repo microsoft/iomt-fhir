@@ -28,6 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     errors.Add(args.ErrorContext.Error);
                     args.ErrorContext.Handled = true;
                 },
+                TypeNameHandling = TypeNameHandling.None,
             });
 
             T obj = token.ToObject<T>(jsonSerializer);
