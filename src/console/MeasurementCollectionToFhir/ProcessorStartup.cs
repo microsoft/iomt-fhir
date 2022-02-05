@@ -1,6 +1,5 @@
 ﻿using EnsureThat;
 using Hl7.Fhir.Model;
-using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,12 +9,16 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir.Repository;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using System;
 using System.Linq;
+using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
+using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 {
@@ -38,16 +41,31 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.Configure<ResourceIdentityOptions>(Configuration.GetSection("ResourceIdentity"));
             services.Configure<FhirClientFactoryOptions>(Configuration.GetSection("FhirClient"));
 
-            services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
-            services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
+            var url = new Uri(Environment.GetEnvironmentVariable("FhirService:Url"));
+            bool useManagedIdentity = Configuration.GetValue<bool>("FhirClient:UseManagedIdentity");
+            services.AddHttpClient<IFhirClient, FhirClient>(sp =>
+            {
+                sp.BaseAddress = url;
+            }).AddAuthenticationHandler(services, url, useManagedIdentity);
+
+            services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
+
+            services.TryAddSingleton<FhirServiceValidator>();
+
             services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            services.TryAddSingleton(ResolveResourceIdentityService);
             services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
             services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
+            services.TryAddSingleton<ResourceManagementService>();
             services.TryAddSingleton<MeasurementFhirImportOptions>();
             services.TryAddSingleton<MeasurementFhirImportService>();
             services.TryAddSingleton(ResolveMeasurementImportProvider);
+
+            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientCreateIdentityService>();
+            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientLookupIdentityService>();
+            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientWithEncounterLookupIdentityService>();
+            services.TryAddSingleton<IFactory<IResourceIdentityService>, ResourceIdentityServiceFactory>();
+            services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<IResourceIdentityService>>().Create());
         }
 
         private MeasurementFhirImportProvider ResolveMeasurementImportProvider(IServiceProvider serviceProvider)
@@ -59,15 +77,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             var measurementImportService = new MeasurementFhirImportProvider(Configuration, options, logger, serviceProvider);
 
             return measurementImportService;
-        }
-
-        private static IResourceIdentityService ResolveResourceIdentityService(IServiceProvider serviceProvider)
-        {
-            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-
-            var fhirClient = serviceProvider.GetRequiredService<FhirClient>();
-            var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
         }
     }
 }

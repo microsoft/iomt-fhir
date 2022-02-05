@@ -3,9 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Hl7.Fhir.Rest;
+using System;
+using System.Threading.Tasks;
+using Microsoft.Health.Common;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
@@ -15,26 +18,21 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
         [Theory]
         [InlineData("https://testfoobar.azurehealthcareapis.com")]
         [InlineData("https://microsoft.com")]
-        public void GivenInvalidFhirServiceUrl_WhenValidateFhirService_ThenNotValidReturned_Test(string url)
+        public async Task GivenInvalidFhirServiceUrl_WhenValidateFhirService_ThenNotValidReturned_Test(string url)
         {
-            ValidateFhirServiceUrl(url, false);
+            await ValidateFhirServiceUrl(url, false);
         }
 
-        private void ValidateFhirServiceUrl(string url, bool expectedIsValid)
+        private async Task ValidateFhirServiceUrl(string url, bool expectedIsValid)
         {
-            var fhirClientSettings = new FhirClientSettings
-            {
-                PreferredFormat = ResourceFormat.Json,
-            };
+            var client = Utilities.CreateMockFhirClient();
+            client.ReadResourceAsync<Hl7.Fhir.Model.CapabilityStatement>(Arg.Any<string>()).ThrowsForAnyArgs(new Exception());
 
-            using (var client = new FhirClient(url, fhirClientSettings))
-            {
-                var logger = Substitute.For<ITelemetryLogger>();
+            var logger = Substitute.For<ITelemetryLogger>();
 
-                bool actualIsValid = FhirServiceValidator.ValidateFhirService(client, logger);
+            bool actualIsValid = await FhirServiceValidator.ValidateFhirServiceAsync(client, url, logger);
 
-                Assert.Equal(expectedIsValid, actualIsValid);
-            }
+            Assert.Equal(expectedIsValid, actualIsValid);
         }
     }
 }

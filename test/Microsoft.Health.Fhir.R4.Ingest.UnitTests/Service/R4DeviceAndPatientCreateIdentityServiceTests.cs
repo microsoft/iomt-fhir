@@ -5,11 +5,10 @@
 
 using System;
 using System.Threading.Tasks;
-using Hl7.Fhir.Rest;
+using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
-using Microsoft.Health.Tests.Common;
 using NSubstitute;
 using Xunit;
 using Model = Hl7.Fhir.Model;
@@ -22,7 +21,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async void GivenValidDeviceIdentifier_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientIdReturnedAndCreateNotInvoked_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {
                 Id = "1",
@@ -32,10 +31,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -43,16 +42,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Assert.Equal("123", ids[ResourceType.Patient]);
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
-            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null);
-            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null);
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", null);
+            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Device>(null, null, null);
+            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Patient>(null, null, null);
         }
 
         [Fact]
         public async void GivenValidDeviceIdentifierWithSystem_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientIdReturnedAndCreateNotInvokedWithSystemUsed_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {
                 Id = "1",
@@ -62,10 +61,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 idSrv.Initialize(new ResourceIdentityOptions { DefaultDeviceIdentifierSystem = "mySystem" });
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
@@ -74,16 +73,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Assert.Equal("123", ids[ResourceType.Patient]);
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", "mySystem");
-            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null);
-            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null);
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", "mySystem");
+            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Device>(null, null, null);
+            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Patient>(null, null, null);
         }
 
         [Fact]
         public async void GivenPatientNotFoundException_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientCreateInvokedAndIdsReturned_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
 
             var device = new Model.Device
             {
@@ -96,17 +95,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Id = "123",
             };
 
-            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
-            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
+            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
+            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
 
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
             mg.PatientId.Returns("patientId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Patient)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -114,16 +113,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Assert.Equal("123", ids[ResourceType.Patient]);
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "deviceId", null, Arg.Any<Action<Model.Device, Model.Identifier>>());
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", null);
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("deviceId", null, Arg.Any<Action<Model.Device, Model.Identifier>>());
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
         }
 
         [Fact]
         public async void GivenDeviceNotFoundException_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientCreateInvokedAndIdsReturned_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
 
             var device = new Model.Device
             {
@@ -136,17 +135,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Id = "123",
             };
 
-            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
-            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
+            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
+            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
 
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
             mg.PatientId.Returns("patientId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Device)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -154,16 +153,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Assert.Equal("123", ids[ResourceType.Patient]);
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "deviceId", null, Arg.Any<Action<Model.Device, Model.Identifier>>());
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", null);
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("deviceId", null, Arg.Any<Action<Model.Device, Model.Identifier>>());
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
         }
 
         [Fact]
         public async void GivenDeviceNotFoundExceptionWithDeviceSystemSet_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientCreateInvokedWithDeviceSystemAndIdsReturned_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
 
             var device = new Model.Device
             {
@@ -176,17 +175,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Id = "123",
             };
 
-            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
-            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
+            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
+            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
 
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
             mg.PatientId.Returns("patientId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Device)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 idSrv.Initialize(new ResourceIdentityOptions { DefaultDeviceIdentifierSystem = "mySystem" });
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
@@ -195,9 +194,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Assert.Equal("123", ids[ResourceType.Patient]);
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", "mySystem");
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "deviceId", "mySystem", Arg.Any<Action<Model.Device, Model.Identifier>>());
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", "mySystem");
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("deviceId", "mySystem", Arg.Any<Action<Model.Device, Model.Identifier>>());
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
         }
 
         [Theory]
@@ -207,7 +206,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async void GivenIdNotFoundExceptionWithNoPatientId_WhenResolveResourceIdentitiesAsync_ThenResourceIdentityNotDefinedExceptionThrown_Test(string value)
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
 
             var device = new Model.Device
             {
@@ -220,33 +219,33 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Id = "123",
             };
 
-            var createService = Substitute.For<ResourceManagementService>();
-            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
-            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
+            var createService = Substitute.For<ResourceManagementService>(fhirClient);
+            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
+            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
 
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
             mg.PatientId.Returns(value);
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Patient)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 var ex = await Assert.ThrowsAsync<ResourceIdentityNotDefinedException>(() => idSrv.ResolveResourceIdentitiesAsync(mg));
                 Assert.Equal(ResourceType.Patient, ex.FhirResourceType);
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
-            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null);
-            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null);
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", null);
+            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Device>(null, null, null);
+            await resourceService.DidNotReceiveWithAnyArgs().EnsureResourceByIdentityAsync<Model.Patient>(null, null, null);
         }
 
         [Fact]
         public async void GivenMismatchedDeviceAndPatientIdReference_WhenResolveResourceIdentitiesAsync_ThenPatientDeviceMismatchExceptionThrown_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            var resourceService = Substitute.For<ResourceManagementService>();
+            var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
 
             var device = new Model.Device
             {
@@ -259,24 +258,24 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Id = "123",
             };
 
-            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
-            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
+            resourceService.EnsureResourceByIdentityAsync<Model.Device>(null, null, null).ReturnsForAnyArgs(Task.FromResult(device));
+            resourceService.EnsureResourceByIdentityAsync<Model.Patient>(null, null, null).ReturnsForAnyArgs(Task.FromResult(patient));
 
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
             mg.PatientId.Returns("patientId");
 
-            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<FhirClient>(), Arg.Any<string>(), Arg.Any<string>())
+            resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Patient)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
             {
                 await Assert.ThrowsAsync<PatientDeviceMismatchException>(() => idSrv.ResolveResourceIdentitiesAsync(mg));
             }
 
-            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>(fhirClient, "deviceId", null);
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "deviceId", null, Arg.Any<Action<Model.Device, Model.Identifier>>());
-            await resourceService.Received(1).EnsureResourceByIdentityAsync(fhirClient, "patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
+            await resourceService.Received(1).GetResourceByIdentityAsync<Model.Device>("deviceId", null);
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("deviceId", null, Arg.Any<Action<Model.Device, Model.Identifier>>());
+            await resourceService.Received(1).EnsureResourceByIdentityAsync("patientId", null, Arg.Any<Action<Model.Patient, Model.Identifier>>());
         }
     }
 }

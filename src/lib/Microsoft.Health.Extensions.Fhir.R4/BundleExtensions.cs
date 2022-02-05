@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Hl7.Fhir.Rest;
+using Microsoft.Health.Extensions.Fhir.Repository;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
@@ -41,7 +41,10 @@ namespace Microsoft.Health.Extensions.Fhir
             }
         }
 
-        public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(this Bundle bundle, FhirClient fhirClient, bool throwOnMultipleFound = true)
+        public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(
+            this Bundle bundle,
+            IFhirServiceRepository fhirClient,
+            bool throwOnMultipleFound = true)
             where TResource : Resource, new()
         {
             if (bundle == null)
@@ -49,7 +52,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 return null;
             }
 
-            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, 2);
+            var resources = await bundle.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, 2);
 
             var resourceCount = resources.Count();
             if (resourceCount == 0)
@@ -59,7 +62,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             if (throwOnMultipleFound && resourceCount > 1)
             {
-                throw new MultipleResourceFoundException<TResource>(resourceCount);
+                throw new MultipleResourceFoundException<TResource>();
             }
 
             return resources.FirstOrDefault();
@@ -75,13 +78,17 @@ namespace Microsoft.Health.Extensions.Fhir
             return bundle?.Entry?.Count ?? 0;
         }
 
-        public static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(this Bundle bundle, FhirClient fhirClient, int? count = null)
+        private static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(
+            this Bundle bundle,
+            IFhirServiceRepository fhirClient,
+            int? count = null)
             where TResource : Resource
         {
             EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
 
             var resources = new List<TResource>();
-            while (bundle != null)
+
+            Action<Bundle> storeResources = (bundle) =>
             {
                 foreach (var r in bundle.ReadFromBundle<TResource>(count))
                 {
@@ -96,30 +103,16 @@ namespace Microsoft.Health.Extensions.Fhir
                         count--;
                     }
                 }
+            };
 
-                bundle = await fhirClient.ContinueAsync(bundle).ConfigureAwait(false);
+            storeResources.Invoke(bundle);
+
+            await foreach (var currentBundle in fhirClient.IterateOverAdditionalBundlesAsync(bundle))
+            {
+                storeResources.Invoke(currentBundle);
             }
 
             return resources;
-        }
-
-        public static async Task<IEnumerable<TResource>> SearchWithContinuationAsync<TResource>(this FhirClient fhirClient, SearchParams searchParams)
-            where TResource : Resource
-        {
-            EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
-            EnsureArg.IsNotNull(searchParams, nameof(searchParams));
-
-            var result = await fhirClient.SearchAsync<TResource>(searchParams).ConfigureAwait(false);
-            return await result.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, searchParams.Count).ConfigureAwait(false);
-        }
-
-        public static async Task<IEnumerable<TResource>> GetWithContinuationAsync<TResource>(this FhirClient fhirClient, Uri resourceUri, int? count = null)
-            where TResource : Resource
-        {
-            EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
-
-            var result = await fhirClient.GetAsync(resourceUri).ConfigureAwait(false) as Bundle;
-            return await result.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, count).ConfigureAwait(false);
         }
     }
 }

@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using NSubstitute;
 using Xunit;
@@ -16,7 +17,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenFoundDeviceAndPatientId_WhenResolveResourceIdentitiesAsync_ThenCorrectDictionaryReturned_Test()
         {
-            var idSrv = Substitute.ForPartsOf<TestHarnessDeviceAndPatientLookupIdentityService>();
+            var idSrv = Substitute.ForPartsOf<TestHarnessDeviceAndPatientLookupIdentityService>(ResourceIdentityServiceType.Lookup);
             idSrv.HarnessLookUpDeviceAndPatientIdAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(Task.FromResult(("did", "pid")));
             var mg = Substitute.For<IMeasurementGroup>();
             mg.DeviceId.Returns("deviceId");
@@ -33,6 +34,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public abstract class TestHarnessDeviceAndPatientLookupIdentityService : DeviceAndPatientLookupIdentityService
         {
+            public TestHarnessDeviceAndPatientLookupIdentityService(ResourceIdentityServiceType resourceIdentityServiceType)
+                : base(resourceIdentityServiceType)
+            {
+            }
+
             public abstract Task<(string DeviceId, string PatientId)> HarnessLookUpDeviceAndPatientIdAsync(string value, string system);
 
             protected async override Task<(string DeviceId, string PatientId)> LookUpDeviceAndPatientIdAsync(string value, string system = null)

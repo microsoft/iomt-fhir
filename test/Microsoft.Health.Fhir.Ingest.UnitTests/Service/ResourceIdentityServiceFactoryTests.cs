@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
+using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,47 +25,61 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public void GivenSupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test()
+        public void GivenSupportedConfiguration_WhenLookup_ThenObjectCreated_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "Lookup" };
-            var srv = ResourceIdentityServiceFactory.Instance.Create(options);
+            var options = Substitute.For<ResourceIdentityOptions>();
+            var identityService = Substitute.For<IResourceIdentityService>();
+            identityService.GetResourceIdentityServiceType().ReturnsForAnyArgs(ResourceIdentityServiceType.Lookup);
+            var resourceIdentityServiceFactory = new ResourceIdentityServiceFactory(new List<IResourceIdentityService>() { identityService }, options);
+            var srv = resourceIdentityServiceFactory.Create();
             Assert.NotNull(srv);
-            var typedSrv = Assert.IsType<TestLookupResourceIdentityService>(srv);
-            Assert.Equal(options, typedSrv.Options);
         }
 
         [Fact]
-        public void GivenSupportedConfigurationAndValidCtorParams_WhenCreate_ThenObjectCreatedWithParam_Test()
+        public void GivenSupportedConfiguration_WhenCreate_ThenObjectCreated_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "Create" };
-            var srv = ResourceIdentityServiceFactory.Instance.Create(options, "foo");
+            var options = Substitute.ForPartsOf<ResourceIdentityOptions>();
+            options.ResourceIdentityServiceType = "Create";
+            var identityService = Substitute.For<IResourceIdentityService>();
+            identityService.GetResourceIdentityServiceType().ReturnsForAnyArgs(ResourceIdentityServiceType.Create);
+            var resourceIdentityServiceFactory = new ResourceIdentityServiceFactory(new List<IResourceIdentityService>() { identityService }, options);
+            var srv = resourceIdentityServiceFactory.Create();
             Assert.NotNull(srv);
-            var typedSrv = Assert.IsType<TestCreateResourceIdentityService>(srv);
-            Assert.Equal("foo", typedSrv.Parameter);
-            Assert.Equal(options, typedSrv.Options);
+        }
+
+        // [Fact]
+        public void GivenLegacySupportedConfiguration_WhenLookup_ThenObjectCreated_Test()
+        {
+            var options = Substitute.ForPartsOf<ResourceIdentityOptions>();
+            options.ResourceIdentityServiceType = "R4DeviceAndPatientLookupIdentityService";
+            var identityService = Substitute.For<IResourceIdentityService>();
+            identityService.GetResourceIdentityServiceType().ReturnsForAnyArgs(ResourceIdentityServiceType.Lookup);
+            var resourceIdentityServiceFactory = new ResourceIdentityServiceFactory(new List<IResourceIdentityService>() { identityService }, options);
+            var srv = resourceIdentityServiceFactory.Create();
+            Assert.NotNull(srv);
         }
 
         [Fact]
-        public void GivenLegacySupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test()
+        public void GivenNotSupportedConfiguration_WhenLookupWithEncounter_ThenNotSupportedException_Test()
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "R4DeviceAndPatientLookupIdentityService" };
-            var srv = ResourceIdentityServiceFactory.Instance.Create(options);
-            Assert.NotNull(srv);
-            var typedSrv = Assert.IsType<TestLookupResourceIdentityService>(srv);
-            Assert.Equal(options, typedSrv.Options);
-        }
-
-        [Fact]
-        public void GivenNotSupportedConfigurationAndInvalidCtorParams_WhenLookupWithEncounter_ThenNotSupportedException_Test()
-        {
-            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = "LookupWithEncounter" }));
+            var options = Substitute.ForPartsOf<ResourceIdentityOptions>();
+            options.ResourceIdentityServiceType = "LookupWithEncounter";
+            var identityService = Substitute.For<IResourceIdentityService>();
+            identityService.GetResourceIdentityServiceType().ReturnsForAnyArgs(ResourceIdentityServiceType.Lookup);
+            var srv = new ResourceIdentityServiceFactory(new List<IResourceIdentityService>() { identityService }, options);
+            var ex = Assert.Throws<ArgumentException>(() => srv.Create());
             _output.WriteLine(ex.Message);
         }
 
         [Fact]
         public void GivenSupportedConfigurationAndInvalidCtorParams_WhenCreate_ThenNotSupportedException_Test()
         {
-            var ex = Assert.Throws<NotSupportedException>(() => ResourceIdentityServiceFactory.Instance.Create(new ResourceIdentityOptions { ResourceIdentityServiceType = "Create" }, 1));
+            var options = Substitute.ForPartsOf<ResourceIdentityOptions>();
+            options.ResourceIdentityServiceType = "Create";
+            var identityService = Substitute.For<IResourceIdentityService>();
+            identityService.GetResourceIdentityServiceType().ReturnsForAnyArgs(ResourceIdentityServiceType.Lookup);
+            var srv = new ResourceIdentityServiceFactory(new List<IResourceIdentityService>() { identityService }, options);
+            var ex = Assert.Throws<ArgumentException>(() => srv.Create());
             _output.WriteLine(ex.Message);
         }
 
@@ -73,6 +88,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public class TestLookupResourceIdentityService : IResourceIdentityService
         {
             public ResourceIdentityOptions Options { get; private set; }
+
+            public ResourceIdentityServiceType GetResourceIdentityServiceType()
+            {
+                return ResourceIdentityServiceType.Lookup;
+            }
 
             public void Initialize(ResourceIdentityOptions options)
             {
@@ -97,6 +117,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             public ResourceIdentityOptions Options { get; private set; }
 
+            public ResourceIdentityServiceType GetResourceIdentityServiceType()
+            {
+                return ResourceIdentityServiceType.Create;
+            }
+
             public void Initialize(ResourceIdentityOptions options)
             {
                 Options = options;
@@ -111,6 +136,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public class TestUnregisteredResourceIdentityService : IResourceIdentityService
         {
             public ResourceIdentityOptions Options { get; private set; }
+
+            public ResourceIdentityServiceType GetResourceIdentityServiceType()
+            {
+                throw new NotImplementedException();
+            }
 
             public void Initialize(ResourceIdentityOptions options)
             {

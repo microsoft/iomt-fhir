@@ -6,7 +6,6 @@
 using System;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Hl7.Fhir.Rest;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -16,9 +15,13 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir.Repository;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
+using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
+using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
@@ -37,27 +40,32 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
-            builder.Services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
-            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
+            var url = new Uri(Environment.GetEnvironmentVariable("FhirService:Url"));
+            bool useManagedIdentity = config.GetValue<bool>("FhirClient:UseManagedIdentity");
+            builder.Services.AddHttpClient<IFhirClient, FhirClient>(sp =>
+            {
+                sp.BaseAddress = url;
+            }).AddAuthenticationHandler(builder.Services, url, useManagedIdentity);
+
+            builder.Services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
+
+            builder.Services.TryAddSingleton<ResourceManagementService>();
+
             builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            builder.Services.TryAddSingleton(ResolveResourceIdentityService);
             builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
             builder.Services.TryAddSingleton<FhirImportService, R4FhirImportService>();
+
+            builder.Services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientCreateIdentityService>();
+            builder.Services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientLookupIdentityService>();
+            builder.Services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientWithEncounterLookupIdentityService>();
+            builder.Services.TryAddSingleton<IFactory<IResourceIdentityService>, ResourceIdentityServiceFactory>();
+            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<IResourceIdentityService>>().Create());
 
             // Register extensions
             builder.AddExtension<MeasurementFhirImportProvider>()
                 .BindOptions<MeasurementFhirImportOptions>();
 
             return builder;
-        }
-
-        private static IResourceIdentityService ResolveResourceIdentityService(IServiceProvider serviceProvider)
-        {
-            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-
-            var fhirClient = serviceProvider.GetRequiredService<FhirClient>();
-            var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
         }
     }
 }
