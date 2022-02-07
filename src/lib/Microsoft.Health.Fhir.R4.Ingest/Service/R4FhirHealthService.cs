@@ -32,7 +32,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 while (!token.IsCancellationRequested)
                 {
                     SearchParams search = new SearchParams().SetCount(1);
-                    await _client.SearchForResourceAsync(Hl7.Fhir.Model.ResourceType.Bundle, query: null, search.Count, token).ConfigureAwait(false);
+                    Hl7.Fhir.Model.Bundle result = await _client.SearchForResourceAsync(Hl7.Fhir.Model.ResourceType.StructureDefinition, query: null, search.Count, token).ConfigureAwait(false);
                     return await Task.FromResult(new FhirHealthCheckStatus(string.Empty, 200));
                 }
 

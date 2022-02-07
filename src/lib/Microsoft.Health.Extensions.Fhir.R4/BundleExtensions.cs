@@ -52,7 +52,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 return null;
             }
 
-            var resources = await bundle.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, 2);
+            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, 2);
 
             var resourceCount = resources.Count();
             if (resourceCount == 0)
@@ -62,7 +62,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             if (throwOnMultipleFound && resourceCount > 1)
             {
-                throw new MultipleResourceFoundException<TResource>();
+                throw new MultipleResourceFoundException<TResource>(resourceCount);
             }
 
             return resources.FirstOrDefault();

@@ -29,12 +29,12 @@ namespace Microsoft.Health.Extensions.Fhir.Repository
             where T : Resource;
 
         /// <summary>
-        /// Produces an iterator over additional Bundles associated with the passed Bundle. The original Bundle is not included in the returned iterator. The
-        /// iterator completes when the first null Bundle in the chain is returned from the FhirServer
+        /// Produces an iterator over additional Bundles associated with the passed Bundle. The original Bundle is not returned. The
+        /// iterator completes when there are no more pages in the Bundle
         /// </summary>
         /// <param name="bundle">The Bundle to begin iterating over</param>
         /// <param name="cancellationToken">The cancellation token</param>
-        /// <returns>An iterator of the collection of Bundles associatd with the supplied Bundle</returns>
+        /// <returns>A collection of Bundles associated with the supplied Bundle</returns>
         IAsyncEnumerable<Bundle> IterateOverAdditionalBundlesAsync(Bundle bundle, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

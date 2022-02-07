@@ -51,7 +51,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
-            Model.Bundle result = await FhirServerRepository.SearchForResourceAsync(identifier.SystemElement.ToString());
+            Model.Bundle result = await FhirServerRepository.SearchForResourceAsync(identifier.SystemElement.ToString()).ConfigureAwait(false);
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirServerRepository);
         }
 

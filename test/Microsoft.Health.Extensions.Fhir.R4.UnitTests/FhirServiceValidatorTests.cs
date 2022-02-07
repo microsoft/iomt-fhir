@@ -30,7 +30,9 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
             var logger = Substitute.For<ITelemetryLogger>();
 
-            bool actualIsValid = await FhirServiceValidator.ValidateFhirServiceAsync(client, url, logger);
+            var fhirServiceValidator = new FhirServiceValidator();
+
+            bool actualIsValid = await fhirServiceValidator.ValidateFhirServiceAsync(client, url, logger);
 
             Assert.Equal(expectedIsValid, actualIsValid);
         }

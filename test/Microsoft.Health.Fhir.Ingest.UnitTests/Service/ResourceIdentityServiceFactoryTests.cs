@@ -45,7 +45,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public void GivenNotSupportedConfiguration_WhenLookupWithEncounter_ThenNotSupportedException_Test()
+        public void GivenMismatchedSupportedConfigurations_WhenLookupWithEncounter_ThenArguementException_Test()
         {
             var options = Substitute.ForPartsOf<ResourceIdentityOptions>();
             options.ResourceIdentityServiceType = "LookupWithEncounter";
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public void GivenSupportedConfigurationAndInvalidCtorParams_WhenCreate_ThenNotSupportedException_Test()
+        public void GivenMismatchedSupportedConfiguration_WhenCreate_ThenArguementException_Test()
         {
             var options = Substitute.ForPartsOf<ResourceIdentityOptions>();
             options.ResourceIdentityServiceType = "Create";

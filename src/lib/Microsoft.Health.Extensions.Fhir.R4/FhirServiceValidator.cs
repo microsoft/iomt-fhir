@@ -14,7 +14,7 @@ namespace Microsoft.Health.Extensions.Fhir
 {
     public class FhirServiceValidator
     {
-        public static async Task<bool> ValidateFhirServiceAsync(
+        public async Task<bool> ValidateFhirServiceAsync(
             IFhirServiceRepository client,
             string url,
             ITelemetryLogger logger)

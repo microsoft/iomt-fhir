@@ -37,7 +37,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\lib\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
 		<ProjectReference Include="..\..\src\lib\Microsoft.Health.Extensions.Fhir.R4\Microsoft.Health.Extensions.Fhir.R4.csproj" />
-		<ProjectReference Include="..\Microsoft.Health.Tests.Common.R4\Microsoft.Health.Tests.Common.R4.csproj" />
 		<ProjectReference Include="..\Microsoft.Health.Tests.Common\Microsoft.Health.Tests.Common.csproj" />
 	</ItemGroup>
 </Project>

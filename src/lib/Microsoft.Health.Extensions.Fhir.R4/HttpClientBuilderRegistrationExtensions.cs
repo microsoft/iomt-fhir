@@ -11,7 +11,7 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
-    public static class IHttpClientBuilderRegistrationExtensions
+    public static class HttpClientBuilderRegistrationExtensions
     {
         public static void AddAuthenticationHandler(
             this IHttpClientBuilder httpClientBuilder,

@@ -117,10 +117,10 @@ namespace Microsoft.Health.Extensions.Fhir.Repository
             {
                 foreach (var link in bundle.Link)
                 {
-                    Bundle trackedBundle = await _fhirClient.ReadAsync<Bundle>(link.Url, cancellationToken).ConfigureAwait(false);
-                    if (trackedBundle != null)
+                    Bundle nextBundle = await _fhirClient.SearchAsync(link.Url, cancellationToken).ConfigureAwait(false);
+                    if (nextBundle != null)
                     {
-                        yield return trackedBundle;
+                        yield return nextBundle;
                     }
                 }
             }
