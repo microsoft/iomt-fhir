@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
+	<ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources\FhirResources.Designer.cs">
