@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Health.Common;
 using Microsoft.Health.Logging.Telemetry;
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
         private async Task ValidateFhirServiceUrl(string url, bool expectedIsValid)
         {
             var client = Utilities.CreateMockFhirClient();
-            client.ReadResourceAsync<Hl7.Fhir.Model.CapabilityStatement>(Arg.Any<string>()).ThrowsForAnyArgs(new Exception());
+            client.ReadResourceAsync<Hl7.Fhir.Model.CapabilityStatement>(Arg.Any<string>()).ThrowsForAnyArgs(new HttpRequestException());
 
             var logger = Substitute.For<ITelemetryLogger>();
 

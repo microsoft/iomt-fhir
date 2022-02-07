@@ -5,9 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
-using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Repository;
@@ -79,7 +79,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
 
             var policyResult = await Policy<(Model.Observation observation, ResourceOperation operationType)>
-                .Handle<FhirOperationException>(ex => ex.Status == System.Net.HttpStatusCode.Conflict || ex.Status == System.Net.HttpStatusCode.PreconditionFailed)
+                .Handle<HttpRequestException>(ex => ex.StatusCode == System.Net.HttpStatusCode.Conflict || ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
                 .RetryAsync(2, async (polyRes, attempt) =>
                 {
                     // 409 Conflict or 412 Precondition Failed can occur if the Observation.meta.versionId does not match the update request.

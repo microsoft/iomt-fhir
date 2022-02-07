@@ -7,7 +7,6 @@ using System;
 using System.Net;
 using System.Net.Http;
 using Hl7.Fhir.Model;
-using Hl7.Fhir.Rest;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Client;
 using NSubstitute;
@@ -35,7 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async void GivenInvalidOAuthToken_WhenCheckHealthAsync_ThenRespondWithFhirOperationException_Test()
         {
             var fhirClient = Utilities.CreateMockFhirClient();
-            fhirClient.SearchForResourceAsync(Arg.Any<ResourceType>(), Arg.Any<string>(), Arg.Any<int>(), default).ThrowsForAnyArgs(new FhirOperationException("Unauthorized", HttpStatusCode.Unauthorized));
+            fhirClient.SearchForResourceAsync(Arg.Any<ResourceType>(), Arg.Any<string>(), Arg.Any<int>(), default).ThrowsForAnyArgs(new HttpRequestException("Unauthorized", inner: null, HttpStatusCode.Unauthorized));
 
             var service = new R4FhirHealthService(fhirClient);
             var response = await service.CheckHealth();

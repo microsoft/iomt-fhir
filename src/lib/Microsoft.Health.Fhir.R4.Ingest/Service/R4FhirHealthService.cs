@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -38,9 +39,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 token.ThrowIfCancellationRequested();
                 return await Task.FromResult(new FhirHealthCheckStatus(token.ToString(), 500));
             }
-            catch (FhirOperationException ex)
+            catch (HttpRequestException ex)
             {
-                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.Status));
+                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.StatusCode));
             }
             catch (IdentityModel.Clients.ActiveDirectory.AdalServiceException ex)
             {

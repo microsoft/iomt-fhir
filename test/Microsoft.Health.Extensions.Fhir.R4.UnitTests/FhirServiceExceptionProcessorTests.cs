@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using Hl7.Fhir.Rest;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
@@ -19,14 +18,14 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 {
     public class FhirServiceExceptionProcessorTests
     {
-        private static readonly Exception _fhirForbiddenEx = new FhirOperationException("test", HttpStatusCode.Forbidden);
-        private static readonly Exception _fhirNotFoundEx = new FhirOperationException("test", HttpStatusCode.NotFound);
-        private static readonly Exception _fhirBadRequestEx = new FhirOperationException("test", HttpStatusCode.BadRequest);
+        private static readonly Exception _httpRequestForbiddenEx = new HttpRequestException("test", inner: null, HttpStatusCode.Forbidden);
+        private static readonly Exception _httpRequestNotFoundEx = new HttpRequestException("test", inner: null, HttpStatusCode.NotFound);
+        private static readonly Exception _httpRequestBadRequestEx = new HttpRequestException("test", inner: null, HttpStatusCode.BadRequest);
         private static readonly Exception _argEndpointNullEx = new ArgumentNullException("endpoint");
         private static readonly Exception _argEndpointEx = new ArgumentException("endpoint", "Endpoint must be absolute");
         private static readonly Exception _argEx = new ArgumentException("test_message", "test_param");
         private static readonly Exception _uriEx = new UriFormatException();
-        private static readonly Exception _httpNotKnownEx = new HttpRequestException("Name or service not known");
+        private static readonly Exception _httpNotKnownEx = new HttpRequestException("Name or service not known", inner: null, HttpStatusCode.NotFound);
         private static readonly Exception _httpEx = new HttpRequestException();
         private static readonly Exception _msalInvalidResourceEx = new MsalServiceException("invalid_resource", "test_message");
         private static readonly Exception _msalInvalidScopeEx = new MsalServiceException("invalid_scope", "test_message");
@@ -36,9 +35,9 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
         public static IEnumerable<object[]> ProcessExceptionData =>
             new List<object[]>
             {
-                new object[] { _fhirForbiddenEx, "FHIRServiceErrorAuthorizationError", nameof(ErrorSource.User) },
-                new object[] { _fhirNotFoundEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
-                new object[] { _fhirBadRequestEx, "FHIRServiceErrorBadRequest" },
+                new object[] { _httpRequestForbiddenEx, "FHIRServiceErrorAuthorizationError", nameof(ErrorSource.User) },
+                new object[] { _httpRequestNotFoundEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
+                new object[] { _httpRequestBadRequestEx, "FHIRServiceErrorBadRequest" },
                 new object[] { _argEndpointNullEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _argEndpointEx, "FHIRServiceErrorConfigurationError", nameof(ErrorSource.User) },
                 new object[] { _argEx, "FHIRServiceErrorArgumentErrortest_param" },
@@ -54,9 +53,9 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
         public static IEnumerable<object[]> CustomizeExceptionData =>
             new List<object[]>
             {
-                new object[] { _fhirForbiddenEx, typeof(UnauthorizedAccessFhirServiceException) },
-                new object[] { _fhirNotFoundEx, typeof(InvalidFhirServiceException) },
-                new object[] { _fhirBadRequestEx, typeof(FhirOperationException) },
+                new object[] { _httpRequestForbiddenEx, typeof(UnauthorizedAccessFhirServiceException) },
+                new object[] { _httpRequestNotFoundEx, typeof(InvalidFhirServiceException) },
+                new object[] { _httpRequestBadRequestEx, typeof(HttpRequestException) },
                 new object[] { _argEndpointNullEx, typeof(InvalidFhirServiceException) },
                 new object[] { _argEndpointEx, typeof(InvalidFhirServiceException) },
                 new object[] { _argEx, typeof(ArgumentException) },
