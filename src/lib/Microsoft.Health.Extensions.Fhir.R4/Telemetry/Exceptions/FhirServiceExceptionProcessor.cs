@@ -75,7 +75,6 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                     return (new InvalidFhirServiceException(message, exception, errorName), errorName);
 
                 case HttpRequestException _:
-                    // TODO: In .NET 5 and later, check HttpRequestException's StatusCode property instead of the Message property
                     if (exception.Message.Contains(FhirResources.HttpRequestErrorNotKnown, StringComparison.CurrentCultureIgnoreCase))
                     {
                         message = FhirResources.FhirServiceHttpRequestError;
@@ -83,7 +82,8 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                         return (new InvalidFhirServiceException(message, exception, errorName), errorName);
                     }
 
-                    return (exception, nameof(FhirServiceErrorCode.HttpRequestError));
+                    var statusCode = ((HttpRequestException)exception).StatusCode;
+                    return (exception, $"{FhirServiceErrorCode.HttpRequestError}{statusCode}");
 
                 case MsalServiceException _:
                     var errorCode = ((MsalServiceException)exception).ErrorCode;
