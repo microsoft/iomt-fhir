@@ -3,6 +3,13 @@ parameters:
   packageArtifacts: true
 
 steps:
+- task: NuGetCommand@2
+  displayName: NuGet restore
+  enabled: False
+  inputs:
+     selectOrConfig: configs
+     nugetConfigPath: nuget.config
+
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 6.0.x'
   inputs:
