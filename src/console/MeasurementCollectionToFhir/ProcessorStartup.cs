@@ -17,8 +17,6 @@ using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using System;
 using System.Linq;
-using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
-using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 {
@@ -41,16 +39,9 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.Configure<ResourceIdentityOptions>(Configuration.GetSection("ResourceIdentity"));
             services.Configure<FhirClientFactoryOptions>(Configuration.GetSection("FhirClient"));
 
-            var url = new Uri(Environment.GetEnvironmentVariable("FhirService:Url"));
-            bool useManagedIdentity = Configuration.GetValue<bool>("FhirClient:UseManagedIdentity");
-            services.AddHttpClient<IFhirClient, FhirClient>(sp =>
-            {
-                sp.BaseAddress = url;
-            }).AddAuthenticationHandler(services, url, useManagedIdentity);
+            services.AddFhirClient(Configuration);
 
             services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
-
-            services.TryAddSingleton<FhirServiceValidator>();
 
             services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
             services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
