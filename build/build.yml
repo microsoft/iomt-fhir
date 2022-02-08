@@ -3,16 +3,12 @@ parameters:
   packageArtifacts: true
 
 steps:
-- task: NuGetCommand@2
-  displayName: NuGet restore
-  inputs:
-     selectOrConfig: configs
-     nugetConfigPath: nuget.config
-
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 6.0.x'
   inputs:
     version: 6.0.x
+    selectOrConfig: configs
+    nugetConfigPath: nuget.config
 
 - script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) /warnaserror
   displayName: 'dotnet build $(buildConfiguration)'
