@@ -23,7 +23,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class R4DeviceAndPatientWithEncounterLookupIdentityService : R4DeviceAndPatientLookupIdentityService
     {
         public R4DeviceAndPatientWithEncounterLookupIdentityService(ResourceManagementService resourceManagementService)
-           : base(resourceManagementService)
+           : base(resourceManagementService, ResourceIdentityServiceType.LookupWithEncounter)
         {
         }
 

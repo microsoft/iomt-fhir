@@ -20,7 +20,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class R4DeviceAndPatientCreateIdentityService : R4DeviceAndPatientLookupIdentityService
     {
         public R4DeviceAndPatientCreateIdentityService(ResourceManagementService resourceManagementService)
-            : base(resourceManagementService)
+            : base(resourceManagementService, ResourceIdentityServiceType.Create)
         {
         }
 

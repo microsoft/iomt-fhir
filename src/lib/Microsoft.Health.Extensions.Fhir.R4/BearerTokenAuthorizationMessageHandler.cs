@@ -23,7 +23,7 @@ namespace Microsoft.Health.Extensions.Fhir
             TokenCredential = EnsureArg.IsNotNull(tokenCredentialProvider, nameof(tokenCredentialProvider));
             Uri = EnsureArg.IsNotNull(uri, nameof(uri));
             Logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            Scopes = new string[] { Uri.ToString().EndsWith(@"\") ? Uri + ".default" : Uri + "/.default" };
+            Scopes = new string[] { Uri.ToString().EndsWith(@"/") ? Uri + ".default" : Uri + "/.default" };
         }
 
         private ITelemetryLogger Logger { get; }

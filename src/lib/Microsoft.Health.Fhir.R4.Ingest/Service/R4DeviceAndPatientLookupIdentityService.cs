@@ -20,8 +20,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     {
         private readonly ResourceManagementService _resourceManagementService;
 
-        public R4DeviceAndPatientLookupIdentityService(ResourceManagementService resourceManagementService)
-            : base(ResourceIdentityServiceType.Lookup)
+        public R4DeviceAndPatientLookupIdentityService(
+            ResourceManagementService resourceManagementService,
+            ResourceIdentityServiceType serviceType = ResourceIdentityServiceType.Lookup)
+            : base(serviceType)
         {
             _resourceManagementService = EnsureArg.IsNotNull(resourceManagementService, nameof(resourceManagementService));
         }
