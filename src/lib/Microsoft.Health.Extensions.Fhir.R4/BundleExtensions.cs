@@ -43,7 +43,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
         public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(
             this Bundle bundle,
-            IFhirServiceRepository fhirClient,
+            IFhirServiceRepository fhirServiceRepository,
             bool throwOnMultipleFound = true)
             where TResource : Resource, new()
         {
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 return null;
             }
 
-            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirClient, 2);
+            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirServiceRepository, 2);
 
             var resourceCount = resources.Count();
             if (resourceCount == 0)
@@ -80,11 +80,11 @@ namespace Microsoft.Health.Extensions.Fhir
 
         private static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(
             this Bundle bundle,
-            IFhirServiceRepository fhirClient,
+            IFhirServiceRepository fhirServiceRepository,
             int? count = null)
             where TResource : Resource
         {
-            EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
+            EnsureArg.IsNotNull(fhirServiceRepository, nameof(fhirServiceRepository));
 
             var resources = new List<TResource>();
 
@@ -107,7 +107,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             storeResources.Invoke(bundle);
 
-            await foreach (var currentBundle in fhirClient.IterateOverAdditionalBundlesAsync(bundle))
+            await foreach (var currentBundle in fhirServiceRepository.IterateOverAdditionalBundlesAsync(bundle))
             {
                 storeResources.Invoke(currentBundle);
             }

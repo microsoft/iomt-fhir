@@ -5,7 +5,6 @@ parameters:
 steps:
 - task: NuGetCommand@2
   displayName: NuGet restore
-  enabled: False
   inputs:
      selectOrConfig: configs
      nugetConfigPath: nuget.config

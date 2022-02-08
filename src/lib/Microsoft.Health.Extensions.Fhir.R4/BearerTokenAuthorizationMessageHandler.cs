@@ -21,9 +21,9 @@ namespace Microsoft.Health.Extensions.Fhir
         public BearerTokenAuthorizationMessageHandler(Uri uri, TokenCredential tokenCredentialProvider, ITelemetryLogger logger)
         {
             TokenCredential = EnsureArg.IsNotNull(tokenCredentialProvider, nameof(tokenCredentialProvider));
-            Uri = EnsureArg.IsNotNull(uri);
-            Scopes = new string[] { Uri + ".default" };
-            Logger = logger;
+            Uri = EnsureArg.IsNotNull(uri, nameof(uri));
+            Logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            Scopes = new string[] { Uri.ToString().EndsWith(@"\") ? Uri + ".default" : Uri + "/.default" };
         }
 
         private ITelemetryLogger Logger { get; }
@@ -37,11 +37,11 @@ namespace Microsoft.Health.Extensions.Fhir
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var requestContext = new TokenRequestContext(Scopes);
-            var accessToken = await TokenCredential.GetTokenAsync(requestContext, CancellationToken.None);
+            var accessToken = await TokenCredential.GetTokenAsync(requestContext, cancellationToken);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
             var response = await base.SendAsync(request, cancellationToken);
 
-            if (Logger != null && !response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
                 var statusDescription = response.ReasonPhrase.Replace(" ", string.Empty);
                 var severity = response.StatusCode == System.Net.HttpStatusCode.TooManyRequests ? ErrorSeverity.Informational : ErrorSeverity.Critical;

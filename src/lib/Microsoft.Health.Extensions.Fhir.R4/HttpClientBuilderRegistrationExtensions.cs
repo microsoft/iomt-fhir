@@ -7,7 +7,6 @@ using System;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Extensions.Host.Auth;
-using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
@@ -17,8 +16,7 @@ namespace Microsoft.Health.Extensions.Fhir
             this IHttpClientBuilder httpClientBuilder,
             IServiceCollection services,
             Uri uri,
-            bool useManagedIdentity,
-            ITelemetryLogger logger = null)
+            bool useManagedIdentity)
         {
             EnsureArg.IsNotNull(httpClientBuilder, nameof(httpClientBuilder));
             EnsureArg.IsNotNull(services, nameof(services));
@@ -28,13 +26,13 @@ namespace Microsoft.Health.Extensions.Fhir
             {
                 services.AddNamedManagedIdentityCredentialProvider();
                 httpClientBuilder.AddHttpMessageHandler(x =>
-                    new BearerTokenAuthorizationMessageHandler(uri, new ManagedIdentityAuthService(), logger));
+                    ActivatorUtilities.CreateInstance<BearerTokenAuthorizationMessageHandler>(x, new object[] { uri, new ManagedIdentityAuthService() }));
             }
             else
             {
                 services.AddNamedOAuth2ClientCredentialProvider();
                 httpClientBuilder.AddHttpMessageHandler(x =>
-                    new BearerTokenAuthorizationMessageHandler(uri, new OAuthConfidentialClientAuthService(), logger));
+                    ActivatorUtilities.CreateInstance<BearerTokenAuthorizationMessageHandler>(x, new object[] { uri, new OAuthConfidentialClientAuthService() }));
             }
         }
     }
