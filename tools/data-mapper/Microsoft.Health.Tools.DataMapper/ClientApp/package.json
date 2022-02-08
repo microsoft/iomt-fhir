@@ -5,7 +5,7 @@
   "dependencies": {
     "axe-core": "4.1.1",
     "bootstrap": "^4.3.1",
-    "codemirror": "^5.62.2",
+    "codemirror": "^5.65.1",
     "connected-react-router": "6.5.2",
     "history": "4.10.1",
     "jquery": "^3.5.1",
