@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Extensions.Fhir;
+using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -19,8 +20,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     [ResourceIdentityService(nameof(R4DeviceAndPatientCreateIdentityService))]
     public class R4DeviceAndPatientCreateIdentityService : R4DeviceAndPatientLookupIdentityService
     {
-        public R4DeviceAndPatientCreateIdentityService(ResourceManagementService resourceManagementService)
-            : base(resourceManagementService, ResourceIdentityServiceType.Create)
+        public R4DeviceAndPatientCreateIdentityService(IFhirServiceRepository fhirServiceRepository)
+            : base(fhirServiceRepository)
+        {
+        }
+
+        public R4DeviceAndPatientCreateIdentityService(IFhirServiceRepository fhirServiceRepository, ResourceManagementService resourceIdService)
+            : base(fhirServiceRepository, resourceIdService)
         {
         }
 
@@ -84,7 +90,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             if (device.Patient == null)
             {
                 device.Patient = patient.ToReference();
-                device = await ResourceManagementService.FhirServerRepository.UpdateResourceAsync(device).ConfigureAwait(false);
+                device = await FhirServiceRepository.UpdateResourceAsync(device).ConfigureAwait(false);
             }
             else if (device.Patient.GetId<Model.Patient>() != patient.Id)
             {

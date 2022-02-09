@@ -40,7 +40,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.Configure<FhirClientFactoryOptions>(Configuration.GetSection("FhirClient"));
 
             services.AddFhirClient(Configuration);
-
+            services.TryAddSingleton(ResolveResourceIdentityService);
             services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
 
             services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
@@ -51,12 +51,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.TryAddSingleton<MeasurementFhirImportOptions>();
             services.TryAddSingleton<MeasurementFhirImportService>();
             services.TryAddSingleton(ResolveMeasurementImportProvider);
-
-            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientCreateIdentityService>();
-            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientLookupIdentityService>();
-            services.TryAddSingleton<IResourceIdentityService, R4DeviceAndPatientWithEncounterLookupIdentityService>();
-            services.TryAddSingleton<IFactory<IResourceIdentityService>, ResourceIdentityServiceFactory>();
-            services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<IResourceIdentityService>>().Create());
         }
 
         private MeasurementFhirImportProvider ResolveMeasurementImportProvider(IServiceProvider serviceProvider)
@@ -68,6 +62,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             var measurementImportService = new MeasurementFhirImportProvider(Configuration, options, logger, serviceProvider);
 
             return measurementImportService;
+        }
+
+        private static IResourceIdentityService ResolveResourceIdentityService(IServiceProvider serviceProvider)
+        {
+            EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
+
+            var fhirServiceRepository = serviceProvider.GetRequiredService<FhirServiceRepository>();
+            var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
+            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirServiceRepository);
         }
     }
 }

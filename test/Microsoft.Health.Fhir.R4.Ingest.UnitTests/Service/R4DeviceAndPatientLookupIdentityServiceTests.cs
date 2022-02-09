@@ -33,7 +33,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -66,7 +66,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
             {
                 idSrv.Initialize(options);
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
@@ -91,7 +91,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
             {
                 var ex = await Assert.ThrowsAsync<FhirResourceNotFoundException>(async () => await idSrv.ResolveResourceIdentitiesAsync(mg));
                 Assert.Equal(ResourceType.Patient, ex.FhirResourceType);
@@ -117,7 +117,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientLookupIdentityService(fhirClient, resourceService))
             {
                 var ex = await Assert.ThrowsAsync<FhirResourceNotFoundException>(async () => await idSrv.ResolveResourceIdentitiesAsync(mg));
                 Assert.Equal(ResourceType.Patient, ex.FhirResourceType);

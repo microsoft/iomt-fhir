@@ -34,7 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -64,7 +64,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromResult(device));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 idSrv.Initialize(new ResourceIdentityOptions { DefaultDeviceIdentifierSystem = "mySystem" });
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
@@ -105,7 +105,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Patient)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -145,7 +145,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Device)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
 
@@ -185,7 +185,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Device)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 idSrv.Initialize(new ResourceIdentityOptions { DefaultDeviceIdentifierSystem = "mySystem" });
                 var ids = await idSrv.ResolveResourceIdentitiesAsync(mg);
@@ -230,7 +230,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Patient)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 var ex = await Assert.ThrowsAsync<ResourceIdentityNotDefinedException>(() => idSrv.ResolveResourceIdentitiesAsync(mg));
                 Assert.Equal(ResourceType.Patient, ex.FhirResourceType);
@@ -268,7 +268,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             resourceService.GetResourceByIdentityAsync<Model.Device>(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(Task.FromException<Model.Device>(new FhirResourceNotFoundException(ResourceType.Patient)));
 
-            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(resourceService))
+            using (var idSrv = new R4DeviceAndPatientCreateIdentityService(fhirClient, resourceService))
             {
                 await Assert.ThrowsAsync<PatientDeviceMismatchException>(() => idSrv.ResolveResourceIdentitiesAsync(mg));
             }

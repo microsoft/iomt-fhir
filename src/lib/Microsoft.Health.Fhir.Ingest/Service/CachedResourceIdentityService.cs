@@ -70,7 +70,5 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         protected abstract Task<IDictionary<ResourceType, string>> ResolveResourceIdentitiesInternalAsync(IMeasurementGroup input);
 
         protected abstract string GetCacheKey(IMeasurementGroup input);
-
-        public abstract ResourceIdentityServiceType GetResourceIdentityServiceType();
     }
 }

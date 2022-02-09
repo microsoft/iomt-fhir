@@ -12,8 +12,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public interface IResourceIdentityService
     {
-        ResourceIdentityServiceType GetResourceIdentityServiceType();
-
         void Initialize(ResourceIdentityOptions options);
 
         Task<IDictionary<ResourceType, string>> ResolveResourceIdentitiesAsync(IMeasurementGroup input);

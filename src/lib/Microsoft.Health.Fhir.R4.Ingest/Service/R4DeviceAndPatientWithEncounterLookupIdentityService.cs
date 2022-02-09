@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -22,8 +23,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     [ResourceIdentityService(nameof(R4DeviceAndPatientWithEncounterLookupIdentityService))]
     public class R4DeviceAndPatientWithEncounterLookupIdentityService : R4DeviceAndPatientLookupIdentityService
     {
-        public R4DeviceAndPatientWithEncounterLookupIdentityService(ResourceManagementService resourceManagementService)
-           : base(resourceManagementService, ResourceIdentityServiceType.LookupWithEncounter)
+        public R4DeviceAndPatientWithEncounterLookupIdentityService(IFhirServiceRepository fhirServiceRepository)
+           : base(fhirServiceRepository)
+        {
+        }
+
+        public R4DeviceAndPatientWithEncounterLookupIdentityService(IFhirServiceRepository fhirServiceRepository, ResourceManagementService resourceIdService)
+            : base(fhirServiceRepository, resourceIdService)
         {
         }
 

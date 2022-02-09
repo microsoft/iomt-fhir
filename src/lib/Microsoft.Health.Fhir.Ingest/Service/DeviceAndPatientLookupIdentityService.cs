@@ -6,20 +6,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public abstract class DeviceAndPatientLookupIdentityService : CachedResourceIdentityService
     {
-        private readonly ResourceIdentityServiceType _resourceIdentityServiceType;
-
-        protected DeviceAndPatientLookupIdentityService(ResourceIdentityServiceType resourceIdentityServiceType)
-        {
-            _resourceIdentityServiceType = resourceIdentityServiceType;
-        }
-
         protected static string GetDeviceIdentity(IMeasurementGroup input)
         {
             EnsureArg.IsNotNull(input, nameof(input));
@@ -48,10 +40,5 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         protected abstract Task<(string DeviceId, string PatientId)> LookUpDeviceAndPatientIdAsync(string value, string system = null);
-
-        public override ResourceIdentityServiceType GetResourceIdentityServiceType()
-        {
-            return _resourceIdentityServiceType;
-        }
     }
 }
