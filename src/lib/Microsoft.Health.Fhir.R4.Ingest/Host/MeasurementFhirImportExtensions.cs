@@ -58,9 +58,9 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            var fhirClient = serviceProvider.GetRequiredService<FhirServiceRepository>();
+            var fhirServiceRepository = serviceProvider.GetRequiredService<IFhirServiceRepository>();
             var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
+            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirServiceRepository);
         }
     }
 }

@@ -68,7 +68,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            var fhirServiceRepository = serviceProvider.GetRequiredService<FhirServiceRepository>();
+            var fhirServiceRepository = serviceProvider.GetRequiredService<IFhirServiceRepository>();
             var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
             return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirServiceRepository);
         }
