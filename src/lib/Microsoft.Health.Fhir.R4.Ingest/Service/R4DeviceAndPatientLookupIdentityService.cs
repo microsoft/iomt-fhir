@@ -6,7 +6,6 @@
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Extensions.Fhir;
-using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -19,21 +18,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     [ResourceIdentityService(nameof(R4DeviceAndPatientLookupIdentityService))]
     public class R4DeviceAndPatientLookupIdentityService : DeviceAndPatientLookupIdentityService
     {
-        private readonly IFhirServiceRepository _fhirServiceRepository;
+        private readonly IFhirService _fhirService;
         private readonly ResourceManagementService _resourceManagementService;
 
-        public R4DeviceAndPatientLookupIdentityService(IFhirServiceRepository fhirServiceRepository)
-            : this(fhirServiceRepository, new ResourceManagementService(fhirServiceRepository))
+        public R4DeviceAndPatientLookupIdentityService(IFhirService fhirService)
+            : this(fhirService, new ResourceManagementService(fhirService))
         {
         }
 
-        public R4DeviceAndPatientLookupIdentityService(IFhirServiceRepository fhirServiceRepository, ResourceManagementService resourceManagementService)
+        public R4DeviceAndPatientLookupIdentityService(IFhirService fhirService, ResourceManagementService resourceManagementService)
         {
-            _fhirServiceRepository = EnsureArg.IsNotNull(fhirServiceRepository, nameof(fhirServiceRepository));
+            _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
             _resourceManagementService = EnsureArg.IsNotNull(resourceManagementService, nameof(resourceManagementService));
         }
 
-        protected IFhirServiceRepository FhirServiceRepository => _fhirServiceRepository;
+        protected IFhirService FhirService => _fhirService;
 
         protected ResourceManagementService ResourceManagementService => _resourceManagementService;
 

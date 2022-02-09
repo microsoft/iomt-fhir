@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Resources;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Metrics;
+using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Identity.Client;
 
@@ -40,8 +41,8 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 
             switch (exception)
             {
-                case HttpRequestException _:
-                    var status = ((HttpRequestException)exception).StatusCode;
+                case FhirException _:
+                    var status = ((FhirException)exception).StatusCode;
                     switch (status)
                     {
                         case HttpStatusCode.Forbidden:
@@ -50,13 +51,11 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                             errorName = nameof(FhirServiceErrorCode.AuthorizationError);
                             return (new UnauthorizedAccessFhirServiceException(message, exception, helpLink, errorName), errorName);
                         case HttpStatusCode.NotFound:
-                            message = DetermineNotFoundErrorMessage(exception);
+                            message = FhirResources.FhirServiceNotFound;
                             errorName = nameof(FhirServiceErrorCode.ConfigurationError);
                             return (new InvalidFhirServiceException(message, exception, errorName), errorName);
-                        case HttpStatusCode.BadRequest:
-                            return (exception, status.ToString());
                         default:
-                            return (exception, nameof(FhirServiceErrorCode.HttpRequestError));
+                            return (exception, status.ToString());
                     }
 
                 case ArgumentException _:
@@ -75,6 +74,18 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                     errorName = nameof(FhirServiceErrorCode.ConfigurationError);
                     return (new InvalidFhirServiceException(message, exception, errorName), errorName);
 
+                case HttpRequestException _:
+
+                    if (exception.Message.Contains(FhirResources.HttpRequestErrorNotKnown, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        message = FhirResources.FhirServiceHttpRequestError;
+                        errorName = nameof(FhirServiceErrorCode.ConfigurationError);
+                        return (new InvalidFhirServiceException(message, exception, errorName), errorName);
+                    }
+
+                    var statusCode = ((HttpRequestException)exception).StatusCode;
+                    return (exception, $"{FhirServiceErrorCode.HttpRequestError}{statusCode}");
+
                 case MsalServiceException _:
                     var errorCode = ((MsalServiceException)exception).ErrorCode;
                     if (string.Equals(errorCode, "invalid_resource", StringComparison.OrdinalIgnoreCase)
@@ -89,18 +100,6 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 
                 default:
                     return (exception, nameof(FhirServiceErrorCode.GeneralError));
-            }
-        }
-
-        private static string DetermineNotFoundErrorMessage(Exception exception)
-        {
-            if (exception.Message.Contains(FhirResources.HttpRequestErrorNotKnown, StringComparison.CurrentCultureIgnoreCase))
-            {
-                return FhirResources.FhirServiceHttpRequestError;
-            }
-            else
-            {
-                return FhirResources.FhirServiceNotFound;
             }
         }
     }

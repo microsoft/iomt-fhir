@@ -27,7 +27,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
                 Link = new List<Bundle.LinkComponent>(),
             };
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
 
             Assert.Null(await bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client));
         }
@@ -51,7 +51,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             bundle.Entry.Add(entry);
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
 
             var result = await bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client);
 
@@ -86,7 +86,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             continuationBundle.Entry.Add(entry);
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
             client.IterateOverAdditionalBundlesAsync(Arg.Any<Bundle>()).Returns(
                     x => GetTestValues(continuationBundle),
                     x => null);
@@ -120,7 +120,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             bundle.Entry.Add(entry2);
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
 
             await Assert.ThrowsAsync<MultipleResourceFoundException<Observation>>(() => bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client));
         }
@@ -161,7 +161,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             continuationBundle.Entry.Add(entry2);
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
             client.IterateOverAdditionalBundlesAsync(Arg.Any<Bundle>()).Returns(
                     x => GetTestValues(continuationBundle),
                     x => null);

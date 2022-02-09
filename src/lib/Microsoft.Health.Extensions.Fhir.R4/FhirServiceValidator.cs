@@ -6,26 +6,24 @@
 using System;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
-using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
     public static class FhirServiceValidator
     {
         public static async Task<bool> ValidateFhirServiceAsync(
-            IFhirClient client,
-            string url,
+            IFhirService fhirService,
             ITelemetryLogger logger)
         {
-            EnsureArg.IsNotNull(client, nameof(client));
-            EnsureArg.IsNotNullOrWhiteSpace(url, nameof(url));
+            EnsureArg.IsNotNull(fhirService, nameof(fhirService));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             try
             {
-                await client.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>(url).ConfigureAwait(false);
+                await fhirService.ReadResourceAsync<Hl7.Fhir.Model.CapabilityStatement>("metadata").ConfigureAwait(false);
                 return true;
             }
             catch (Exception exception)

@@ -14,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
-using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -39,7 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 
             builder.Services.AddFhirClient(config);
 
-            builder.Services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
+            builder.Services.TryAddSingleton<IFhirService, FhirService>();
             builder.Services.TryAddSingleton(ResolveResourceIdentityService);
             builder.Services.TryAddSingleton<ResourceManagementService>();
 
@@ -58,9 +57,9 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            var fhirServiceRepository = serviceProvider.GetRequiredService<IFhirServiceRepository>();
+            var fhirService = serviceProvider.GetRequiredService<IFhirService>();
             var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirServiceRepository);
+            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirService);
         }
     }
 }

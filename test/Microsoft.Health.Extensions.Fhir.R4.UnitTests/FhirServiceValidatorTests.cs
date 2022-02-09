@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Net.Http;
+using System;
 using System.Threading.Tasks;
-using Microsoft.Health.Fhir.Client;
+using Microsoft.Health.Common;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -25,12 +25,15 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
         private async Task ValidateFhirServiceUrl(string url, bool expectedIsValid)
         {
-            var client = Substitute.For<IFhirClient>();
-            client.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>(Arg.Any<string>()).ThrowsForAnyArgs(new HttpRequestException());
+            var client = Utilities.CreateMockFhirService();
+
+            string uri = url + "/metadata";
+
+            client.ReadResourceAsync<Hl7.Fhir.Model.CapabilityStatement>(uri).ThrowsForAnyArgs(new Exception());
 
             var logger = Substitute.For<ITelemetryLogger>();
 
-            bool actualIsValid = await FhirServiceValidator.ValidateFhirServiceAsync(client, url, logger);
+            bool actualIsValid = await FhirServiceValidator.ValidateFhirServiceAsync(client, logger);
 
             Assert.Equal(expectedIsValid, actualIsValid);
         }

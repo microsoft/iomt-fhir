@@ -18,7 +18,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidEncounterIdentifier_WhenResolveResourceIdentitiesAsync_ThenEncounterIdReturned_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {
@@ -57,7 +57,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenInValidEncounterIdentifier_WhenResolveResourceIdentitiesAsync_ThenFhirResourceNotFoundExceptionThrown_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {
@@ -88,7 +88,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenNoEncounterIdentifier_WhenResolveResourceIdentitiesAsync_ThenResourceIdentityNotDefinedExceptionThrown_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {

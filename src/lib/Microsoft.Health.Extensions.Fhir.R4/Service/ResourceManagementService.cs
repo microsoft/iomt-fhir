@@ -6,19 +6,19 @@
 using System;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Extensions.Fhir.Repository;
+using Hl7.Fhir.Model;
 using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Extensions.Fhir.Service
 {
     public class ResourceManagementService
     {
-        public ResourceManagementService(IFhirServiceRepository fhirServerRepository)
+        public ResourceManagementService(IFhirService fhirService)
         {
-            FhirServerRepository = EnsureArg.IsNotNull(fhirServerRepository, nameof(fhirServerRepository));
+            FhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
         }
 
-        public IFhirServiceRepository FhirServerRepository { get; private set; }
+        public IFhirService FhirService { get; private set; }
 
         /// <summary>
         /// Gets or creates the FHIR Resource with the provided identifier.
@@ -51,8 +51,13 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
-            Model.Bundle result = await FhirServerRepository.SearchForResourceAsync(identifier.SystemElement.ToString()).ConfigureAwait(false);
-            return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirServerRepository);
+
+            string fhirTypeName = ModelInfo.GetFhirTypeNameForType(typeof(TResource));
+
+            _ = Enum.TryParse(fhirTypeName, out ResourceType resourceType);
+
+            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
+            return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirService);
         }
 
         protected async Task<TResource> CreateResourceByIdentityAsync<TResource>(Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)
@@ -63,7 +68,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             propertySetter?.Invoke(resource, identifier);
 
-            return await FhirServerRepository.CreateResourceAsync(resource).ConfigureAwait(false);
+            return await FhirService.CreateResourceAsync(resource).ConfigureAwait(false);
         }
 
         private static Model.Identifier BuildIdentifier(string value, string system)

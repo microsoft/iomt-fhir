@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Microsoft.Health.Extensions.Fhir.Repository;
+using Microsoft.Health.Extensions.Fhir.Service;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
@@ -43,7 +43,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
         public static async Task<TResource> ReadOneFromBundleWithContinuationAsync<TResource>(
             this Bundle bundle,
-            IFhirServiceRepository fhirServiceRepository,
+            IFhirService fhirService,
             bool throwOnMultipleFound = true)
             where TResource : Resource, new()
         {
@@ -52,7 +52,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 return null;
             }
 
-            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirServiceRepository, 2);
+            var resources = await bundle?.ReadFromBundleWithContinuationAsync<TResource>(fhirService, 2);
 
             var resourceCount = resources.Count();
             if (resourceCount == 0)
@@ -80,11 +80,11 @@ namespace Microsoft.Health.Extensions.Fhir
 
         private static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(
             this Bundle bundle,
-            IFhirServiceRepository fhirServiceRepository,
+            IFhirService fhirService,
             int? count = null)
             where TResource : Resource
         {
-            EnsureArg.IsNotNull(fhirServiceRepository, nameof(fhirServiceRepository));
+            EnsureArg.IsNotNull(fhirService, nameof(fhirService));
 
             var resources = new List<TResource>();
 
@@ -107,7 +107,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             storeResources.Invoke(bundle);
 
-            await foreach (var currentBundle in fhirServiceRepository.IterateOverAdditionalBundlesAsync(bundle))
+            await foreach (var currentBundle in fhirService.IterateOverAdditionalBundlesAsync(bundle))
             {
                 storeResources.Invoke(currentBundle);
             }

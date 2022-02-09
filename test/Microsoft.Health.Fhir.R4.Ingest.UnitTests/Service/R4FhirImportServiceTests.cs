@@ -6,10 +6,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
+using Hl7.Fhir.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Health.Common;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -19,6 +20,8 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 using Model = Hl7.Fhir.Model;
+using ResourceType = Microsoft.Health.Fhir.Ingest.Data.ResourceType;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -27,7 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidData_WhenProcessAsync_ThenSaveObservationInvokedForEachObservationGroup_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -64,7 +67,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenNotFoundObservation_WhenSaveObservationAsync_ThenCreateInvoked_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             fhirClient.CreateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(new Model.Observation()));
 
             var ids = BuildIdCollection();
@@ -104,7 +107,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             fhirClient.CreateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(new Model.Observation()));
             fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle));
             fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
@@ -161,11 +164,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle1));
             fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>())
                 .Returns(
-                    x => { throw new HttpRequestException(string.Empty, inner: null, HttpStatusCode.Conflict); },
+                    x => { throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome())); },
                     x => Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
@@ -194,7 +197,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public void GivenValidTemplate_WhenGenerateObservation_ExpectedReferencesSet_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
 
             var ids = BuildIdCollection();
             ids[ResourceType.Encounter] = "encounterId";
@@ -241,8 +244,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     return true;
                 });
 
-            var fhirClient = Utilities.CreateMockFhirClient();
-            fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ThrowsForAnyArgs(new HttpRequestException(string.Empty, inner: null, HttpStatusCode.Conflict));
+            var fhirClient = Utilities.CreateMockFhirService();
+            fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ThrowsForAnyArgs(new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome())));
             fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(new Model.Bundle()));
             fhirClient.CreateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
 
@@ -286,7 +289,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     return true;
                 });
 
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -329,7 +332,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle));
             fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
 
@@ -365,7 +368,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static Model.Observation ThrowConflictException()
         {
-            throw new HttpRequestException("error", inner: null, HttpStatusCode.Conflict);
+            throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome()));
         }
     }
 }

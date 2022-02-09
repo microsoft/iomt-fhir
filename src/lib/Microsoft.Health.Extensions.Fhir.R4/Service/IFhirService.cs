@@ -8,16 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.Extensions.Fhir.Repository
+namespace Microsoft.Health.Extensions.Fhir.Service
 {
-    public interface IFhirServiceRepository
+    public interface IFhirService
     {
         Task<T> CreateResourceAsync<T>(T resource, string conditionalCreateCriteria = null, string provenanceHeader = null, CancellationToken cancellationToken = default(CancellationToken))
             where T : Resource;
 
         Task<Bundle> SearchForResourceAsync(ResourceType resourceType, string query = null, int? count = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        Task<Bundle> SearchForResourceAsync(string url, CancellationToken cancellationToken = default);
 
         Task<T> ReadResourceAsync<T>(ResourceType resourceType, string resourceId, CancellationToken cancellationToken = default(CancellationToken))
             where T : Resource;

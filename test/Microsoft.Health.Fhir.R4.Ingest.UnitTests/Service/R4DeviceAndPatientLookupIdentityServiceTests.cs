@@ -19,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidDeviceIdentifier_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientIdReturned_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {
@@ -47,7 +47,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidDeviceIdentifierWhenDefaultSystemSet_WhenResolveResourceIdentitiesAsync_ThenDeviceAndPatientIdReturned_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {
@@ -81,7 +81,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenDeviceWithNotPatientReference_WhenResolveResourceIdentitiesAsync_ThenFhirResourceNotFoundExceptionThrown_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             Model.Device device = new Model.Device();
 
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenDeviceWithPatientReferenceUnsupportedCharacters_WhenResolveResourceIdentitiesAsync_ThenNotSupportedExceptionThrown_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
             var resourceService = Substitute.For<ResourceManagementService>(fhirClient);
             var device = new Model.Device
             {

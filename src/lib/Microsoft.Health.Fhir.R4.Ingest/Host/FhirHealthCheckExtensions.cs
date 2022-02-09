@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
-using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -35,7 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             // Register services
             builder.Services.AddFhirClient(config);
 
-            builder.Services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
+            builder.Services.TryAddSingleton<IFhirService, FhirService>();
 
             builder.Services.TryAddSingleton<ResourceManagementService>();
 

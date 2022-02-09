@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
-using Microsoft.Health.Extensions.Fhir.Repository;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -41,7 +40,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 
             services.AddFhirClient(Configuration);
             services.TryAddSingleton(ResolveResourceIdentityService);
-            services.TryAddSingleton<IFhirServiceRepository, FhirServiceRepository>();
+            services.TryAddSingleton<IFhirService, FhirService>();
 
             services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
             services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
@@ -68,9 +67,9 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            var fhirServiceRepository = serviceProvider.GetRequiredService<IFhirServiceRepository>();
+            var fhirService = serviceProvider.GetRequiredService<IFhirService>();
             var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirServiceRepository);
+            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirService);
         }
     }
 }
