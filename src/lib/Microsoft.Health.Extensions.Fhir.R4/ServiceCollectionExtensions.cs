@@ -4,15 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Http;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Extensions.Host.Auth;
-using Polly;
-using Polly.Extensions.Http;
-using Polly.Timeout;
+using Microsoft.Health.Logging.Telemetry;
 using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
 
@@ -28,26 +25,15 @@ namespace Microsoft.Health.Extensions.Fhir
             var url = new Uri(configuration.GetValue<string>("FhirService:Url"));
             bool useManagedIdentity = configuration.GetValue<bool>("FhirClient:UseManagedIdentity");
 
-            var retryPolicy = HttpPolicyExtensions
-                .HandleTransientHttpError()
-                .Or<TimeoutRejectedException>()
-                .WaitAndRetryAsync(new[]
-                {
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromSeconds(5),
-                    TimeSpan.FromSeconds(10),
-                });
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            // Timeout policy for individual requests
-            var timeoutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(10);
-
-            serviceCollection.AddHttpClient<IFhirClient, FhirClient>(client =>
+            serviceCollection.AddHttpClient<IFhirClient, FhirClient>(async client =>
             {
                 client.BaseAddress = url;
-                client.Timeout = TimeSpan.FromSeconds(60); // Overall timeout across all requests
+                client.Timeout = TimeSpan.FromSeconds(60);
+                await client.ValidateFhirClientAsync(logger);
             })
-            .AddPolicyHandler(retryPolicy)
-            .AddPolicyHandler(timeoutPolicy)
             .AddAuthenticationHandler(serviceCollection, url, useManagedIdentity);
         }
 

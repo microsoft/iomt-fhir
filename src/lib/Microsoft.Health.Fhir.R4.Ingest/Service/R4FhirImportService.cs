@@ -50,9 +50,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             try
             {
-                // Validate fhir service
-                await FhirServiceValidator.ValidateFhirServiceAsync(_fhirService, _logger);
-
                 // Get required ids
                 var ids = await ResourceIdentityService.ResolveResourceIdentitiesAsync(data).ConfigureAwait(false);
 

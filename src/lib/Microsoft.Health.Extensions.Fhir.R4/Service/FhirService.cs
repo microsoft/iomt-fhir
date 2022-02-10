@@ -31,11 +31,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         {
             EnsureArg.IsNotNull(resource, nameof(resource));
 
-            CancellationTokenSource internalTokenSource = new CancellationTokenSource(_fhirClient.HttpClient.Timeout);
-
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                internalTokenSource.Token, cancellationToken);
-            return await _fhirClient.CreateAsync(resource, conditionalCreateCriteria, provenanceHeader, linkedCts.Token).ConfigureAwait(false);
+            return await _fhirClient.CreateAsync(resource, conditionalCreateCriteria, provenanceHeader, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<Bundle> SearchForResourceAsync(
@@ -46,11 +42,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         {
             EnsureArg.IsNotNull<ResourceType>(resourceType, nameof(resourceType));
 
-            CancellationTokenSource internalTokenSource = new CancellationTokenSource(_fhirClient.HttpClient.Timeout);
-
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                internalTokenSource.Token, cancellationToken);
-            return await _fhirClient.SearchAsync(resourceType, query, count, linkedCts.Token).ConfigureAwait(false);
+            return await _fhirClient.SearchAsync(resourceType, query, count, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<T> ReadResourceAsync<T>(
@@ -62,11 +54,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             EnsureArg.IsNotNull<ResourceType>(resourceType, nameof(resourceType));
             EnsureArg.IsNotNullOrWhiteSpace(resourceId, nameof(resourceId));
 
-            CancellationTokenSource internalTokenSource = new CancellationTokenSource(_fhirClient.HttpClient.Timeout);
-
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                internalTokenSource.Token, cancellationToken);
-            return await _fhirClient.ReadAsync<T>(resourceType, resourceId, linkedCts.Token).ConfigureAwait(false);
+            return await _fhirClient.ReadAsync<T>(resourceType, resourceId, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<T> ReadResourceAsync<T>(
@@ -76,11 +64,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         {
             EnsureArg.IsNotNullOrWhiteSpace(uri, nameof(uri));
 
-            CancellationTokenSource internalTokenSource = new CancellationTokenSource(_fhirClient.HttpClient.Timeout);
-
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                internalTokenSource.Token, cancellationToken);
-            return await _fhirClient.ReadAsync<T>(uri, linkedCts.Token).ConfigureAwait(false);
+            return await _fhirClient.ReadAsync<T>(uri, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<T> UpdateResourceAsync<T>(
@@ -92,11 +76,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         {
             EnsureArg.IsNotNull(resource, nameof(resource));
 
-            CancellationTokenSource internalTokenSource = new CancellationTokenSource(_fhirClient.HttpClient.Timeout);
-
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                internalTokenSource.Token, cancellationToken);
-            return await _fhirClient.UpdateAsync(resource, ifMatchVersion, provenanceHeader, linkedCts.Token).ConfigureAwait(false);
+            return await _fhirClient.UpdateAsync(resource, ifMatchVersion, provenanceHeader, cancellationToken).ConfigureAwait(false);
         }
 
         public async IAsyncEnumerable<Bundle> IterateOverAdditionalBundlesAsync(

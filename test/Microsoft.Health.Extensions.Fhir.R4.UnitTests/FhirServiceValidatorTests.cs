@@ -4,8 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Health.Common;
+using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -25,15 +26,17 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
         private async Task ValidateFhirServiceUrl(string url, bool expectedIsValid)
         {
-            var client = Utilities.CreateMockFhirService();
+            var client = Substitute.For<HttpClient>();
+
+            var fhirClient = Substitute.ForPartsOf<FhirClient>(client);
 
             string uri = url + "/metadata";
 
-            client.ReadResourceAsync<Hl7.Fhir.Model.CapabilityStatement>(uri).ThrowsForAnyArgs(new Exception());
+            fhirClient.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>(uri).ThrowsForAnyArgs(new Exception());
 
             var logger = Substitute.For<ITelemetryLogger>();
 
-            bool actualIsValid = await FhirServiceValidator.ValidateFhirServiceAsync(client, logger);
+            bool actualIsValid = await FhirClientValidator.ValidateFhirClientAsync(client, logger);
 
             Assert.Equal(expectedIsValid, actualIsValid);
         }
