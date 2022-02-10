@@ -25,14 +25,19 @@ namespace Microsoft.Health.Extensions.Fhir
             var url = new Uri(configuration.GetValue<string>("FhirService:Url"));
             bool useManagedIdentity = configuration.GetValue<bool>("FhirClient:UseManagedIdentity");
 
+            serviceCollection.AddSingleton(typeof(ITelemetryLogger), typeof(IomtTelemetryLogger));
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            serviceCollection.AddHttpClient<IFhirClient, FhirClient>(async client =>
+            serviceCollection.AddHttpClient<IFhirClient, FhirClient>(client =>
             {
                 client.BaseAddress = url;
                 client.Timeout = TimeSpan.FromSeconds(60);
-                await client.ValidateFhirClientAsync(logger);
+
+                // Using discard because we don't need result
+                var fhirClient = new FhirClient(client);
+                _ = fhirClient.ValidateFhirClientAsync(logger);
+                return fhirClient;
             })
             .AddAuthenticationHandler(serviceCollection, url, useManagedIdentity);
         }

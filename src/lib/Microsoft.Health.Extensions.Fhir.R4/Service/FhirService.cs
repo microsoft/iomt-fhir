@@ -84,7 +84,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             Bundle nextBundle = bundle;
-            while (nextBundle.NextLink != null)
+            while (nextBundle?.NextLink != null)
             {
                 nextBundle = await _fhirClient.SearchAsync(bundle.NextLink.ToString(), cancellationToken).ConfigureAwait(false);
                 if (nextBundle != null)

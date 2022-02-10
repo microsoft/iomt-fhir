@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
@@ -16,7 +15,7 @@ namespace Microsoft.Health.Extensions.Fhir
     public static class FhirClientValidator
     {
         public static async Task<bool> ValidateFhirClientAsync(
-            this HttpClient client,
+            this IFhirClient client,
             ITelemetryLogger logger)
         {
             EnsureArg.IsNotNull(client, nameof(client));
@@ -24,8 +23,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             try
             {
-                var fhirClient = new FhirClient(client);
-                await fhirClient.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>("metadata").ConfigureAwait(false);
+                await client.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>("metadata").ConfigureAwait(false);
                 return true;
             }
             catch (Exception exception)

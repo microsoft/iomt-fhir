@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Logging.Telemetry;
@@ -26,8 +25,6 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
         private async Task ValidateFhirClientUrl(string url, bool expectedIsValid)
         {
-            var client = Substitute.For<HttpClient>();
-            client.BaseAddress = new Uri(url);
             var fhirClient = Substitute.For<IFhirClient>();
 
             string uri = url + "/metadata";
@@ -36,7 +33,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
             var logger = Substitute.For<ITelemetryLogger>();
 
-            bool actualIsValid = await client.ValidateFhirClientAsync(logger);
+            bool actualIsValid = await fhirClient.ValidateFhirClientAsync(logger);
 
             Assert.Equal(expectedIsValid, actualIsValid);
         }
