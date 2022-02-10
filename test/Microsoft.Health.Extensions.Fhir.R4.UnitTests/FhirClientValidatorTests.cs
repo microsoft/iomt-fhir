@@ -14,21 +14,21 @@ using Xunit;
 
 namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 {
-    public class FhirServiceValidatorTests
+    public class FhirClientValidatorTests
     {
         [Theory]
         [InlineData("https://testfoobar.azurehealthcareapis.com")]
         [InlineData("https://microsoft.com")]
         public async Task GivenInvalidFhirServiceUrl_WhenValidateFhirService_ThenNotValidReturned_Test(string url)
         {
-            await ValidateFhirServiceUrl(url, false);
+            await ValidateFhirClientUrl(url, false);
         }
 
-        private async Task ValidateFhirServiceUrl(string url, bool expectedIsValid)
+        private async Task ValidateFhirClientUrl(string url, bool expectedIsValid)
         {
             var client = Substitute.For<HttpClient>();
-
-            var fhirClient = Substitute.ForPartsOf<FhirClient>(client);
+            client.BaseAddress = new Uri(url);
+            var fhirClient = Substitute.For<IFhirClient>();
 
             string uri = url + "/metadata";
 
@@ -36,7 +36,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
             var logger = Substitute.For<ITelemetryLogger>();
 
-            bool actualIsValid = await FhirClientValidator.ValidateFhirClientAsync(client, logger);
+            bool actualIsValid = await client.ValidateFhirClientAsync(logger);
 
             Assert.Equal(expectedIsValid, actualIsValid);
         }
