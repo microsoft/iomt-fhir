@@ -7,6 +7,7 @@ using System;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Extensions.Fhir.Search;
 using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Extensions.Fhir.Service
@@ -56,7 +57,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             _ = Enum.TryParse(fhirTypeName, out ResourceType resourceType);
 
-            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
+            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchToken()).ConfigureAwait(false);
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirService);
         }
 

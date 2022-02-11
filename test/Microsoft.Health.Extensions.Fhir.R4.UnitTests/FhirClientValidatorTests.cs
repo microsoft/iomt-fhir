@@ -5,11 +5,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Health.Fhir.Client;
+using Hl7.Fhir.Rest;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
+using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
 
 namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 {
@@ -25,11 +25,12 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 
         private async Task ValidateFhirClientUrl(string url, bool expectedIsValid)
         {
-            var fhirClient = Substitute.For<IFhirClient>();
+            var fhirClientSettings = new FhirClientSettings
+            {
+                PreferredFormat = ResourceFormat.Json,
+            };
 
-            string uri = url + "/metadata";
-
-            fhirClient.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>(uri).ThrowsForAnyArgs(new Exception());
+            var fhirClient = new FhirClient(new Uri(url), fhirClientSettings.PreferredFormat);
 
             var logger = Substitute.For<ITelemetryLogger>();
 

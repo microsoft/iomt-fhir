@@ -23,7 +23,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             try
             {
-                await client.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>("metadata").ConfigureAwait(false);
+                await client.ReadAsync<Hl7.Fhir.Model.CapabilityStatement>("metadata?_summary=true").ConfigureAwait(false);
                 return true;
             }
             catch (Exception exception)

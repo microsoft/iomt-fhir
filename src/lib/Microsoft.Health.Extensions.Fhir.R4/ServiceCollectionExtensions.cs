@@ -39,7 +39,7 @@ namespace Microsoft.Health.Extensions.Fhir
                 _ = fhirClient.ValidateFhirClientAsync(logger);
                 return fhirClient;
             })
-            .AddAuthenticationHandler(serviceCollection, url, useManagedIdentity);
+            .AddAuthenticationHandler(serviceCollection, logger, url, useManagedIdentity);
         }
 
         public static void AddNamedManagedIdentityCredentialProvider(this IServiceCollection serviceCollection)
