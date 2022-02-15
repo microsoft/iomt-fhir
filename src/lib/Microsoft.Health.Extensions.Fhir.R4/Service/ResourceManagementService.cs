@@ -57,7 +57,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             _ = Enum.TryParse(fhirTypeName, out ResourceType resourceType);
 
-            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchToken()).ConfigureAwait(false);
+            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirService);
         }
 
