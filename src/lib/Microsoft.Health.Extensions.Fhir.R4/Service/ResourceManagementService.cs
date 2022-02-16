@@ -6,7 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using EnsureThat;
-using Hl7.Fhir.Rest;
+using Hl7.Fhir.Model;
 using Microsoft.Health.Extensions.Fhir.Search;
 using Model = Hl7.Fhir.Model;
 
@@ -14,56 +14,62 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 {
     public class ResourceManagementService
     {
+        public ResourceManagementService(IFhirService fhirService)
+        {
+            FhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
+        }
+
+        public IFhirService FhirService { get; private set; }
+
         /// <summary>
         /// Gets or creates the FHIR Resource with the provided identifier.
         /// </summary>
         /// <typeparam name="TResource">The type of FHIR resource to ensure exists.</typeparam>
-        /// <param name="client">Client to use for FHIR rest calls.</param>
         /// <param name="value">The identifier value to search for or create.</param>
         /// <param name="system">The system the identifier belongs to.</param>
         /// <param name="propertySetter">Optional setter to provide property values if the resource needs to be created.</param>
         /// <returns>Reource that was found or created.</returns>
-        public virtual async Task<TResource> EnsureResourceByIdentityAsync<TResource>(FhirClient client, string value, string system, Action<TResource, Model.Identifier> propertySetter = null)
+        public virtual async Task<TResource> EnsureResourceByIdentityAsync<TResource>(string value, string system, Action<TResource, Model.Identifier> propertySetter = null)
             where TResource : Model.Resource, new()
         {
-            EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
 
             var identifier = BuildIdentifier(value, system);
-            return await GetResourceByIdentityAsync<TResource>(client, identifier).ConfigureAwait(false)
-                ?? await CreateResourceByIdentityAsync<TResource>(client, identifier, propertySetter).ConfigureAwait(false);
+            return await GetResourceByIdentityAsync<TResource>(identifier).ConfigureAwait(false)
+                ?? await CreateResourceByIdentityAsync(identifier, propertySetter).ConfigureAwait(false);
         }
 
-        public virtual async Task<TResource> GetResourceByIdentityAsync<TResource>(FhirClient client, string value, string system)
+        public virtual async Task<TResource> GetResourceByIdentityAsync<TResource>(string value, string system)
             where TResource : Model.Resource, new()
         {
-            EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
 
             var identifier = BuildIdentifier(value, system);
-            return await GetResourceByIdentityAsync<TResource>(client, identifier).ConfigureAwait(false);
+            return await GetResourceByIdentityAsync<TResource>(identifier).ConfigureAwait(false);
         }
 
-        protected static async Task<TResource> GetResourceByIdentityAsync<TResource>(FhirClient client, Model.Identifier identifier)
+        protected async Task<TResource> GetResourceByIdentityAsync<TResource>(Model.Identifier identifier)
             where TResource : Model.Resource, new()
         {
-            EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(identifier, nameof(identifier));
-            var searchParams = identifier.ToSearchParams();
-            var result = await client.SearchAsync<TResource>(searchParams).ConfigureAwait(false);
-            return await result.ReadOneFromBundleWithContinuationAsync<TResource>(client);
+
+            string fhirTypeName = ModelInfo.GetFhirTypeNameForType(typeof(TResource));
+
+            _ = Enum.TryParse(fhirTypeName, out ResourceType resourceType);
+
+            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
+            return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirService);
         }
 
-        protected static async Task<TResource> CreateResourceByIdentityAsync<TResource>(FhirClient client, Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)
+        protected async Task<TResource> CreateResourceByIdentityAsync<TResource>(Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)
             where TResource : Model.Resource, new()
         {
-            EnsureArg.IsNotNull(client, nameof(client));
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             var resource = new TResource();
 
             propertySetter?.Invoke(resource, identifier);
 
-            return await client.CreateAsync<TResource>(resource).ConfigureAwait(false);
+            return await FhirService.CreateResourceAsync(resource).ConfigureAwait(false);
         }
 
         private static Model.Identifier BuildIdentifier(string value, string system)

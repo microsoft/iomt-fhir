@@ -6,16 +6,15 @@
 using System;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Hl7.Fhir.Rest;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -37,10 +36,13 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
-            builder.Services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
-            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
-            builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
+            builder.Services.AddFhirClient(config);
+
+            builder.Services.TryAddSingleton<IFhirService, FhirService>();
             builder.Services.TryAddSingleton(ResolveResourceIdentityService);
+            builder.Services.TryAddSingleton<ResourceManagementService>();
+
+            builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
             builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
             builder.Services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
@@ -55,9 +57,9 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            var fhirClient = serviceProvider.GetRequiredService<FhirClient>();
+            var fhirService = serviceProvider.GetRequiredService<IFhirService>();
             var resourceIdentityOptions = serviceProvider.GetRequiredService<IOptions<ResourceIdentityOptions>>();
-            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirClient);
+            return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirService);
         }
     }
 }

@@ -20,6 +20,7 @@
 		<ProjectReference Include="..\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
 		<ProjectReference Include="..\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj" />
 		<ProjectReference Include="..\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
+		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
 	</ItemGroup>
 
 	<ItemGroup>

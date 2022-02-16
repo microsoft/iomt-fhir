@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
 using Microsoft.Health.Extensions.Fhir.Search;
+using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
@@ -16,11 +18,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class R4FhirHealthService :
         FhirHealthService
     {
-        private readonly FhirClient _client;
+        private readonly IFhirService _fhirService;
 
-        public R4FhirHealthService(FhirClient fhirClient)
+        public R4FhirHealthService(IFhirService fhirService)
         {
-            _client = EnsureArg.IsNotNull(fhirClient, nameof(fhirClient));
+            _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
         }
 
         public override async Task<FhirHealthCheckStatus> CheckHealth(CancellationToken token = default)
@@ -30,16 +32,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 while (!token.IsCancellationRequested)
                 {
                     SearchParams search = new SearchParams().SetCount(1);
-                    Hl7.Fhir.Model.Bundle result = await _client.SearchAsync<Hl7.Fhir.Model.StructureDefinition>(search);
+                    Hl7.Fhir.Model.Bundle result = await _fhirService.SearchForResourceAsync(Hl7.Fhir.Model.ResourceType.StructureDefinition, query: null, search.Count, token).ConfigureAwait(false);
                     return await Task.FromResult(new FhirHealthCheckStatus(string.Empty, 200));
                 }
 
                 token.ThrowIfCancellationRequested();
                 return await Task.FromResult(new FhirHealthCheckStatus(token.ToString(), 500));
             }
-            catch (FhirOperationException ex)
+            catch (FhirException ex)
             {
-                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.Status));
+                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.StatusCode));
             }
             catch (IdentityModel.Clients.ActiveDirectory.AdalServiceException ex)
             {

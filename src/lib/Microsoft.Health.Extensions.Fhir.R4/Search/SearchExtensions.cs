@@ -190,5 +190,12 @@ namespace Microsoft.Health.Extensions.Fhir.Search
             token += identifier.Value;
             return token;
         }
+
+        public static string ToSearchQueryParameter(this Hl7.Fhir.Model.Identifier identifier)
+        {
+            EnsureArg.IsNotNull(identifier, nameof(identifier));
+
+            return $"identifier={identifier.ToSearchToken()}";
+        }
     }
 }

@@ -4,14 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Hl7.Fhir.Rest;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 
@@ -33,8 +32,12 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.Configure<FhirClientFactoryOptions>(config.GetSection("FhirClient"));
 
             // Register services
-            builder.Services.TryAddSingleton<IFactory<FhirClient>, FhirClientFactory>();
-            builder.Services.TryAddSingleton(sp => sp.GetRequiredService<IFactory<FhirClient>>().Create());
+            builder.Services.AddFhirClient(config);
+
+            builder.Services.TryAddSingleton<IFhirService, FhirService>();
+
+            builder.Services.TryAddSingleton<ResourceManagementService>();
+
             builder.Services.TryAddSingleton<FhirHealthService, R4FhirHealthService>();
 
             builder.AddExtension<FhirHealthCheckProvider>();

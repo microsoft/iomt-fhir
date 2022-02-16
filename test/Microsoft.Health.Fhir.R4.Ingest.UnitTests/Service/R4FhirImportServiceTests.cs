@@ -6,18 +6,22 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Hl7.Fhir.Rest;
+using Hl7.Fhir.Model;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Health.Common;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 using Model = Hl7.Fhir.Model;
+using ResourceType = Microsoft.Health.Fhir.Ingest.Data.ResourceType;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -26,7 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenValidData_WhenProcessAsync_ThenSaveObservationInvokedForEachObservationGroup_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -63,12 +67,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenNotFoundObservation_WhenSaveObservationAsync_ThenCreateInvoked_Test()
         {
-            // Mock search and update request
-            var handler = Utilities.CreateMockMessageHandler()
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(new Model.Bundle()))
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Post)).Returns(new Model.Observation()));
-
-            var fhirClient = Utilities.CreateMockFhirClient(handler);
+            var fhirClient = Utilities.CreateMockFhirService();
+            fhirClient.CreateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(new Model.Observation()));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -87,8 +87,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Post));
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationCreated", x.Dimensions[DimensionNames.Name])), 1);
         }
 
@@ -109,12 +107,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            // Mock search and update request
-            var handler = Utilities.CreateMockMessageHandler()
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(foundBundle))
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put)).Returns(savedObservation));
-
-            var fhirClient = Utilities.CreateMockFhirClient(handler);
+            var fhirClient = Utilities.CreateMockFhirService();
+            fhirClient.CreateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(new Model.Observation()));
+            fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle));
+            fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -136,8 +132,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
             templateProcessor.ReceivedWithAnyArgs(1).MergeObservation(default, default, default);
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put));
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationUpdated", x.Dimensions[DimensionNames.Name])), 1);
         }
 
@@ -170,12 +164,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            // Mock search and update request
-            var handler = Utilities.CreateMockMessageHandler()
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(foundBundle1, foundBundle1))
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put)).Returns(x => ThrowConflictException(), x => savedObservation));
-
-            var fhirClient = Utilities.CreateMockFhirClient(handler);
+            var fhirClient = Utilities.CreateMockFhirService();
+            fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle1));
+            fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>())
+                .Returns(
+                    x => { throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome())); },
+                    x => Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -197,15 +191,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
             templateProcessor.ReceivedWithAnyArgs(2).MergeObservation(default, default, default);
-            handler.Received(2).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
-            handler.Received(2).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put));
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationUpdated", x.Dimensions[DimensionNames.Name])), 1);
         }
 
         [Fact]
         public void GivenValidTemplate_WhenGenerateObservation_ExpectedReferencesSet_Test()
         {
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
 
             var ids = BuildIdCollection();
             ids[ResourceType.Encounter] = "encounterId";
@@ -252,13 +244,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     return true;
                 });
 
-            // Mock update request
-            var handler = Utilities.CreateMockMessageHandler()
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put)).Returns(x => ThrowConflictException()))
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(new Model.Bundle()))
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Post)).Returns(savedObservation));
-
-            var fhirClient = Utilities.CreateMockFhirClient(handler);
+            var fhirClient = Utilities.CreateMockFhirService();
+            fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ThrowsForAnyArgs(new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome())));
+            fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(new Model.Bundle()));
+            fhirClient.CreateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -282,9 +271,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             templateProcessor.ReceivedWithAnyArgs(1).MergeObservation(default, default, default);
             cache.Received(1).Remove(Arg.Any<string>());
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Put));
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Post));
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationCreated", x.Dimensions[DimensionNames.Name])), 1);
             cache.Received(1).Set(Arg.Any<object>(), savedObservation);
         }
@@ -303,7 +289,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     return true;
                 });
 
-            var fhirClient = Utilities.CreateMockFhirClient();
+            var fhirClient = Utilities.CreateMockFhirService();
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -346,11 +332,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var savedObservation = new Model.Observation();
 
-            // Mock search and update request
-            var handler = Utilities.CreateMockMessageHandler()
-                .Mock(m => m.GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get)).Returns(foundBundle));
-
-            var fhirClient = Utilities.CreateMockFhirClient(handler);
+            var fhirClient = Utilities.CreateMockFhirService();
+            fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle));
+            fhirClient.UpdateResourceAsync(Arg.Any<Model.Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -371,7 +355,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var result = await service.SaveObservationAsync(config, observationGroup, ids);
 
             templateProcessor.ReceivedWithAnyArgs(1).MergeObservation(default, default, default);
-            handler.Received(1).GetReturnContent(Arg.Is<HttpRequestMessage>(msg => msg.Method == HttpMethod.Get));
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationNoOperation", x.Dimensions[DimensionNames.Name])), 1);
         }
 
@@ -385,7 +368,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static Model.Observation ThrowConflictException()
         {
-            throw new FhirOperationException("error", HttpStatusCode.Conflict);
+            throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome()));
         }
     }
 }
