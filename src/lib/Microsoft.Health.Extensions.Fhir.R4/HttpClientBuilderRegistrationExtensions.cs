@@ -22,6 +22,7 @@ namespace Microsoft.Health.Extensions.Fhir
         {
             EnsureArg.IsNotNull(httpClientBuilder, nameof(httpClientBuilder));
             EnsureArg.IsNotNull(services, nameof(services));
+            EnsureArg.IsNotNull(logger, nameof(logger));
             EnsureArg.IsNotNull(uri, nameof(uri));
 
             if (useManagedIdentity)
