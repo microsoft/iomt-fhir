@@ -19,7 +19,7 @@
     },
     "RepositoryBranch": {
       "type": "string",
-      "defaultValue": "master",
+      "defaultValue": "main",
       "metadata": {
         "description": "Source code branch to deploy."
       }
@@ -191,7 +191,7 @@
     },
     "IomtConnectorTemplateUrl": {
       "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Microsoft/iomt-fhir/master/deploy/templates/default-managed-identity-azuredeploy.json",
+      "defaultValue": "https://raw.githubusercontent.com/Microsoft/iomt-fhir/main/deploy/templates/default-managed-identity-azuredeploy.json",
       "metadata": {
         "description": "URL for IOMT Connector template"
       }

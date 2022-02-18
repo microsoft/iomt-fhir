@@ -49,7 +49,7 @@ const MappingImportModal = (props: { onImported: Function }) => {
                 <ModalHeader toggle={toggle}>Enter mapping templates to import</ModalHeader>
                 <ModalBody>
                     <div className="iomt-cm-modal-description">
-                        Full example templates can be found under <a href="https://github.com/microsoft/iomt-fhir/tree/master/sample/templates">here</a>.
+                        Full example templates can be found under <a href="https://github.com/microsoft/iomt-fhir/tree/main/sample/templates">here</a>.
                     </div>
                     <Row>
                         {
