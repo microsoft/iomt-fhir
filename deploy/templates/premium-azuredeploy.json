@@ -19,7 +19,7 @@
     },
     "RepositoryBranch": {
       "type": "string",
-      "defaultValue": "master",
+      "defaultValue": "main",
       "metadata": {
         "description": "Source code branch to deploy."
       }
