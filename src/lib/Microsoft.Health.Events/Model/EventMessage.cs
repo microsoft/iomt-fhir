@@ -32,7 +32,7 @@ namespace Microsoft.Health.Events.Model
             Offset = offset;
             EnqueuedTime = enqueuedTime;
             Properties = new Dictionary<string, object>(properties);
-            SystemProperties = systemProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
+            SystemProperties = systemProperties == null ? new Dictionary<string, object>() : systemProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         public string PartitionId { get; }

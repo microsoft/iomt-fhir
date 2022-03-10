@@ -3,7 +3,7 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <IsPackable>true</IsPackable>
