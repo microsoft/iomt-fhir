@@ -158,7 +158,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 {
                     var innerTemplate = extractor.Template;
                     var matchingFhirTemplate = fhirTemplate.GetTemplate(innerTemplate.TypeName) as CodeValueFhirTemplate;
-                    var availableFhirValueNames = GetFhirValues(matchingFhirTemplate).Select(v => v.ValueName).ToHashSet();
+                    var availableFhirValueNames = new HashSet<string>(GetFhirValues(matchingFhirTemplate).Select(v => v.ValueName));
                     var availableFhirValueNamesDisplay = string.Join(" ,", availableFhirValueNames);
 
                     // Ensure all values are present

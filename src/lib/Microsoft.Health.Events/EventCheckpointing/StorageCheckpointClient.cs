@@ -16,6 +16,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
+using Microsoft.Health.Common.Extension;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.Model;
