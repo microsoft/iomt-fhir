@@ -49,7 +49,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             EnsureArg.IsNotNullOrWhiteSpace(stream, nameof(stream));
             EnsureArg.IsNotNull(samplePeriod, nameof(samplePeriod));
 
-            var tokens = stream.Split(" ");
+            var tokens = stream.Split(' ');
             var timeValues = new List<(DateTime Time, string Value)>(tokens.Length);
             var timeIncrement = Convert.ToDouble(samplePeriod.Value);
 

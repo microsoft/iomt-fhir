@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using Azure;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
+using Microsoft.Health.Common.Extension;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Common.Telemetry.Exceptions;
 using Microsoft.Health.Events.Resources;
