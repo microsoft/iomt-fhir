@@ -8,7 +8,7 @@ using System.Globalization;
 using EnsureThat;
 using Hl7.Fhir.Model;
 
-namespace Microsoft.Health.Extensions.Fhir
+namespace Microsoft.Health.Fhir.R4.Ingest.Templates.Extensions
 {
     public static class DateTimeExtensions
     {

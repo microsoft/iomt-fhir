@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Model;
-using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.R4.Ingest.Templates.Extensions;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {

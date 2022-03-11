@@ -52,5 +52,6 @@
     <ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Fhir.R4.Ingest.Templates\Microsoft.Health.Fhir.R4.Ingest.Templates.csproj" />
   </ItemGroup>
 </Project>
