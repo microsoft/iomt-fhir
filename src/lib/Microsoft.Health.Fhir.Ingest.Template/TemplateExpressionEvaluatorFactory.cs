@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public IExpressionEvaluator Create(TemplateExpression expression)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(expression?.Value, nameof(expression.Value));
+            EnsureArg.IsNotNullOrWhiteSpace(expression?.Value, nameof(expression.Value));
             EnsureArg.IsNotNull(expression?.Language, nameof(expression.Language));
 
             return expression.Language switch

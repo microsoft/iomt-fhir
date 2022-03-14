@@ -121,7 +121,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected virtual IEnumerable<JToken> MatchTypeTokens(JObject token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            var evaluator = ExpressionEvaluatorFactory.Create(Template.TypeMatchExpression);
+            var evaluator = CreateRequiredExpressionEvaluator(Template.TypeMatchExpression, nameof(Template.TypeMatchExpression));
 
             foreach (var extractedToken in evaluator.SelectTokens(token))
             {
@@ -132,6 +132,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 tokenClone.Add(MatchedToken, extractedToken);
                 yield return tokenClone;
             }
+        }
+
+        protected IExpressionEvaluator CreateRequiredExpressionEvaluator(TemplateExpression expression, string expressionName)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(expressionName, nameof(expressionName));
+
+            // If the expression object or its value aren't set, throw a detailed exception
+            if (string.IsNullOrWhiteSpace(expression?.Value))
+            {
+                throw new IncompatibleDataException($"An expression must be set for [{expressionName}]");
+            }
+
+            return ExpressionEvaluatorFactory.Create(Template.TypeMatchExpression);
         }
 
         private Measurement CreateMeasurementFromToken(JToken token)

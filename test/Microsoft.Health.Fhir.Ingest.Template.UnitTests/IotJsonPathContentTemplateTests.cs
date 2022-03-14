@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,6 +35,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             },
         });
 
+        private static readonly IContentTemplate SingleValueMissingTypeNameTemplate = BuildMeasurementExtractor(new IotJsonPathContentTemplate
+        {
+            TypeName = "heartrate",
+            TypeMatchExpression = "$..[?(@Body.heartrate)]",
+            Values = new List<JsonPathValueExpression>
+            {
+                new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.Body.heartrate", Required = true },
+            },
+        });
+
         [Theory]
         [FileData(@"TestInput/data_IotHubPayloadExample.json")]
         public void GivenTemplateAndSingleValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
@@ -55,6 +64,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Assert.Equal("203", p.Value);
                 });
             });
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void GivenTemplateAndMissingTypeNameToken_WhenGetMeasurements_ThenExceptionIsThrown_Test(string typeMatchExpression)
+        {
+            var token = JToken.FromObject(new { heartrate = "60", device = "abc" });
+            var template = BuildMeasurementExtractor(new IotJsonPathContentTemplate
+            {
+                TypeName = "heartrate",
+                TypeMatchExpression = typeMatchExpression,
+                Values = new List<JsonPathValueExpression>
+                {
+                    new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.Body.heartrate", Required = true },
+                },
+            });
+
+            var ex = Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
+            Assert.Equal("An expression must be set for [TypeMatchExpression]", ex.Message);
         }
 
         [Theory]

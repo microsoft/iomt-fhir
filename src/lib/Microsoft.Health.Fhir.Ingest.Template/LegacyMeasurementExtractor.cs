@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected override IEnumerable<JToken> MatchTypeTokens(JObject token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            var evaluator = ExpressionEvaluatorFactory.Create(Template.TypeMatchExpression);
+            var evaluator = CreateRequiredExpressionEvaluator(Template.TypeMatchExpression, nameof(Template.TypeMatchExpression));
 
             return evaluator.SelectTokens(token);
         }
