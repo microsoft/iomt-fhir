@@ -14,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     {
         public IExpressionEvaluator Create(TemplateExpression expression)
         {
-            EnsureArg.IsNotEmptyOrWhiteSpace(expression?.Value, nameof(expression.Value));
+            EnsureArg.IsNotNullOrWhiteSpace(expression?.Value, nameof(expression.Value));
 
             var expressionLanguage = expression.Language ?? TemplateExpressionLanguage.JsonPath;
             if (expressionLanguage != TemplateExpressionLanguage.JsonPath)
