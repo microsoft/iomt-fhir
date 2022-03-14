@@ -42,7 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "basic", "basic", "{81D325F3
 		sample\templates\basic\fhirmapping.json = sample\templates\basic\fhirmapping.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir", "src\lib\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj", "{11032625-0B2B-4468-B1F1-431B5682DB7A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Fhir", "src\lib\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj", "{11032625-0B2B-4468-B1F1-431B5682DB7A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir.R4", "src\lib\Microsoft.Health.Extensions.Fhir.R4\Microsoft.Health.Extensions.Fhir.R4.csproj", "{124A0B74-0FED-473A-86FA-1806B07FF64C}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -59,7 +59,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Fhir.R4.UnitTests", "test\Microsoft.Health.Extensions.Fhir.R4.UnitTests\Microsoft.Health.Extensions.Fhir.R4.UnitTests.csproj", "{90402958-43C6-43E8-A22A-1B1469A4FCC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Host", "src\lib\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj", "{9110663E-BFA0-4082-B1BE-F85D91DEFCA2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Host", "src\lib\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj", "{9110663E-BFA0-4082-B1BE-F85D91DEFCA2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "healthkitOnFhir", "healthkitOnFhir", "{31F33751-AA52-4B4C-816B-31B69913B346}"
 	ProjectSection(SolutionItems) = preProject
@@ -75,7 +75,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Inges
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Tests.Common.R4", "test\Microsoft.Health.Tests.Common.R4\Microsoft.Health.Tests.Common.R4.csproj", "{0B0F4BCE-E439-47AB-A67A-8B3778407339}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Events", "src\lib\Microsoft.Health.Events\Microsoft.Health.Events.csproj", "{22275DE3-859D-40F0-9547-7711568164C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Events", "src\lib\Microsoft.Health.Events\Microsoft.Health.Events.csproj", "{22275DE3-859D-40F0-9547-7711568164C0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "console", "console", "{1EF3584A-C437-4B45-8BF8-1597D5A8DBC7}"
 EndProject
@@ -103,6 +103,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation", "src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj", "{7F507901-30BD-41CD-99B8-FD8FA103D70A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Validation.UnitTests\Microsoft.Health.Fhir.Ingest.Validation.UnitTests.csproj", "{34B7EABB-DC53-47AC-86E0-35596FF18312}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.R4.Ingest.Templates", "src\lib\Microsoft.Health.Fhir.R4.Ingest.Templates\Microsoft.Health.Fhir.R4.Ingest.Templates.csproj", "{90B4DFD0-D039-438D-9541-A12482C2D9BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -210,6 +212,10 @@ Global
 		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34B7EABB-DC53-47AC-86E0-35596FF18312}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90B4DFD0-D039-438D-9541-A12482C2D9BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90B4DFD0-D039-438D-9541-A12482C2D9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90B4DFD0-D039-438D-9541-A12482C2D9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90B4DFD0-D039-438D-9541-A12482C2D9BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -246,6 +252,7 @@ Global
 		{9BF918FE-E09B-4072-8CC5-2BE479230719} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
 		{7F507901-30BD-41CD-99B8-FD8FA103D70A} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
 		{34B7EABB-DC53-47AC-86E0-35596FF18312} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
+		{90B4DFD0-D039-438D-9541-A12482C2D9BE} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A358924D-F948-4AE8-8CD0-A0F56225CE0C}
