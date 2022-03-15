@@ -35,16 +35,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             },
         });
 
-        private static readonly IContentTemplate SingleValueMissingTypeNameTemplate = BuildMeasurementExtractor(new IotJsonPathContentTemplate
-        {
-            TypeName = "heartrate",
-            TypeMatchExpression = "$..[?(@Body.heartrate)]",
-            Values = new List<JsonPathValueExpression>
-            {
-                new JsonPathValueExpression { ValueName = "hr", ValueExpression = "$.Body.heartrate", Required = true },
-            },
-        });
-
         [Theory]
         [FileData(@"TestInput/data_IotHubPayloadExample.json")]
         public void GivenTemplateAndSingleValidToken_WhenGetMeasurements_ThenSingleMeasurementReturned_Test(string eventJson)
