@@ -77,6 +77,20 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 return validationResult;
             }
 
+            ValidateDeviceEvents(deviceEvents, contentTemplate, fhirTemplate, validationResult);
+
+            return validationResult;
+        }
+
+        /// <summary>
+        /// Validates device events. This method then enriches the passed in ValidationResult object with DeviceResults.
+        /// </summary>
+        /// <param name="deviceEvents">The device events to validate</param>
+        /// <param name="contentTemplate">The device mapping template</param>
+        /// <param name="fhirTemplate">The fhir mapping template</param>
+        /// <param name="validationResult">The ValidationResult</param>
+        protected virtual void ValidateDeviceEvents(IEnumerable<JToken> deviceEvents, IContentTemplate contentTemplate, ILookupTemplate<IFhirTemplate> fhirTemplate, ValidationResult validationResult)
+        {
             foreach (var payload in deviceEvents)
             {
                 if (payload != null && contentTemplate != null)
@@ -91,13 +105,11 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                     {
                         foreach (var m in deviceResult.Measurements)
                         {
-                            ProcessNormalizedeEvent(m, fhirTemplate, deviceResult);
+                            ProcessNormalizedEvent(m, fhirTemplate, deviceResult);
                         }
                     }
                 }
             }
-
-            return validationResult;
         }
 
         private IContentTemplate LoadDeviceTemplate(string deviceMappingContent, TemplateResult validationResult)
@@ -110,7 +122,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.NORMALIZATION);
             }
 
             return null;
@@ -126,7 +138,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.FHIRTRANSFORMATION);
             }
 
             return null;
@@ -168,23 +180,27 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                         {
                             if (!availableFhirValueNames.Contains(v.ValueName))
                             {
-                                validationResult.CaptureWarning($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.");
+                                validationResult.CaptureWarning(
+                                    $"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.",
+                                    ValidationCategory.FHIRTRANSFORMATION);
                             }
                         }
                     }
                 }
                 catch (TemplateNotFoundException)
                 {
-                    validationResult.CaptureWarning($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].");
+                    validationResult.CaptureWarning(
+                        $"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].",
+                        ValidationCategory.FHIRTRANSFORMATION);
                 }
                 catch (Exception e)
                 {
-                    validationResult.CaptureException(e);
+                    validationResult.CaptureException(e, ValidationCategory.FHIRTRANSFORMATION);
                 }
             }
         }
 
-        private void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, DeviceResult validationResult)
+        protected virtual void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, DeviceResult validationResult)
         {
             try
             {
@@ -195,16 +211,16 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
                 if (validationResult.Measurements.Count == 0)
                 {
-                    validationResult.CaptureWarning("No measurements were produced for the given device data.");
+                    validationResult.CaptureWarning("No measurements were produced for the given device data.", ValidationCategory.NORMALIZATION);
                 }
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.NORMALIZATION);
             }
         }
 
-        private void ProcessNormalizedeEvent(Measurement normalizedEvent, ILookupTemplate<IFhirTemplate> fhirTemplate, DeviceResult validationResult)
+        protected virtual void ProcessNormalizedEvent(Measurement normalizedEvent, ILookupTemplate<IFhirTemplate> fhirTemplate, DeviceResult validationResult)
         {
             var measurementGroup = new MeasurementGroup
             {
@@ -228,11 +244,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             {
                 validationResult.CaptureError(
                     $"No Fhir Template exists with the type name [{e.Message}]. Ensure that all Fhir Template type names match Device Mapping type names (including casing)",
-                    ErrorLevel.ERROR);
+                    ErrorLevel.ERROR,
+                    ValidationCategory.FHIRTRANSFORMATION);
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.FHIRTRANSFORMATION);
             }
         }
 
