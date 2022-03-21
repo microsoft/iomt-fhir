@@ -381,5 +381,25 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                     Assert.Empty(d.GetErrors(ErrorLevel.WARN));
                 });
         }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateValid.json")]
+        public void Given_ValidMappingFiles_And_ValidDeviceData_When_Aggregating_NoErrorsAreAggregated(string deviceMapping, string fhirMapping)
+        {
+            var time = DateTime.UtcNow;
+            var tokens = Enumerable.Range(1, 10).Select(i => JToken.FromObject(new
+            {
+                systolic = "60",
+                diastolic = "80",
+                device = $"abc{i}",
+                date = time,
+                session = "abcdefg",
+                patient = "patient123",
+            }));
+
+            var result = _iotConnectorValidator.PerformValidation(tokens, deviceMapping, fhirMapping, true);
+            Assert.Empty(result.TemplateResult.Exceptions);
+            Assert.Empty(result.DeviceResults);
+        }
     }
 }
