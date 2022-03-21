@@ -38,13 +38,14 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             string deviceMappingContent,
             string fhirMappingContent)
         {
-            return PerformValidation(new List<JToken>() { deviceEvent }, deviceMappingContent, fhirMappingContent);
+            return PerformValidation(new List<JToken>() { deviceEvent }, deviceMappingContent, fhirMappingContent, false);
         }
 
         public ValidationResult PerformValidation(
             IEnumerable<JToken> deviceEvents,
             string deviceMappingContent,
-            string fhirMappingContent)
+            string fhirMappingContent,
+            bool aggregateDeviceEvents = false)
         {
             if (string.IsNullOrWhiteSpace(deviceMappingContent) && string.IsNullOrWhiteSpace(fhirMappingContent))
             {
@@ -77,7 +78,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 return validationResult;
             }
 
-            ValidateDeviceEvents(deviceEvents, contentTemplate, fhirTemplate, validationResult);
+            ValidateDeviceEvents(deviceEvents, contentTemplate, fhirTemplate, validationResult, aggregateDeviceEvents);
 
             return validationResult;
         }
@@ -89,15 +90,22 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
         /// <param name="contentTemplate">The device mapping template</param>
         /// <param name="fhirTemplate">The fhir mapping template</param>
         /// <param name="validationResult">The ValidationResult</param>
-        protected virtual void ValidateDeviceEvents(IEnumerable<JToken> deviceEvents, IContentTemplate contentTemplate, ILookupTemplate<IFhirTemplate> fhirTemplate, ValidationResult validationResult)
+        /// <param name="aggregateDeviceEvents">Indicates if DeviceResults should be aggregated</param>
+        protected virtual void ValidateDeviceEvents(
+            IEnumerable<JToken> deviceEvents,
+            IContentTemplate contentTemplate,
+            ILookupTemplate<IFhirTemplate> fhirTemplate,
+            ValidationResult validationResult,
+            bool aggregateDeviceEvents)
         {
+            var aggregatedDeviceResults = new Dictionary<string, DeviceResult>();
+
             foreach (var payload in deviceEvents)
             {
                 if (payload != null && contentTemplate != null)
                 {
                     var deviceResult = new DeviceResult();
                     deviceResult.DeviceEvent = payload;
-                    validationResult.DeviceResults.Add(deviceResult);
 
                     ProcessDeviceEvent(payload, contentTemplate, deviceResult);
 
@@ -107,6 +115,40 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                         {
                             ProcessNormalizedEvent(m, fhirTemplate, deviceResult);
                         }
+                    }
+
+                    if (aggregateDeviceEvents)
+                    {
+                        /*
+                        * During aggregation we group DeviceEvents by the exceptions that they produce.
+                        * This allows us to return a DeviceResult with a sample Device Event payload,
+                        * the running count grouped DeviceEvents and the exception that they are grouped by.
+                        */
+                        foreach (var exception in deviceResult.Exceptions)
+                        {
+                            if (aggregatedDeviceResults.TryGetValue(exception.Message, out DeviceResult result))
+                            {
+                                // If we've already seen this error message before, simply increment the running total
+                                result.AggregatedCount++;
+                            }
+                            else
+                            {
+                                // Create a new DeviceResult to hold details about this new exception.
+                                var aggregatedDeviceResult = new DeviceResult()
+                                {
+                                    DeviceEvent = deviceResult.DeviceEvent, // A sample device event which exhibits the error
+                                    AggregatedCount = 1,
+                                    Exceptions = new List<ValidationError>() { exception },
+                                };
+
+                                aggregatedDeviceResults[exception.Message] = aggregatedDeviceResult;
+                                validationResult.DeviceResults.Add(aggregatedDeviceResult);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        validationResult.DeviceResults.Add(deviceResult);
                     }
                 }
             }

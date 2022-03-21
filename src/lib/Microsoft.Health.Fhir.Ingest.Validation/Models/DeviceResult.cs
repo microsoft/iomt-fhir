@@ -19,5 +19,11 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.Models
         public IList<Model.Observation> Observations { get; set; } = new List<Model.Observation>();
 
         public IList<ValidationError> Exceptions { get; set; } = new List<ValidationError>();
+
+        /// <summary>
+        /// Indicates how many Device Events produced the associated Exception. This value is only set when aggregating DeviceEvent results. Otherwise
+        /// it will be zero.
+        /// </summary>
+        public int AggregatedCount { get; set; }
     }
 }

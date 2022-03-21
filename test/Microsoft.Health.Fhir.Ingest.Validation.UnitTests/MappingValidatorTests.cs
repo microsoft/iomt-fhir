@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation.Extensions;
+using Microsoft.Health.Fhir.Ingest.Validation.Models;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -118,8 +120,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
         {
             var result = _iotConnectorValidator.PerformValidation(null, deviceMapping, null);
             Assert.Collection(
-                result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR),
-                (error) => error.Message.Contains("Required property 'DeviceIdExpression' not found in JSON"));
+                result.TemplateResult.GetErrors(ErrorLevel.ERROR),
+                (error) =>
+                {
+                    Assert.Contains("Required property 'DeviceIdExpression' not found in JSON", error.Message);
+                    Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                });
             Assert.Empty(result.DeviceResults);
         }
 
@@ -129,8 +135,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
         {
             var result = _iotConnectorValidator.PerformValidation(null, null, fhirMapping);
             Assert.Collection(
-                result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR),
-                (error) => error.Message.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir"));
+                result.TemplateResult.GetErrors(ErrorLevel.ERROR),
+                (error) =>
+                {
+                    Assert.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir", error.Message);
+                    Assert.Equal(ValidationCategory.FHIRTRANSFORMATION, error.Category);
+                });
             Assert.Empty(result.DeviceResults);
         }
 
@@ -142,9 +152,17 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
             // "Validation errors:\nExpected TemplateType value CollectionFhirTemplate, actual CodeValueFhir."
             var result = _iotConnectorValidator.PerformValidation(null, deviceMapping, fhirMapping);
             Assert.Collection(
-                result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR),
-                (error) => error.Message.Contains("Required property 'DeviceIdExpression' not found in JSON"),
-                (error) => error.Message.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir"));
+                result.TemplateResult.GetErrors(ErrorLevel.ERROR),
+                (error) =>
+                {
+                    Assert.Contains("Required property 'DeviceIdExpression' not found in JSON", error.Message);
+                    Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                },
+                (error) =>
+                {
+                    Assert.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir", error.Message);
+                    Assert.Equal(ValidationCategory.FHIRTRANSFORMATION, error.Category);
+                });
             Assert.Empty(result.DeviceResults);
         }
 
@@ -163,19 +181,27 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 patient = "patient123",
             });
             var result = _iotConnectorValidator.PerformValidation(token, deviceMapping, fhirMapping);
-            Assert.Empty(result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR));
+            Assert.Empty(result.TemplateResult.GetErrors(ErrorLevel.ERROR));
             Assert.Collection(
-                result.TemplateResult.GetErrors(Models.ErrorLevel.WARN),
-                (error) => error.Message.Contains("No matching Fhir Template exists for Device Mapping [bloodpressure]"));
+                result.TemplateResult.GetErrors(ErrorLevel.WARN),
+                (error) =>
+                {
+                    Assert.Contains("No matching Fhir Template exists for Device Mapping [bloodpressure]", error.Message);
+                    Assert.Equal(ValidationCategory.FHIRTRANSFORMATION, error.Category);
+                });
             Assert.Collection(result.DeviceResults, d =>
             {
                 Assert.Collection(
-                    d.GetErrors(Models.ErrorLevel.ERROR),
-                    e => e.Message.StartsWith("No Fhir Template exists with the type name [bloodpressure]"));
+                    d.GetErrors(ErrorLevel.ERROR),
+                    (error) =>
+                    {
+                        Assert.Contains("No Fhir Template exists with the type name [bloodpressure]", error.Message);
+                        Assert.Equal(ValidationCategory.FHIRTRANSFORMATION, error.Category);
+                    });
                 Assert.Single(d.Measurements);
                 Assert.NotNull(d.DeviceEvent);
                 Assert.Empty(d.Observations);
-                Assert.Empty(d.GetErrors(Models.ErrorLevel.WARN));
+                Assert.Empty(d.GetErrors(ErrorLevel.WARN));
             });
         }
 
@@ -205,18 +231,23 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
 
             var result = _iotConnectorValidator.PerformValidation(new List<JToken>() { token, token2 }, deviceMapping, fhirMapping);
 
-            Assert.Empty(result.TemplateResult.GetErrors(Models.ErrorLevel.ERROR));
+            Assert.Empty(result.TemplateResult.GetErrors(ErrorLevel.ERROR));
             Assert.Collection(
-               result.TemplateResult.GetErrors(Models.ErrorLevel.WARN),
-               (error) => error.Message.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template"));
+               result.TemplateResult.GetErrors(ErrorLevel.WARN),
+               (error) =>
+               {
+                   Assert.StartsWith("The value [systolic] in Device Mapping [bloodpressure] is not represented within the Fhir Template", error.Message);
+                   Assert.Equal(ValidationCategory.FHIRTRANSFORMATION, error.Category);
+               });
 
             Assert.Collection(
                 result.DeviceResults,
                 d =>
                 {
+                    Assert.Equal(0, d.AggregatedCount);
                     Assert.Single(d.Measurements);
                     Assert.NotNull(d.DeviceEvent);
-                    Assert.Empty(d.GetErrors(Models.ErrorLevel.WARN));
+                    Assert.Empty(d.GetErrors(ErrorLevel.WARN));
                     Assert.Empty(d.Exceptions);
                     Assert.Collection(d.Observations, o =>
                     {
@@ -234,7 +265,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 {
                     Assert.Single(d.Measurements);
                     Assert.NotNull(d.DeviceEvent);
-                    Assert.Empty(d.GetErrors(Models.ErrorLevel.WARN));
+                    Assert.Empty(d.GetErrors(ErrorLevel.WARN));
                     Assert.Empty(d.Exceptions);
                     Assert.Collection(d.Observations, o =>
                     {
@@ -267,14 +298,88 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
             Assert.Empty(result.TemplateResult.Exceptions);
             Assert.Collection(result.DeviceResults, d =>
             {
+                Assert.Equal(0, d.AggregatedCount);
                 Assert.Collection(
-                  d.GetErrors(Models.ErrorLevel.WARN),
-                  (error) => error.Message.StartsWith("No measurements were produced"));
+                  d.GetErrors(ErrorLevel.WARN),
+                  (error) =>
+                  {
+                      Assert.Contains("No measurements were produced", error.Message);
+                      Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                  });
                 Assert.Empty(d.Measurements);
                 Assert.Empty(d.Observations);
                 Assert.NotNull(d.DeviceEvent);
-                Assert.Empty(d.GetErrors(Models.ErrorLevel.ERROR));
+                Assert.Empty(d.GetErrors(ErrorLevel.ERROR));
             });
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateHrAndBloodPressureValid.json", @"TestInput/data_CollectionFhirTemplateValid.json")]
+        public void Given_ValidMappingFiles_And_Valid_DeviceMapping_When_BadDataIsSupplied_ErrorsAreAggregated(string deviceMapping, string fhirMapping)
+        {
+            var time = DateTime.UtcNow;
+            var tokens = Enumerable.Range(1, 10).Select(i =>
+            {
+                if (i <= 5)
+                {
+                    return JToken.FromObject(new
+                    {
+                        systolic = "60",
+                        diastolic = "80",
+                        date = time,
+                        session = "abcdefg",
+                        patient = "patient123",
+                    });
+                }
+                else
+                {
+                    return JToken.FromObject(new
+                    {
+                        systolic = "60",
+                        diastolic = "80",
+                        device = $"abc{i}",
+                        session = "abcdefg",
+                        patient = "patient123",
+                    });
+                }
+            });
+
+            var result = _iotConnectorValidator.PerformValidation(tokens, deviceMapping, fhirMapping, true);
+            Assert.Empty(result.TemplateResult.Exceptions);
+            Assert.Collection(
+                result.DeviceResults,
+                d =>
+                {
+                    Assert.NotEmpty(d.DeviceEvent);
+                    Assert.Equal(5, d.AggregatedCount);
+                    Assert.Collection(
+                      d.GetErrors(ErrorLevel.ERROR),
+                      (error) =>
+                      {
+                          Assert.Contains("Unable to extract required value for [DeviceIdExpression] using $.device", error.Message);
+                          Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                      });
+                    Assert.Empty(d.Measurements);
+                    Assert.Empty(d.Observations);
+                    Assert.NotNull(d.DeviceEvent);
+                    Assert.Empty(d.GetErrors(ErrorLevel.WARN));
+                },
+                d =>
+                {
+                    Assert.NotEmpty(d.DeviceEvent);
+                    Assert.Equal(5, d.AggregatedCount);
+                    Assert.Collection(
+                      d.GetErrors(ErrorLevel.ERROR),
+                      (error) =>
+                      {
+                          Assert.Contains("Unable to extract required value for [TimestampExpression] using $.date", error.Message);
+                          Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                      });
+                    Assert.Empty(d.Measurements);
+                    Assert.Empty(d.Observations);
+                    Assert.NotNull(d.DeviceEvent);
+                    Assert.Empty(d.GetErrors(ErrorLevel.WARN));
+                });
         }
     }
 }
