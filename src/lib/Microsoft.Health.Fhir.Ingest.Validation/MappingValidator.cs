@@ -38,13 +38,14 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             string deviceMappingContent,
             string fhirMappingContent)
         {
-            return PerformValidation(new List<JToken>() { deviceEvent }, deviceMappingContent, fhirMappingContent);
+            return PerformValidation(new List<JToken>() { deviceEvent }, deviceMappingContent, fhirMappingContent, false);
         }
 
         public ValidationResult PerformValidation(
             IEnumerable<JToken> deviceEvents,
             string deviceMappingContent,
-            string fhirMappingContent)
+            string fhirMappingContent,
+            bool aggregateDeviceEvents = false)
         {
             if (string.IsNullOrWhiteSpace(deviceMappingContent) && string.IsNullOrWhiteSpace(fhirMappingContent))
             {
@@ -77,13 +78,34 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 return validationResult;
             }
 
+            ValidateDeviceEvents(deviceEvents, contentTemplate, fhirTemplate, validationResult, aggregateDeviceEvents);
+
+            return validationResult;
+        }
+
+        /// <summary>
+        /// Validates device events. This method then enriches the passed in ValidationResult object with DeviceResults.
+        /// </summary>
+        /// <param name="deviceEvents">The device events to validate</param>
+        /// <param name="contentTemplate">The device mapping template</param>
+        /// <param name="fhirTemplate">The fhir mapping template</param>
+        /// <param name="validationResult">The ValidationResult</param>
+        /// <param name="aggregateDeviceEvents">Indicates if DeviceResults should be aggregated</param>
+        protected virtual void ValidateDeviceEvents(
+            IEnumerable<JToken> deviceEvents,
+            IContentTemplate contentTemplate,
+            ILookupTemplate<IFhirTemplate> fhirTemplate,
+            ValidationResult validationResult,
+            bool aggregateDeviceEvents)
+        {
+            var aggregatedDeviceResults = new Dictionary<string, DeviceResult>();
+
             foreach (var payload in deviceEvents)
             {
                 if (payload != null && contentTemplate != null)
                 {
                     var deviceResult = new DeviceResult();
                     deviceResult.DeviceEvent = payload;
-                    validationResult.DeviceResults.Add(deviceResult);
 
                     ProcessDeviceEvent(payload, contentTemplate, deviceResult);
 
@@ -91,13 +113,45 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                     {
                         foreach (var m in deviceResult.Measurements)
                         {
-                            ProcessNormalizedeEvent(m, fhirTemplate, deviceResult);
+                            ProcessNormalizedEvent(m, fhirTemplate, deviceResult);
                         }
+                    }
+
+                    if (aggregateDeviceEvents)
+                    {
+                        /*
+                        * During aggregation we group DeviceEvents by the exceptions that they produce.
+                        * This allows us to return a DeviceResult with a sample Device Event payload,
+                        * the running count grouped DeviceEvents and the exception that they are grouped by.
+                        */
+                        foreach (var exception in deviceResult.Exceptions)
+                        {
+                            if (aggregatedDeviceResults.TryGetValue(exception.Message, out DeviceResult result))
+                            {
+                                // If we've already seen this error message before, simply increment the running total
+                                result.AggregatedCount++;
+                            }
+                            else
+                            {
+                                // Create a new DeviceResult to hold details about this new exception.
+                                var aggregatedDeviceResult = new DeviceResult()
+                                {
+                                    DeviceEvent = deviceResult.DeviceEvent, // A sample device event which exhibits the error
+                                    AggregatedCount = 1,
+                                    Exceptions = new List<ValidationError>() { exception },
+                                };
+
+                                aggregatedDeviceResults[exception.Message] = aggregatedDeviceResult;
+                                validationResult.DeviceResults.Add(aggregatedDeviceResult);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        validationResult.DeviceResults.Add(deviceResult);
                     }
                 }
             }
-
-            return validationResult;
         }
 
         private IContentTemplate LoadDeviceTemplate(string deviceMappingContent, TemplateResult validationResult)
@@ -110,7 +164,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.NORMALIZATION);
             }
 
             return null;
@@ -126,7 +180,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.FHIRTRANSFORMATION);
             }
 
             return null;
@@ -168,23 +222,27 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                         {
                             if (!availableFhirValueNames.Contains(v.ValueName))
                             {
-                                validationResult.CaptureWarning($"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.");
+                                validationResult.CaptureWarning(
+                                    $"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.",
+                                    ValidationCategory.FHIRTRANSFORMATION);
                             }
                         }
                     }
                 }
                 catch (TemplateNotFoundException)
                 {
-                    validationResult.CaptureWarning($"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].");
+                    validationResult.CaptureWarning(
+                        $"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].",
+                        ValidationCategory.FHIRTRANSFORMATION);
                 }
                 catch (Exception e)
                 {
-                    validationResult.CaptureException(e);
+                    validationResult.CaptureException(e, ValidationCategory.FHIRTRANSFORMATION);
                 }
             }
         }
 
-        private void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, DeviceResult validationResult)
+        protected virtual void ProcessDeviceEvent(JToken deviceEvent, IContentTemplate contentTemplate, DeviceResult validationResult)
         {
             try
             {
@@ -195,16 +253,16 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
                 if (validationResult.Measurements.Count == 0)
                 {
-                    validationResult.CaptureWarning("No measurements were produced for the given device data.");
+                    validationResult.CaptureWarning("No measurements were produced for the given device data.", ValidationCategory.NORMALIZATION);
                 }
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.NORMALIZATION);
             }
         }
 
-        private void ProcessNormalizedeEvent(Measurement normalizedEvent, ILookupTemplate<IFhirTemplate> fhirTemplate, DeviceResult validationResult)
+        protected virtual void ProcessNormalizedEvent(Measurement normalizedEvent, ILookupTemplate<IFhirTemplate> fhirTemplate, DeviceResult validationResult)
         {
             var measurementGroup = new MeasurementGroup
             {
@@ -228,11 +286,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             {
                 validationResult.CaptureError(
                     $"No Fhir Template exists with the type name [{e.Message}]. Ensure that all Fhir Template type names match Device Mapping type names (including casing)",
-                    ErrorLevel.ERROR);
+                    ErrorLevel.ERROR,
+                    ValidationCategory.FHIRTRANSFORMATION);
             }
             catch (Exception e)
             {
-                validationResult.CaptureException(e);
+                validationResult.CaptureException(e, ValidationCategory.FHIRTRANSFORMATION);
             }
         }
 

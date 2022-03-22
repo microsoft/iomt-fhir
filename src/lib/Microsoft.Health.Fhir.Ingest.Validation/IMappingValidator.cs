@@ -34,7 +34,8 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
         /// <param name="deviceEvents">A collection of DeviceEvents. Optional</param>
         /// <param name="deviceMappingContent">A device mapping template. Optional</param>
         /// <param name="fhirMappingContent">A fhir mapping template. Optional</param>
+        /// <param name="aggregateDeviceEvents">Indicates if DeviceResults should be aggregated</param>
         /// <returns>A ValidationResult object</returns>
-        ValidationResult PerformValidation(IEnumerable<JToken> deviceEvents, string deviceMappingContent, string fhirMappingContent);
+        ValidationResult PerformValidation(IEnumerable<JToken> deviceEvents, string deviceMappingContent, string fhirMappingContent, bool aggregateDeviceEvents = false);
     }
 }
