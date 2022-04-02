@@ -7,14 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Consumer;
-using Azure.Messaging.EventHubs.Processor;
-using EnsureThat;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
-using Microsoft.Health.Events.Model;
-using Microsoft.Health.Events.Telemetry;
-using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor

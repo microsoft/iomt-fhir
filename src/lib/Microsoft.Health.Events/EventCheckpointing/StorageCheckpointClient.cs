@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -30,10 +29,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
     {
         private readonly string _blobCheckpointPrefix;
         private readonly string _blobPath;
-        private readonly ConcurrentDictionary<string, Checkpoint> _checkpoints;
-        private readonly int _lastCheckpointMaxCount;
-        private readonly ConcurrentDictionary<string, int> _lastCheckpointTracker;
-        private readonly ConcurrentDictionary<string, List<KeyValuePair<Metric, double>>> _postCheckpointMetrics;
         private readonly ITelemetryLogger _logger;
         private readonly BlobContainerClient _storageClient;
 
@@ -43,11 +38,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
             EnsureArg.IsNotNull(storageCheckpointOptions, nameof(storageCheckpointOptions));
             EnsureArg.IsNotNull(eventHubClientOptions, nameof(eventHubClientOptions));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-
-            _lastCheckpointMaxCount = int.Parse(storageCheckpointOptions.CheckpointBatchCount);
-            _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
-            _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
-            _postCheckpointMetrics = new ConcurrentDictionary<string, List<KeyValuePair<Metric, double>>>();
 
             (string eventHubNamespaceFQDN, string eventHubName) = GetEventHubProperties(eventHubClientOptions);
             EnsureArg.IsNotNullOrWhiteSpace(eventHubNamespaceFQDN, nameof(eventHubNamespaceFQDN));
@@ -97,7 +87,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier)
+        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
         {
             var prefix = $"{_blobPath}{partitionIdentifier}";
 
@@ -105,7 +95,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             {
                 var checkpoint = new Checkpoint();
 
-                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: CancellationToken.None))
+                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: cancellationToken))
                 {
                     var partitionId = blob.Name.Split('/').Last();
                     DateTimeOffset lastEventTimestamp = DateTime.MinValue;
@@ -149,38 +139,16 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     Prefix = _blobPath,
                 };
 
-                _checkpoints[partitionId] = checkpoint;
-                var count = _lastCheckpointTracker.AddOrUpdate(partitionId, 1, (key, value) => value + 1);
+                await UpdateCheckpointAsync(checkpoint);
+
+                _logger.LogMetric(EventMetrics.EventWatermark(partitionId), 1);
 
                 if (metrics != null)
                 {
-                    _postCheckpointMetrics.TryGetValue(partitionId, out var partitionExists);
-
-                    if (partitionExists == null)
-                    {
-                        _postCheckpointMetrics[partitionId] = new List<KeyValuePair<Metric, double>>();
-                    }
-
                     foreach (var metric in metrics)
                     {
-                        _postCheckpointMetrics[partitionId].Add(metric);
+                        _logger.LogMetric(metric.Key, metric.Value);
                     }
-                }
-
-                if (count >= _lastCheckpointMaxCount)
-                {
-                    await PublishCheckpointAsync(partitionId);
-
-                    _logger.LogMetric(EventMetrics.EventWatermark(partitionId), 1);
-                    _lastCheckpointTracker[partitionId] = 0;
-
-                    _postCheckpointMetrics.TryGetValue(partitionId, out var postCheckpointMetrics);
-                    postCheckpointMetrics?.ForEach(m =>
-                    {
-                        _logger.LogMetric(m.Key, m.Value);
-                    });
-
-                    postCheckpointMetrics?.Clear();
                 }
             }
             catch (Exception ex)
@@ -189,15 +157,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public async Task PublishCheckpointAsync(string partitionId)
-        {
-            Checkpoint checkpoint = _checkpoints[partitionId];
-            await UpdateCheckpointAsync(checkpoint);
-        }
-
         /// <summary>
         /// Deletes the previously recorded checkpoints if the current checkpoint blob path (corresponding to the input event hub) has changed.
         /// </summary>
+        /// <param name="cancellationToken">A cancellation token</param>
+        /// <returns><see cref="Task"/></returns>
         public async Task ResetCheckpointsAsync(CancellationToken cancellationToken = default)
         {
             try
