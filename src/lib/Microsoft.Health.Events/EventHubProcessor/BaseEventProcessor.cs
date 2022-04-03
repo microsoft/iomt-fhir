@@ -49,6 +49,14 @@ namespace Microsoft.Health.Events.EventHubProcessor
         //    event for a certain time period and this event is used to flush events in the current window.
         protected virtual async Task ProcessEventHandler(ProcessEventArgs eventArgs)
         {
+            if (eventArgs.CancellationToken.IsCancellationRequested)
+            {
+                // The event arguments contain a cancellation token that the EventProcessorClient uses to signal the handler that processing should cease as soon as possible.
+                // This is most commonly seen when the EventProcessorClient is stopping or has encountered an unrecoverable problem.
+                Logger.LogTrace($"ProcessEventArgs contain a cancellation request {eventArgs.Partition.PartitionId}");
+                return;
+            }
+
             IEventMessage evt;
             if (eventArgs.HasEvent)
             {
@@ -74,9 +82,15 @@ namespace Microsoft.Health.Events.EventHubProcessor
             var partitionId = initArgs.PartitionId;
             Logger.LogTrace($"Initializing partition {partitionId}");
 
+            if (initArgs.CancellationToken.IsCancellationRequested)
+            {
+                // Log the condition where the initialization handler is called, an the PartitionInitializingEventArgs contains a cancellation request.
+                Logger.LogTrace($"PartitionInitializingEventArgs contain a cancellation request {partitionId}");
+            }
+
             try
             {
-                var checkpoint = await CheckpointClient.GetCheckpointForPartitionAsync(partitionId);
+                var checkpoint = await CheckpointClient.GetCheckpointForPartitionAsync(partitionId, initArgs.CancellationToken);
                 initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
                 Logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
                 Logger.LogMetric(EventMetrics.EventHubPartitionInitialized(partitionId), 1);
