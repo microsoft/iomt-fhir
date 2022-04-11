@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Rest;
@@ -41,6 +43,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
 
             var identifier = BuildIdentifier(value, system);
+
             return await GetResourceByIdentityAsync<TResource>(client, identifier).ConfigureAwait(false);
         }
 
@@ -51,6 +54,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             var searchParams = identifier.ToSearchParams();
             var result = await client.SearchAsync<TResource>(searchParams).ConfigureAwait(false);
+
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(client);
         }
 
@@ -63,6 +67,14 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             propertySetter?.Invoke(resource, identifier);
 
+            // If patient resource, then generate id programatically and issue an update to FHIR service
+            // The patient resource will be created if the resource with the given id does not already exist.
+            if (typeof(TResource) == typeof(Model.Patient))
+            {
+                resource.Id = ToGuid(identifier.Value.ToString()).ToString();
+                return await client.UpdateAsync<TResource>(resource).ConfigureAwait(false);
+            }
+
             return await client.CreateAsync<TResource>(resource).ConfigureAwait(false);
         }
 
@@ -70,6 +82,17 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         {
             var identifier = new Model.Identifier { Value = value, System = string.IsNullOrWhiteSpace(system) ? null : system };
             return identifier;
+        }
+
+        private static Guid ToGuid(string value)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
+
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] hash = md5.ComputeHash(Encoding.Default.GetBytes(value));
+                return new Guid(hash);
+            }
         }
     }
 }
