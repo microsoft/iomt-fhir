@@ -5,13 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Azure.Messaging.EventHubs;
 using DevLab.JmesPath;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Storage;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
@@ -26,6 +24,9 @@ using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Common.Telemetry;
+using IEventProcessingMeter = Microsoft.Health.Events.Common.IEventProcessingMeter;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -49,6 +50,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             services.AddSingleton(ResolveTemplateManager);
             services.AddSingleton(ResolveEventConsumers);
             services.AddSingleton(ResolveCheckpointClient);
+            services.AddSingleton(ResolveEventProcessingMetricMeters);
             services.AddSingleton(ResolveEventConsumerService);
             services.AddSingleton(ResolveEventProcessorClient);
             services.AddSingleton(ResolveEventProcessor);
@@ -77,11 +79,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             {
                 template = Configuration.GetSection("Template:DeviceContent").Value;
                 var collector = ResolveEventCollector(serviceProvider);
-                var options = new NormalizationServiceOptions();
-                Configuration.GetSection(NormalizationServiceOptions.Settings).Bind(options);
-                IOptions<NormalizationServiceOptions> normalizationServiceOptions = Options.Create(options);
                 var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, normalizationServiceOptions, collectionContentFactory);
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, collectionContentFactory);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)
@@ -127,6 +126,21 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return checkpointClient;
         }
 
+        public virtual IEventProcessingMetricMeters ResolveEventProcessingMetricMeters(IServiceProvider serviceProvider)
+        {
+            var applicationType = GetConsoleApplicationType();
+
+            if (applicationType == _normalizationAppType)
+            {
+                Metric processingMetric = EventMetrics.EventsConsumed(EventMetricDefinition.DeviceIngressSizeBytes);
+                var meter = new Events.Common.EventProcessingMeter(processingMetric);
+                var meters = new EventProcessingMetricMeters(new List<IEventProcessingMeter>() { meter });
+                return meters;
+            }
+
+            return null;
+        }
+
         public virtual IEventConsumerService ResolveEventConsumerService(IServiceProvider serviceProvider)
         {
             var eventConsumers = serviceProvider.GetRequiredService<List<IEventConsumer>>();
@@ -134,15 +148,16 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             return new EventConsumerService(eventConsumers, logger);
         }
 
-        public virtual IAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
+        public virtual IEnumerableAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
         {
             var eventHubProducerOptions = new EventHubClientOptions();
             Configuration.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
 
             var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
             var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);
+            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient));
+            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient), new HashCodeFactory(), logger);
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
@@ -175,12 +190,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public virtual EventProcessor ResolveEventProcessor(IServiceProvider serviceProvider)
         {
             var eventConsumerService = serviceProvider.GetRequiredService<IEventConsumerService>();
+            var eventProcessingMetricMeters = serviceProvider.GetService<IEventProcessingMetricMeters>();
             var checkpointClient = serviceProvider.GetRequiredService<StorageCheckpointClient>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
+            var eventProcessorClient = serviceProvider.GetRequiredService<EventProcessorClient>();
             var eventBatchingOptions = new EventBatchingOptions();
             Configuration.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
-            var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger);
-            var eventHubReader = new EventProcessor(eventBatchingService, checkpointClient, logger);
+            var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger, eventProcessingMetricMeters);
+            var eventHubReader = new EventProcessor(eventProcessorClient, eventBatchingService, checkpointClient, logger);
             return eventHubReader;
         }
 

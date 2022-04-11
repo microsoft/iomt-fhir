@@ -63,11 +63,21 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     {
                         try
                         {
-                            return evaluatedToken.Value<T>();
+                            var value = evaluatedToken.Value<T>();
+                            var isNull = value is string s ? string.IsNullOrWhiteSpace(s) : value == null;
+
+                            if (isRequired && isNull)
+                            {
+                                exceptions.Add(new IncompatibleDataException($"A null or empty value was supplied for the required field [{name}]"));
+                            }
+                            else
+                            {
+                                return value;
+                            }
                         }
                         catch (Exception e)
                         {
-                            exceptions.Add(new InvalidOperationException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e));
+                            exceptions.Add(new IncompatibleDataException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e));
                         }
                     }
                 }
@@ -76,15 +86,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 {
                     if (exceptions.Count > 0)
                     {
-                        throw new InvalidOperationException($"Unable to extract required value for [{name}]", new AggregateException(exceptions));
+                        throw new IncompatibleDataException($"Unable to extract required value for [{name}]", new AggregateException(exceptions));
                     }
 
-                    throw new InvalidOperationException($"Unable to extract required value for [{name}] using {string.Join(",", expressions.Select(e => e.Value).ToArray())}");
+                    throw new IncompatibleDataException($"Unable to extract required value for [{name}] using {string.Join(",", expressions.Select(e => e.Value).ToArray())}");
                 }
             }
             else if (isRequired)
             {
-                throw new InvalidOperationException($"An expression must be set for [{name}]");
+                throw new IncompatibleDataException($"An expression must be set for [{name}]");
             }
 
             return default;
@@ -111,7 +121,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected virtual IEnumerable<JToken> MatchTypeTokens(JObject token)
         {
             EnsureArg.IsNotNull(token, nameof(token));
-            var evaluator = ExpressionEvaluatorFactory.Create(Template.TypeMatchExpression);
+            var evaluator = CreateRequiredExpressionEvaluator(Template.TypeMatchExpression, nameof(Template.TypeMatchExpression));
 
             foreach (var extractedToken in evaluator.SelectTokens(token))
             {
@@ -122,6 +132,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 tokenClone.Add(MatchedToken, extractedToken);
                 yield return tokenClone;
             }
+        }
+
+        protected IExpressionEvaluator CreateRequiredExpressionEvaluator(TemplateExpression expression, string expressionName)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(expressionName, nameof(expressionName));
+
+            // If the expression object or its value aren't set, throw a detailed exception
+            if (string.IsNullOrWhiteSpace(expression?.Value))
+            {
+                throw new IncompatibleDataException($"An expression must be set for [{expressionName}]");
+            }
+
+            return ExpressionEvaluatorFactory.Create(Template.TypeMatchExpression);
         }
 
         private Measurement CreateMeasurementFromToken(JToken token)

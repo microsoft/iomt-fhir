@@ -3,19 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Model;
 
 namespace Microsoft.Health.Events.EventCheckpointing
 {
     public interface ICheckpointClient
     {
-        Task SetCheckpointAsync(IEventMessage eventArg);
+        Task SetCheckpointAsync(IEventMessage eventArg, IEnumerable<KeyValuePair<Metric, double>> metrics = null);
 
-        Task PublishCheckpointAsync(string partitionId);
+        Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId, CancellationToken cancellationToken);
 
-        Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId);
-
-        Task ResetCheckpointsAsync();
+        Task ResetCheckpointsAsync(CancellationToken cancellationToken = default);
     }
 }

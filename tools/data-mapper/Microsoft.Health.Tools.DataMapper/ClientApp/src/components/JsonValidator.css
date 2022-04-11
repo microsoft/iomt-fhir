@@ -1,0 +1,15 @@
+﻿.CodeMirror {
+    height: 400px;
+    border: 1px solid #dee2e6 !important;
+    font-size: 87.5%;
+}
+
+.line-color-error {
+    background-color: #ffc7ce;
+}
+
+.validation-result {
+    height: 100px;
+    margin-top: 10px;
+    overflow-y: scroll;
+}

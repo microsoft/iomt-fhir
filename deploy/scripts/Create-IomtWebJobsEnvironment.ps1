@@ -33,7 +33,7 @@ param
     [string]$SourceRepository = "https://github.com/microsoft/iomt-fhir",
   
     [Parameter(Mandatory = $false)]
-    [string]$SourceRevision = "master",
+    [string]$SourceRevision = "main",
 
     [Parameter(Mandatory = $true)]
     [string]$FhirServiceUrl,

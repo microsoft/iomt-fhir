@@ -8,6 +8,11 @@ namespace Microsoft.Health.Common.Telemetry
     public static class ErrorType
     {
         /// <summary>
+        /// A metric type for authentication errors
+        /// </summary>
+        public static string AuthenticationError => nameof(AuthenticationError);
+
+        /// <summary>
         /// A metric type for device template errors
         /// </summary>
         public static string DeviceTemplateError => nameof(DeviceTemplateError);
@@ -40,7 +45,7 @@ namespace Microsoft.Health.Common.Telemetry
         /// <summary>
         /// A metric type for errors that occur when interacting with the FHIR server.
         /// </summary>
-        public static string FHIRServerError => nameof(FHIRServerError);
+        public static string FHIRServiceError => nameof(FHIRServiceError);
 
         /// <summary>
         /// A metric type for errors of unknown type (e.g. unhandled exceptions)

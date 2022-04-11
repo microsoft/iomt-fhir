@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -39,6 +40,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             _measurementImportService = EnsureArg.IsNotNull(measurementImportService, nameof(measurementImportService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _retryPolicy = CreateRetryPolicy(logger);
+
+            EventMetrics.SetConnectorOperation(ConnectorOperation.FHIRConversion);
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
@@ -71,17 +74,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
         {
             var type = exception.GetType().ToString();
-            var ToMetric = new Metric(
-                type,
-                new Dictionary<string, object>
-                {
-                    { DimensionNames.Name, type },
-                    { DimensionNames.Category, Category.Errors },
-                    { DimensionNames.ErrorType, ErrorType.GeneralError },
-                    { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                    { DimensionNames.Operation, ConnectorOperation.FHIRConversion},
-                });
-            logger.LogMetric(ToMetric, 1);
+            var metric = type.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.GeneralError, ErrorSeverity.Warning);
+            logger.LogMetric(metric, 1);
         }
     }
 }

@@ -37,7 +37,7 @@ To check NodeJS installation, use below commands:
 
 ### Server
 
-- **.NET Core** version 3.1.9 and above
+- **.NET Core** version 6.0.0 and above
 
 To check .NET installation, use below commands:
 
@@ -95,7 +95,7 @@ This tool is built with ReactJS. It requires Npm dependencies to build and run. 
 
 ### How to Make Mappings
 
-1. Make sure you have read the introduction of [IoMT FHIR Connector for Azure](https://github.com/microsoft/iomt-fhir) and understand the purpose of its [configuration](https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md).
+1. Make sure you have read the introduction of [IoMT FHIR Connector for Azure](https://github.com/microsoft/iomt-fhir) and understand the purpose of its [configuration](https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md).
 2. After you open the tool, you will see the empty list on the page. Now you can add a new mapping by clicking the "Add new mapping" button. You need to provide a unique name for the data type that the mapping should apply to.
    ![Create Mapping](./images/create-new-mapping.png)
 3. Edit the device mapping. Based on your device data structure, you need to fill in the expressions for each mapping field. The syntax is the JSON path. Please check FAQs for common problems.

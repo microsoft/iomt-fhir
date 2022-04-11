@@ -1,0 +1,32 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartRate && @endDate)]",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartRate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "IotJsonPathContent",
+      "template": {
+        "typeName": "bootTime",
+        "values": [
+          {
+            "required": "false",
+            "valueExpression": "$.Body.patientActiveTime",
+            "valueName": "activeTime"
+          }
+        ]
+      }
+    }
+  ]
+}

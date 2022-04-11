@@ -5,19 +5,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Azure;
-using Azure.Identity;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -26,7 +21,6 @@ using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Polly;
 using static Microsoft.Azure.EventHubs.EventData;
-using AzureMessagingEventHubs = Azure.Messaging.EventHubs;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
 {
@@ -35,27 +29,27 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private string _templateDefinition;
         private ITemplateManager _templateManager;
         private ITelemetryLogger _logger;
-        private IAsyncCollector<IMeasurement> _collector;
-        private IOptions<NormalizationServiceOptions> _normalizationOptions;
-        private IEventProcessingMeter _eventProcessingMeter = new EventProcessingMeter();
+        private IEnumerableAsyncCollector<IMeasurement> _collector;
         private AsyncPolicy _retryPolicy;
         private CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
+        private IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
         public Processor(
             string templateDefinition,
             ITemplateManager templateManager,
-            IAsyncCollector<IMeasurement> collector,
+            IEnumerableAsyncCollector<IMeasurement> collector,
             ITelemetryLogger logger,
-            IOptions<NormalizationServiceOptions> options,
             CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory)
         {
             _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
             _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
             _collector = EnsureArg.IsNotNull(collector, nameof(collector));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            _normalizationOptions = EnsureArg.IsNotNull(options, nameof(options));
             _retryPolicy = CreateRetryPolicy(logger);
             _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+
+            EventMetrics.SetConnectorOperation(ConnectorOperation.Normalization);
         }
 
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
@@ -72,7 +66,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             var template = templateContext.Template;
 
             _logger.LogMetric(
-                IomtMetrics.DeviceEvent(),
+                IomtMetrics.DeviceEvent(events.FirstOrDefault()?.PartitionId),
                     events.Count());
 
             IEnumerable<EventData> eventHubEvents = events
@@ -86,52 +80,37 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
                         x.Offset.ToString(),
                         x.PartitionId);
 
-                    foreach (KeyValuePair<string, object> entry in x.Properties)
+                    if (x.Properties != null)
                     {
-                        eventData.Properties[entry.Key] = entry.Value;
+                        foreach (KeyValuePair<string, object> entry in x.Properties)
+                        {
+                            eventData.Properties[entry.Key] = entry.Value;
+                        }
                     }
 
-                    foreach (KeyValuePair<string, object> entry in x.SystemProperties)
+                    if (x.SystemProperties != null)
                     {
-                        eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
+
+                        foreach (KeyValuePair<string, object> entry in x.SystemProperties)
+                        {
+                            eventData.SystemProperties.TryAdd(entry.Key, entry.Value);
+                        }
                     }
 
                     return eventData;
                 });
 
-            var dataNormalizationService = new MeasurementEventNormalizationService(_logger, template);
+            var dataNormalizationService = new MeasurementEventNormalizationService(_logger, template, _exceptionTelemetryProcessor);
             await dataNormalizationService.ProcessAsync(eventHubEvents, _collector).ConfigureAwait(false);
-
-            if (_normalizationOptions.Value.LogDeviceIngressSizeBytes)
-            {
-                var eventStats = await _eventProcessingMeter.CalculateEventStats(eventHubEvents);
-
-                _logger.LogMetric(
-                    IomtMetrics.DeviceIngressSizeBytes(),
-                    eventStats.TotalEventsProcessedBytes);
-            }
         }
 
         private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
         {
+            // Retry on any unhandled exceptions.
+            // TODO (WI - 86288): Handled exceptions (eg: data errors) will not be retried upon indefinitely.
             bool ExceptionRetryableFilter(Exception ee)
             {
-                switch (ee)
-                {
-                    case AggregateException ae when ae.InnerExceptions.Any(ExceptionRetryableFilter):
-                    case OperationCanceledException _:
-                    case HttpRequestException _:
-                    case AzureMessagingEventHubs.EventHubsException _:
-                    case AuthenticationFailedException _:
-                    case RequestFailedException _:
-                    case ValidationException _:
-                        break;
-                    default:
-                        TrackExceptionMetric(ee, logger);
-                        return false;
-                }
-
-                logger.LogTrace($"Encountered retryable exception {ee.GetType()}");
+                logger.LogTrace($"Encountered retryable/unhandled exception {ee.GetType()}");
                 logger.LogError(ee);
                 TrackExceptionMetric(ee, logger);
                 return true;
@@ -145,17 +124,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
         private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
         {
             var type = exception.GetType().ToString();
-            var ToMetric = new Metric(
-                type,
-                new Dictionary<string, object>
-                {
-                    { DimensionNames.Name, type },
-                    { DimensionNames.Category, Category.Errors },
-                    { DimensionNames.ErrorType, ErrorType.DeviceMessageError },
-                    { DimensionNames.ErrorSeverity, ErrorSeverity.Warning },
-                    { DimensionNames.Operation, ConnectorOperation.Normalization},
-                });
-            logger.LogMetric(ToMetric, 1);
+            var metric = type.ToErrorMetric(ConnectorOperation.Normalization, ErrorType.DeviceMessageError, ErrorSeverity.Warning);
+            logger.LogMetric(metric, 1);
         }
     }
 }

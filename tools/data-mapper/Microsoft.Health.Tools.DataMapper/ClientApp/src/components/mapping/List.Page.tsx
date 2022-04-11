@@ -11,6 +11,7 @@ import { ApplicationState } from '../../store';
 import * as MappingsStore from '../../store/Mapping';
 import { default as MappingNameModal, Action } from './List.Modals.Name';
 import MappingExportModal from './List.Modals.Export';
+import MappingImportModal from './List.Modals.Import';
 import PersistService from '../../services/PersistService';
 import { Mapping } from '../../store/Mapping';
 import * as Constants from '../Constants';
@@ -25,6 +26,7 @@ type MappingListProps =
 class MappingListPage extends React.PureComponent<MappingListProps> {
 
     public componentDidMount() {
+        this.ensureMappingsFetched = this.ensureMappingsFetched.bind(this);
         this.createMapping = this.createMapping.bind(this);
         this.renameMapping = this.renameMapping.bind(this);
         this.ensureMappingsFetched();
@@ -80,6 +82,11 @@ class MappingListPage extends React.PureComponent<MappingListProps> {
                     <MappingNameModal
                         onSave={this.createMapping}
                         action={Action.Create}
+                    />
+                </div>
+                <div className="d-inline-block m-1 mb-3">
+                    <MappingImportModal
+                        onImported={this.ensureMappingsFetched}
                     />
                 </div>
                 <div className="d-inline-block m-1 mb-3">

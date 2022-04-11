@@ -38,7 +38,7 @@ param
     [string]$SourceRepository = "https://github.com/microsoft/iomt-fhir",
   
     [Parameter(Mandatory = $false)]
-    [string]$SourceRevision = "master",
+    [string]$SourceRevision = "main",
 
 	[parameter(Mandatory = $false)]
     [SecureString]$AdminPassword,

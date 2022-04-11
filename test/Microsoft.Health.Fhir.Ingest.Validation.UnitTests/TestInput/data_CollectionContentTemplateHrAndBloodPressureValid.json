@@ -1,0 +1,43 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartrate)]",
+        "deviceIdExpression": "$.device",
+        "timestampExpression": "$.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartrate",
+            "valueName": "hr"
+          }
+        ]
+      }
+    },
+    {
+      "templateType": "JsonPathContent",
+      "template": {
+        "typeName": "bloodpressure",
+        "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
+        "deviceIdExpression": "$.device",
+        "patientIdExpression": "$.patient",
+        "timestampExpression": "$.date",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.systolic",
+            "valueName": "systolic"
+          },
+          {
+            "required": "true",
+            "valueExpression": "$.diastolic",
+            "valueName": "diastolic"
+          }
+        ]
+      }
+    }
+  ]
+}

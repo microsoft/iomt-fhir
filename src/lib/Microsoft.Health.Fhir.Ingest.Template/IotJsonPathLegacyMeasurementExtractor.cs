@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class IotJsonPathLegacyMeasurementExtractor : LegacyMeasurementExtractor
     {
-        private IotJsonPathContentTemplate _template;
+        private readonly IotJsonPathContentTemplate _template;
 
         public IotJsonPathLegacyMeasurementExtractor(
             IotJsonPathContentTemplate template)

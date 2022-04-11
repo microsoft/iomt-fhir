@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Health.Events.Model
 {
@@ -31,7 +32,7 @@ namespace Microsoft.Health.Events.Model
             Offset = offset;
             EnqueuedTime = enqueuedTime;
             Properties = new Dictionary<string, object>(properties);
-            SystemProperties = new Dictionary<string, object>(systemProperties);
+            SystemProperties = systemProperties == null ? new Dictionary<string, object>() : systemProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
         public string PartitionId { get; }

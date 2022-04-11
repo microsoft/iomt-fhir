@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -16,9 +15,12 @@ using Azure.Messaging.EventHubs;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
+using Microsoft.Health.Common.Extension;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventCheckpointing
@@ -27,17 +29,15 @@ namespace Microsoft.Health.Events.EventCheckpointing
     {
         private readonly string _blobCheckpointPrefix;
         private readonly string _blobPath;
-        private readonly ConcurrentDictionary<string, Checkpoint> _checkpoints;
-        private readonly int _lastCheckpointMaxCount;
-        private readonly ConcurrentDictionary<string, int> _lastCheckpointTracker;
-        private readonly ITelemetryLogger _log;
+        private readonly ITelemetryLogger _logger;
         private readonly BlobContainerClient _storageClient;
 
-        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger log)
+        public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger logger)
         {
-            EnsureArg.IsNotNull(containerClient, nameof(containerClient));
+            _storageClient = EnsureArg.IsNotNull(containerClient, nameof(containerClient));
             EnsureArg.IsNotNull(storageCheckpointOptions, nameof(storageCheckpointOptions));
             EnsureArg.IsNotNull(eventHubClientOptions, nameof(eventHubClientOptions));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
             (string eventHubNamespaceFQDN, string eventHubName) = GetEventHubProperties(eventHubClientOptions);
             EnsureArg.IsNotNullOrWhiteSpace(eventHubNamespaceFQDN, nameof(eventHubNamespaceFQDN));
@@ -46,12 +46,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
             // Blob path for checkpoints includes the event hub name to scope the checkpoints per source event hub.
             _blobCheckpointPrefix = $"{storageCheckpointOptions.BlobPrefix}/checkpoint/";
             _blobPath = $"{_blobCheckpointPrefix}{eventHubNamespaceFQDN}/{eventHubName}/";
-
-            _lastCheckpointMaxCount = int.Parse(storageCheckpointOptions.CheckpointBatchCount);
-            _checkpoints = new ConcurrentDictionary<string, Checkpoint>();
-            _lastCheckpointTracker = new ConcurrentDictionary<string, int>();
-            _storageClient = containerClient;
-            _log = log;
         }
 
         public BlobContainerClient GetBlobContainerClient()
@@ -87,15 +81,13 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     }
                 }
             }
-#pragma warning disable CA1031
             catch (Exception ex)
-#pragma warning restore CA1031
             {
-                _log.LogError(new Exception($"Unable to update checkpoint. {ex.Message}"));
+                _logger.LogError(new StorageCheckpointClientException($"Unable to update checkpoint. {ex.Message}", ex));
             }
         }
 
-        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier)
+        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
         {
             var prefix = $"{_blobPath}{partitionIdentifier}";
 
@@ -103,7 +95,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             {
                 var checkpoint = new Checkpoint();
 
-                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: CancellationToken.None))
+                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: cancellationToken))
                 {
                     var partitionId = blob.Name.Split('/').Last();
                     DateTimeOffset lastEventTimestamp = DateTime.MinValue;
@@ -123,19 +115,16 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
-                // todo: consider retries
                 return GetCheckpointAsync();
             }
-#pragma warning disable CA1031
             catch (Exception ex)
-#pragma warning restore CA1031
             {
-                _log.LogError(new Exception($"Unable to get checkpoint for partition. {ex.Message}"));
+                _logger.LogError(new StorageCheckpointClientException($"Unable to get checkpoint for partition. {ex.Message}", ex));
                 throw;
             }
         }
 
-        public async Task SetCheckpointAsync(IEventMessage eventArgs)
+        public async Task SetCheckpointAsync(IEventMessage eventArgs, IEnumerable<KeyValuePair<Metric, double>> metrics = null)
         {
             EnsureArg.IsNotNull(eventArgs);
             EnsureArg.IsNotNullOrWhiteSpace(eventArgs.PartitionId);
@@ -143,69 +132,73 @@ namespace Microsoft.Health.Events.EventCheckpointing
             try
             {
                 var partitionId = eventArgs.PartitionId;
-                var checkpoint = new Checkpoint();
-                checkpoint.LastProcessed = eventArgs.EnqueuedTime;
-                checkpoint.Id = partitionId;
-                checkpoint.Prefix = _blobPath;
-
-                _checkpoints[partitionId] = checkpoint;
-                var count = _lastCheckpointTracker.AddOrUpdate(partitionId, 1, (key, value) => value + 1);
-
-                if (count >= _lastCheckpointMaxCount)
+                var checkpoint = new Checkpoint
                 {
-                    await PublishCheckpointAsync(partitionId);
-                    _log.LogMetric(EventMetrics.EventWatermark(partitionId, eventArgs.EnqueuedTime.UtcDateTime), 1);
-                    _lastCheckpointTracker[partitionId] = 0;
+                    LastProcessed = eventArgs.EnqueuedTime,
+                    Id = partitionId,
+                    Prefix = _blobPath,
+                };
+
+                await UpdateCheckpointAsync(checkpoint);
+
+                _logger.LogMetric(EventMetrics.EventWatermark(partitionId), 1);
+
+                if (metrics != null)
+                {
+                    foreach (var metric in metrics)
+                    {
+                        _logger.LogMetric(metric.Key, metric.Value);
+                    }
                 }
             }
-#pragma warning disable CA1031
             catch (Exception ex)
-#pragma warning restore CA1031
             {
-                _log.LogError(new Exception($"Unable to set checkpoint. {ex.Message}"));
+                _logger.LogError(new StorageCheckpointClientException($"Unable to set checkpoint. {ex.Message}", ex));
             }
-        }
-
-        public async Task PublishCheckpointAsync(string partitionId)
-        {
-            Checkpoint checkpoint = _checkpoints[partitionId];
-            await UpdateCheckpointAsync(checkpoint);
         }
 
         /// <summary>
         /// Deletes the previously recorded checkpoints if the current checkpoint blob path (corresponding to the input event hub) has changed.
         /// </summary>
-        public async Task ResetCheckpointsAsync()
+        /// <param name="cancellationToken">A cancellation token</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task ResetCheckpointsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                _log.LogTrace($"Entering {nameof(ResetCheckpointsAsync)}...");
+                _logger.LogTrace($"Entering {nameof(ResetCheckpointsAsync)}...");
 
-                foreach (BlobItem blob in _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: CancellationToken.None))
+                var hasEventHubChanged = false;
+
+                var blobs = _storageClient.GetBlobs(states: BlobStates.All, prefix: _blobCheckpointPrefix, cancellationToken: cancellationToken);
+
+                foreach (BlobItem blob in blobs)
                 {
                     if (!blob.Name.Contains(_blobPath, StringComparison.OrdinalIgnoreCase))
                     {
                         try
                         {
-                            await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: CancellationToken.None);
-                            _log.LogTrace($"Blob checkpoint path changed to {_blobPath}. Deleted checkpoint {blob.Name}.");
+                            await _storageClient.DeleteBlobAsync(blob.Name, cancellationToken: cancellationToken);
+                            _logger.LogTrace($"Blob checkpoint path changed to {_blobPath}. Deleted checkpoint {blob.Name}.");
+                            hasEventHubChanged = true;
                         }
-#pragma warning disable CA1031
                         catch (Exception ex)
-#pragma warning restore CA1031
                         {
-                            _log.LogError(new Exception($"Unable to delete checkpoint {blob.Name} with error {ex.Message}"));
+                            _logger.LogError(new StorageCheckpointClientException($"Unable to delete checkpoint {blob.Name} with error {ex.Message}", ex));
                         }
                     }
                 }
 
-                _log.LogTrace($"Exiting {nameof(ResetCheckpointsAsync)}.");
+                if (blobs.Count() == 0 || hasEventHubChanged)
+                {
+                    _logger.LogMetric(EventMetrics.EventHubChanged(_blobPath.Replace(_blobCheckpointPrefix, string.Empty)), 1);
+                }
+
+                _logger.LogTrace($"Exiting {nameof(ResetCheckpointsAsync)}.");
             }
-#pragma warning disable CA1031
             catch (Exception ex)
-#pragma warning restore CA1031
             {
-                _log.LogError(new Exception($"Unable to reset checkpoints. {ex.Message}"));
+                _logger.LogError(new StorageCheckpointClientException($"Unable to reset checkpoints. {ex.Message}", ex));
             }
         }
 
@@ -226,11 +219,9 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     eventHubNamespaceFQDN = eventHubsConnectionStringProperties.FullyQualifiedNamespace;
                     eventHubName = eventHubsConnectionStringProperties.EventHubName;
                 }
-#pragma warning disable CA1031
                 catch (Exception ex)
-#pragma warning restore CA1031
                 {
-                    _log.LogError(new Exception($"Unable to parse event hub properties. {ex.Message}"));
+                    _logger.LogError(new StorageCheckpointClientException($"Unable to parse event hub properties. {ex.Message}", ex));
                 }
             }
 

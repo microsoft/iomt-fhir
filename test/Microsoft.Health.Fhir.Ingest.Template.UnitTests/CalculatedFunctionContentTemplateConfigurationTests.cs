@@ -139,7 +139,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredValueExpression_And_UsingJsonPath_ExceptionIsThrown_Test()
         {
-            var exp = Assert.Throws<InvalidOperationException>(() =>
+            var exp = Assert.Throws<IncompatibleDataException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
@@ -163,7 +163,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredValueExpression_And_UsingJMESPath_ExceptionIsThrown_Test()
         {
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<IncompatibleDataException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
@@ -187,7 +187,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredDeviceIdExpression_ExceptionIsThrown_Test()
         {
-            var exp = Assert.Throws<InvalidOperationException>(() =>
+            var exp = Assert.Throws<IncompatibleDataException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
@@ -210,7 +210,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredTimestampExpression_ExceptionIsThrown_Test()
         {
-            var exp = Assert.Throws<InvalidOperationException>(() =>
+            var exp = Assert.Throws<IncompatibleDataException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
@@ -233,7 +233,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredCorrelationIdValue_ExceptionIsThrown_Test()
         {
-            var exp = Assert.Throws<InvalidOperationException>(() =>
+            var exp = Assert.Throws<IncompatibleDataException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate
@@ -257,7 +257,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [Fact]
         public void Given_MissingRequiredDeviceIdValue_ExceptionIsThrown_Test()
         {
-            var exp = Assert.Throws<InvalidOperationException>(() =>
+            var exp = Assert.Throws<IncompatibleDataException>(() =>
             {
                 PerformEvaluation(
                 new CalculatedFunctionContentTemplate

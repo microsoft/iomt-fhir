@@ -91,7 +91,7 @@ export const DeviceEditFormTutorial = (props: {}) => {
                     </tbody>
                 </table>
                 <p>
-                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>
@@ -146,7 +146,7 @@ export const FhirValueFormTutorial = (props: {}) => {
                     </tbody>
                 </table>
                 <p>
-                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>
@@ -170,7 +170,7 @@ export const FhirComponentsFormTutorial = (props: {}) => {
                     <li>Codings of each component should be specified to the value in it.</li>
                 </ul>
                 <p>
-                    Please check "Heart Rate - Sampled Data" as an example in <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    Please check "Heart Rate - Sampled Data" as an example in <a href="https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>
@@ -188,7 +188,7 @@ export const FhirCodesFormTutorial = (props: {}) => {
                     Add <a href="https://www.hl7.org/fhir/observation-definitions.html#Observation.code">Observation.code</a> to the final FHIR Observation resource.
                 </p>
                 <p>
-                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>
@@ -209,7 +209,7 @@ export const FhirCategoryFormTutorial = (props: {}) => {
                     This is optional information.
                 </p>
                 <p>
-                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    For more information, please visit: <a href="https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>
@@ -235,7 +235,7 @@ export const FhirGroupingGroupTutorial = (props: {}) => {
                     <li>1 Day</li>
                 </ul>
                 <p>
-                    For more information, please check "PeriodInterval" in: <a href="https://github.com/microsoft/iomt-fhir/blob/master/docs/Configuration.md">IoMT Mapping Configuration</a>
+                    For more information, please check "PeriodInterval" in: <a href="https://github.com/microsoft/iomt-fhir/blob/main/docs/Configuration.md">IoMT Mapping Configuration</a>
                 </p>
             </CardBody>
         </Card>

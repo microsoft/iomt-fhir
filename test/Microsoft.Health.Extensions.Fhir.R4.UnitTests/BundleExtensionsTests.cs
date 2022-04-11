@@ -7,9 +7,10 @@ using System;
 using System.Collections.Generic;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Serialization;
-using Microsoft.Health.Tests.Common;
+using Microsoft.Health.Common;
 using NSubstitute;
 using Xunit;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 {
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
                 Link = new List<Bundle.LinkComponent>(),
             };
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
 
             Assert.Null(await bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client));
         }
@@ -50,10 +51,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             bundle.Entry.Add(entry);
 
-            MockFhirResourceHttpMessageHandler messageHandler = Utilities.CreateMockMessageHandler();
-            messageHandler.GetReturnContent(default).ReturnsForAnyArgs((Bundle)null);
-
-            var client = Utilities.CreateMockFhirClient(messageHandler);
+            var client = Utilities.CreateMockFhirService();
 
             var result = await bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client);
 
@@ -88,9 +86,10 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             continuationBundle.Entry.Add(entry);
 
-            MockFhirResourceHttpMessageHandler messageHandler = Utilities.CreateMockMessageHandler();
-            messageHandler.GetReturnContent(default).ReturnsForAnyArgs(continuationBundle, null);
-            var client = Utilities.CreateMockFhirClient(messageHandler);
+            var client = Utilities.CreateMockFhirService();
+            client.IterateOverAdditionalBundlesAsync(Arg.Any<Bundle>()).Returns(
+                    x => GetTestValues(continuationBundle),
+                    x => null);
 
             var result = await bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client);
 
@@ -121,7 +120,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             bundle.Entry.Add(entry2);
 
-            var client = Utilities.CreateMockFhirClient();
+            var client = Utilities.CreateMockFhirService();
 
             await Assert.ThrowsAsync<MultipleResourceFoundException<Observation>>(() => bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client));
         }
@@ -162,11 +161,19 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             };
             continuationBundle.Entry.Add(entry2);
 
-            MockFhirResourceHttpMessageHandler messageHandler = Utilities.CreateMockMessageHandler();
-            messageHandler.GetReturnContent(default).ReturnsForAnyArgs(continuationBundle, null);
-            var client = Utilities.CreateMockFhirClient(messageHandler);
+            var client = Utilities.CreateMockFhirService();
+            client.IterateOverAdditionalBundlesAsync(Arg.Any<Bundle>()).Returns(
+                    x => GetTestValues(continuationBundle),
+                    x => null);
 
             await Assert.ThrowsAsync<MultipleResourceFoundException<Observation>>(() => bundle.ReadOneFromBundleWithContinuationAsync<Observation>(client));
+        }
+
+        private static async IAsyncEnumerable<Bundle> GetTestValues(Bundle bundle)
+        {
+            yield return bundle;
+
+            await Task.CompletedTask;
         }
     }
 }

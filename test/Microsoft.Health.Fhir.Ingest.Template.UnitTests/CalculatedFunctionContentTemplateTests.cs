@@ -172,7 +172,41 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     },
                 });
 
-            Assert.Throws<InvalidOperationException>(() => template.GetMeasurements(token).ToArray());
+            Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
+        }
+
+        [Theory]
+        [MemberData(nameof(GetMultiValueRequiredTemplates))]
+        public void GivenMultiValueRequiredTemplateAndValidTokenWithNullValue_WhenGetMeasurements_ThenInvalidOperationException_Test(IContentTemplate template)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(
+                new
+                {
+                    Body = new[]
+                    {
+                        new { systolic = "120", diastolic = (string)null, device = "abc", date = time },
+                    },
+                });
+
+            Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
+        }
+
+        [Theory]
+        [MemberData(nameof(GetMultiValueRequiredTemplates))]
+        public void GivenMultiValueRequiredTemplateAndValidTokenWithEmptyValue_WhenGetMeasurements_ThenInvalidOperationException_Test(IContentTemplate template)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(
+                new
+                {
+                    Body = new[]
+                    {
+                        new { systolic = "120", diastolic = string.Empty, device = "abc", date = time },
+                    },
+                });
+
+            Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
         }
 
         [Theory]
@@ -239,6 +273,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Assert.Equal("60", p.Value);
                 });
             });
+        }
+
+        [Theory]
+        [MemberData(nameof(GetSingleValueTemplates))]
+        public void GivenSingleValueTemplateAndNullTimestampToken_WhenGetMeasurements_Then_ExceptionIsThrown(IContentTemplate contentTemplate)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = (DateTime?)null });
+
+            Assert.Throws<IncompatibleDataException>(() => contentTemplate.GetMeasurements(token).ToArray());
         }
 
         [Theory]
@@ -415,7 +459,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
 
-            var ex = Assert.Throws<InvalidOperationException>(() => template.GetMeasurements(token).ToArray());
+            var ex = Assert.Throws<IncompatibleDataException>(() => template.GetMeasurements(token).ToArray());
             Assert.Contains("Unable to extract required value for [CorrelationIdExpression]", ex.Message);
         }
 

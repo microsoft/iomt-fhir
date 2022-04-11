@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -251,7 +250,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { systolic = "120", device = "abc", date = time });
 
-            Assert.Throws<InvalidOperationException>(() => MultiValueRequiredTemplate.GetMeasurements(token).ToArray());
+            Assert.Throws<IncompatibleDataException>(() => MultiValueRequiredTemplate.GetMeasurements(token).ToArray());
         }
 
         [Fact]
@@ -415,6 +414,31 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             });
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
+        public void GivenInvalidTypeMatchExpression_WhenGetMeasurements_ThenExceptionIsThrown_Test(string typeMatchExpression)
+        {
+            var time = DateTime.UtcNow;
+            var token = JToken.FromObject(new JsonWidget { MyProperty = "data", Time = time });
+
+            var template = new JsonPathContentTemplate
+            {
+                TypeName = "space",
+                TypeMatchExpression = typeMatchExpression,
+                DeviceIdExpression = "$.['My Property']",
+                TimestampExpression = "$.Time",
+                Values = new List<JsonPathValueExpression>
+                {
+                    new JsonPathValueExpression { ValueName = "prop", ValueExpression = "$.['My Property']", Required = false },
+                },
+            };
+
+            var ex = Assert.Throws<IncompatibleDataException>(() => BuildMeasurementExtractor(template).GetMeasurements(token).ToArray());
+            Assert.Equal("An expression must be set for [TypeMatchExpression]", ex.Message);
+        }
+
         [Fact]
         public void GivenSingleValueCompoundAndTemplateAndPartialToken_WhenGetMeasurements_ThenEmptyIEnumerableReturned_Test()
         {
@@ -471,7 +495,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var time = DateTime.UtcNow;
             var token = JToken.FromObject(new { heartrate = "60", device = "abc", date = time });
 
-            var ex = Assert.Throws<InvalidOperationException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
+            var ex = Assert.Throws<IncompatibleDataException>(() => CorrelationIdTemplate.GetMeasurements(token).ToArray());
             Assert.StartsWith("Unable to extract required value for [CorrelationIdExpression]", ex.Message);
         }
 

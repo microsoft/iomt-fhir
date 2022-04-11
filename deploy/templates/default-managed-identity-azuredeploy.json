@@ -19,7 +19,7 @@
     },
     "RepositoryBranch": {
       "type": "string",
-      "defaultValue": "master",
+      "defaultValue": "main",
       "metadata": {
         "description": "Source code branch to deploy."
       }
@@ -567,7 +567,7 @@
           "properties": {
             "InputEventHub": "[concat('Endpoint=sb://', variables('eventhub_hostname'), '/;Authentication=ManagedIdentity;EntityPath=', variables('devicedata_name'))]",
             "OutputEventHub": "[concat('Endpoint=sb://', variables('eventhub_hostname'), '/;Authentication=ManagedIdentity;EntityPath=', variables('normalizeddata_name'))]",
-            "FUNCTIONS_EXTENSION_VERSION": "~3",
+            "FUNCTIONS_EXTENSION_VERSION": "~4",
             "FUNCTIONS_EXTENSION_RUNTIME": "dotnet",
             "PROJECT": "src/func/Microsoft.Health.Fhir.Ingest.Host/Microsoft.Health.Fhir.Ingest.Host.csproj",
             "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', variables('key_vault_name'),'blob-storage-cs'), '2018-02-14').secretUriWithVersion, ')')]",

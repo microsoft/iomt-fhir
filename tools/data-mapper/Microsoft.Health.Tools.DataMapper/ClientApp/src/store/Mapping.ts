@@ -4,5 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 export * from './Mapping.Actions';
+export * from './Mapping.Constants';
 export * from './Mapping.Reducers';
 export * from './Mapping.States';

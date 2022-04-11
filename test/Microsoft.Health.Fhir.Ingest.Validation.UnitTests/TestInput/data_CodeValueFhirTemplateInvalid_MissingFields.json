@@ -1,0 +1,18 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "codes": [
+      {
+        "code": "8867-4",
+        "system": "http://loinc.org"
+      }
+    ],
+    "periodInterval": 60,
+    "value": {
+      "defaultPeriod": 5000,
+      "unit": "bpm",
+      "valueName": "hr",
+      "valueType": "sampledData"
+    }
+  }
+}
