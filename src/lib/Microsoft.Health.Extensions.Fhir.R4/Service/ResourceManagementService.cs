@@ -43,7 +43,6 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
 
             var identifier = BuildIdentifier(value, system);
-
             return await GetResourceByIdentityAsync<TResource>(client, identifier).ConfigureAwait(false);
         }
 
@@ -54,7 +53,6 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             var searchParams = identifier.ToSearchParams();
             var result = await client.SearchAsync<TResource>(searchParams).ConfigureAwait(false);
-
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(client);
         }
 
@@ -67,15 +65,10 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             propertySetter?.Invoke(resource, identifier);
 
-            // If patient resource, then generate id programatically and issue an update to FHIR service
-            // The patient resource will be created if the resource with the given id does not already exist.
-            if (typeof(TResource) == typeof(Model.Patient))
-            {
-                resource.Id = ToGuid(identifier.Value.ToString()).ToString();
-                return await client.UpdateAsync<TResource>(resource).ConfigureAwait(false);
-            }
-
-            return await client.CreateAsync<TResource>(resource).ConfigureAwait(false);
+            // Generate id programatically and issue an update to FHIR service
+            // The resource will be created if the resource with the given id does not already exist.
+            resource.Id = ToBase64Variant(identifier);
+            return await client.UpdateAsync<TResource>(resource).ConfigureAwait(false);
         }
 
         private static Model.Identifier BuildIdentifier(string value, string system)
@@ -84,15 +77,21 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             return identifier;
         }
 
-        private static Guid ToGuid(string value)
+        private static string ToBase64Variant(Model.Identifier identifier)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
+            EnsureArg.IsNotNullOrWhiteSpace(identifier.Value, nameof(identifier.Value));
 
-            using (MD5 md5 = MD5.Create())
-            {
-                byte[] hash = md5.ComputeHash(Encoding.Default.GetBytes(value));
-                return new Guid(hash);
-            }
+            string plainTextId = $"{identifier.System}_{identifier.Value}";
+            var encodedId = Encoding.UTF8.GetBytes(plainTextId);
+            var base64 = Convert.ToBase64String(encodedId);
+
+            StringBuilder sb = new StringBuilder(base64);
+
+            sb.Replace("+", "-");
+            sb.Replace("/", "_");
+            sb.Replace("=", ".");
+
+            return sb.ToString().ToLower();
         }
     }
 }
