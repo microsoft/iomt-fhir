@@ -96,7 +96,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             sb.Replace("/", "_");
             sb.Replace("=", ".");
 
-            return sb.ToString().ToLower();
+            return sb.ToString();
         }
     }
 }
