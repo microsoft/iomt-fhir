@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -72,7 +73,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             // Generate id programatically and issue an update to FHIR service
             // The resource will be created if the resource with the given id does not already exist.
-            resource.Id = ToBase64Variant(identifier);
+            resource.Id = ComputeSha256(identifier);
             return await FhirService.UpdateResourceAsync<TResource>(resource).ConfigureAwait(false);
         }
 
@@ -82,21 +83,24 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             return identifier;
         }
 
-        private static string ToBase64Variant(Model.Identifier identifier)
+        private static string ComputeSha256(Model.Identifier identifier)
         {
             EnsureArg.IsNotNullOrWhiteSpace(identifier.Value, nameof(identifier.Value));
 
-            string plainTextId = $"{identifier.System}_{identifier.Value}";
-            var encodedId = Encoding.UTF8.GetBytes(plainTextId);
-            var base64 = Convert.ToBase64String(encodedId);
+            string plainTextSystemAndId = $"{identifier.System}_{identifier.Value}";
 
-            StringBuilder sb = new StringBuilder(base64);
+            using (SHA256 hashAlgorithm = SHA256.Create())
+            {
+                byte[] bytes = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(plainTextSystemAndId));
 
-            sb.Replace("+", "-");
-            sb.Replace("/", "_");
-            sb.Replace("=", ".");
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    sb.Append(bytes[i].ToString("x2"));
+                }
 
-            return sb.ToString();
+                return sb.ToString();
+            }
         }
     }
 }
