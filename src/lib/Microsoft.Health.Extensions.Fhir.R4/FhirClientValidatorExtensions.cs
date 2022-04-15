@@ -12,7 +12,7 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
-    public static class FhirClientValidator
+    public static class FhirClientValidatorExtensions
     {
         public static async Task<bool> ValidateFhirClientAsync(
             this IFhirClient client,

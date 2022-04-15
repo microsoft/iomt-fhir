@@ -128,42 +128,42 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(grp, nameof(grp));
             EnsureArg.IsNotNull(existingObservation, nameof(existingObservation));
 
-            existingObservation.Status = ObservationStatus.Amended;
+            var mergedObservation = existingObservation.DeepCopy() as Observation;
 
-            existingObservation.Category = null;
+            mergedObservation.Category = null;
             if (template?.Category?.Count > 0)
             {
-                existingObservation.Category = ResolveCategory(template.Category);
+                mergedObservation.Category = ResolveCategory(template.Category);
             }
 
             var values = grp.GetValues();
-            (DateTime start, DateTime end) observationPeriod = GetObservationPeriod(existingObservation);
+            (DateTime start, DateTime end) observationPeriod = GetObservationPeriod(mergedObservation);
 
             // Update observation value
             if (!string.IsNullOrWhiteSpace(template?.Value?.ValueName) && values.TryGetValue(template?.Value?.ValueName, out var obValues))
             {
-                existingObservation.Value = _valueProcessor.MergeValue(template.Value, CreateMergeData(grp.Boundary, observationPeriod, obValues), existingObservation.Value);
+                mergedObservation.Value = _valueProcessor.MergeValue(template.Value, CreateMergeData(grp.Boundary, observationPeriod, obValues), mergedObservation.Value);
             }
 
             // Update observation component values
             if (template?.Components?.Count > 0)
             {
-                if (existingObservation.Component == null)
+                if (mergedObservation.Component == null)
                 {
-                    existingObservation.Component = new List<Observation.ComponentComponent>(template.Components.Count);
+                    mergedObservation.Component = new List<Observation.ComponentComponent>(template.Components.Count);
                 }
 
                 foreach (var component in template.Components)
                 {
                     if (values.TryGetValue(component.Value.ValueName, out var compValues))
                     {
-                        var foundComponent = existingObservation.Component
+                        var foundComponent = mergedObservation.Component
                             .Where(c => c.Code.Coding.Any(code => code.Code == component.Value.ValueName && code.System == FhirImportService.ServiceSystem))
                             .FirstOrDefault();
 
                         if (foundComponent == null)
                         {
-                            existingObservation.Component.Add(
+                            mergedObservation.Component.Add(
                                 new Observation.ComponentComponent
                                 {
                                     Code = ResolveCode(component.Value.ValueName, component.Codes),
@@ -189,9 +189,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 observationPeriod.end = grp.Boundary.End;
             }
 
-            existingObservation.Effective = observationPeriod.ToPeriod();
+            mergedObservation.Effective = observationPeriod.ToPeriod();
 
-            return existingObservation;
+            return mergedObservation;
         }
 
         protected override IEnumerable<IObservationGroup> CreateObservationGroupsImpl(CodeValueFhirTemplate template, IMeasurementGroup measurementGroup)
