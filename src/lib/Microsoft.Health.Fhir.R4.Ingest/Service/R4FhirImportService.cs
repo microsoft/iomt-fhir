@@ -113,7 +113,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     // Merge the new data with the existing Observation.
                     var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
 
-                    // Check to see if there are any changes after merging and update the Status to ammended if changed.
+                    // Check to see if there are any changes after merging and update the Status to amended if changed.
                     if (!existingObservation.AmendIfChanged(mergedObservation))
                     {
                         // There are no changes to the Observation - Do not update.
