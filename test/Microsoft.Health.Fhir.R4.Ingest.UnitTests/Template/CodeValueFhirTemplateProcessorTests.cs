@@ -290,7 +290,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
 
-            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            Assert.Equal(oldObservation.Status, newObservation.Status);
             valueProcessor.DidNotReceiveWithAnyArgs().MergeValue(default, default, default);
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var newObservation = processor.MergeObservation(template, observationGroup, oldObservation);
             Assert.Equal(dataType, newObservation.Value);
 
-            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            Assert.Equal(oldObservation.Status, newObservation.Status);
             valueProcessor.Received(1)
                 .MergeValue(
                     valueType,
@@ -346,7 +346,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         && v.ObservationPeriod.start == boundary.start
                         && v.ObservationPeriod.end == boundary.end
                         && v.Data.First().Item2 == "v1"),
-                    oldValue);
+                    Arg.Is<Quantity>(v => v.IsExactly(oldValue)));
         }
 
         [Fact]
@@ -460,7 +460,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Assert.Equal(dataType, c.Value);
                 });
 
-            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            Assert.Equal(oldObservation.Status, newObservation.Status);
             valueProcessor.Received(1)
                 .MergeValue(
                     valueType1,
@@ -470,7 +470,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         && v.ObservationPeriod.start == boundary.start
                         && v.ObservationPeriod.end == boundary.end
                         && v.Data.First().Item2 == "v2"),
-                    oldValue);
+                    Arg.Is<Quantity>(v => v.IsExactly(oldValue)));
 
             valueProcessor.Received(1)
                 .CreateValue(
@@ -558,7 +558,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                     Assert.Equal(dataType, c.Value);
                 });
 
-            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            Assert.Equal(oldObservation.Status, newObservation.Status);
 
             valueProcessor.Received(1)
                 .CreateValue(
@@ -820,7 +820,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal(boundary.start, start);
             Assert.Equal(boundary.end, end);
 
-            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            Assert.Equal(oldObservation.Status, newObservation.Status);
             valueProcessor.Received(1)
                 .MergeValue(
                     valueType,
@@ -830,7 +830,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         && v.ObservationPeriod.start == observationStart
                         && v.ObservationPeriod.end == observationEnd
                         && v.Data.First().Item2 == "v1"),
-                    oldValue);
+                    Arg.Is<Quantity>(v => v.IsExactly(oldValue)));
         }
 
         [Fact]
@@ -875,7 +875,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.Equal(observationStart, start);
             Assert.Equal(observationEnd, end);
 
-            Assert.Equal(ObservationStatus.Amended, newObservation.Status);
+            Assert.Equal(oldObservation.Status, newObservation.Status);
             valueProcessor.Received(1)
                 .MergeValue(
                     valueType,
@@ -885,7 +885,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         && v.ObservationPeriod.start == observationStart
                         && v.ObservationPeriod.end == observationEnd
                         && v.Data.First().Item2 == "v1"),
-                    oldValue);
+                    Arg.Is<Quantity>(v => v.IsExactly(oldValue)));
         }
     }
 }

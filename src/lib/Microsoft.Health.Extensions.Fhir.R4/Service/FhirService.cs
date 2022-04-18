@@ -76,6 +76,12 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         {
             EnsureArg.IsNotNull(resource, nameof(resource));
 
+            if (string.IsNullOrWhiteSpace(ifMatchVersion) && resource.HasVersionId)
+            {
+                // Underlying FhirClient already adds the W/"" formating and inserts content of the ifMatchVersion
+                ifMatchVersion = resource.VersionId.ToString();
+            }
+
             return await _fhirClient.UpdateAsync(resource, ifMatchVersion, provenanceHeader, cancellationToken).ConfigureAwait(false);
         }
 
