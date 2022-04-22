@@ -113,14 +113,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Device = new ResourceReference(@"Device/123"),
                 Subject = new ResourceReference(@"Patient/abc"),
                 Status = ObservationStatus.Final,
-                Identifier = new List<Identifier>
-                {
-                    new Identifier
-                    {
-                        System = "Test",
-                        Value = "id",
-                    },
-                },
+                Identifier = BuildIdentifiers(),
                 Effective = new Period(new FhirDateTime(DateTimeOffset.Now.AddHours(-1)), new FhirDateTime(DateTimeOffset.Now)),
             };
 
@@ -170,7 +163,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenFoundObservationAndConflictOnSave_WhenSaveObservationAsync_ThenGetAndUpdateInvoked_Test()
         {
-            var foundObservation1 = new Observation { Id = "1" };
+            var foundObservation1 = new Observation { Id = "1", Identifier = BuildIdentifiers() };
             var foundBundle1 = new Bundle
             {
                 Entry = new List<Bundle.EntryComponent>
@@ -350,7 +343,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenFoundObservationUnchanged_WhenSaveObservationAsync_ThenUpdateInvoked_Test()
         {
-            var foundObservation = new Observation { Id = "1" };
+            var foundObservation = new Observation { Id = "1", Identifier = BuildIdentifiers() };
             var foundBundle = new Bundle
             {
                 Entry = new List<Bundle.EntryComponent>
@@ -396,6 +389,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             lookup[ResourceType.Device] = "deviceId";
             lookup[ResourceType.Patient] = "patientId";
             return lookup;
+        }
+
+        private static List<Identifier> BuildIdentifiers()
+        {
+            return new List<Identifier>
+            {
+                new Identifier
+                {
+                    System = "https://azure.microsoft.com/en-us/services/iomt-fhir-connector/",
+                    Value = "patientId.deviceId..",
+                },
+            };
         }
 
         private static Observation ThrowConflictException()

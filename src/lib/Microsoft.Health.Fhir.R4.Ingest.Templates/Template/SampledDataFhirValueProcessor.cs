@@ -46,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (!(existingValue is SampledData sampledData))
             {
-                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(SampledData)}.");
+                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(SampledData)}. Actual type is {GetValueTypeName(existingValue)}.");
             }
 
             if (sampledData.Dimensions > 1)

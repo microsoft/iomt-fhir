@@ -46,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (!(existingValue is Quantity))
             {
-                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(Quantity)}.");
+                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(Quantity)}. Actual type is {GetValueTypeName(existingValue)}.");
             }
 
             // Only a single value, just replace.

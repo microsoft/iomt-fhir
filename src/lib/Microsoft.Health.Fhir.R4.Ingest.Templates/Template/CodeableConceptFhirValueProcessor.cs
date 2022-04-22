@@ -35,7 +35,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (!(existingValue is CodeableConcept))
             {
-                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(CodeableConcept)}.");
+                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(CodeableConcept)}. Actual type is {GetValueTypeName(existingValue)}.");
             }
 
             // Currently no way to merge codeable concepts. Just replace.
