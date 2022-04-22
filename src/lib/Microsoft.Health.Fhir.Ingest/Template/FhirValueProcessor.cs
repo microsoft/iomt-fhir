@@ -11,6 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public abstract class FhirValueProcessor<TValueType, TInValue, TOutValue> : IFhirValueProcessor<TInValue, TOutValue>
         where TValueType : FhirValueType
     {
+        private const string NullValueText = "null";
         private static readonly Type SupportedType = typeof(TValueType);
 
         public Type SupportedValueType => SupportedType;
@@ -40,5 +41,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         protected abstract TOutValue CreateValueImpl(TValueType template, TInValue inValue);
 
         protected abstract TOutValue MergeValueImpl(TValueType template, TInValue inValue, TOutValue existingValue);
+
+        protected static string GetValueTypeName(object value)
+        {
+            return value?.GetType()?.Name ?? NullValueText;
+        }
     }
 }

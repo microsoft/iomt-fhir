@@ -76,6 +76,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             if (!_observationCache.TryGetValue(cacheKey, out Model.Observation existingObservation))
             {
                 existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
+
+                // Discovered an issue where FHIR Service is only matching on first 128 characters of the identifier.  This is a temporary measure to prevent merging of different observations until a fix is available.
+                if (existingObservation != null && !existingObservation.Identifier.Exists(i => i.IsExactly(identifier)))
+                {
+                    throw new NotSupportedException("FHIR Service returned matching observation but expected identifier was not present.");
+                }
             }
 
             var policyResult = await Policy<(Model.Observation observation, ResourceOperation operationType)>

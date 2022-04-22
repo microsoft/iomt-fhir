@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (!(existingValue is FhirString))
             {
-                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(FhirString)}.");
+                throw new NotSupportedException($"Element {nameof(existingValue)} expected to be of type {typeof(FhirString)}. Actual type is {GetValueTypeName(existingValue)}.");
             }
 
             // Only a single value, just replace.
