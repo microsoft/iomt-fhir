@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
@@ -71,36 +69,13 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             propertySetter?.Invoke(resource, identifier);
 
-            // Generate id programatically and issue an update to FHIR service
-            // The resource will be created if the resource with the given id does not already exist.
-            resource.Id = ComputeSha256(identifier);
-            return await FhirService.UpdateResourceAsync<TResource>(resource).ConfigureAwait(false);
+            return await FhirService.CreateResourceAsync(resource).ConfigureAwait(false);
         }
 
         private static Model.Identifier BuildIdentifier(string value, string system)
         {
             var identifier = new Model.Identifier { Value = value, System = string.IsNullOrWhiteSpace(system) ? null : system };
             return identifier;
-        }
-
-        private static string ComputeSha256(Model.Identifier identifier)
-        {
-            EnsureArg.IsNotNullOrWhiteSpace(identifier.Value, nameof(identifier.Value));
-
-            string plainTextSystemAndId = $"{identifier.System}_{identifier.Value}";
-
-            using (SHA256 hashAlgorithm = SHA256.Create())
-            {
-                byte[] bytes = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(plainTextSystemAndId));
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    sb.Append(bytes[i].ToString("x2"));
-                }
-
-                return sb.ToString();
-            }
         }
     }
 }
