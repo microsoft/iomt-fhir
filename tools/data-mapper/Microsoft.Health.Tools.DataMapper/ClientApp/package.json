@@ -20,6 +20,11 @@
     "redux": "4.0.4",
     "redux-thunk": "2.3.0"
   },
+  "overrides": {
+    "jake": {
+      "async": "3.2.2"
+    }
+  },
   "devDependencies": {
     "@types/codemirror": "^5.60.2",
     "@types/history": "4.7.3",
