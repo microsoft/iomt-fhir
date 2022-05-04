@@ -22,6 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var jsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
             {
+                Converters = new List<JsonConverter>() { new LineNumberJsonConverter() },
                 MissingMemberHandling = MissingMemberHandling.Error,
                 Error = (sender, args) =>
                 {
