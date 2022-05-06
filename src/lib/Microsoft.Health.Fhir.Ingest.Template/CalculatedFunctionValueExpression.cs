@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CalculatedFunctionValueExpression
+    public class CalculatedFunctionValueExpression : LineAwareJsonObject
     {
         [JsonProperty(Required = Newtonsoft.Json.Required.Always)]
         public string ValueName { get; set; }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -28,9 +29,10 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     /// </summary>
     public class TemplateExpressionJsonConverter : JsonConverter
     {
-        public TemplateExpressionJsonConverter()
+        private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {
-        }
+            Converters = new List<JsonConverter>() { new LineNumberJsonConverter() },
+        };
 
         public override bool CanConvert(Type objectType)
         {
@@ -41,14 +43,29 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (reader.ValueType == typeof(string))
             {
-                return new TemplateExpression()
+                var templateExpression = new TemplateExpression()
                 {
                     Value = (string)reader.Value,
                 };
+
+                if (reader is IJsonLineInfo lineInfoReader && lineInfoReader != null && lineInfoReader.HasLineInfo())
+                {
+                    templateExpression.LineInfoForProperties = new Dictionary<string, LineInfo>();
+                    templateExpression.LineNumber = lineInfoReader.LineNumber;
+                    templateExpression.LinePosition = lineInfoReader.LinePosition;
+                    templateExpression.LineInfoForProperties[nameof(templateExpression.Value)] =
+                        new LineInfo()
+                        {
+                            LineNumber = lineInfoReader.LineNumber,
+                            LinePosition = lineInfoReader.LinePosition,
+                        };
+                }
+
+                return templateExpression;
             }
             else
             {
-                return JToken.Load(reader).ToObject<TemplateExpression>();
+                return JToken.Load(reader).ToObject<TemplateExpression>(JsonSerializer.Create(jsonSerializerSettings));
             }
         }
 

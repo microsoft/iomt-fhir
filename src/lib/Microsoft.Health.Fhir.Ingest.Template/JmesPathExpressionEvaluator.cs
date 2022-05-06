@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             catch (Exception e)
             {
-                throw new TemplateExpressionException($"The following JmesPath expression could not be parsed: {expression}", e);
+                throw new TemplateExpressionException($"The following JmesPath expression could not be parsed: {expression}. Cause: {e.Message}", e);
             }
         }
 

@@ -9,7 +9,7 @@ using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CalculatedFunctionContentTemplate
+    public class CalculatedFunctionContentTemplate : LineAwareJsonObject
     {
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeName { get; set; }
