@@ -5,15 +5,12 @@
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class LineInfo : ILineInfo
+    public interface ILineInfo
     {
-        public int LineNumber { get; set; } = -1;
+        public int LineNumber { get; set; }
 
-        public int LinePosition { get; set; } = -1;
+        public int LinePosition { get; set; }
 
-        public bool HasLineInfo()
-        {
-            return LineNumber >= 0 && LinePosition >= 0;
-        }
+        public bool HasLineInfo();
     }
 }

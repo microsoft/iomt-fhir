@@ -27,11 +27,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNullOrWhiteSpace(expression?.Value, nameof(expression.Value));
             EnsureArg.IsNotNull(expression?.Language, nameof(expression.Language));
 
+            var lineInfo = expression.GetLineInfoForProperty("value") ?? expression;
             return expression.Language switch
             {
-                TemplateExpressionLanguage.JsonPath => new JsonPathExpressionEvaluator(expression.Value),
-                TemplateExpressionLanguage.JmesPath => new JmesPathExpressionEvaluator(_jmesPath, expression.Value),
-                _ => throw new TemplateExpressionException($"Unsupported Expression Language: {expression?.Language}")
+                TemplateExpressionLanguage.JsonPath => new JsonPathExpressionEvaluator(expression.Value, lineInfo),
+                TemplateExpressionLanguage.JmesPath => new JmesPathExpressionEvaluator(_jmesPath, expression.Value, lineInfo),
+                _ => throw new TemplateExpressionException($"Unsupported Expression Language: {expression?.Language}", lineInfo)
             };
         }
     }

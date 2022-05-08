@@ -2,6 +2,25 @@
   "templateType": "CollectionContent",
   "template": [
     {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeName": "heartrate",
+        "typeMatchExpression": "$..[?(@heartrate)]",
+        "timestampExpression": {
+          "value": "$.date",
+          "language": "JsonPath"
+        },
+        "deviceIdExpression": "$.device",
+        "values": [
+          {
+            "required": "true",
+            "valueExpression": "$.heartrate",
+            "valueName": "hr-calc-content"
+          }
+        ]
+      }
+    },
+    {
       "templateType": "JsonPathContent",
       "template": {
         "typeName": "heartrate",

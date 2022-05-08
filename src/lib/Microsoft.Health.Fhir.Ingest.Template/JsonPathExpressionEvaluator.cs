@@ -13,10 +13,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class JsonPathExpressionEvaluator : IExpressionEvaluator
     {
         private readonly string _jsonPathExpression;
+        private readonly LineInfo _lineInfo;
 
-        public JsonPathExpressionEvaluator(string jsonPathExpression)
+        public JsonPathExpressionEvaluator(string jsonPathExpression, LineInfo lineInfo)
         {
             _jsonPathExpression = EnsureArg.IsNotNullOrWhiteSpace(jsonPathExpression, nameof(jsonPathExpression));
+            _lineInfo = EnsureArg.IsNotNull(lineInfo, nameof(lineInfo));
         }
 
         public JToken SelectToken(JToken data)
@@ -28,7 +30,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             catch (JsonException e)
             {
-                throw new TemplateExpressionException($"Unable to retrieve JsonToken using expression {_jsonPathExpression}", e);
+                throw new TemplateExpressionException($"Unable to retrieve JsonToken using expression {_jsonPathExpression}", e, _lineInfo);
             }
         }
 
@@ -41,7 +43,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             catch (JsonException e)
             {
-                throw new TemplateExpressionException($"Unable to retrieve JsonTokens using expression {_jsonPathExpression}", e);
+                throw new TemplateExpressionException($"Unable to retrieve JsonTokens using expression {_jsonPathExpression}", e, _lineInfo);
             }
         }
     }

@@ -50,16 +50,16 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             var evaluatorCache = new Dictionary<string, IExpressionEvaluator>();
 
-            AddExpression(evaluatorCache, template.TypeMatchExpression, nameof(template.TypeMatchExpression), true);
-            AddExpression(evaluatorCache, template.DeviceIdExpression, nameof(template.DeviceIdExpression), true);
-            AddExpression(evaluatorCache, template.PatientIdExpression, nameof(template.PatientIdExpression));
-            AddExpression(evaluatorCache, template.EncounterIdExpression, nameof(template.EncounterIdExpression));
-            AddExpression(evaluatorCache, template.TimestampExpression, nameof(template.TimestampExpression));
-            AddExpression(evaluatorCache, template.CorrelationIdExpression, nameof(template.CorrelationIdExpression));
+            AddExpression(evaluatorCache, template.TypeMatchExpression, nameof(template.TypeMatchExpression), template, true);
+            AddExpression(evaluatorCache, template.DeviceIdExpression, nameof(template.DeviceIdExpression), template, true);
+            AddExpression(evaluatorCache, template.PatientIdExpression, nameof(template.PatientIdExpression), template);
+            AddExpression(evaluatorCache, template.EncounterIdExpression, nameof(template.EncounterIdExpression), template);
+            AddExpression(evaluatorCache, template.TimestampExpression, nameof(template.TimestampExpression), template);
+            AddExpression(evaluatorCache, template.CorrelationIdExpression, nameof(template.CorrelationIdExpression), template);
 
             foreach (var value in template.Values)
             {
-                AddExpression(evaluatorCache, value.ValueExpression, value.ValueName, value.Required);
+                AddExpression(evaluatorCache, value.ValueExpression, value.ValueName, template, value.Required);
             }
 
             return new CachingExpressionEvaluatorFactory(new ReadOnlyDictionary<string, IExpressionEvaluator>(evaluatorCache));
@@ -69,6 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             IDictionary<string, IExpressionEvaluator> cache,
             TemplateExpression expression,
             string expressionName,
+            LineInfo templateLineInfo,
             bool isRequired = false)
         {
             if (expression != null)
@@ -78,7 +79,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             else if (isRequired)
             {
-                throw new TemplateExpressionException($"Unable to create the template; the expression for [{expressionName}] is missing");
+                throw new TemplateExpressionException($"Unable to create the template; the expression for [{expressionName}] is missing", templateLineInfo);
             }
         }
 

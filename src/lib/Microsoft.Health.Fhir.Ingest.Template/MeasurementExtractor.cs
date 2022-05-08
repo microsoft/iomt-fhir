@@ -56,6 +56,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         continue;
                     }
 
+                    var valueLineInfo = expression.GetLineInfoForProperty(nameof(TemplateExpression.Value)) ?? expression;
                     var evaluator = ExpressionEvaluatorFactory.Create(expression);
                     var evaluatedToken = evaluator.SelectToken(token);
 
@@ -68,7 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
                             if (isRequired && isNull)
                             {
-                                exceptions.Add(new IncompatibleDataException($"A null or empty value was supplied for the required field [{name}]"));
+                                exceptions.Add(new IncompatibleDataException($"A null or empty value was supplied for the required field [{name}]", valueLineInfo));
                             }
                             else
                             {
@@ -77,24 +78,26 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         }
                         catch (Exception e)
                         {
-                            exceptions.Add(new IncompatibleDataException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e));
+                            exceptions.Add(new IncompatibleDataException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e, valueLineInfo));
                         }
                     }
                 }
 
                 if (isRequired)
                 {
+                    var lineInfo = expressions.First(e => e != null);
+
                     if (exceptions.Count > 0)
                     {
-                        throw new IncompatibleDataException($"Unable to extract required value for [{name}]", new AggregateException(exceptions));
+                        throw new IncompatibleDataException($"Unable to extract required value for [{name}]", new AggregateException(exceptions), lineInfo);
                     }
 
-                    throw new IncompatibleDataException($"Unable to extract required value for [{name}] using {string.Join(",", expressions.Select(e => e.Value).ToArray())}");
+                    throw new IncompatibleDataException($"Unable to extract required value for [{name}] using {string.Join(",", expressions.Select(e => e.Value).ToArray())}", lineInfo);
                 }
             }
             else if (isRequired)
             {
-                throw new IncompatibleDataException($"An expression must be set for [{name}]");
+                throw new IncompatibleDataException($"An expression must be set for [{name}]", Template);
             }
 
             return default;
@@ -141,7 +144,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             // If the expression object or its value aren't set, throw a detailed exception
             if (string.IsNullOrWhiteSpace(expression?.Value))
             {
-                throw new IncompatibleDataException($"An expression must be set for [{expressionName}]");
+                var lineInfo = expression ?? Template as LineInfo;
+                throw new IncompatibleDataException($"An expression must be set for [{expressionName}]", lineInfo);
             }
 
             return ExpressionEvaluatorFactory.Create(Template.TypeMatchExpression);

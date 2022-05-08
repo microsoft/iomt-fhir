@@ -125,16 +125,28 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var token = JToken.FromObject(new { heartrate = "60", device = "myHrDevice", date = DateTime.UtcNow });
             var measurements = templateContext.Template.GetMeasurements(token);
 
-            Assert.Collection(measurements, m =>
-            {
-                Assert.Equal("heartrate", m.Type);
-                Assert.Equal("myHrDevice", m.DeviceId);
-                Assert.Collection(m.Properties, p =>
+            Assert.Collection(
+                measurements,
+                m =>
                 {
-                    Assert.Equal("hr", p.Name);
-                    Assert.Equal("60", p.Value);
+                    Assert.Equal("heartrate", m.Type);
+                    Assert.Equal("myHrDevice", m.DeviceId);
+                    Assert.Collection(m.Properties, p =>
+                    {
+                        Assert.Equal("hr-calc-content", p.Name);
+                        Assert.Equal("60", p.Value);
+                    });
+                },
+                m =>
+                {
+                    Assert.Equal("heartrate", m.Type);
+                    Assert.Equal("myHrDevice", m.DeviceId);
+                    Assert.Collection(m.Properties, p =>
+                    {
+                        Assert.Equal("hr", p.Name);
+                        Assert.Equal("60", p.Value);
+                    });
                 });
-            });
         }
 
         [Theory]
@@ -167,6 +179,77 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             Assert.False(templateContext.IsValid(out string error));
             Assert.Throws<ValidationException>(() => templateContext.EnsureValid());
             Assert.Contains("Expected an array for the template property value for template type CollectionContentTemplate.", error);
+        }
+
+        [Theory]
+        [FileData(@"TestInput/data_CollectionContentTemplateMixedValidity.json")]
+        public void GivenMixedValidityTemplateCollection_WhenCreate_ItShouldPopulateLineNumbers_Test(string json)
+        {
+            var templateContext = _collectionContentTemplateFactory.Create(json);
+            Assert.NotNull(templateContext);
+            Assert.False(templateContext.IsValid(out _));
+
+            var collectionTemplate = Assert.IsType<CollectionContentTemplate>(templateContext.Template);
+            Assert.Equal(3, collectionTemplate.Templates.Count);
+
+            // Calculated Function Template
+            var measurementExtractor = Assert.IsType<MeasurementExtractor>(collectionTemplate.Templates[0]);
+            CheckLineInfo(measurementExtractor.Template, 6);
+            CheckLineInfo(measurementExtractor.Template.GetLineInfoForProperty(nameof(CalculatedFunctionContentTemplate.TypeName)), 7);
+            CheckLineInfo(measurementExtractor.Template.DeviceIdExpression, 13, 40);
+            CheckLineInfo(measurementExtractor.Template.DeviceIdExpression.GetLineInfoForProperty(nameof(TemplateExpression.Value)), 13);
+            CheckLineInfo(measurementExtractor.Template.TimestampExpression, 9, 32);
+            CheckLineInfo(measurementExtractor.Template.TimestampExpression.GetLineInfoForProperty(nameof(TemplateExpression.Value)), 10);
+            CheckLineInfo(measurementExtractor.Template.TimestampExpression.GetLineInfoForProperty(nameof(TemplateExpression.Language)), 11);
+
+            Assert.Single(measurementExtractor.Template.Values);
+            var calcFunctionValueExpression = measurementExtractor.Template.Values[0];
+            CheckLineInfo(calcFunctionValueExpression, 15, 11);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.Required)), 16);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueExpression)), 17);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueName)), 18);
+
+            // JsonPath Template
+            measurementExtractor = Assert.IsAssignableFrom<MeasurementExtractor>(collectionTemplate.Templates[1]);
+            CheckLineInfo(measurementExtractor.Template, 25);
+            CheckLineInfo(measurementExtractor.Template.GetLineInfoForProperty(nameof(CalculatedFunctionContentTemplate.TypeName)), 26);
+            CheckLineInfo(measurementExtractor.Template.DeviceIdExpression, 28);
+            CheckLineInfo(measurementExtractor.Template.DeviceIdExpression.GetLineInfoForProperty(nameof(TemplateExpression.Value)), 28);
+            CheckLineInfo(measurementExtractor.Template.TimestampExpression, 29);
+            CheckLineInfo(measurementExtractor.Template.TimestampExpression.GetLineInfoForProperty(nameof(TemplateExpression.Value)), 29);
+
+            Assert.Single(measurementExtractor.Template.Values);
+            calcFunctionValueExpression = measurementExtractor.Template.Values[0];
+            CheckLineInfo(calcFunctionValueExpression, 31);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.Required)), 32);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueExpression)), 33);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueName)), 34);
+
+            // IotCentralJsonPathContent Template
+            measurementExtractor = Assert.IsAssignableFrom<MeasurementExtractor>(collectionTemplate.Templates[2]);
+            CheckLineInfo(measurementExtractor.Template, 54);
+            CheckLineInfo(measurementExtractor.Template.GetLineInfoForProperty(nameof(CalculatedFunctionContentTemplate.TypeName)), 55);
+            CheckLineInfo(measurementExtractor.Template.TypeMatchExpression, 56);
+            CheckLineInfo(measurementExtractor.Template.TypeMatchExpression.GetLineInfoForProperty(nameof(TemplateExpression.Value)), 56);
+
+            Assert.Single(measurementExtractor.Template.Values);
+            calcFunctionValueExpression = measurementExtractor.Template.Values[0];
+            CheckLineInfo(calcFunctionValueExpression, 58);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.Required)), 59);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueExpression)), 60);
+            CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueName)), 61);
+        }
+
+        private void CheckLineInfo(LineInfo lineInfo, int expectedLine, int expectedPos = -1)
+        {
+            Assert.NotNull(lineInfo);
+            Assert.True(lineInfo.HasLineInfo());
+            Assert.Equal(expectedLine, lineInfo.LineNumber);
+
+            if (expectedPos > -1)
+            {
+                Assert.Equal(expectedPos, lineInfo.LinePosition);
+            }
         }
     }
 }

@@ -13,12 +13,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JmesPathExpressionEvaluator : IExpressionEvaluator
     {
-        private JmesPath.Expression _jmespathExpression;
+        private readonly JmesPath.Expression _jmespathExpression;
+        private readonly LineInfo _lineInfo;
 
-        public JmesPathExpressionEvaluator(JmesPath jmesPath, string expression)
+        public JmesPathExpressionEvaluator(JmesPath jmesPath, string expression, LineInfo lineInfo)
         {
             EnsureArg.IsNotNull(jmesPath, nameof(jmesPath));
             EnsureArg.IsNotNullOrWhiteSpace(expression, nameof(expression));
+            _lineInfo = EnsureArg.IsNotNull(lineInfo, nameof(lineInfo));
 
             try
             {
@@ -26,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             catch (Exception e)
             {
-                throw new TemplateExpressionException($"The following JmesPath expression could not be parsed: {expression}. Cause: {e.Message}", e);
+                throw new TemplateExpressionException($"The following JmesPath expression could not be parsed: {expression}. Cause: {e.Message}", e, _lineInfo);
             }
         }
 
@@ -37,7 +39,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (jmesPathArgument.IsProjection && jmesPathArgument.Projection.Length > 1)
             {
-                throw new TemplateExpressionException($"Multiple tokens were returned using expression ${_jmespathExpression}");
+                throw new TemplateExpressionException($"Multiple tokens were returned using expression ${_jmespathExpression}", _lineInfo);
             }
 
             var resultAsToken = jmesPathArgument.AsJToken();

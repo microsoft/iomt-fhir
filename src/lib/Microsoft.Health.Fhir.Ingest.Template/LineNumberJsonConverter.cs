@@ -35,8 +35,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 var lineInfoObject = Activator.CreateInstance(objectType) as LineInfo;
                 var rawLineInfoObject = JObject.Load(reader, new JsonLoadSettings { LineInfoHandling = LineInfoHandling.Load });
 
-                // var lineInfoObject = rawLineInfoObject.ToObject(objectType, serializer) as LineInfo;
-
                 serializer.Populate(rawLineInfoObject.CreateReader(), lineInfoObject);
 
                 lineInfoObject.LineNumber = lineNumber;
