@@ -16,6 +16,7 @@ using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -154,6 +155,35 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             _template.ReceivedWithAnyArgs(0).GetMeasurements(null);
             _converter.ReceivedWithAnyArgs(events.Length).Convert(null);
+            await _consumer.ReceivedWithAnyArgs(0).AddAsync(null);
+        }
+
+        [Fact]
+        public async Task GivenEventsAndNormalization_WhenProcessAsyncAndDataMappingErrors_ThenExecutionNotHaltedAndNormalizationDataMappingExceptionThrown_Test()
+        {
+            _template.GetMeasurements(null).ReturnsForAnyArgs(m => throw new Exception("Test"));
+
+            var events = Enumerable.Range(0, 10)
+                   .Select(i => BuildEvent(i))
+                   .ToDictionary(ed => ed, ed => JToken.FromObject(new object()));
+            _converter.Convert(null).ReturnsForAnyArgs(args => events[args.Arg<EventData>()]);
+
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
+            var exception = await Assert.ThrowsAsync<AggregateException>(() => srv.ProcessAsync(events.Keys, _consumer));
+
+            Action<Exception> validateInnerExceptions = e =>
+            {
+                Assert.IsType<NormalizationDataMappingException>(e);
+                Assert.Equal("Test", e.Message);
+            };
+
+            // Verify all exceptions in the returned aggregate exception
+            Assert.Collection(exception.InnerExceptions, Enumerable.Range(0, 10).Select(i => validateInnerExceptions).ToArray());
+
+            _template.ReceivedWithAnyArgs(10).GetMeasurements(null);
+            _converter.ReceivedWithAnyArgs(10).Convert(null);
             await _consumer.ReceivedWithAnyArgs(0).AddAsync(null);
         }
 
