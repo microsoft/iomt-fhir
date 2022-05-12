@@ -11,7 +11,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public static class LineAwareJsonObjectExtensions
     {
-        public static LineInfo GetLineInfoForProperty(this LineAwareJsonObject lineAwareJsonObject, string property)
+        public static ILineInfo GetLineInfoForProperty(this ILineAwareJsonObject lineAwareJsonObject, string property, bool returnParentIfNotPresent = true)
         {
             EnsureArg.IsNotNull(lineAwareJsonObject, nameof(lineAwareJsonObject));
             EnsureArg.IsNotNullOrWhiteSpace(property, nameof(property));
@@ -20,6 +20,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 lineAwareJsonObject.LineInfoForProperties.TryGetValue(property, out var lineInfo))
             {
                 return lineInfo;
+            }
+
+            if (returnParentIfNotPresent)
+            {
+                return lineAwareJsonObject;
             }
 
             return null;

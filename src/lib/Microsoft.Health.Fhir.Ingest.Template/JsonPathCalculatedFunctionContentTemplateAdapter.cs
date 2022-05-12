@@ -44,7 +44,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public TTemplate InnerTemplate { get; private set; }
 
-        private TemplateExpression CreateExpression(string value, LineInfo lineAwareJsonObject)
+        private TemplateExpression CreateExpression(string value, ILineInfo lineAwareJsonObject)
         {
             if (!string.IsNullOrWhiteSpace(value))
             {

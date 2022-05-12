@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class LineAwareJsonObject : LineInfo
+    public class LineAwareJsonObject : LineInfo, ILineAwareJsonObject
     {
         [JsonIgnore]
         public IDictionary<string, LineInfo> LineInfoForProperties { get; set; } = new Dictionary<string, LineInfo>(StringComparer.InvariantCultureIgnoreCase);

@@ -13,9 +13,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class JsonPathExpressionEvaluator : IExpressionEvaluator
     {
         private readonly string _jsonPathExpression;
-        private readonly LineInfo _lineInfo;
+        private readonly ILineInfo _lineInfo;
 
-        public JsonPathExpressionEvaluator(string jsonPathExpression, LineInfo lineInfo)
+        public JsonPathExpressionEvaluator(string jsonPathExpression, ILineInfo lineInfo)
         {
             _jsonPathExpression = EnsureArg.IsNotNullOrWhiteSpace(jsonPathExpression, nameof(jsonPathExpression));
             _lineInfo = EnsureArg.IsNotNull(lineInfo, nameof(lineInfo));

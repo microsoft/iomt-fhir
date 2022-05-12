@@ -12,19 +12,19 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class IncompatibleDataException : IomtTelemetryFormattableException, IExceptionWithLineInfo
     {
-        private readonly LineInfo _lineInfo;
+        private readonly ILineInfo _lineInfo;
 
         public IncompatibleDataException()
             : this(null, new LineInfo())
         {
         }
 
-        public IncompatibleDataException(string message, LineInfo lineInfo)
+        public IncompatibleDataException(string message, ILineInfo lineInfo)
             : this(message, null, lineInfo)
         {
         }
 
-        public IncompatibleDataException(string message, Exception innerException, LineInfo lineInfo)
+        public IncompatibleDataException(string message, Exception innerException, ILineInfo lineInfo)
             : base(message, innerException)
         {
             _lineInfo = EnsureArg.IsNotNull(lineInfo, nameof(lineInfo));
@@ -46,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
         }
 
-        public LineInfo GetLineInfo => _lineInfo;
+        public ILineInfo GetLineInfo => _lineInfo;
 
         public bool HasLineInfo => _lineInfo.HasLineInfo();
     }

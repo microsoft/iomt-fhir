@@ -37,6 +37,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             if (errors.Any())
             {
                 string errorMessage = string.Join(string.Empty, errors.Select(e => FormatErrorMessage(e.Message)));
+
+                // TODO Store message, lineinfo for each error inside of the exception.
                 throw new InvalidTemplateException($"Failed to deserialize the {typeof(T).Name} content: {errorMessage}");
             }
 

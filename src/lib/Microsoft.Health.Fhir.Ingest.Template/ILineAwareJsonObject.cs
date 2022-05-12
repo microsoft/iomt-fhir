@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface IExceptionWithLineInfo
+    public interface ILineAwareJsonObject : ILineInfo
     {
-        ILineInfo GetLineInfo { get; }
-
-        bool HasLineInfo { get; }
+        IDictionary<string, LineInfo> LineInfoForProperties { get; set; }
     }
 }

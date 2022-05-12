@@ -14,9 +14,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     public class JmesPathExpressionEvaluator : IExpressionEvaluator
     {
         private readonly JmesPath.Expression _jmespathExpression;
-        private readonly LineInfo _lineInfo;
+        private readonly ILineInfo _lineInfo;
 
-        public JmesPathExpressionEvaluator(JmesPath jmesPath, string expression, LineInfo lineInfo)
+        public JmesPathExpressionEvaluator(JmesPath jmesPath, string expression, ILineInfo lineInfo)
         {
             EnsureArg.IsNotNull(jmesPath, nameof(jmesPath));
             EnsureArg.IsNotNullOrWhiteSpace(expression, nameof(expression));

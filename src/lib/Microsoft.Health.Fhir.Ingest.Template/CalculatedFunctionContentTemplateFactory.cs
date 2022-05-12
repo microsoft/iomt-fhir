@@ -37,7 +37,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (jsonTemplate.Template?.Type != JTokenType.Object)
             {
-                throw new InvalidTemplateException($"Expected an object for the template property value for template type {TargetTypeName}.");
+                var lineInfo = jsonTemplate.GetLineInfoForProperty(nameof(TemplateContainer.Template));
+                throw new InvalidTemplateException($"Expected an object for the template property value for template type {TargetTypeName}.", lineInfo);
             }
 
             var calculatedFunctionTemplate = jsonTemplate.Template.ToValidTemplate<CalculatedFunctionContentTemplate>();
@@ -69,7 +70,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             IDictionary<string, IExpressionEvaluator> cache,
             TemplateExpression expression,
             string expressionName,
-            LineInfo templateLineInfo,
+            ILineInfo templateLineInfo,
             bool isRequired = false)
         {
             if (expression != null)

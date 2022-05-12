@@ -27,6 +27,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (reader.TokenType != JsonToken.Null)
             {
+                var lineNumber = 0;
+                var linePosition = 0;
+
+                if (reader is IJsonLineInfo lineInfoReader && lineInfoReader != null)
+                {
+                    if (lineInfoReader.HasLineInfo())
+                    {
+                        lineNumber = lineInfoReader.LineNumber;
+                        linePosition = lineInfoReader.LinePosition;
+                    }
+                }
+
                 var templateContainerObject = JObject.Load(reader);
                 var innerTemplate = templateContainerObject.GetValue("template", StringComparison.InvariantCultureIgnoreCase);
 
@@ -38,6 +50,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                  * information
                  */
                 templateContainer.Template = innerTemplate;
+
+                // Set line number details
+                templateContainer.LineNumber = lineNumber;
+                templateContainer.LinePosition = linePosition;
+                templateContainer.SetLineInfoProperties(templateContainerObject);
 
                 return templateContainer;
             }
