@@ -21,12 +21,14 @@ using Microsoft.Health.Events.Repository;
 using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Common.Telemetry;
 using IEventProcessingMeter = Microsoft.Health.Events.Common.IEventProcessingMeter;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -54,6 +56,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             services.AddSingleton(ResolveEventConsumerService);
             services.AddSingleton(ResolveEventProcessorClient);
             services.AddSingleton(ResolveEventProcessor);
+            services.AddNormalizationExceptionTelemetryProcessor(Configuration);
         }
         public virtual TemplateManager ResolveTemplateManager(IServiceProvider serviceProvider)
         {
@@ -80,7 +83,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 template = Configuration.GetSection("Template:DeviceContent").Value;
                 var collector = ResolveEventCollector(serviceProvider);
                 var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, collectionContentFactory);
+                var exceptionTelemetryProcessor = serviceProvider.GetRequiredService<NormalizationExceptionTelemetryProcessor>();
+                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, collectionContentFactory, exceptionTelemetryProcessor);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)
