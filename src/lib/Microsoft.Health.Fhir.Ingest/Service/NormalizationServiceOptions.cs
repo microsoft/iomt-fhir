@@ -10,5 +10,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public const string Settings = "NormalizationService";
 
         public bool LogDeviceIngressSizeBytes { get; set; } = false;
+
+        public NormalizationErrorHandlingPolicy ErrorHandlingPolicy { get; set; } = NormalizationErrorHandlingPolicy.Retry;
     }
 }

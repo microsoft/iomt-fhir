@@ -28,7 +28,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             catch (JsonException e)
             {
-                throw new TemplateExpressionException($"Unable to retrieve JsonToken using expression ${_jsonPathExpression}", e);
+                throw new TemplateExpressionException($"Unable to retrieve JsonToken using expression {_jsonPathExpression}", e);
             }
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             }
             catch (JsonException e)
             {
-                throw new TemplateExpressionException($"Unable to retrieve JsonTokens using expression ${_jsonPathExpression}", e);
+                throw new TemplateExpressionException($"Unable to retrieve JsonTokens using expression {_jsonPathExpression}", e);
             }
         }
     }

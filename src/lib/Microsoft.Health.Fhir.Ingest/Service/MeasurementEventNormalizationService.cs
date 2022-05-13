@@ -115,10 +115,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                         var token = _converter.Convert(evt);
 
-                        foreach (var measurement in _contentTemplate.GetMeasurements(token))
+                        try
                         {
-                            measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
-                            createdMeasurements.Add((partitionId, measurement));
+                            foreach (var measurement in _contentTemplate.GetMeasurements(token))
+                            {
+                                measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
+                                createdMeasurements.Add((partitionId, measurement));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Translate all Normalization Mapping exceptions into a common type for easy identification.
+                            throw new NormalizationDataMappingException(ex);
                         }
                     }
                     catch (Exception ex)

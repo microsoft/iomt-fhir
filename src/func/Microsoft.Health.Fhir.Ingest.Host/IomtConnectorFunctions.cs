@@ -30,9 +30,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly CollectionContentTemplateFactory _collectionContentTemplateFactory;
         private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
-        public IomtConnectorFunctions(ITelemetryLogger logger)
+        public IomtConnectorFunctions(ITelemetryLogger logger, NormalizationExceptionTelemetryProcessor telemetryProcessor)
         {
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            _exceptionTelemetryProcessor = EnsureArg.IsNotNull(telemetryProcessor, nameof(telemetryProcessor));
+
             var expressionRegister = new AssemblyExpressionRegister(typeof(IExpressionRegister).Assembly, _logger);
             var jmesPath = new JmesPath();
             expressionRegister.RegisterExpressions(jmesPath.FunctionRepository);
@@ -42,7 +44,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 new IotCentralJsonPathContentTemplateFactory(),
                 new CalculatedFunctionContentTemplateFactory(
                     new TemplateExpressionEvaluatorFactory(jmesPath), _logger));
-            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
         }
 
         [FunctionName("MeasurementCollectionToFhir")]
