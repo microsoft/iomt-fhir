@@ -39,7 +39,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             ITemplateManager templateManager,
             IEnumerableAsyncCollector<IMeasurement> collector,
             ITelemetryLogger logger,
-            CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory)
+            CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory,
+            NormalizationExceptionTelemetryProcessor exceptionTelemetryProcessor)
         {
             _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
             _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
@@ -47,7 +48,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalize
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _retryPolicy = CreateRetryPolicy(logger);
             _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
-            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+            _exceptionTelemetryProcessor = EnsureArg.IsNotNull(exceptionTelemetryProcessor, nameof(exceptionTelemetryProcessor));
 
             EventMetrics.SetConnectorOperation(ConnectorOperation.Normalization);
         }
