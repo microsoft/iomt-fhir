@@ -240,7 +240,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             CheckLineInfo(calcFunctionValueExpression.GetLineInfoForProperty(nameof(CalculatedFunctionValueExpression.ValueName)), 61);
         }
 
-        private void CheckLineInfo(LineInfo lineInfo, int expectedLine, int expectedPos = -1)
+        private void CheckLineInfo(ILineInfo lineInfo, int expectedLine, int expectedPos = -1)
         {
             Assert.NotNull(lineInfo);
             Assert.True(lineInfo.HasLineInfo());

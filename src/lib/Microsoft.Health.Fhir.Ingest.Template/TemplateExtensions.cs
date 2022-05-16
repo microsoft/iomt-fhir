@@ -9,6 +9,7 @@ using System.Linq;
 using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
@@ -18,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             EnsureArg.IsNotNull(token, nameof(token));
 
-            var errors = new List<Exception>();
+            var errors = new List<ErrorContext>();
 
             var jsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
             {
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 MissingMemberHandling = MissingMemberHandling.Error,
                 Error = (sender, args) =>
                 {
-                    errors.Add(args.ErrorContext.Error);
+                    errors.Add(args.ErrorContext);
                     args.ErrorContext.Handled = true;
                 },
                 TypeNameHandling = TypeNameHandling.None,
@@ -36,21 +37,28 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (errors.Any())
             {
-                string errorMessage = string.Join(string.Empty, errors.Select(e => FormatErrorMessage(e.Message)));
-
-                // TODO Store message, lineinfo for each error inside of the exception.
-                throw new InvalidTemplateException($"Failed to deserialize the {typeof(T).Name} content: {errorMessage}");
+                throw new AggregateException($"Failed to deserialize the {typeof(T).Name} content", errors.Select(e => ConvertErrorContext(e)));
             }
 
             return obj;
         }
 
-        private static string FormatErrorMessage(string errMessage)
+        private static InvalidTemplateException ConvertErrorContext(ErrorContext errorContext)
         {
             // Remove the path information if it was empty.
-            errMessage = errMessage.Replace("Path ''.", string.Empty);
-            errMessage = "\n  " + errMessage;
-            return errMessage;
+            var errMessage = errorContext.Error.Message;
+            var messageLength = errMessage.LastIndexOf("Path", StringComparison.OrdinalIgnoreCase);
+            messageLength = messageLength >= 0 ? messageLength : errMessage.Length;
+            errMessage = errMessage.Substring(0, messageLength);
+
+            var lineInfo = new LineInfo();
+            if (errorContext.Error is JsonSerializationException e)
+            {
+                lineInfo.LineNumber = e.LineNumber;
+                lineInfo.LinePosition = e.LinePosition;
+            }
+
+            return new InvalidTemplateException(errMessage, lineInfo);
         }
     }
 }

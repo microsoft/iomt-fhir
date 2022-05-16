@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
@@ -288,9 +289,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new CodeValueFhirTemplateFactory();
 
-            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            var ex = Assert.Throws<AggregateException>(() => factory.Create(templateContainer));
             Assert.NotNull(ex);
-            Assert.Contains("TypeName", ex.Message);
+            Assert.Collection(
+                ex.InnerExceptions,
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("TypeName", ex.Message);
+                });
         }
 
         [Theory]
@@ -301,9 +308,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new CodeValueFhirTemplateFactory();
 
-            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            var ex = Assert.Throws<AggregateException>(() => factory.Create(templateContainer));
             Assert.NotNull(ex);
-            Assert.Contains("Codes", ex.Message);
+            Assert.Collection(
+                ex.InnerExceptions,
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("Codes", ex.Message);
+                });
         }
 
         [Fact]

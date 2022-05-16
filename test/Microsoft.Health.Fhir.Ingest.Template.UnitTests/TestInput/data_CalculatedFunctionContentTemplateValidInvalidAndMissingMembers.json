@@ -1,0 +1,16 @@
+{
+  "templateType": "CalculatedContent",
+  "template": {
+    "typeName": "heartrate",
+    "typeMatchExpressionFake": "$..[?(@heartrate)]",
+    "deviceIdExpressionFake": "$.device",
+    "timestampExpression": "$.date",
+    "values": [
+      {
+        "required": "true",
+        "valueExpression": "$.heartrate",
+        "valueName": "hr"
+      }
+    ]
+  }
+}

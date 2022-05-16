@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
@@ -44,11 +45,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 }
                 catch (InvalidTemplateException ex)
                 {
-                    errors.Add(new TemplateError(ex.Message));
+                    errors.Add(new TemplateError(ex.Message, ex.GetLineInfo));
                 }
                 catch (JsonSerializationException ex)
                 {
+                    errors.Add(new TemplateError(ex.Message, new LineInfo() { LineNumber = ex.LineNumber, LinePosition = ex.LinePosition }));
+                }
+                catch (AggregateException ex)
+                {
                     errors.Add(new TemplateError(ex.Message));
+
+                    foreach (var innerException in ex.InnerExceptions)
+                    {
+                        if (innerException is InvalidTemplateException ite)
+                        {
+                            errors.Add(new TemplateError(ite.Message, ite.GetLineInfo));
+                        }
+                        else
+                        {
+                            errors.Add(new TemplateError(innerException.Message));
+                        }
+                    }
                 }
             }
 

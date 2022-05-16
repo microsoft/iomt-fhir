@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
@@ -92,10 +93,20 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
             var factory = new IotCentralJsonPathContentTemplateFactory();
 
-            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            var ex = Assert.Throws<AggregateException>(() => factory.Create(templateContainer));
             Assert.NotNull(ex);
-            Assert.Contains("TypeName", ex.Message);
-            Assert.Contains("TypeMatchExpression", ex.Message);
+            Assert.Collection(
+                ex.InnerExceptions,
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("TypeName", ex.Message);
+                },
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("TypeMatchExpression", ex.Message);
+                });
         }
 
         [Theory]
@@ -105,9 +116,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             var templateContainer = JsonConvert.DeserializeObject<TemplateContainer>(json);
             var factory = new IotCentralJsonPathContentTemplateFactory();
 
-            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            var ex = Assert.Throws<AggregateException>(() => factory.Create(templateContainer));
             Assert.NotNull(ex);
-            Assert.Contains("ValueName", ex.Message);
+            Assert.Collection(
+                ex.InnerExceptions,
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("ValueName", ex.Message);
+                });
         }
 
         [Fact]
