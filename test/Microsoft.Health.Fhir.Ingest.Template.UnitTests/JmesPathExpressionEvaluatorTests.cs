@@ -5,7 +5,6 @@
 
 using System;
 using DevLab.JmesPath;
-using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -20,26 +19,31 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public JmesPathExpressionEvaluatorTests()
         {
             _jmesPath = new JmesPath();
-            _singleValueExpressionEvaluator = new JmesPathExpressionEvaluator(_jmesPath, "testProperty");
+            _singleValueExpressionEvaluator = new JmesPathExpressionEvaluator(_jmesPath, "testProperty", new LineInfo());
 
-            _projectedExpressionEvaluator = new JmesPathExpressionEvaluator(_jmesPath, "property[].name");
+            _projectedExpressionEvaluator = new JmesPathExpressionEvaluator(
+                _jmesPath,
+                "property[].name",
+                new LineInfo()
+                {
+                    LineNumber = 123,
+                    LinePosition = 456,
+                });
         }
 
         [Fact]
         public void When_InvalidParametersProvided_ExceptionIsThrown()
         {
-            Assert.Throws<ArgumentNullException>(() => new JmesPathExpressionEvaluator(null, null));
-            Assert.Throws<ArgumentNullException>(() => new JmesPathExpressionEvaluator(_jmesPath, null));
-            Assert.Throws<ArgumentException>(() => new JmesPathExpressionEvaluator(_jmesPath, string.Empty));
+            Assert.Throws<ArgumentNullException>(() => new JmesPathExpressionEvaluator(null, null, null));
+            Assert.Throws<ArgumentNullException>(() => new JmesPathExpressionEvaluator(_jmesPath, null, null));
+            Assert.Throws<ArgumentException>(() => new JmesPathExpressionEvaluator(_jmesPath, string.Empty, null));
         }
 
         [Theory]
-        [InlineData(".")]
-        [InlineData("?")]
-        [InlineData("[?]")]
+        [InlineData("sort(itemOne, itemTwo)")]
         public void When_InvalidExpressionProvided_ExceptionIsThrown(string badExpression)
         {
-            var exception = Assert.Throws<TemplateExpressionException>(() => new JmesPathExpressionEvaluator(_jmesPath, badExpression));
+            var exception = Assert.Throws<TemplateExpressionException>(() => new JmesPathExpressionEvaluator(_jmesPath, badExpression, new LineInfo()));
             Assert.StartsWith("The following JmesPath expression could not be parsed", exception.Message);
         }
 
@@ -72,7 +76,8 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 },
             });
 
-            Assert.Throws<TemplateExpressionException>(() => _projectedExpressionEvaluator.SelectToken(data));
+            var exception = Assert.Throws<TemplateExpressionException>(() => _projectedExpressionEvaluator.SelectToken(data));
+            Assert.StartsWith("Line Number: 123, Position: 456. Multiple tokens", exception.Message);
         }
 
         [Fact]

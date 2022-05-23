@@ -3,26 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class TemplateError
+    public class LineInfo : ILineInfo
     {
-        public TemplateError(string message)
+        public int LineNumber { get; set; } = -1;
+
+        public int LinePosition { get; set; } = -1;
+
+        public bool HasLineInfo()
         {
-            Message = message;
-            LineInfo = new LineInfo();
+            return LineNumber >= 0 && LinePosition >= 0;
         }
-
-        public TemplateError(string message, ILineInfo lineInfo)
-        {
-            Message = message;
-            LineInfo = EnsureArg.IsNotNull(lineInfo, nameof(lineInfo));
-        }
-
-        public string Message { get; }
-
-        public ILineInfo LineInfo { get; }
     }
 }

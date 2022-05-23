@@ -26,6 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.Extensions
             EnsureArg.IsNotNull(validationResult, nameof(validationResult));
             EnsureArg.IsNotNull(exception, nameof(exception));
 
+            // Collect messages from inner exceptions as well
             validationResult.Exceptions.Add(new ValidationError(exception.Message, category));
         }
 

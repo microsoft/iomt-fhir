@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Fhir.Ingest.Template;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -16,9 +15,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public JsonPathExpressionEvaluatorTests()
         {
-            _singleValueExpressionEvaluator = new JsonPathExpressionEvaluator("testProperty");
+            _singleValueExpressionEvaluator = new JsonPathExpressionEvaluator("testProperty", new LineInfo());
 
-            _projectedExpressionEvaluator = new JsonPathExpressionEvaluator("property[*].name");
+            _projectedExpressionEvaluator = new JsonPathExpressionEvaluator("property[*].name", new LineInfo());
         }
 
         [Fact]

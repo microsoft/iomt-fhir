@@ -17,12 +17,14 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNullOrWhiteSpace(expression?.Value, nameof(expression.Value));
 
             var expressionLanguage = expression.Language ?? TemplateExpressionLanguage.JsonPath;
+            var languageLineInfo = expression.GetLineInfoForProperty(nameof(TemplateExpression.Language)) ?? expression;
+            var valueLineInfo = expression.GetLineInfoForProperty(nameof(TemplateExpression.Value)) ?? expression;
             if (expressionLanguage != TemplateExpressionLanguage.JsonPath)
             {
-                throw new TemplateExpressionException($"Unsupported Expression Language {expressionLanguage}. Only JsonPath is supported.");
+                throw new TemplateExpressionException($"Unsupported Expression Language {expressionLanguage}. Only JsonPath is supported.", languageLineInfo);
             }
 
-            return new JsonPathExpressionEvaluator(expression.Value);
+            return new JsonPathExpressionEvaluator(expression.Value, valueLineInfo);
         }
     }
 }

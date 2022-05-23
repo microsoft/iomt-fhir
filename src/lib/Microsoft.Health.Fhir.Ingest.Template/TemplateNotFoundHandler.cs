@@ -10,6 +10,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
     internal class TemplateNotFoundHandler<TTemplate> : IResponsibilityHandler<TemplateContainer, TTemplate>
             where TTemplate : class
     {
-        public TTemplate Evaluate(TemplateContainer request) => throw new InvalidTemplateException($"No match found for template type {request.TemplateType}.");
+        public TTemplate Evaluate(TemplateContainer request) => throw new InvalidTemplateException($"No match found for template type {request.TemplateType}.", request.GetLineInfoForProperty(nameof(TemplateContainer.Template), true));
     }
 }

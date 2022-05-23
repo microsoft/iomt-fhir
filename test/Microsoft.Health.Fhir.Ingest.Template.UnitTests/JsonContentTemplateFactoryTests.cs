@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Fhir.Ingest.Template;
+using System;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
@@ -80,10 +80,20 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             var factory = new JsonPathContentTemplateFactory();
 
-            var ex = Assert.Throws<InvalidTemplateException>(() => factory.Create(templateContainer));
+            var ex = Assert.Throws<AggregateException>(() => factory.Create(templateContainer));
             Assert.NotNull(ex);
-            Assert.Contains("DeviceIdExpression", ex.Message);
-            Assert.Contains("TimestampExpression", ex.Message);
+            Assert.Collection(
+                ex.InnerExceptions,
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("DeviceIdExpression", ex.Message);
+                },
+                p =>
+                {
+                    Assert.IsType<InvalidTemplateException>(p);
+                    Assert.Contains("TimestampExpression", ex.Message);
+                });
         }
 
         [Fact]

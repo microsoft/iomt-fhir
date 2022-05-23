@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public interface IFhirTemplate
+    public interface IFhirTemplate : ILineAwareJsonObject
     {
         string TypeName { get; }
     }

@@ -16,14 +16,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(jsonTemplate, nameof(jsonTemplate));
 
             const string targetTypeName = "CodeValueFhirTemplate";
+            var lineInfo = jsonTemplate.GetLineInfoForProperty(nameof(TemplateContainer.TemplateType));
             if (!jsonTemplate.MatchTemplateName(targetTypeName))
             {
-                throw new InvalidTemplateException($"Expected {nameof(jsonTemplate.TemplateType)} value {targetTypeName}, actual {jsonTemplate.TemplateType}.");
+                throw new InvalidTemplateException($"Expected {nameof(jsonTemplate.TemplateType)} value {targetTypeName}, actual {jsonTemplate.TemplateType}.", lineInfo);
             }
 
             if (jsonTemplate.Template?.Type != JTokenType.Object)
             {
-                throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.");
+                throw new InvalidTemplateException($"Expected an object for the template property value for template type {targetTypeName}.", lineInfo);
             }
 
             return jsonTemplate.Template.ToValidTemplate<CodeValueFhirTemplate>();

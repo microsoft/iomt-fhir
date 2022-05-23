@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class TemplateExpression
+    public class TemplateExpression : LineAwareJsonObject
     {
         public TemplateExpression()
         {
