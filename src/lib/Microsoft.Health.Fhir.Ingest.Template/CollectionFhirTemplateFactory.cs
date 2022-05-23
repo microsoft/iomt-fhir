@@ -51,18 +51,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 }
                 catch (AggregateException ex)
                 {
-                    errors.Add(new TemplateError(ex.Message));
-
-                    foreach (var innerException in ex.InnerExceptions)
+                    foreach (var error in ex.ConvertExceptionToTemplateErrors())
                     {
-                        if (innerException is InvalidTemplateException ite)
-                        {
-                            errors.Add(new TemplateError(ite.Message, ite.GetLineInfo));
-                        }
-                        else
-                        {
-                            errors.Add(new TemplateError(innerException.Message));
-                        }
+                        errors.Add(error);
                     }
                 }
             }

@@ -85,7 +85,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
                 if (isRequired)
                 {
-                    var lineInfo = expressions.First(e => e != null);
+                    var lineInfo = expressions.FirstOrDefault(e => e != null) ?? new LineInfo();
 
                     if (exceptions.Count > 0)
                     {
