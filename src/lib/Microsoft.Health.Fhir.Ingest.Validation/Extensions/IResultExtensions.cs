@@ -7,18 +7,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation.Models;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation.Extensions
 {
     public static class IResultExtensions
     {
-        public static void CaptureError(this IResult validationResult, string message, ErrorLevel errorLevel, ValidationCategory category)
+        public static void CaptureError(this IResult validationResult, string message, ErrorLevel errorLevel, ValidationCategory category, ILineInfo lineInfo)
         {
             EnsureArg.IsNotNull(validationResult, nameof(validationResult));
             EnsureArg.IsNotNullOrWhiteSpace(message, nameof(message));
 
-            validationResult.Exceptions.Add(new ValidationError(message, category, errorLevel));
+            validationResult.Exceptions.Add(new ValidationError(message, category, lineInfo, errorLevel));
         }
 
         public static void CaptureException(this IResult validationResult, Exception exception, ValidationCategory category)
@@ -26,16 +27,23 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.Extensions
             EnsureArg.IsNotNull(validationResult, nameof(validationResult));
             EnsureArg.IsNotNull(exception, nameof(exception));
 
+            var lineInfo = LineInfo.Default;
+
+            if (exception is IExceptionWithLineInfo exceptionWithLineInfo)
+            {
+                lineInfo = exceptionWithLineInfo.GetLineInfo;
+            }
+
             // Collect messages from inner exceptions as well
-            validationResult.Exceptions.Add(new ValidationError(exception.Message, category));
+            validationResult.Exceptions.Add(new ValidationError(exception.Message, category, lineInfo));
         }
 
-        public static void CaptureWarning(this IResult validationResult, string warning, ValidationCategory category)
+        public static void CaptureWarning(this IResult validationResult, string warning, ValidationCategory category, ILineInfo lineInfo)
         {
             EnsureArg.IsNotNull(validationResult, nameof(validationResult));
             EnsureArg.IsNotNullOrWhiteSpace(warning, nameof(warning));
 
-            validationResult.Exceptions.Add(new ValidationError(warning, category, ErrorLevel.WARN));
+            validationResult.Exceptions.Add(new ValidationError(warning, category, lineInfo, ErrorLevel.WARN));
         }
 
         public static IEnumerable<ValidationError> GetErrors(this IResult validationResult, ErrorLevel errorLevel)
