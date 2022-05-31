@@ -9,6 +9,7 @@ using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Fhir.Ingest.Validation.Models;
+using Microsoft.Health.Logging;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation.Extensions
 {
@@ -27,15 +28,14 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.Extensions
             EnsureArg.IsNotNull(validationResult, nameof(validationResult));
             EnsureArg.IsNotNull(exception, nameof(exception));
 
-            var lineInfo = LineInfo.Default;
-
             if (exception is IExceptionWithLineInfo exceptionWithLineInfo)
             {
-                lineInfo = exceptionWithLineInfo.GetLineInfo;
+                validationResult.Exceptions.Add(new ValidationError(exception.JoinInnerMessages(), category, exceptionWithLineInfo.GetLineInfo));
             }
-
-            // Collect messages from inner exceptions as well
-            validationResult.Exceptions.Add(new ValidationError(exception.Message, category, lineInfo));
+            else
+            {
+                validationResult.Exceptions.Add(new ValidationError(exception.JoinInnerMessages(), category));
+            }
         }
 
         public static void CaptureWarning(this IResult validationResult, string warning, ValidationCategory category, ILineInfo lineInfo)

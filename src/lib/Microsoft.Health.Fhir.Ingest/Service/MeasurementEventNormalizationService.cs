@@ -91,45 +91,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return producer;
         }
 
-        private IEnumerable<(string, IMeasurement)> Iter(JToken token, string partitionId, ConcurrentBag<Exception> exceptions, Func<Exception, EventData, Task<bool>> errorConsumer, EventData evt)
-        {
-            var enumerable = _contentTemplate.GetMeasurements(token).GetEnumerator();
-            (string, IMeasurement) currentValue = (partitionId, null);
-            var shouldLoop = true;
-
-            while (shouldLoop)
-            {
-                try
-                {
-                    shouldLoop = enumerable.MoveNext();
-
-                    if (shouldLoop)
-                    {
-                        currentValue = (partitionId, enumerable.Current);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                    if (errorConsumer(new NormalizationDataMappingException(ex), evt).ConfigureAwait(false).GetAwaiter().GetResult())
-                    {
-                        exceptions.Add(ex);
-                    }
-
-                    shouldLoop = false;
-                }
-
-                if (shouldLoop)
-                {
-                    yield return currentValue;
-                }
-            }
-        }
-
         private async Task StartConsumer(ISourceBlock<EventData> producer, IEnumerableAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer)
         {
             // Collect non operation canceled exceptions as they occur to ensure the entire data stream is processed
@@ -138,6 +99,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var transformingConsumer = new TransformManyBlock<EventData, (string, IMeasurement)>(
                 async evt =>
                 {
+                    var createdMeasurements = new List<(string, IMeasurement)>();
                     try
                     {
                         string partitionId = evt.SystemProperties.PartitionKey;
@@ -153,7 +115,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                         var token = _converter.Convert(evt);
 
-                        return Iter(token, partitionId, exceptions, errorConsumer, evt);
+                        try
+                        {
+                            foreach (var measurement in _contentTemplate.GetMeasurements(token))
+                            {
+                                measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
+                                createdMeasurements.Add((partitionId, measurement));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Translate all Normalization Mapping exceptions into a common type for easy identification.
+                            throw new NormalizationDataMappingException(ex);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -163,7 +137,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         }
                     }
 
-                    return new List<(string, IMeasurement)>();
+                    return createdMeasurements;
                 });
 
             var asyncCollectorConsumer = new ActionBlock<(string, IMeasurement)[]>(

@@ -10,12 +10,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.Models
 {
     public class ValidationError
     {
-        public ValidationError(string message, ValidationCategory category, ErrorLevel errorLevel = ErrorLevel.ERROR)
-            : this(message, category, Microsoft.Health.Fhir.Ingest.Template.LineInfo.Default, errorLevel)
-        {
-        }
-
-        public ValidationError(string message, ValidationCategory category, ILineInfo lineInfo, ErrorLevel errorLevel = ErrorLevel.ERROR)
+        public ValidationError(string message, ValidationCategory category, ILineInfo lineInfo = null, ErrorLevel errorLevel = ErrorLevel.ERROR)
         {
             Message = EnsureArg.IsNotNullOrWhiteSpace(message, nameof(message));
             Level = errorLevel;
