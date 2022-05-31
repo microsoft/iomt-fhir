@@ -4,16 +4,18 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.Fhir.Ingest.Template;
 
 namespace Microsoft.Health.Fhir.Ingest.Validation.Models
 {
     public class ValidationError
     {
-        public ValidationError(string message, ValidationCategory category, ErrorLevel errorLevel = ErrorLevel.ERROR)
+        public ValidationError(string message, ValidationCategory category, ILineInfo lineInfo = null, ErrorLevel errorLevel = ErrorLevel.ERROR)
         {
             Message = EnsureArg.IsNotNullOrWhiteSpace(message, nameof(message));
             Level = errorLevel;
             Category = category;
+            LineInfo = lineInfo;
         }
 
         public string Message { get; }
@@ -21,5 +23,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.Models
         public ErrorLevel Level { get; }
 
         public ValidationCategory Category { get; }
+
+        public ILineInfo LineInfo { get; }
     }
 }

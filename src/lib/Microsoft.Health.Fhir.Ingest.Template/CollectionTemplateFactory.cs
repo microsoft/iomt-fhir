@@ -68,13 +68,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             if (!rootContainer.MatchTemplateName(TargetTemplateTypeName))
             {
-                errors.Add(new TemplateError($"Expected {nameof(rootContainer.TemplateType)} value {TargetTemplateTypeName}, actual {rootContainer.TemplateType ?? "Not Found"}."));
+                errors.Add(new TemplateError($"Expected {nameof(rootContainer.TemplateType)} value {TargetTemplateTypeName}, actual {rootContainer.TemplateType ?? "Not Found"}.", rootContainer.GetLineInfoForProperty(nameof(TemplateContainer.TemplateType))));
                 return false;
             }
 
             if (rootContainer.Template?.Type != JTokenType.Array)
             {
-                errors.Add(new TemplateError($"Expected an array for the template property value for template type {TargetTemplateTypeName}."));
+                errors.Add(new TemplateError($"Expected an array for the template property value for template type {TargetTemplateTypeName}.", rootContainer.GetLineInfoForProperty(nameof(TemplateContainer.Template))));
                 return false;
             }
 

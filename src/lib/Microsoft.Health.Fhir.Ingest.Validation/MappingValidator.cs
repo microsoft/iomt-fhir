@@ -159,7 +159,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             try
             {
                 var templateContext = _collectionTemplateFactory.Create(deviceMappingContent);
-                templateContext.EnsureValid();
+
+                if (templateContext is TemplateContext<IContentTemplate> contentTemplateContext)
+                {
+                    CaptureTemplateErrors(validationResult, contentTemplateContext, ValidationCategory.NORMALIZATION);
+                }
+
                 return templateContext.Template;
             }
             catch (Exception e)
@@ -175,7 +180,12 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             try
             {
                 var fhirTemplateContext = _fhirTemplateFactory.Create(fhirMappingContent);
-                fhirTemplateContext.EnsureValid();
+
+                if (fhirTemplateContext is TemplateContext<ILookupTemplate<IFhirTemplate>> contentTemplateContext)
+                {
+                    CaptureTemplateErrors(validationResult, contentTemplateContext, ValidationCategory.FHIRTRANSFORMATION);
+                }
+
                 return fhirTemplateContext.Template;
             }
             catch (Exception e)
@@ -224,7 +234,8 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                             {
                                 validationResult.CaptureWarning(
                                     $"The value [{v.ValueName}] in Device Mapping [{extractor.Template.TypeName}] is not represented within the Fhir Template of type [{innerTemplate.TypeName}]. Available values are: [{availableFhirValueNamesDisplay}]. No value will appear inside of Observations.",
-                                    ValidationCategory.FHIRTRANSFORMATION);
+                                    ValidationCategory.FHIRTRANSFORMATION,
+                                    LineInfo.Default);
                             }
                         }
                     }
@@ -233,7 +244,8 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 {
                     validationResult.CaptureWarning(
                         $"No matching Fhir Template exists for Device Mapping [{extractor.Template.TypeName}]. Ensure case matches. Available Fhir Templates: [{availableFhirTemplates}].",
-                        ValidationCategory.FHIRTRANSFORMATION);
+                        ValidationCategory.FHIRTRANSFORMATION,
+                        LineInfo.Default);
                 }
                 catch (Exception e)
                 {
@@ -253,7 +265,7 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
 
                 if (validationResult.Measurements.Count == 0)
                 {
-                    validationResult.CaptureWarning("No measurements were produced for the given device data.", ValidationCategory.NORMALIZATION);
+                    validationResult.CaptureWarning("No measurements were produced for the given device data.", ValidationCategory.NORMALIZATION, LineInfo.Default);
                 }
             }
             catch (Exception e)
@@ -287,7 +299,8 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
                 validationResult.CaptureError(
                     $"No Fhir Template exists with the type name [{e.Message}]. Ensure that all Fhir Template type names match Device Mapping type names (including casing)",
                     ErrorLevel.ERROR,
-                    ValidationCategory.FHIRTRANSFORMATION);
+                    ValidationCategory.FHIRTRANSFORMATION,
+                    LineInfo.Default);
             }
             catch (Exception e)
             {
@@ -312,6 +325,15 @@ namespace Microsoft.Health.Fhir.Ingest.Validation
             }
 
             return fhirTemplateValues;
+        }
+
+        private static void CaptureTemplateErrors<TTemplateContext>(TemplateResult templateResult, TemplateContext<TTemplateContext> templateContext, ValidationCategory validationCategory)
+            where TTemplateContext : class
+        {
+            foreach (var templateError in templateContext.Errors)
+            {
+                templateResult.CaptureError(templateError.Message, ErrorLevel.ERROR, validationCategory, templateError.LineInfo);
+            }
         }
     }
 }
