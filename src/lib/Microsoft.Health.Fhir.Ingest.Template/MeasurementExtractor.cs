@@ -131,7 +131,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 // Add the extracted data as an element of the original data.
                 // This allows subsequent expressions access to data from the original event data
 
-                var tokenClone = token.DeepClone() as JObject;
+                var tokenClone = new JObject(token);
                 tokenClone.Add(MatchedToken, extractedToken);
                 yield return tokenClone;
             }
