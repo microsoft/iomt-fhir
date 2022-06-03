@@ -243,8 +243,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
                 catch (Exception ex)
                 {
-                    // TODO: Do we skip processing the remainder of the DeviceEvent now that one Measurement produced an Exception? Or do
-                    // we simply skip this Measurement, and allow the remaining Measurements to be generated?
                     // Translate all Normalization Mapping exceptions into a common type for easy identification.
                     storeNormalizedException(ex);
                     shouldLoop = false;
