@@ -159,5 +159,16 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             return exceptionName.ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical);
         }
+
+        /// <summary>
+        /// The time it takes to generate a Normalized Event.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition </param>
+        public static Metric NormalizedEventGenerationTimeMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.NormalizedEventGenerationTimeMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization)
+                .AddDimension(_partitionDimension, partitionId);
+        }
     }
 }

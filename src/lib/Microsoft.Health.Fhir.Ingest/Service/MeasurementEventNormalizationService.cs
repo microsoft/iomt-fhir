@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             Data.IConverter<EventData, JToken> converter,
             IExceptionTelemetryProcessor exceptionTelemetryProcessor,
             int maxParallelism,
-            int asyncCollectorBatchSize = 200)
+            int asyncCollectorBatchSize = 25)
         {
             _log = EnsureArg.IsNotNull(log, nameof(log));
             _contentTemplate = EnsureArg.IsNotNull(contentTemplate, nameof(contentTemplate));
@@ -96,12 +97,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var enumerable = _contentTemplate.GetMeasurements(token).GetEnumerator();
             (string, IMeasurement) currentValue = (partitionId, null);
             var shouldLoop = true;
+            var stopWatch = new Stopwatch();
 
             while (shouldLoop)
             {
                 try
                 {
+                    stopWatch.Start();
                     shouldLoop = enumerable.MoveNext();
+                    stopWatch.Stop();
+
+                    _log.LogMetric(
+                            IomtMetrics.NormalizedEventGenerationTimeMs(partitionId),
+                            stopWatch.ElapsedMilliseconds);
+
+                    stopWatch.Reset();
 
                     if (shouldLoop)
                     {
