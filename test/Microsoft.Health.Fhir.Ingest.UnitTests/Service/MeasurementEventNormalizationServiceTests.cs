@@ -43,7 +43,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            var srv = new MeasurementEventNormalizationService(_logger, _template, _exceptionTelemetryProcessor);
+            var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 3, 25);
             await srv.ProcessAsync(events, _consumer);
 
             _template.ReceivedWithAnyArgs(events.Length).GetMeasurements(null);

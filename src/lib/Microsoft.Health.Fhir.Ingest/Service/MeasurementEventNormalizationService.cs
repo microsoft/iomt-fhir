@@ -92,56 +92,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return producer;
         }
 
-        private IEnumerable<(string, IMeasurement)> Iter(JToken token, string partitionId, ConcurrentBag<Exception> exceptions, Func<Exception, EventData, Task<bool>> errorConsumer, EventData evt)
-        {
-            var enumerable = _contentTemplate.GetMeasurements(token).GetEnumerator();
-            (string, IMeasurement) currentValue = (partitionId, null);
-            var shouldLoop = true;
-            var stopWatch = new Stopwatch();
-
-            while (shouldLoop)
-            {
-                try
-                {
-                    stopWatch.Start();
-                    shouldLoop = enumerable.MoveNext();
-                    stopWatch.Stop();
-
-                    _log.LogMetric(
-                            IomtMetrics.NormalizedEventGenerationTimeMs(partitionId),
-                            stopWatch.ElapsedMilliseconds);
-
-                    stopWatch.Reset();
-
-                    if (shouldLoop)
-                    {
-                        currentValue = (partitionId, enumerable.Current);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // TODO: Do we skip processing the entire DeviceEvent now that one Measurement produced an Exception? Or do
-                    // we simply skip this Measurement, and allow other Measurements to be generated?
-                    // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                    if (errorConsumer(new NormalizationDataMappingException(ex), evt).ConfigureAwait(false).GetAwaiter().GetResult())
-                    {
-                        exceptions.Add(ex);
-                    }
-
-                    shouldLoop = false;
-                }
-
-                if (shouldLoop)
-                {
-                    yield return currentValue;
-                }
-            }
-        }
-
         private async Task StartConsumer(ISourceBlock<EventData> producer, IEnumerableAsyncCollector<IMeasurement> collector, Func<Exception, EventData, Task<bool>> errorConsumer)
         {
             // Collect non operation canceled exceptions as they occur to ensure the entire data stream is processed
@@ -165,7 +115,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                         var token = _converter.Convert(evt);
 
-                        return Iter(token, partitionId, exceptions, errorConsumer, evt);
+                        return CreateMeasurementIterator(token, partitionId, exceptions, errorConsumer, evt);
                     }
                     catch (Exception ex)
                     {
@@ -238,6 +188,73 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var handled = _exceptionTelemetryProcessor.HandleException(ex, _log);
             return Task.FromResult(!handled);
+        }
+
+        private IEnumerable<(string, IMeasurement)> CreateMeasurementIterator(JToken token, string partitionId, ConcurrentBag<Exception> exceptions, Func<Exception, EventData, Task<bool>> errorConsumer, EventData evt)
+        {
+            IEnumerator<Measurement> enumerable = null;
+            Action<Exception> storeNormalizedException = ex =>
+            {
+                var normalizationException = new NormalizationDataMappingException(ex);
+                if (errorConsumer(normalizationException, evt).ConfigureAwait(false).GetAwaiter().GetResult())
+                {
+                    exceptions.Add(normalizationException);
+                }
+            };
+
+            try
+            {
+                enumerable = _contentTemplate.GetMeasurements(token).GetEnumerator();
+            }
+            catch (Exception ex)
+            {
+                storeNormalizedException(ex);
+                yield break;
+            }
+
+            (string, IMeasurement) currentValue = (partitionId, null);
+            var shouldLoop = true;
+            var stopWatch = new Stopwatch();
+
+            while (shouldLoop)
+            {
+                try
+                {
+                    stopWatch.Start();
+                    shouldLoop = enumerable.MoveNext();
+                    stopWatch.Stop();
+
+                    _log.LogMetric(
+                            IomtMetrics.NormalizedEventGenerationTimeMs(partitionId),
+                            stopWatch.ElapsedMilliseconds);
+
+                    stopWatch.Reset();
+
+                    if (shouldLoop)
+                    {
+                        var measurement = enumerable.Current;
+                        measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
+                        currentValue = (partitionId, measurement);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // TODO: Do we skip processing the remainder of the DeviceEvent now that one Measurement produced an Exception? Or do
+                    // we simply skip this Measurement, and allow the remaining Measurements to be generated?
+                    // Translate all Normalization Mapping exceptions into a common type for easy identification.
+                    storeNormalizedException(ex);
+                    shouldLoop = false;
+                }
+
+                if (shouldLoop)
+                {
+                    yield return currentValue;
+                }
+            }
         }
     }
 }
