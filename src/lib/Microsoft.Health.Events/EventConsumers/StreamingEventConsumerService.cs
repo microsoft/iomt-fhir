@@ -30,7 +30,7 @@ namespace Microsoft.Health.Events.EventConsumers
 
             CheckpointClient = EnsureArg.IsNotNull(checkpointClient, nameof(checkpointClient));
             Logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            EventProcessingMetrics = EnsureArg.IsNotNull(eventProcessingMetricMeters, nameof(eventProcessingMetricMeters));
+            EventProcessingMetrics = eventProcessingMetricMeters;
 
             PartitionProgress = new ConcurrentDictionary<string, EventPartitionProgressData>(8, 8);
         }
