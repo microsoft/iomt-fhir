@@ -14,10 +14,16 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 {
     public class EventDataWithJsonBodyToJTokenConverter : IConverter<EventData, JToken>
     {
+        private const string BodyAttr = "Body";
+        private const string PropertiesAttr = "Properties";
+        private const string SystemPropertiesAttr = "SystemProperties";
+        private readonly JsonSerializer jsonSerializer = JsonSerializer.CreateDefault();
+
         public JToken Convert(EventData input)
         {
             EnsureArg.IsNotNull(input, nameof(input));
-            var body = null as JToken;
+            JToken token = new JObject();
+            JToken body = null;
 
             if (input.Body.Count > 0)
             {
@@ -29,8 +35,10 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 }
             }
 
-            var data = new { Body = body, input.Properties, input.SystemProperties };
-            var token = JToken.FromObject(data);
+            token[BodyAttr] = body;
+            token[PropertiesAttr] = JToken.FromObject(input.Properties, jsonSerializer);
+            token[SystemPropertiesAttr] = JToken.FromObject(input.SystemProperties, jsonSerializer);
+
             return token;
         }
     }
