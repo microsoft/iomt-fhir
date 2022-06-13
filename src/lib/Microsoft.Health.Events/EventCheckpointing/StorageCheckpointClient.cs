@@ -95,7 +95,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             {
                 var checkpoint = new Checkpoint();
 
-                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.All, prefix: prefix, cancellationToken: cancellationToken))
+                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
                 {
                     var partitionId = blob.Name.Split('/').Last();
                     DateTimeOffset lastEventTimestamp = DateTime.MinValue;

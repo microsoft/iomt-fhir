@@ -13,23 +13,34 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public class EventMessageJTokenConverter : IConverter<IEventMessage, JToken>
+    public class EventMessageJTokenConverter : IConverter<IEventMessage, JObject>
     {
-        public JToken Convert(IEventMessage input)
+        private const string BodyAttr = "Body";
+        private const string PropertiesAttr = "Properties";
+        private const string SystemPropertiesAttr = "SystemProperties";
+
+        private readonly JsonLoadSettings loadSettings = new () { LineInfoHandling = LineInfoHandling.Ignore };
+
+        private readonly JsonSerializer jsonSerializer = JsonSerializer.CreateDefault();
+
+        public JObject Convert(IEventMessage input)
         {
             EnsureArg.IsNotNull(input, nameof(input));
 
+            JObject token = new ();
             JToken body = null;
 
             if (input.Body.Length > 0)
             {
                 using StreamReader streamReader = new StreamReader(input.Body.AsStream(), Encoding.UTF8);
                 using JsonReader jsonReader = new JsonTextReader(streamReader);
-                body = JToken.ReadFrom(jsonReader);
+                body = JToken.ReadFrom(jsonReader, loadSettings);
             }
 
-            var data = new { Body = body, input.Properties, input.SystemProperties };
-            var token = JToken.FromObject(data);
+            token[BodyAttr] = body;
+            token[PropertiesAttr] = JToken.FromObject(input.Properties, jsonSerializer);
+            token[SystemPropertiesAttr] = JToken.FromObject(input.SystemProperties, jsonSerializer);
+
             return token;
         }
     }

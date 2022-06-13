@@ -22,7 +22,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class NormalizationStreamingEventConsumerService : StreamingEventConsumerService
     {
         private readonly IContentTemplate _contentTemplate;
-        private readonly IConverter<IEventMessage, JToken> _converter;
+        private readonly IConverter<IEventMessage, JObject> _converter;
         private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
         private readonly IEnumerableAsyncCollector<IMeasurement> _collector;
 
@@ -31,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             ICheckpointClient checkpointClient,
             ITelemetryLogger log,
             IEventProcessingMetricMeters eventProcessingMetricMeters,
-            IConverter<IEventMessage, JToken> converter,
+            IConverter<IEventMessage, JObject> converter,
             IContentTemplate contentTemplate,
             IExceptionTelemetryProcessor exceptionTelemetryProcessor,
             IEnumerableAsyncCollector<IMeasurement> collector)

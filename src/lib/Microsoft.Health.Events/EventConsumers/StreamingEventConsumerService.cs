@@ -21,6 +21,7 @@ namespace Microsoft.Health.Events.EventConsumers
     {
         protected const string ThresholdWaitReached = nameof(ThresholdWaitReached);
         protected const string ThresholdCountReached = nameof(ThresholdCountReached);
+        protected const int PartitionCheckpointThreshold = 100;
 
         public StreamingEventConsumerService(EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger, IEventProcessingMetricMeters eventProcessingMetricMeters = null)
         {
@@ -55,6 +56,8 @@ namespace Microsoft.Health.Events.EventConsumers
 
             await ConsumeEventImpl(eventArg);
 
+            await LogDeviceMetrics(eventArg);
+
             TrackPartitionProgress(eventArg);
         }
 
@@ -86,11 +89,10 @@ namespace Microsoft.Health.Events.EventConsumers
                     return oldValue;
                 });
 
-            if (progress.EventsProcessed % EventBatchingOptions.MaxEvents == 0)
+            if (progress.EventsProcessed % PartitionCheckpointThreshold == 0)
             {
                 // Reached event threshold to update checkpoint and emit metrics
-                var metrics = await EventProcessingMetrics.GetMetrics(EventToEnumerable(eventArg));
-                await CheckpointClient.SetCheckpointAsync(eventArg, metrics);
+                await CheckpointClient.SetCheckpointAsync(eventArg);
                 LogDataFreshness(eventTime.UtcDateTime, partitionId: eventArg.PartitionId, triggerReason: ThresholdCountReached);
             }
         }
@@ -98,7 +100,28 @@ namespace Microsoft.Health.Events.EventConsumers
         private void LogDataFreshness(DateTime freshness, string partitionId, string triggerReason)
         {
             // Immediately record Freshness, don't wait to continue processing.
-            var task = Task.Run(() => Logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(freshness.ToString("yyyyMMddHHmmss"))));
+            _ = Task.Run(() => Logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(freshness.ToString("yyyyMMddHHmmss"))));
+        }
+
+        public async Task LogDeviceMetrics(IEventMessage eventArg)
+        {
+            var metrics = await EventProcessingMetrics.GetMetrics(EventToEnumerable(eventArg));
+
+            if (metrics == null)
+            {
+                return;
+            }
+
+            // TODO: Log Device Event metrics.
+
+            // Immediately record metrics, don't wait to continue processing
+            _ = Task.Run(() =>
+            {
+                foreach (var metric in metrics)
+                {
+                    Logger.LogMetric(metric.Key, metric.Value);
+                }
+            });
         }
 
         private static IEnumerable<IEventMessage> EventToEnumerable(IEventMessage eventMessage)
