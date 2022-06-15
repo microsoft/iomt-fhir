@@ -47,8 +47,6 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            serviceCollection.AddSingleton<IErrorMessageService, ErrorMessageService>();
-
             serviceCollection.Configure<NormalizationServiceOptions>(configuration.GetSection(NormalizationServiceOptions.Settings));
             serviceCollection.AddSingleton(TelemetryProcessorFactory);
 
