@@ -198,7 +198,22 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         /// <returns>Returns true if the exception is handled and false otherwise.</returns>
         private Task<bool> ProcessErrorAsync(Exception ex, EventData data)
         {
-            var handled = _exceptionTelemetryProcessor.HandleException(ex, _log);
+            JObject request = new JObject();
+            request["Properties"] = new JObject();
+            request["SystemProperties"] = new JObject();
+
+            foreach (var prop in data.Properties)
+            {
+                request["Properties"][prop.Key] = prop.Value.ToString();
+            }
+
+            foreach (var prop in data.SystemProperties)
+            {
+                request["SystemProperties"][prop.Key] = prop.Value.ToString();
+            }
+
+            request["Body"] = JObject.Parse(System.Text.Encoding.Default.GetString(data.Body.ToArray()));
+            var handled = _exceptionTelemetryProcessor.HandleException(ex, request, _log);
             return Task.FromResult(!handled);
         }
     }

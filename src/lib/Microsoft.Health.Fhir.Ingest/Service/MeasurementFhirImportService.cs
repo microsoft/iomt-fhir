@@ -73,7 +73,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             catch (Exception ex)
                             {
-                                if (!Options.ExceptionService.HandleException(ex, log))
+                                // capture the message payload for error message service
+                                JArray payload = new JArray();
+                                foreach (var measurement in m.Data)
+                                {
+                                    payload.Add(JObject.Parse(System.Text.Encoding.Default.GetString(measurement.Payload.ToArray())));
+                                }
+
+                                if (!Options.ExceptionService.HandleException(ex, payload, log))
                                 {
                                     throw;
                                 }
@@ -111,23 +118,28 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var partitionId = data.FirstOrDefault()?.PartitionId;
 
             // Deserialize events into measurements and then group according to the device, type, and other factors
-            return data.Select(e => JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray())))
+            return data.Select(e =>
+                {
+                    var measurement = JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray()));
+                    measurement.Payload = e.Body;
+                    return measurement;
+                })
                 .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
                 .Select(g =>
-                {
-                    var measurements = g.ToList();
-                    _ = CalculateMetricsAsync(measurements, log, partitionId).ConfigureAwait(false);
-                    return new MeasurementGroup
                     {
-                        Data = measurements,
-                        MeasureType = measurements[0].Type,
-                        CorrelationId = measurements[0].CorrelationId,
-                        DeviceId = measurements[0].DeviceId,
-                        EncounterId = measurements[0].EncounterId,
-                        PatientId = measurements[0].PatientId,
-                    };
-                })
-                .ToArray();
+                        var measurements = g.ToList();
+                        _ = CalculateMetricsAsync(measurements, log, partitionId).ConfigureAwait(false);
+                        return new MeasurementGroup
+                        {
+                            Data = measurements,
+                            MeasureType = measurements[0].Type,
+                            CorrelationId = measurements[0].CorrelationId,
+                            DeviceId = measurements[0].DeviceId,
+                            EncounterId = measurements[0].EncounterId,
+                            PatientId = measurements[0].PatientId,
+                        };
+                    })
+                    .ToArray();
         }
 
         private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log, string partitionId = null)

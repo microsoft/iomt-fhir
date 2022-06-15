@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Common.Errors;
 using Microsoft.Health.Extensions.Host;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -46,6 +47,8 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
+            serviceCollection.AddSingleton<IErrorMessageService, ErrorMessageService>();
+
             serviceCollection.Configure<NormalizationServiceOptions>(configuration.GetSection(NormalizationServiceOptions.Settings));
             serviceCollection.AddSingleton(TelemetryProcessorFactory);
 
@@ -56,11 +59,24 @@ namespace Microsoft.Health.Fhir.Ingest.Host
         {
             var options = serviceProvider.GetRequiredService<IOptions<NormalizationServiceOptions>>();
 
-            return options.Value.ErrorHandlingPolicy switch
+            var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
+
+            if (errorMessageService == null)
             {
-                NormalizationErrorHandlingPolicy.DiscardMatchAndExtractErrors => new NormalizationExceptionTelemetryProcessor(typeof(NormalizationDataMappingException)),
-                _ => new NormalizationExceptionTelemetryProcessor(),
-            };
+                return options.Value.ErrorHandlingPolicy switch
+                {
+                    NormalizationErrorHandlingPolicy.DiscardMatchAndExtractErrors => new NormalizationExceptionTelemetryProcessor(typeof(NormalizationDataMappingException)),
+                    _ => new NormalizationExceptionTelemetryProcessor(),
+                };
+            }
+            else
+            {
+                return options.Value.ErrorHandlingPolicy switch
+                {
+                    NormalizationErrorHandlingPolicy.DiscardMatchAndExtractErrors => new NormalizationExceptionTelemetryProcessor(errorMessageService, typeof(NormalizationDataMappingException)),
+                    _ => new NormalizationExceptionTelemetryProcessor(errorMessageService),
+                };
+            }
         }
     }
 }

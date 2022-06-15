@@ -10,6 +10,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 {
     public interface IMeasurement
     {
+        ReadOnlyMemory<byte> Payload { get; set; }
+
         string Type { get; }
 
         DateTime OccurrenceTimeUtc { get; }

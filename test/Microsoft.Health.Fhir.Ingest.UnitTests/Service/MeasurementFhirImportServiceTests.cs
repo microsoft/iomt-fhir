@@ -15,6 +15,7 @@ using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
 
@@ -92,7 +93,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
-            options.ExceptionService.HandleException(null, null).ReturnsForAnyArgs(true);
+            options.ExceptionService.HandleException(null, new JArray(), null).ReturnsForAnyArgs(true);
 
             var exception = new InvalidOperationException();
 
@@ -107,7 +108,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-            options.ExceptionService.Received(2).HandleException(exception, log);
+            options.ExceptionService.Received(2).HandleException(exception, new JArray(), log);
         }
 
         [Fact]

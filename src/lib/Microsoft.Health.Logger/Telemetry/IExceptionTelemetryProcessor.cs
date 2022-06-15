@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
@@ -15,9 +16,10 @@ namespace Microsoft.Health.Logging.Telemetry
         /// The associated exception metric is logged.
         /// </summary>
         /// <param name="ex">Exception that is to be evaluated as handleable or not.</param>
+        /// <param name="message">The message payload that the exception was triggered for.</param>
         /// <param name="logger">Telemetry logger used to log the exception/metric.</param>
         /// <returns>Returns true if the exception is handleable, i.e., can be continued upon. False otherwise.</returns>
-        bool HandleException(Exception ex, ITelemetryLogger logger);
+        bool HandleException(Exception ex, JToken message, ITelemetryLogger logger);
 
         /// <summary>
         /// Logs the exception metric for the supplied exception.
