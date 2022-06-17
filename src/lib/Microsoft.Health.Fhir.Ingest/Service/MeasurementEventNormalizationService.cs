@@ -124,7 +124,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             {
                                 measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
                                 createdMeasurements.Add((partitionId, measurement));
-                                
+
                                 stopWatch.Stop();
                                 _log.LogMetric(
                                     IomtMetrics.NormalizedEventGenerationTimeMs(partitionId),
