@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,10 +118,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                         try
                         {
+                            var stopWatch = new Stopwatch();
+                            stopWatch.Start();
                             foreach (var measurement in _contentTemplate.GetMeasurements(token))
                             {
                                 measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
                                 createdMeasurements.Add((partitionId, measurement));
+                                
+                                stopWatch.Stop();
+                                _log.LogMetric(
+                                    IomtMetrics.NormalizedEventGenerationTimeMs(partitionId),
+                                    stopWatch.ElapsedMilliseconds);
+                                stopWatch.Reset();
+                                stopWatch.Start();
                             }
                         }
                         catch (Exception ex)
