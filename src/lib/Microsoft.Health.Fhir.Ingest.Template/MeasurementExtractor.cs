@@ -126,12 +126,18 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             EnsureArg.IsNotNull(token, nameof(token));
             var evaluator = CreateRequiredExpressionEvaluator(Template.TypeMatchExpression, nameof(Template.TypeMatchExpression));
 
+            JObject tokenClone = null;
+
             foreach (var extractedToken in evaluator.SelectTokens(token))
             {
                 // Add the extracted data as an element of the original data.
                 // This allows subsequent expressions access to data from the original event data
+                if (tokenClone == null)
+                {
+                    tokenClone = new JObject(token);
+                }
 
-                var tokenClone = token.DeepClone() as JObject;
+                tokenClone.Remove(MatchedToken);
                 tokenClone.Add(MatchedToken, extractedToken);
                 yield return tokenClone;
             }
