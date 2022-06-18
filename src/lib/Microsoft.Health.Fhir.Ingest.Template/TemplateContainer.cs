@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class TemplateContainer
+    [JsonConverter(typeof(TemplateContainerJsonConverter))]
+    public class TemplateContainer : LineAwareJsonObject
     {
         public string TemplateType { get; set; }
 

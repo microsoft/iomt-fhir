@@ -16,7 +16,7 @@ using Microsoft.Health.Fhir.Ingest.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
-    internal static class DeviceDataNormalizationExtensions
+    public static class DeviceDataNormalizationExtensions
     {
         public static IWebJobsBuilder AddDeviceNormalization(this IWebJobsBuilder builder)
         {
@@ -25,13 +25,31 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.AddExtension<EventHubMeasurementCollectorProvider>()
                 .BindOptions<EventHubMeasurementCollectorOptions>();
 
-            IConfiguration config = builder.GetConfiguration();
-
-            builder.Services.Configure<NormalizationServiceOptions>(config.GetSection(NormalizationServiceOptions.Settings));
-            builder.Services.AddSingleton(TelemetryProcessorFactory);
             builder.AddExtension<DeviceDataNormalizationSettingsProvider>();
 
+            builder.Services.AddDeviceNormalization();
+
             return builder;
+        }
+
+        public static IServiceCollection AddDeviceNormalization(this IServiceCollection serviceCollection)
+        {
+            EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
+
+            IConfiguration config = serviceCollection.GetConfiguration();
+
+            return serviceCollection.AddNormalizationExceptionTelemetryProcessor(config);
+        }
+
+        public static IServiceCollection AddNormalizationExceptionTelemetryProcessor(this IServiceCollection serviceCollection, IConfiguration configuration)
+        {
+            EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
+            EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+            serviceCollection.Configure<NormalizationServiceOptions>(configuration.GetSection(NormalizationServiceOptions.Settings));
+            serviceCollection.AddSingleton(TelemetryProcessorFactory);
+
+            return serviceCollection;
         }
 
         private static NormalizationExceptionTelemetryProcessor TelemetryProcessorFactory(IServiceProvider serviceProvider)

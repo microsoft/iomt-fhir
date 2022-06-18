@@ -19,7 +19,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public FhirLookupTemplate RegisterTemplate(IFhirTemplate fhirTemplate)
         {
             EnsureArg.IsNotNull(fhirTemplate, nameof(fhirTemplate));
-
+            var lineInfo = fhirTemplate.GetLineInfoForProperty(nameof(fhirTemplate.TypeName));
             if (!string.IsNullOrWhiteSpace(fhirTemplate.TypeName))
             {
                 if (!_templates.ContainsKey(fhirTemplate.TypeName))
@@ -28,12 +28,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 }
                 else
                 {
-                    throw new InvalidTemplateException($"Duplicate template defined for type name: '{fhirTemplate.TypeName}'");
+                    throw new InvalidTemplateException($"Duplicate template defined for type name: '{fhirTemplate.TypeName}'", lineInfo);
                 }
             }
             else
             {
-                throw new InvalidTemplateException($"Empty type name is not allowed: '{fhirTemplate.TypeName}'");
+                throw new InvalidTemplateException($"Empty type name is not allowed: '{fhirTemplate.TypeName}'", lineInfo);
             }
 
             return this;

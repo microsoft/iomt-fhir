@@ -9,13 +9,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class TemplateExpressionException : InvalidTemplateException
     {
-        public TemplateExpressionException(string message)
-            : base(message)
+        public TemplateExpressionException(string message, ILineInfo lineInfo)
+             : base(message, lineInfo)
         {
         }
 
-        public TemplateExpressionException(string message, Exception innerException)
-            : base(message, innerException)
+        public TemplateExpressionException(string message, Exception innerException, ILineInfo lineInfo)
+            : base(message, innerException, lineInfo)
         {
         }
 
