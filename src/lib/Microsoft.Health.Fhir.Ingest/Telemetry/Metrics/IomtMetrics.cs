@@ -94,17 +94,6 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         }
 
         /// <summary>
-        /// The number of normalized events projected from a single device event.
-        /// </summary>
-        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>
-        public static Metric ProjectedEvent(string partitionId = null)
-        {
-            return IomtMetricDefinition.ProjectedEvent
-               .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization)
-               .AddDimension(_partitionDimension, partitionId);
-        }
-
-        /// <summary>
         /// The number of input device events with no normalized events.
         /// </summary>
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>
