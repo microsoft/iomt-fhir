@@ -51,6 +51,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             if (eventArg is MaximumWaitEvent)
             {
+                await WaitThresholdReached(eventArg);
                 LogDataFreshness(DateTime.UtcNow, partitionId: eventArg.PartitionId, triggerReason: ThresholdWaitReached);
                 return;
             }
@@ -71,6 +72,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         protected abstract Task ConsumeEventImpl(IEventMessage eventArg);
+
+        protected virtual async Task WaitThresholdReached(IEventMessage eventArg)
+        {
+            await Task.CompletedTask;
+        }
 
         protected virtual async void TrackPartitionProgress(IEventMessage eventArg)
         {

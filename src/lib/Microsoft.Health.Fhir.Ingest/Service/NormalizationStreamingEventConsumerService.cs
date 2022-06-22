@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Events.Common;
@@ -42,6 +44,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _collector = EnsureArg.IsNotNull(collector, nameof(collector));
         }
 
+        /// <summary>
+        /// Reusable list to collect projected measurements
+        /// </summary>
+        private List<IMeasurement> NormalizationBatch { get; } = new List<IMeasurement>(50);
+
         protected override async Task ConsumeEventImpl(IEventMessage eventArg)
         {
             try
@@ -61,16 +68,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        private async Task NormalizeMessage(JToken token, IEventMessage eventArg)
+        private async Task NormalizeMessage(JObject token, IEventMessage eventArg)
         {
-            int projectedMeasurements = 0;
+            Stopwatch sw = Stopwatch.StartNew();
             foreach (var measurement in _contentTemplate.GetMeasurements(token))
             {
                 try
                 {
                     measurement.IngestionTimeUtc = eventArg.EnqueuedTime.UtcDateTime;
-                    await _collector.AddAsync(measurement);
-                    projectedMeasurements++;
+                    NormalizationBatch.Add(measurement);
                 }
                 catch (Exception ex)
                 {
@@ -79,7 +85,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
             }
 
-            RecordNormalizedEventMetrics(eventArg, projectedMeasurements);
+            sw.Stop();
+
+            // Send all projections at once so they can be batched and transismented efficiently.
+            await _collector.AddAsync(NormalizationBatch);
+
+            RecordNormalizedEventMetrics(eventArg, NormalizationBatch.Count, sw.Elapsed);
+
+            // Clear projected measurements for next message.
+            NormalizationBatch.Clear();
         }
 
         private void RecordLatencyMetrics(IEventMessage eventArg)
@@ -100,7 +114,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             });
         }
 
-        private void RecordNormalizedEventMetrics(IEventMessage eventArg, int projectedMessages)
+        private void RecordNormalizedEventMetrics(IEventMessage eventArg, int projectedMessages, TimeSpan duration)
         {
             string partitionId = eventArg.PartitionId;
 
@@ -110,9 +124,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Logger.LogMetric(
                     IomtMetrics.NormalizedEvent(partitionId),
                     projectedMessages);
-            });
 
-            // TODO: Add new metric to track inbound to projected
+                Logger.LogMetric(
+                    IomtMetrics.NormalizedEventGenerationTimeMs(partitionId),
+                    duration.TotalMilliseconds);
+
+                if (projectedMessages == 0)
+                {
+                    Logger.LogTrace($"No measurements projected for event {eventArg.SequenceNumber}.");
+                    Logger.LogMetric(
+                        IomtMetrics.DroppedEvent(partitionId),
+                        1);
+                }
+            });
         }
     }
 }
