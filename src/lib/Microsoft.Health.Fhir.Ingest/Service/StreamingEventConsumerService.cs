@@ -13,9 +13,10 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
 
-namespace Microsoft.Health.Events.EventConsumers
+namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public abstract class StreamingEventConsumerService : IEventConsumerService
     {
@@ -112,11 +113,13 @@ namespace Microsoft.Health.Events.EventConsumers
                 return;
             }
 
-            // TODO: Log Device Event metrics.
+            var deviceEvent = IomtMetrics.DeviceEvent(eventArg.PartitionId);
 
             // Immediately record metrics, don't wait to continue processing
             _ = Task.Run(() =>
             {
+                Logger.LogMetric(metric: deviceEvent, metricValue: 1d);
+
                 foreach (var metric in metrics)
                 {
                     Logger.LogMetric(metric.Key, metric.Value);

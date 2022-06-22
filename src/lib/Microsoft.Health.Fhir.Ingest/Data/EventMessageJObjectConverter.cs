@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public class EventMessageJTokenConverter : IConverter<IEventMessage, JObject>
+    public class EventMessageJObjectConverter : IConverter<IEventMessage, JObject>
     {
         private const string BodyAttr = "Body";
         private const string PropertiesAttr = "Properties";

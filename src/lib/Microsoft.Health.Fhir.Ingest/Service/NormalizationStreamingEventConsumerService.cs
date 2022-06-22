@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
-using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -64,23 +63,23 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private async Task NormalizeMessage(JToken token, IEventMessage eventArg)
         {
-            try
+            int projectedMeasurements = 0;
+            foreach (var measurement in _contentTemplate.GetMeasurements(token))
             {
-                int projectedMeasurements = 0;
-                foreach (var measurement in _contentTemplate.GetMeasurements(token))
+                try
                 {
                     measurement.IngestionTimeUtc = eventArg.EnqueuedTime.UtcDateTime;
                     await _collector.AddAsync(measurement);
                     projectedMeasurements++;
                 }
+                catch (Exception ex)
+                {
+                    // Translate all Normalization Mapping exceptions into a common type for easy identification.
+                    throw new NormalizationDataMappingException(ex);
+                }
+            }
 
-                RecordNormalizedEventMetrics(eventArg, projectedMeasurements);
-            }
-            catch (Exception ex)
-            {
-                // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                throw new NormalizationDataMappingException(ex);
-            }
+            RecordNormalizedEventMetrics(eventArg, projectedMeasurements);
         }
 
         private void RecordLatencyMetrics(IEventMessage eventArg)

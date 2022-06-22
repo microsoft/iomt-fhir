@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,13 +12,13 @@ using Microsoft.Health.Events.Model;
 
 namespace Microsoft.Health.Events.Common
 {
-    public class EventProcessingMeter : IEventProcessingMeter
+    public class IngressBytesEventProcessingMeter : IEventProcessingMeter
     {
-        public EventProcessingMeter()
+        public IngressBytesEventProcessingMeter()
         {
         }
 
-        public EventProcessingMeter(Metric metric)
+        public IngressBytesEventProcessingMeter(Metric metric)
         {
             EventsProcessedMetric = metric;
         }
