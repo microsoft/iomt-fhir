@@ -44,11 +44,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _collector = EnsureArg.IsNotNull(collector, nameof(collector));
         }
 
-        /// <summary>
-        /// Reusable list to collect projected measurements
-        /// </summary>
-        private List<IMeasurement> NormalizationBatch { get; } = new List<IMeasurement>(50);
-
         protected override async Task ConsumeEventImpl(IEventMessage eventArg)
         {
             try
@@ -70,13 +65,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private async Task NormalizeMessage(JObject token, IEventMessage eventArg)
         {
+            var normalizationBatch = new List<IMeasurement>(20);
             Stopwatch sw = Stopwatch.StartNew();
+
             foreach (var measurement in _contentTemplate.GetMeasurements(token))
             {
                 try
                 {
                     measurement.IngestionTimeUtc = eventArg.EnqueuedTime.UtcDateTime;
-                    NormalizationBatch.Add(measurement);
+                    normalizationBatch.Add(measurement);
                 }
                 catch (Exception ex)
                 {
@@ -88,12 +85,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             sw.Stop();
 
             // Send all projections at once so they can be batched and transismented efficiently.
-            await _collector.AddAsync(NormalizationBatch);
+            await _collector.AddAsync(normalizationBatch);
 
-            RecordNormalizedEventMetrics(eventArg, NormalizationBatch.Count, sw.Elapsed);
-
-            // Clear projected measurements for next message.
-            NormalizationBatch.Clear();
+            RecordNormalizedEventMetrics(eventArg, normalizationBatch.Count, sw.Elapsed);
         }
 
         private void RecordLatencyMetrics(IEventMessage eventArg)
