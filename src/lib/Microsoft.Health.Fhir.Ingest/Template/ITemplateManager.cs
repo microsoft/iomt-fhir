@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Fhir.Ingest.Console.Template
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public interface ITemplateManager
     {

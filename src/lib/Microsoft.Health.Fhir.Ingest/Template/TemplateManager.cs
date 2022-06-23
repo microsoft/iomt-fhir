@@ -3,14 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Events.Repository;
 using System.Text;
+using Microsoft.Health.Events.Repository;
 
-namespace Microsoft.Health.Fhir.Ingest.Console.Template
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class TemplateManager : ITemplateManager
     {
         private IRepositoryManager _respositoryManager;
+
         public TemplateManager(IRepositoryManager repositoryManager)
         {
             _respositoryManager = repositoryManager;
