@@ -15,8 +15,6 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             Properties = new List<MeasurementProperty>();
         }
 
-        public ReadOnlyMemory<byte> Payload { get; set; }
-
         public string Type { get; set; }
 
         public DateTime OccurrenceTimeUtc { get; set; }

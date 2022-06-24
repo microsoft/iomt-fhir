@@ -13,6 +13,7 @@ using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -198,22 +199,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         /// <returns>Returns true if the exception is handled and false otherwise.</returns>
         private Task<bool> ProcessErrorAsync(Exception ex, EventData data)
         {
-            JObject request = new JObject();
-            request["Properties"] = new JObject();
-            request["SystemProperties"] = new JObject();
+            var events = new List<EventData>() { data };
+            ex.AddEventContext(events);
 
-            foreach (var prop in data.Properties)
-            {
-                request["Properties"][prop.Key] = prop.Value.ToString();
-            }
-
-            foreach (var prop in data.SystemProperties)
-            {
-                request["SystemProperties"][prop.Key] = prop.Value.ToString();
-            }
-
-            request["Body"] = JObject.Parse(System.Text.Encoding.Default.GetString(data.Body.ToArray()));
-            var handled = _exceptionTelemetryProcessor.HandleException(ex, request, _log);
+            var handled = _exceptionTelemetryProcessor.HandleException(ex, _log);
             return Task.FromResult(!handled);
         }
     }

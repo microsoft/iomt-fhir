@@ -8,12 +8,11 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Common.Errors;
 using Microsoft.Health.Extensions.Host;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
@@ -48,33 +47,22 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
             serviceCollection.Configure<NormalizationServiceOptions>(configuration.GetSection(NormalizationServiceOptions.Settings));
-            serviceCollection.AddSingleton(TelemetryProcessorFactory);
 
-            return serviceCollection;
-        }
+            var options = configuration.GetSection(NormalizationServiceOptions.Settings);
 
-        private static NormalizationExceptionTelemetryProcessor TelemetryProcessorFactory(IServiceProvider serviceProvider)
-        {
-            var options = serviceProvider.GetRequiredService<IOptions<NormalizationServiceOptions>>();
-
-            var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
-
-            if (errorMessageService == null)
+            if (options.GetValue<NormalizationErrorHandlingPolicy>("ErrorHandlingPolicy") == NormalizationErrorHandlingPolicy.DiscardMatchAndExtractErrors)
             {
-                return options.Value.ErrorHandlingPolicy switch
-                {
-                    NormalizationErrorHandlingPolicy.DiscardMatchAndExtractErrors => new NormalizationExceptionTelemetryProcessor(typeof(NormalizationDataMappingException)),
-                    _ => new NormalizationExceptionTelemetryProcessor(),
-                };
+                var processorConfig = new ExceptionTelemetryProcessorConfig() { HandledExceptionTypes = new Type[] { typeof(NormalizationDataMappingException) } };
+                serviceCollection.AddSingleton<IExceptionTelemetryProcessorConfig>(processorConfig);
             }
             else
             {
-                return options.Value.ErrorHandlingPolicy switch
-                {
-                    NormalizationErrorHandlingPolicy.DiscardMatchAndExtractErrors => new NormalizationExceptionTelemetryProcessor(errorMessageService, typeof(NormalizationDataMappingException)),
-                    _ => new NormalizationExceptionTelemetryProcessor(errorMessageService),
-                };
+                serviceCollection.AddSingleton<IExceptionTelemetryProcessorConfig>(new ExceptionTelemetryProcessorConfig());
             }
+
+            serviceCollection.AddSingleton<NormalizationExceptionTelemetryProcessor>();
+
+            return serviceCollection;
         }
     }
 }

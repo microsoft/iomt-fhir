@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.Service;
+using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -24,11 +25,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
     public class MeasurementFhirImportService : ParallelTaskWorker<MeasurementFhirImportOptions>
     {
         private readonly FhirImportService _fhirImportService;
+        private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
-        public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options)
+        public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options, IExceptionTelemetryProcessor exceptionTelemetryProcessor = null)
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _fhirImportService = EnsureArg.IsNotNull(fhirImportService, nameof(fhirImportService));
+            _exceptionTelemetryProcessor = exceptionTelemetryProcessor;
         }
 
         public async Task ProcessStreamAsync(Stream data, string templateDefinition, ITelemetryLogger log)
@@ -42,9 +45,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log)
         {
             var template = BuildTemplate(templateDefinition, log);
-            var measurementGroups = ParseEventData(events, log);
 
-            await ProcessMeasurementGroups(measurementGroups, template, log).ConfigureAwait(false);
+            var parseEventData = ParseEventData(events, log);
+            var measurementGroups = parseEventData.Item1;
+            var measurementToEventMapping = parseEventData.Item2;
+
+            await ProcessMeasurementGroups(measurementGroups, template, log, measurementToEventMapping).ConfigureAwait(false);
         }
 
         private ILookupTemplate<IFhirTemplate> BuildTemplate(string templateDefinition, ITelemetryLogger log)
@@ -58,7 +64,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return templateContext.Template;
         }
 
-        private async Task ProcessMeasurementGroups(IEnumerable<IMeasurementGroup> measurementGroups, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log)
+        private async Task ProcessMeasurementGroups(IEnumerable<IMeasurementGroup> measurementGroups, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log, Dictionary<IMeasurement, IEventMessage> eventLookup = null)
         {
             // Group work by device to avoid race conditions when resource creation is enabled.
             var workItems = measurementGroups.GroupBy(grp => grp.DeviceId)
@@ -73,14 +79,20 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             }
                             catch (Exception ex)
                             {
-                                // capture the message payload for error message service
-                                JArray payload = new JArray();
-                                foreach (var measurement in m.Data)
+                                if (eventLookup != null)
                                 {
-                                    payload.Add(JObject.Parse(System.Text.Encoding.Default.GetString(measurement.Payload.ToArray())));
+                                    var events = new List<IEventMessage>();
+
+                                    foreach (var measurement in m.Data)
+                                    {
+                                        var eventId = eventLookup[measurement];
+                                        events.Add(eventId);
+                                    }
+
+                                    ex.AddEventContext(events);
                                 }
 
-                                if (!Options.ExceptionService.HandleException(ex, payload, log))
+                                if (_exceptionTelemetryProcessor.HandleException(ex, log))
                                 {
                                     throw;
                                 }
@@ -113,15 +125,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return measurementGroups;
         }
 
-        private static IEnumerable<IMeasurementGroup> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
+        private static Tuple<IEnumerable<IMeasurementGroup>, Dictionary<IMeasurement, IEventMessage>> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
         {
             var partitionId = data.FirstOrDefault()?.PartitionId;
 
             // Deserialize events into measurements and then group according to the device, type, and other factors
-            return data.Select(e =>
+            var dictionary = new Dictionary<IMeasurement, IEventMessage>();
+
+            IEnumerable<IMeasurementGroup> measurementGroups = data.Select(e =>
                 {
                     var measurement = JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray()));
-                    measurement.Payload = e.Body;
+                    dictionary.Add(measurement, e);
                     return measurement;
                 })
                 .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
@@ -140,6 +154,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         };
                     })
                     .ToArray();
+
+            return Tuple.Create(measurementGroups, dictionary);
         }
 
         private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log, string partitionId = null)

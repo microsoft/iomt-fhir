@@ -6,11 +6,10 @@
 using System;
 using System.Linq;
 using EnsureThat;
-using Microsoft.Health.Common.Errors;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Telemetry
 {
@@ -20,18 +19,13 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         private static readonly Type[] DefaultExceptions = new[] { typeof(IncompatibleDataException) };
         private IErrorMessageService _errorMessageService;
 
-        public NormalizationExceptionTelemetryProcessor(params Type[] handledExceptionTypes)
-            : base(handledExceptionTypes.Union(DefaultExceptions).ToArray())
-        {
-        }
-
-        public NormalizationExceptionTelemetryProcessor(IErrorMessageService errorMessageService, params Type[] handledExceptionTypes)
-            : base(handledExceptionTypes.Union(DefaultExceptions).ToArray())
+        public NormalizationExceptionTelemetryProcessor(IExceptionTelemetryProcessorConfig exceptionConfig, IErrorMessageService errorMessageService = null)
+        : base(exceptionConfig.HandledExceptionTypes.Union(DefaultExceptions).ToArray())
         {
             _errorMessageService = errorMessageService;
         }
 
-        public override bool HandleException(Exception ex, JToken message, ITelemetryLogger logger)
+        public override bool HandleException(Exception ex, ITelemetryLogger logger)
         {
             EnsureArg.IsNotNull(ex, nameof(ex));
             EnsureArg.IsNotNull(logger, nameof(logger));
@@ -41,11 +35,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 
             if (_errorMessageService != null)
             {
-                var errorMessage = new ErrorMessage();
-                errorMessage.InputMessage = message;
-                errorMessage.Details = ex.Message;
-                errorMessage.Type = exceptionTypeName;
-                _errorMessageService.ReportError(errorMessage, default);
+                var errorMessage = new ErrorMessage(ex);
+                _errorMessageService.ReportError(errorMessage);
             }
 
             return shouldContinue;

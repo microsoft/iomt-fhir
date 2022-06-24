@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -27,7 +26,6 @@ namespace Microsoft.Health.Logging.Telemetry
 
         public virtual bool HandleException(
             Exception ex,
-            JToken message,
             ITelemetryLogger logger)
         {
             return HandleException(ex, logger);

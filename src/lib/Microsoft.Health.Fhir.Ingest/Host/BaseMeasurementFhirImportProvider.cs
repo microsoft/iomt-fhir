@@ -10,16 +10,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
     public abstract class BaseMeasurementFhirImportProvider : IExtensionConfigProvider
     {
-        public BaseMeasurementFhirImportProvider(IConfiguration config, IOptions<MeasurementFhirImportOptions> options, ILoggerFactory loggerFactory)
+        public BaseMeasurementFhirImportProvider(IConfiguration config, IOptions<MeasurementFhirImportOptions> options, ILoggerFactory loggerFactory, IExceptionTelemetryProcessor exceptionProcessor = null)
         {
             Config = EnsureArg.IsNotNull(config, nameof(config));
             Options = EnsureArg.IsNotNull(options, nameof(options));
             LoggerFactory = EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory));
+            ExceptionTelemetryProcessor = exceptionProcessor;
         }
 
         protected IConfiguration Config { get; }
@@ -28,12 +30,14 @@ namespace Microsoft.Health.Fhir.Ingest.Host
 
         protected ILoggerFactory LoggerFactory { get; }
 
+        protected IExceptionTelemetryProcessor ExceptionTelemetryProcessor { get; }
+
         public void Initialize(ExtensionConfigContext context)
         {
             EnsureArg.IsNotNull(context, nameof(context));
 
             var fhirImportService = ResolveFhirImportService();
-            var measurementFhirImportService = new MeasurementFhirImportService(fhirImportService, Options.Value);
+            var measurementFhirImportService = new MeasurementFhirImportService(fhirImportService, Options.Value, ExceptionTelemetryProcessor);
 
             context.AddBindingRule<MeasurementFhirImportAttribute>()
                 .BindToInput(attr => measurementFhirImportService);

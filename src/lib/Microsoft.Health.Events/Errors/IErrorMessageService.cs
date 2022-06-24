@@ -3,12 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Health.Common.Errors
+namespace Microsoft.Health.Events.Errors
 {
     public interface IErrorMessageService
     {
@@ -19,10 +17,8 @@ namespace Microsoft.Health.Common.Errors
         /// The ErrorMessage Type property will be the ExceptionType.
         /// and Details property will be the Exception Message.
         /// </remarks>
-        /// <param name="exception">An Exception.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns><see cref="Task"/>Returns the successfully stored error message.</returns>
-        Task ReportError(Exception exception, CancellationToken cancellationToken);
+        /// <param name="errorMessage">An ErrorMessage.</param>
+        Task ReportError(ErrorMessage errorMessage);
 
         /// <summary>
         /// Writes an IEnumerable of ErrorMessage to a destination.
@@ -31,9 +27,7 @@ namespace Microsoft.Health.Common.Errors
         /// The ErrorMessage Type property will be the ExceptionType.
         /// and Details property will be the Exception Message.
         /// </remarks>
-        /// <param name="exceptions">A collection of exceptions.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns><see cref="Task"/>Returns the successfully stored error message.</returns>
-        Task<IEnumerable<ErrorMessage>> ReportError(IEnumerable<Exception> exceptions, CancellationToken cancellationToken);
+        /// <param name="errorMessages">A collection of ErrorMessages.</param>
+        Task ReportError(IEnumerable<ErrorMessage> errorMessages);
     }
 }
