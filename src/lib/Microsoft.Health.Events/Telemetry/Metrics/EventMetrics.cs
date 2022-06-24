@@ -91,7 +91,7 @@ namespace Microsoft.Health.Events.Telemetry
         /// Signals the timestamp corresponding to the last processed event per partition.
         /// </summary>
         /// <param name="partitionId">The partition id of the event hub</param>
-        /// <param name="triggerReason">The trigger that caused the events to be flushed and processed </param>
+        /// <param name="triggerReason">The trigger that caused the events to be flushed and processed</param
         public static Metric EventTimestampLastProcessedPerPartition(string partitionId, string triggerReason)
         {
             return EventMetricDefinition.EventTimestampLastProcessedPerPartition

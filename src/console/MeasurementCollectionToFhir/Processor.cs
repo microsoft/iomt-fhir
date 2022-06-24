@@ -13,9 +13,9 @@ using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
-using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Polly;
 
