@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly FhirImportService _fhirImportService;
         private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
-        public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options, IExceptionTelemetryProcessor exceptionTelemetryProcessor = null)
+        public MeasurementFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options, IExceptionTelemetryProcessor exceptionTelemetryProcessor)
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _fhirImportService = EnsureArg.IsNotNull(fhirImportService, nameof(fhirImportService));
@@ -92,7 +92,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                                     ex.AddEventContext(events);
                                 }
 
-                                if (_exceptionTelemetryProcessor.HandleException(ex, log))
+                                if (!_exceptionTelemetryProcessor.HandleException(ex, log))
                                 {
                                     throw;
                                 }

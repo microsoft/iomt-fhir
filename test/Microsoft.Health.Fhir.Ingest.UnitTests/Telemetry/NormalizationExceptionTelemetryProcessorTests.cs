@@ -21,9 +21,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             var log = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
 
-            var exProcessor = new NormalizationExceptionTelemetryProcessor();
-            var handled = exProcessor.HandleException(ex, new JObject(), log);
+            var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
+            var handled = exProcessor.HandleException(ex, log);
             Assert.True(handled);
 
             log.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
@@ -35,9 +36,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             var log = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
 
-            var exProcessor = new NormalizationExceptionTelemetryProcessor();
-            var handled = exProcessor.HandleException(ex, new JObject(), log);
+            var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
+            var handled = exProcessor.HandleException(ex, log);
             Assert.False(handled);
 
             log.Received(1).LogError(ex);

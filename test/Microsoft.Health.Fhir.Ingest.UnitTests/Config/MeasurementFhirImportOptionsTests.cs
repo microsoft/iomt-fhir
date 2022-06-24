@@ -16,7 +16,6 @@ namespace Microsoft.Health.Fhir.Ingest.Config
 
             Assert.NotNull(options.ParallelTaskOptions);
             Assert.NotNull(options.TemplateFactory);
-            Assert.NotNull(options.ExceptionService);
         }
     }
 }
