@@ -34,6 +34,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
         private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
+        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+
         public NormalizationEventConsumerService(
             IConverter<IEventMessage, JObject> converter,
             string templateDefinition,
@@ -55,6 +57,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             EventMetrics.SetConnectorOperation(ConnectorOperation.Normalization);
         }
 
+        private (IContentTemplate template, DateTimeOffset timestamp) NormalizationTemplate { get; set; }
+
         public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
         {
             EnsureArg.IsNotNull(events);
@@ -62,12 +66,40 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events));
         }
 
-        private Task<IContentTemplate> GetNormalizationTemplate()
+        private async Task<IContentTemplate> GetNormalizationTemplate()
         {
-            var content = _templateManager.GetTemplateAsString(_templateDefinition);
-            var templateContext = _collectionTemplateFactory.Create(content);
-            templateContext.EnsureValid();
-            return Task.FromResult(templateContext.Template);
+            await semaphore.WaitAsync();
+            try
+            {
+                if (NormalizationTemplate.template == null)
+                {
+                    _logger.LogTrace("Initializing normalization template from blob.");
+                    DateTimeOffset timestamp = DateTimeOffset.UtcNow;
+                    var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition);
+                    var templateContext = _collectionTemplateFactory.Create(content);
+                    templateContext.EnsureValid();
+                    NormalizationTemplate = (templateContext.Template, timestamp);
+                }
+                else
+                {
+                    DateTimeOffset updatedTimestamp = DateTimeOffset.UtcNow;
+                    var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition, NormalizationTemplate.timestamp);
+
+                    if (content != null)
+                    {
+                        _logger.LogTrace("New normalization template content detected, updating template.");
+                        var templateContext = _collectionTemplateFactory.Create(content);
+                        templateContext.EnsureValid();
+                        NormalizationTemplate = (templateContext.Template, updatedTimestamp);
+                    }
+                }
+
+                return NormalizationTemplate.template;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events)

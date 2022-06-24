@@ -17,7 +17,6 @@ using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.EventProducers;
-using Microsoft.Health.Events.Repository;
 using Microsoft.Health.Expressions;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -63,8 +62,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var containerOptions = new BlobContainerClientOptions();
             Configuration.GetSection("TemplateStorage").Bind(containerOptions);
             var containerClient = blobClientFactory.CreateStorageClient(containerOptions);
-            var storageManager = new StorageManager(containerClient);
-            var templateManager = new TemplateManager(storageManager);
+            var templateManager = new TemplateManager(containerClient);
             return templateManager;
         }
 
