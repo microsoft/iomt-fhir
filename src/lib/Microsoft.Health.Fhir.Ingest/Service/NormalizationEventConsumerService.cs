@@ -34,7 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
         private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
 
-        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim semaphore = new (1);
 
         public NormalizationEventConsumerService(
             IConverter<IEventMessage, JObject> converter,
@@ -170,6 +170,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private static void RecordIngressMetrics(IEventMessage evt, ITelemetryLogger log)
         {
             TimeSpan deviceEventProcessingLatency = DateTime.UtcNow - evt.EnqueuedTime.UtcDateTime;
+
+            log.LogMetric(
+                IomtMetrics.DeviceEvent(evt.PartitionId),
+                1);
 
             log.LogMetric(
                 IomtMetrics.DeviceEventProcessingLatency(evt.PartitionId),
