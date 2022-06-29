@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
@@ -23,6 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         [JsonProperty(Required = Required.Always)]
         public virtual string Value { get; set; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public TemplateExpressionLanguage? Language { get; set; }
     }
 }

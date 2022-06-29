@@ -24,5 +24,23 @@ namespace Microsoft.Health.Common.Extension
             EnsureArg.IsNotNull(stringToSearch, nameof(stringToSearch));
             return stringToSearch.IndexOf(stringToSeek, comparison) >= 0;
         }
+
+        /// <summary>
+        /// Returns a string that starts with a lowercase character.
+        /// </summary>
+        /// <param name="value">The string value to convert.</param>
+        /// <returns><see cref="string"/></returns>
+        public static string ToLowercaseFirstLetterVariant(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+
+            string first = value.Substring(0, 1);
+            string remaining = value.Remove(0, 1);
+
+            return remaining.Insert(0, first.ToLowerInvariant());
+        }
     }
 }

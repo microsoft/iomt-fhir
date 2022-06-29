@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Fhir.Ingest.Template.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

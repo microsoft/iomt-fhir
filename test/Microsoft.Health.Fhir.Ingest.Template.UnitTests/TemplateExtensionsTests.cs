@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Fhir.Ingest.Template.Serialization;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
