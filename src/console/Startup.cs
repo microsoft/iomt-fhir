@@ -17,9 +17,7 @@ using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.EventProducers;
-using Microsoft.Health.Events.Repository;
 using Microsoft.Health.Expressions;
-using Microsoft.Health.Fhir.Ingest.Console.Template;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
@@ -64,8 +62,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var containerOptions = new BlobContainerClientOptions();
             Configuration.GetSection("TemplateStorage").Bind(containerOptions);
             var containerClient = blobClientFactory.CreateStorageClient(containerOptions);
-            var storageManager = new StorageManager(containerClient);
-            var templateManager = new TemplateManager(storageManager);
+            var templateManager = new TemplateManager(containerClient);
             return templateManager;
         }
 
@@ -84,7 +81,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var collector = ResolveEventCollector(serviceProvider);
                 var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
                 var exceptionTelemetryProcessor = serviceProvider.GetRequiredService<NormalizationExceptionTelemetryProcessor>();
-                var deviceDataNormalization = new Normalize.Processor(template, templateManager, collector, logger, collectionContentFactory, exceptionTelemetryProcessor);
+                var deviceDataNormalization = new NormalizationEventConsumerService(new EventMessageJObjectConverter(), template, templateManager, collector, logger, collectionContentFactory, exceptionTelemetryProcessor);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)
@@ -137,7 +134,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             if (applicationType == _normalizationAppType)
             {
                 Metric processingMetric = EventMetrics.EventsConsumed(EventMetricDefinition.DeviceIngressSizeBytes);
-                var meter = new Events.Common.EventProcessingMeter(processingMetric);
+                var meter = new Events.Common.IngressBytesEventProcessingMeter(processingMetric);
                 var meters = new EventProcessingMetricMeters(new List<IEventProcessingMeter>() { meter });
                 return meters;
             }

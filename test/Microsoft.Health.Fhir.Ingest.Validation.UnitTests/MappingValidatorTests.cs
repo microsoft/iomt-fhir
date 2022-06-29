@@ -125,6 +125,19 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 {
                     Assert.Contains("Required property 'DeviceIdExpression' not found in JSON", error.Message);
                     Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                    Assert.Equal(6, error.LineInfo.LineNumber);
+                },
+                (error) =>
+                {
+                    Assert.Contains("Required property 'TimestampExpression' not found in JSON", error.Message);
+                    Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                    Assert.Equal(6, error.LineInfo.LineNumber);
+                },
+                (error) =>
+                {
+                    Assert.Contains("Required property 'TypeMatchExpression' not found in JSON", error.Message);
+                    Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                    Assert.Equal(20, error.LineInfo.LineNumber);
                 });
             Assert.Empty(result.DeviceResults);
         }
@@ -155,13 +168,27 @@ namespace Microsoft.Health.Fhir.Ingest.Validation.UnitTests
                 result.TemplateResult.GetErrors(ErrorLevel.ERROR),
                 (error) =>
                 {
-                    Assert.Contains("Required property 'DeviceIdExpression' not found in JSON", error.Message);
+                Assert.Contains("Required property 'DeviceIdExpression' not found in JSON", error.Message);
+                Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                Assert.Equal(6, error.LineInfo.LineNumber);
+                },
+                (error) =>
+                {
+                    Assert.Contains("Required property 'TimestampExpression' not found in JSON", error.Message);
                     Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                    Assert.Equal(6, error.LineInfo.LineNumber);
+                },
+                (error) =>
+                {
+                    Assert.Contains("Required property 'TypeMatchExpression' not found in JSON", error.Message);
+                    Assert.Equal(ValidationCategory.NORMALIZATION, error.Category);
+                    Assert.Equal(20, error.LineInfo.LineNumber);
                 },
                 (error) =>
                 {
                     Assert.Contains("Expected TemplateType value CollectionFhirTemplate, actual CodeValueFhir", error.Message);
                     Assert.Equal(ValidationCategory.FHIRTRANSFORMATION, error.Category);
+                    Assert.Equal(2, error.LineInfo.LineNumber);
                 });
             Assert.Empty(result.DeviceResults);
         }

@@ -15,8 +15,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         {
             EnsureArg.IsNotNull(exception, nameof(exception));
 
-            yield return new TemplateError(exception.Message);
-
             foreach (var innerException in exception.InnerExceptions)
             {
                 if (innerException is InvalidTemplateException ite)

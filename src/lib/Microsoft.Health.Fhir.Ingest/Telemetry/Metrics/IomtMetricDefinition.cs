@@ -24,6 +24,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 
         public static IomtMetricDefinition NormalizedEvent { get; } = new IomtMetricDefinition(nameof(NormalizedEvent));
 
+        public static IomtMetricDefinition NormalizedEventGenerationTimeMs { get; } = new IomtMetricDefinition(nameof(NormalizedEventGenerationTimeMs));
+
         public static IomtMetricDefinition Measurement { get; } = new IomtMetricDefinition(nameof(Measurement));
 
         public static IomtMetricDefinition MeasurementGroup { get; } = new IomtMetricDefinition(nameof(MeasurementGroup));
@@ -31,5 +33,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static IomtMetricDefinition MeasurementIngestionLatency { get; } = new IomtMetricDefinition(nameof(MeasurementIngestionLatency));
 
         public static IomtMetricDefinition MeasurementIngestionLatencyMs { get; } = new IomtMetricDefinition(nameof(MeasurementIngestionLatencyMs));
+
+        public static IomtMetricDefinition DroppedEvent { get; } = new IomtMetricDefinition(nameof(DroppedEvent));
     }
 }
