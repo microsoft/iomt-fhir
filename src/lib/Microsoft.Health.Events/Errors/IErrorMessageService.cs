@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Microsoft.Health.Events.Errors
 {
@@ -18,7 +17,7 @@ namespace Microsoft.Health.Events.Errors
         /// and Details property will be the Exception Message.
         /// </remarks>
         /// <param name="errorMessage">An ErrorMessage.</param>
-        Task ReportError(ErrorMessage errorMessage);
+        void ReportError(ErrorMessage errorMessage);
 
         /// <summary>
         /// Writes an IEnumerable of ErrorMessage to a destination.
@@ -28,6 +27,6 @@ namespace Microsoft.Health.Events.Errors
         /// and Details property will be the Exception Message.
         /// </remarks>
         /// <param name="errorMessages">A collection of ErrorMessages.</param>
-        Task ReportError(IEnumerable<ErrorMessage> errorMessages);
+        void ReportError(IEnumerable<ErrorMessage> errorMessages);
     }
 }
