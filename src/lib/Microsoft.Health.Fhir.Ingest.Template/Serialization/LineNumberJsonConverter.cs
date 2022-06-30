@@ -7,7 +7,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template
+namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
 {
     public class LineNumberJsonConverter : JsonConverter
     {

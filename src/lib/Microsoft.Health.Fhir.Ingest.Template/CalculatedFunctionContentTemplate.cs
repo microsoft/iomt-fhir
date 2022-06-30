@@ -4,16 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Fhir.Ingest.Template.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class CalculatedFunctionContentTemplate : LineAwareJsonObject
+    public class CalculatedFunctionContentTemplate : Template
     {
-        [JsonProperty(Required = Required.Always)]
-        public virtual string TypeName { get; set; }
-
         [JsonProperty(Required = Required.Always)]
         [JsonConverter(typeof(TemplateExpressionJsonConverter))]
         public virtual TemplateExpression TypeMatchExpression { get; set; }
