@@ -1,0 +1,11 @@
+{
+  "type": "Oxygen Saturation",
+  "time": "2022-07-01T12:02:00Z",
+  "device": "TestDeviceId",
+  "patient": "TestPatientId",
+  "encounter": "TestEncounter",
+  "correlation": "TestCorrelation",
+  "values": {
+    "oxygenPercentage": 99
+  }
+}

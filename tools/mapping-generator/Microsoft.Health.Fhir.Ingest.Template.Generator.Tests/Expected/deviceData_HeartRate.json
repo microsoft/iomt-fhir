@@ -1,0 +1,18 @@
+{
+  "templateType": "CalculatedContent",
+  "template": {
+    "typeMatchExpression": "$..[?(@.type=='Heart Rate')]",
+    "deviceIdExpression": "$.device",
+    "patientIdExpression": "$.patient",
+    "encounterIdExpression": "$.encounter",
+    "timestampExpression": "$.time",
+    "correlationIdExpression": "$.correlation",
+    "values": [
+      {
+        "valueName": "beatsPerMinute",
+        "valueExpression": "$.values.beatsPerMinute"
+      }
+    ],
+    "typeName": "Heart Rate"
+  }
+}

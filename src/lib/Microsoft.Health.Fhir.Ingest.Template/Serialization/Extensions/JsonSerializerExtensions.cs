@@ -16,6 +16,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Serialization.Extensions
         public static JObject SerializeValue<TValue>(this JsonSerializer serializer, TValue value)
             where TValue : class
         {
+            return SerializeValue(serializer, value, typeof(TValue));
+        }
+
+        public static JObject SerializeValue(this JsonSerializer serializer, object value, Type type)
+        {
             if (value == null)
             {
                 return null;
@@ -24,7 +29,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Serialization.Extensions
             JObject jObject = new JObject();
             JsonObjectContract contract = serializer.ContractResolver.ResolveContract(value.GetType()) as JsonObjectContract;
 
-            PropertyInfo[] propertyInfos = typeof(TValue).GetProperties();
+            PropertyInfo[] propertyInfos = type.GetProperties();
             foreach (PropertyInfo propertyInfo in propertyInfos)
             {
                 JsonProperty jsonProperty = contract.Properties.GetProperty(propertyInfo.Name, StringComparison.OrdinalIgnoreCase);

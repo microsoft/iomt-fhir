@@ -1,0 +1,37 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "category": [
+      {
+        "text": "Vital Signs",
+        "codes": [
+          {
+            "code": "vital-signs",
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "display": "Vital Signs"
+          }
+        ]
+      }
+    ],
+    "codes": [
+      {
+        "code": "8867-4",
+        "system": "http://loinc.org",
+        "display": "Heart rate"
+      },
+      {
+        "code": "364075005",
+        "system": "http://snomed.info/sct",
+        "display": "Heart rate"
+      }
+    ],
+    "value": {
+      "unit": "count/min",
+      "system": "http://unitsofmeasure.org",
+      "code": "count/min",
+      "valueName": "beatsPerMinute",
+      "valueType": "Quantity"
+    },
+    "typeName": "Heart Rate"
+  }
+}

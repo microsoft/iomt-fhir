@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
+using Microsoft.Health.Fhir.Ingest.Template.Serialization.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -69,7 +70,26 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            Type type = null;
+
+            if (value is FhirValueType fhirValue)
+            {
+                if (_typeLookup.TryGetValue(fhirValue.ValueType, out type))
+                {
+                    JObject jObject = serializer.SerializeValue(fhirValue, type);
+                    jObject.WriteTo(writer);
+
+                    return;
+                }
+            }
+
+            throw new NotSupportedException($"AbstractJsonConverter cannot convert type: {type.Name}");
         }
 
         private static string TrimBaseType(string typeName, string baseTypeName)

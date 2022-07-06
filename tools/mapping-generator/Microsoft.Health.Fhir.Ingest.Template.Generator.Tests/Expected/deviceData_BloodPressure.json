@@ -1,0 +1,22 @@
+{
+  "templateType": "CalculatedContent",
+  "template": {
+    "typeMatchExpression": "$..[?(@.type=='Blood Pressure')]",
+    "deviceIdExpression": "$.device",
+    "patientIdExpression": "$.patient",
+    "encounterIdExpression": "$.encounter",
+    "timestampExpression": "$.time",
+    "correlationIdExpression": "$.correlation",
+    "values": [
+      {
+        "valueName": "diastolic",
+        "valueExpression": "$.values.diastolic"
+      },
+      {
+        "valueName": "systolic",
+        "valueExpression": "$.values.systolic"
+      }
+    ],
+    "typeName": "Blood Pressure"
+  }
+}
