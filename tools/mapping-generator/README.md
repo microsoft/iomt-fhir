@@ -8,7 +8,7 @@ There are 2 abstract classes that can be used a starting point for developing a 
 
 ### **[CalculatedContentTemplateGenerator](./Microsoft.Health.Fhir.Ingest.Template.Generator/CalculatedContentTemplateGenerator.cs)**
 
-This abstract class can be used to generate templates for Device Content Mappings. The output of CalculatedContentTemplateGenerators is a serialized[CalculatedFunctionContentTemplate](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CalculatedFunctionContentTemplate.cs) which can use both JSONPath and JMESPath to evaluate a JSON payload and "extract" values.
+This abstract class can be used to generate templates for Device Content Mappings. The output of CalculatedContentTemplateGenerators is a serialized [CalculatedFunctionContentTemplate](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CalculatedFunctionContentTemplate.cs) which can use both JSONPath and JMESPath to evaluate a JSON payload and "extract" values.
 
 While there are only 4 methods that require implementation (`GetTypeName()`, `GetTypeMatchExpression()`, `GetDeviceIdExpression()` and `GetTimestampExpression()`), it is recommended that the `GetValues()` method is also implemented because this method provides the Template with the expressions required to "extract" the measurements from a JSON payload.
 
@@ -26,13 +26,13 @@ While there are only 4 methods that require implementation (`GetTypeName()`, `Ge
 
 ### **[CodeValueFhirTemplateGenerator](./Microsoft.Health.Fhir.Ingest.Template.Generator/CodeValueFhirTemplateGenerator.cs)**
 
-This abstract class can be used to generate templates for FHIR Mappings. The output of CodeValueFhirTemplateGenerators is a serialized[CodeValueFhirTemplate](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CodeValueFhirTemplate.cs). The `TModel` type for this generator must derive from the [Template](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/Template.cs) class. Because the `TModel` type is a Template, the CodeValueFhirTemplateGenerator can take the output of CalculatedContentTemplateGenerator to generate a FHIR Mapping template.
+This abstract class can be used to generate templates for FHIR Mappings. The output of CodeValueFhirTemplateGenerators is a serialized [CodeValueFhirTemplate](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CodeValueFhirTemplate.cs). The `TModel` type for this generator must derive from the [Template](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/Template.cs) class. Because the `TModel` type is a Template, the CodeValueFhirTemplateGenerator can take the output of CalculatedContentTemplateGenerator to generate a FHIR Mapping template.
 
 While there is only 1 method that requires implementation (`GetCodes()`), it is recommended that at least one other method be implemented.`GetValue()` or `GetComponents()` are used to express how the Observation Resource value is "extracted". `GetValue()` would be used if a single value is needed, while `GetComponents()` would be used when multiple related values would be saved to an Observation Resource (e.g. blood pressure might contain both diastolic and systolic measurements).
 
 `GetCodes(TModel model, CancellationToken cancellationToken)` - Must return a list of [FhirCodes](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/FhirCode.cs). At least 1 code is required for the CodeValueFhirTemplate to pass validation. Codes are used to define the Observation Resource type in the FHIR service.
 
-`GetValue(TModel model, CancellationToken cancellationToken)` - Should return one of the following types [CodeableConceptFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CodeableConceptFhirValueType.cs),[QuantityFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/QuantityFhirValueType.cs), [SampledDataFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/SampledDataFhirValueType.cs) or [StringFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/StringFhirValueType.cs). This method is used to provide a value type that determines the value to "extract" and save to the Observation Resource.
+`GetValue(TModel model, CancellationToken cancellationToken)` - Should return one of the following types [CodeableConceptFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CodeableConceptFhirValueType.cs), [QuantityFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/QuantityFhirValueType.cs), [SampledDataFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/SampledDataFhirValueType.cs) or [StringFhirValueType](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/StringFhirValueType.cs). This method is used to provide a value type that determines the value to "extract" and save to the Observation Resource.
 
 `GetComponents(TModel model, CancellationToken cancellationToken)` - Must return a list of [CodeValueMappings](../../src/lib/Microsoft.Health.Fhir.Ingest.Template/CodeValueMapping.cs). This method is used to provide a list of value mappings that determines the values to "extract" and save to the Observation Resource as components.
 
@@ -50,3 +50,9 @@ There are only 3 members that need to be implemented when creating a concrete in
 
 `GetTemplate(TModel model, CancellationToken cancellationToken)` - This method is called for each TModel provided in the collection provided in the `GenerateTemplateCollection()` call. When implemented, an instance of [CalculatedContentTemplateGenerator](./Microsoft.Health.Fhir.Ingest.Template.Generator/CalculatedContentTemplateGenerator.cs) or [CodeValueFhirTemplateGenerator](./Microsoft.Health.Fhir.Ingest.Template.Generator/CodeValueFhirTemplateGenerator.cs) can be used to convert TModel into a Template.
 
+## Samples
+
+A good place to view some basic implementations of the abstract classes discussed in this document is by viewing the unit test project.
+
+- **[TestCalculatedContentTemplateGenerator](../mapping-generator/Microsoft.Health.Fhir.Ingest.Template.Generator.Tests/Samples/TestCalculatedContentTemplateGenerator.cs)**
+- **[TestCodeValueFhirTemplateGenerator](../mapping-generator/Microsoft.Health.Fhir.Ingest.Template.Generator.Tests/Samples/TestCodeValueFhirTemplateGenerator.cs)**
