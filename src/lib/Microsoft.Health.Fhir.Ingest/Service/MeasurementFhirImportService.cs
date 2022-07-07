@@ -44,12 +44,58 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log)
         {
-            var template = BuildTemplate(templateDefinition, log);
+            // Step 1: Before processing events, validate the template
+            ILookupTemplate<IFhirTemplate> template = null;
 
-            var parseEventData = ParseEventData(events, log);
-            var measurementGroups = parseEventData.Item1;
-            var measurementToEventMapping = parseEventData.Item2;
+            try
+            {
+                template = BuildTemplate(templateDefinition, log);
+            }
+            catch (Exception ex)
+            {
+                ex.AddEventContext(events);
 
+                if (!_exceptionTelemetryProcessor.HandleException(ex, log))
+                {
+                    throw;
+                }
+                else
+                {
+                    return; // don't continue to next step since the template is not valid
+                }
+            }
+
+            // Step 2: Transform the events into Measurements and group into Measurement Groups
+            Tuple<IEnumerable<IMeasurementGroup>, Dictionary<IMeasurement, IEventMessage>> parseEventData;
+            IEnumerable<IMeasurementGroup> measurementGroups = null;
+            Dictionary<IMeasurement, IEventMessage> measurementToEventMapping = null;
+
+            try
+            {
+                parseEventData = ParseEventData(events, log);
+                measurementGroups = parseEventData.Item1;
+                measurementToEventMapping = parseEventData.Item2;
+            }
+            catch (Exception ex)
+            {
+                if (!_exceptionTelemetryProcessor.HandleException(ex, log))
+                {
+                    throw;
+                }
+                else
+                {
+                    Console.WriteLine(events.Count());
+
+                    // remove the event(s) from the batch
+                    var eventsWithExceptions = ex.GetRelatedLegacyEvents();
+                    events = events.Where(e => !eventsWithExceptions.Contains(e)).ToList();
+
+                    Console.WriteLine(events.Count());
+                }
+            }
+
+            // Step 3: Transform the Measurement Groups into Observations and write to the FHIR Server.
+            //         Exceptions are currently handled in ProcessMeasurementGroups
             await ProcessMeasurementGroups(measurementGroups, template, log, measurementToEventMapping).ConfigureAwait(false);
         }
 
@@ -125,35 +171,41 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return measurementGroups;
         }
 
-        private static Tuple<IEnumerable<IMeasurementGroup>, Dictionary<IMeasurement, IEventMessage>> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger log)
+        private static Tuple<IEnumerable<IMeasurementGroup>, Dictionary<IMeasurement, IEventMessage>> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger logger)
         {
             var partitionId = data.FirstOrDefault()?.PartitionId;
 
-            // Deserialize events into measurements and then group according to the device, type, and other factors
             var dictionary = new Dictionary<IMeasurement, IEventMessage>();
 
             IEnumerable<IMeasurementGroup> measurementGroups = data.Select(e =>
+            {
+                try
                 {
                     var measurement = JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray()));
                     dictionary.Add(measurement, e);
                     return measurement;
-                })
-                .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
-                .Select(g =>
-                    {
-                        var measurements = g.ToList();
-                        _ = CalculateMetricsAsync(measurements, log, partitionId).ConfigureAwait(false);
-                        return new MeasurementGroup
-                        {
-                            Data = measurements,
-                            MeasureType = measurements[0].Type,
-                            CorrelationId = measurements[0].CorrelationId,
-                            DeviceId = measurements[0].DeviceId,
-                            EncounterId = measurements[0].EncounterId,
-                            PatientId = measurements[0].PatientId,
-                        };
-                    })
-                    .ToArray();
+                }
+                catch (Exception ex)
+                {
+                    throw new MeasurementProcessingException(ex, e);
+                }
+            })
+            .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
+            .Select(g =>
+            {
+                IList<Measurement> measurements = g.ToList();
+                _ = CalculateMetricsAsync(measurements, logger, partitionId).ConfigureAwait(false);
+                return new MeasurementGroup
+                {
+                    Data = measurements,
+                    MeasureType = measurements[0].Type,
+                    CorrelationId = measurements[0].CorrelationId,
+                    DeviceId = measurements[0].DeviceId,
+                    EncounterId = measurements[0].EncounterId,
+                    PatientId = measurements[0].PatientId,
+                };
+            })
+            .ToArray();
 
             return Tuple.Create(measurementGroups, dictionary);
         }

@@ -4,10 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Errors;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 
@@ -17,10 +19,23 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     {
         private readonly string _connectorStage = ConnectorOperation.Normalization;
         private static readonly Type[] DefaultExceptions = new[] { typeof(IncompatibleDataException) };
-        private IErrorMessageService _errorMessageService;
 
-        public NormalizationExceptionTelemetryProcessor(IExceptionTelemetryProcessorConfig exceptionConfig, IErrorMessageService errorMessageService = null)
+        private IErrorMessageService _errorMessageService;
+        private static readonly Type[] DefaultExceptionsWithErrorMessageService = new[]
+        {
+            typeof(IncompatibleDataException),
+            typeof(ValidationException),
+            typeof(NormalizationDataMappingException),
+            typeof(EventHubProducerClientException),
+        };
+
+        public NormalizationExceptionTelemetryProcessor(IExceptionTelemetryProcessorConfig exceptionConfig)
         : base(exceptionConfig.HandledExceptionTypes.Union(DefaultExceptions).ToArray())
+        {
+        }
+
+        public NormalizationExceptionTelemetryProcessor(IExceptionTelemetryProcessorConfig exceptionConfig, IErrorMessageService errorMessageService)
+            : base(exceptionConfig.HandledExceptionTypes.Union(DefaultExceptionsWithErrorMessageService).ToArray())
         {
             _errorMessageService = errorMessageService;
         }

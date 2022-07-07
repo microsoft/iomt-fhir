@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
@@ -33,6 +34,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly AsyncPolicy _retryPolicy;
         private readonly CollectionTemplateFactory<IContentTemplate, IContentTemplate> _collectionTemplateFactory;
         private readonly IExceptionTelemetryProcessor _exceptionTelemetryProcessor;
+        private readonly IErrorMessageService _errorMessageService;
 
         private readonly SemaphoreSlim semaphore = new (1);
 
@@ -43,7 +45,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             IEnumerableAsyncCollector<IMeasurement> collector,
             ITelemetryLogger logger,
             CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory,
-            NormalizationExceptionTelemetryProcessor exceptionTelemetryProcessor)
+            NormalizationExceptionTelemetryProcessor exceptionTelemetryProcessor,
+            IErrorMessageService errorMessageService = null)
         {
             _converter = EnsureArg.IsNotNull(converter, nameof(converter));
             _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
@@ -53,6 +56,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _retryPolicy = CreateRetryPolicy(logger);
             _collectionTemplateFactory = EnsureArg.IsNotNull(collectionTemplateFactory, nameof(collectionTemplateFactory));
             _exceptionTelemetryProcessor = EnsureArg.IsNotNull(exceptionTelemetryProcessor, nameof(exceptionTelemetryProcessor));
+            _errorMessageService = errorMessageService;
 
             EventMetrics.SetConnectorOperation(ConnectorOperation.Normalization);
         }
@@ -63,7 +67,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             EnsureArg.IsNotNull(events);
 
-            await _retryPolicy.ExecuteAsync(async () => await ConsumeAsyncImpl(events));
+            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events));
+
+            // This is a fallback option to skip any bad messages.
+            // In known cases, the exception would be caught earlier and logged to the error message service.
+            // If processing reaches this point in the code, the exception is unknown and retry attempts have failed.
+            // If the error message service is enabled, the expectation is to log an error, and all events, and move on.
+            if (_errorMessageService != null && policyResult.FinalException != null)
+            {
+                policyResult.FinalException.AddEventContext(events);
+                var errorMessage = new ErrorMessage(policyResult.FinalException);
+                _errorMessageService.ReportError(errorMessage);
+            }
         }
 
         private async Task<IContentTemplate> GetNormalizationTemplate()
@@ -104,19 +119,59 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events)
         {
-            var template = await GetNormalizationTemplate();
+            // Step 1: Get the normalization mapping template
+            IContentTemplate template = null;
+            try
+            {
+                template = await GetNormalizationTemplate();
+            }
+            catch (Exception ex)
+            {
+                ex.AddEventContext(events);
+                if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                {
+                    throw; // Immediately throw original exception if it is not handled
+                }
+                else
+                {
+                    return; // The exception was handled, so no need to proceed further when the template is invalid
+                }
+            }
 
+            // Step 2: Normalize each event in the event batch
             var normalizationBatch = new List<(string sourcePartition, IMeasurement measurement)>(50);
 
             foreach (var evt in events)
             {
-                ProcessEvent(evt, template, normalizationBatch);
+                try
+                {
+                    ProcessEvent(evt, template, normalizationBatch);
+                }
+                catch (Exception ex)
+                {
+                    ex.AddEventContext(evt);
+                    if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                    {
+                        throw; // Immediately throw original exception if it is not handled
+                    }
+                }
             }
 
-            // Send normalized events
-            await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
+            // Step 3: Send normalized events to Event Hub
+            try
+            {
+                await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                ex.AddEventContext(events);
+                if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                {
+                    throw;
+                }
+            }
 
-            // Record Normalized Event Telemetry to correct partition
+            // Step 4: Record Normalized Event Telemetry to correct partition
             foreach (var item in normalizationBatch)
             {
                 _logger.LogMetric(IomtMetrics.NormalizedEvent(item.sourcePartition), 1);
@@ -125,21 +180,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private void ProcessEvent(IEventMessage evt, IContentTemplate template, IList<(string sourcePartition, IMeasurement measurement)> collector)
         {
-            try
-            {
-                RecordIngressMetrics(evt, _logger);
+            RecordIngressMetrics(evt, _logger);
 
-                var token = _converter.Convert(evt);
+            var token = _converter.Convert(evt);
 
-                NormalizeMessage(token: token, evt: evt, template: template, collector: collector);
-            }
-            catch (Exception ex)
-            {
-                if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
-                {
-                    throw; // Immediately throw original exception if it is not handled
-                }
-            }
+            NormalizeMessage(token: token, evt: evt, template: template, collector: collector);
         }
 
         private void NormalizeMessage(JObject token, IEventMessage evt, IContentTemplate template, IList<(string sourcePartition, IMeasurement measurement)> collector)
@@ -158,7 +203,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 catch (Exception ex)
                 {
                     // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                    throw new NormalizationDataMappingException(ex);
+                    var mappingException = new NormalizationDataMappingException(ex);
+                    mappingException.AddEventContext(evt);
+                    throw mappingException;
                 }
             }
 
@@ -195,16 +242,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
+        private AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
         {
-            // Retry on any unhandled exceptions.
-            // TODO (WI - 86288): Handled exceptions (eg: data errors) will not be retried upon indefinitely.
             bool ExceptionRetryableFilter(Exception ee)
             {
                 logger.LogTrace($"Encountered retryable/unhandled exception {ee.GetType()}");
                 logger.LogError(ee);
                 TrackExceptionMetric(ee, logger);
                 return true;
+            }
+
+            if (_errorMessageService != null)
+            {
+                return Policy
+                    .Handle<Exception>(ExceptionRetryableFilter)
+                    .WaitAndRetryAsync(retryCount: 10, sleepDurationProvider: (retryCount) => TimeSpan.FromSeconds(Math.Min(15, Math.Pow(2, retryCount))));
             }
 
             return Policy

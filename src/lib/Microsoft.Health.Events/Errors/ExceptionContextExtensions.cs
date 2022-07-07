@@ -20,6 +20,12 @@ namespace Microsoft.Health.Events.Errors
             ex.Data[EventsAttr] = events;
         }
 
+        public static void AddEventContext(this Exception ex, IEventMessage evt)
+        {
+            var list = new List<IEventMessage>() { evt };
+            ex.Data[EventsAttr] = list;
+        }
+
         // remove when we move off of IEventMessage
         public static IEnumerable<IEventMessage> GetRelatedLegacyEvents(this Exception ex)
         {
