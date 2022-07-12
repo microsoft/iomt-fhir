@@ -17,7 +17,7 @@ using Newtonsoft.Json.Serialization;
 namespace Microsoft.Health.Fhir.Ingest.Template.Generator
 {
     public abstract class TemplateGenerator<TTemplate, TModel> : ITemplateGenerator<TModel>
-        where TTemplate : class, new()
+        where TTemplate : Template, new()
         where TModel : class, new()
     {
         /// <summary>
@@ -33,21 +33,31 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
 
         internal abstract TemplateType TemplateType { get; }
 
-        public virtual async Task<JObject> GenerateTemplate(TModel model, CancellationToken cancellationToken)
+        public virtual async Task<JArray> GenerateTemplates(TModel model, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(model, nameof(model));
 
-            TTemplate template = (TTemplate)Activator.CreateInstance(typeof(TTemplate));
+            JArray templates = new JArray();
 
-            await PopulateTemplate(model, template, cancellationToken);
+            IEnumerable<string> typeNames = await GetTypeNames(model, cancellationToken);
 
-            var templateContainer = new TemplateContainer
+            foreach (string typeName in typeNames)
             {
-                TemplateType = TemplateType.ToString(),
-                Template = JObject.FromObject(template, Serializer),
-            };
+                TTemplate template = (TTemplate)Activator.CreateInstance(typeof(TTemplate));
+                template.TypeName = typeName;
 
-            return JObject.FromObject(templateContainer, Serializer);
+                await PopulateTemplate(model, template, cancellationToken);
+
+                var templateContainer = new TemplateContainer
+                {
+                    TemplateType = TemplateType.ToString(),
+                    Template = JObject.FromObject(template, Serializer),
+                };
+
+                templates.Add(JObject.FromObject(templateContainer, Serializer));
+            }
+
+            return templates;
         }
 
         internal abstract Task PopulateTemplate(TModel model, TTemplate template, CancellationToken cancellationToken);
@@ -57,11 +67,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// </summary>
         /// <remarks>
         /// The TypeName property is used to correlate device content templates with FHIR mapping templates.
+        /// This method returns a collection of typeNames for scenarios where one JSON payload might contain
+        /// multiple types (projection).
         /// This method MUST be implemented.
         /// </remarks>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="string"/></returns>
-        public abstract Task<string> GetTypeName(TModel model, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<string>> GetTypeNames(TModel model, CancellationToken cancellationToken);
     }
 }

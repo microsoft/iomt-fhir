@@ -22,14 +22,13 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         {
             var tasks = new List<Task>()
             {
-                Task.Run(async () => template.TypeName = await GetTypeName(model, cancellationToken)),
-                Task.Run(async () => template.TypeMatchExpression = await GetTypeMatchExpression(model, cancellationToken)),
-                Task.Run(async () => template.DeviceIdExpression = await GetDeviceIdExpression(model, cancellationToken)),
-                Task.Run(async () => template.TimestampExpression = await GetTimestampExpression(model, cancellationToken)),
-                Task.Run(async () => template.PatientIdExpression = await GetPatientIdExpression(model, cancellationToken)),
-                Task.Run(async () => template.EncounterIdExpression = await GetEncounterIdExpression(model, cancellationToken)),
-                Task.Run(async () => template.CorrelationIdExpression = await GetCorrelationIdExpression(model, cancellationToken)),
-                Task.Run(async () => template.Values = await GetValues(model, cancellationToken)),
+                Task.Run(async () => template.TypeMatchExpression = await GetTypeMatchExpression(template.TypeName, model, cancellationToken)),
+                Task.Run(async () => template.DeviceIdExpression = await GetDeviceIdExpression(template.TypeName, model, cancellationToken)),
+                Task.Run(async () => template.TimestampExpression = await GetTimestampExpression(template.TypeName, model, cancellationToken)),
+                Task.Run(async () => template.PatientIdExpression = await GetPatientIdExpression(template.TypeName, model, cancellationToken)),
+                Task.Run(async () => template.EncounterIdExpression = await GetEncounterIdExpression(template.TypeName, model, cancellationToken)),
+                Task.Run(async () => template.CorrelationIdExpression = await GetCorrelationIdExpression(template.TypeName, model, cancellationToken)),
+                Task.Run(async () => template.Values = await GetValues(template.TypeName, model, cancellationToken)),
             };
 
             await Task.WhenAll(tasks);
@@ -43,10 +42,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// Expressions can be provided in JSONPath or JMESPath formats.
         /// This method MUST be implemented.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="TemplateExpression"/></returns>
-        public abstract Task<TemplateExpression> GetTypeMatchExpression(TModel model, CancellationToken cancellationToken);
+        public abstract Task<TemplateExpression> GetTypeMatchExpression(string typeName, TModel model, CancellationToken cancellationToken);
 
         /// <summary>
         /// Provides a value for the DeviceIdExpression property for a CalculatedFunctionContentTemplate object.
@@ -58,10 +58,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// Expressions can be provided in JSONPath or JMESPath formats.
         /// This method MUST be implemented.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="TemplateExpression"/></returns>
-        public abstract Task<TemplateExpression> GetDeviceIdExpression(TModel model, CancellationToken cancellationToken);
+        public abstract Task<TemplateExpression> GetDeviceIdExpression(string typeName, TModel model, CancellationToken cancellationToken);
 
         /// <summary>
         /// Provides a value for the TimestampExpression property for a CalculatedFunctionContentTemplate object.
@@ -73,10 +74,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// Expressions can be provided in JSONPath or JMESPath formats.
         /// This method MUST be implemented.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="TemplateExpression"/></returns>
-        public abstract Task<TemplateExpression> GetTimestampExpression(TModel model, CancellationToken cancellationToken);
+        public abstract Task<TemplateExpression> GetTimestampExpression(string typeName, TModel model, CancellationToken cancellationToken);
 
         /// <summary>
         /// Provides a value for the PatientIdExpression property for a CalculatedFunctionContentTemplate object.
@@ -88,10 +90,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// Expressions can be provided in JSONPath or JMESPath formats.
         /// Implementation of this method is optional.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="TemplateExpression"/></returns>
-        public virtual Task<TemplateExpression> GetPatientIdExpression(TModel model, CancellationToken cancellationToken)
+        public virtual Task<TemplateExpression> GetPatientIdExpression(string typeName, TModel model, CancellationToken cancellationToken)
         {
             return Task.FromResult<TemplateExpression>(null);
         }
@@ -105,10 +108,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// Expressions can be provided in JSONPath or JMESPath formats.
         /// Implementation of this method is optional.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="TemplateExpression"/></returns>
-        public virtual Task<TemplateExpression> GetEncounterIdExpression(TModel model, CancellationToken cancellationToken)
+        public virtual Task<TemplateExpression> GetEncounterIdExpression(string typeName, TModel model, CancellationToken cancellationToken)
         {
             return Task.FromResult<TemplateExpression>(null);
         }
@@ -123,10 +127,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// Expressions can be provided in JSONPath or JMESPath formats.
         /// Implementation of this method is optional.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="TemplateExpression"/></returns>
-        public virtual Task<TemplateExpression> GetCorrelationIdExpression(TModel model, CancellationToken cancellationToken)
+        public virtual Task<TemplateExpression> GetCorrelationIdExpression(string typeName, TModel model, CancellationToken cancellationToken)
         {
             return Task.FromResult<TemplateExpression>(null);
         }
@@ -140,10 +145,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// blood pressure measurements might contain diastolic and systolic values.
         /// Implementation of this method is optional.
         /// </remarks>
+        /// <param name="typeName">The type name of the template to be populated</param>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="CalculatedFunctionValueExpression"/></returns>
-        public virtual Task<IList<CalculatedFunctionValueExpression>> GetValues(TModel model, CancellationToken cancellationToken)
+        public virtual Task<IList<CalculatedFunctionValueExpression>> GetValues(string typeName, TModel model, CancellationToken cancellationToken)
         {
             return Task.FromResult<IList<CalculatedFunctionValueExpression>>(null);
         }

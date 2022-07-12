@@ -49,14 +49,20 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         public async Task<JObject> GenerateTemplateCollection(IEnumerable<TModel> model, CancellationToken cancellationToken)
         {
             JArray templateJObjects = new JArray();
-            var templateTasks = model.Select(m => GetTemplate(m, cancellationToken));
-            IEnumerable<JObject> templates = await Task.WhenAll(templateTasks);
+            var templateTasks = model.Select(m => GetTemplates(m, cancellationToken));
+            IEnumerable<JArray> templatesArrays = await Task.WhenAll(templateTasks);
 
-            foreach (var template in templates)
+            foreach (var templateArray in templatesArrays)
             {
-                if (template != null && IsTemplateUnique(template, templateJObjects))
+                if (templateArray != null && templateArray.Any())
                 {
-                    templateJObjects.Add(template);
+                    foreach (var template in templateArray)
+                    {
+                        if (IsTemplateUnique(template, templateJObjects))
+                        {
+                            templateJObjects.Add(template);
+                        }
+                    }
                 }
             }
 
@@ -70,12 +76,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         }
 
         /// <summary>
-        /// Gets a Template (in JObject format) that should be added to the collection.
+        /// Gets Templates (in JObject format) that should be added to the collection.
         /// </summary>
         /// <param name="model">The model that the CalculatedFunctionContentTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="JObject"/></returns>
-        public abstract Task<JObject> GetTemplate(TModel model, CancellationToken cancellationToken);
+        public abstract Task<JArray> GetTemplates(TModel model, CancellationToken cancellationToken);
 
         private bool IsTemplateUnique(JToken template, JArray templates)
         {

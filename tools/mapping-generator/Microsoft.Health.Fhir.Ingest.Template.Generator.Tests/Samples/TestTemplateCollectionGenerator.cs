@@ -19,17 +19,17 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests.Samples
 
         public IList<JObject> TemplateResponses { get; } = new List<JObject>();
 
-        public override Task<JObject> GetTemplate(TestModel model, CancellationToken cancellationToken)
+        public override Task<JArray> GetTemplates(TestModel model, CancellationToken cancellationToken)
         {
             if (TemplateResponses.Count > 0)
             {
                 JObject templateResponse = TemplateResponses.First();
                 TemplateResponses.Remove(templateResponse);
 
-                return Task.FromResult(templateResponse);
+                return Task.FromResult(new JArray() { templateResponse });
             }
 
-            return Task.FromResult<JObject>(null);
+            return Task.FromResult<JArray>(null);
         }
     }
 }

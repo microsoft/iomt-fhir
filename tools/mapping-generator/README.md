@@ -55,4 +55,5 @@ There are only 3 members that need to be implemented when creating a concrete in
 A good place to view some basic implementations of the abstract classes discussed in this document is by viewing the unit test project.
 
 - **[TestCalculatedContentTemplateGenerator](../mapping-generator/Microsoft.Health.Fhir.Ingest.Template.Generator.Tests/Samples/TestCalculatedContentTemplateGenerator.cs)**
+- **[TestProjectionCalculatedContentTemplateGenerator](../mapping-generator/Microsoft.Health.Fhir.Ingest.Template.Generator.Tests/Samples/TestProjectionCalculatedContentTemplateGenerator.cs)**
 - **[TestCodeValueFhirTemplateGenerator](../mapping-generator/Microsoft.Health.Fhir.Ingest.Template.Generator.Tests/Samples/TestCodeValueFhirTemplateGenerator.cs)**

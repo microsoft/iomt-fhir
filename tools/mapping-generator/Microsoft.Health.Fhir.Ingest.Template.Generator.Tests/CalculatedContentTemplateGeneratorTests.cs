@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests.Samples;
@@ -16,10 +17,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests
     public class CalculatedContentTemplateGeneratorTests
     {
         private readonly ITemplateGenerator<TestModel> _templateGenerator;
+        private readonly ITemplateGenerator<TestModelProjection> _templateGeneratorProjection;
 
         public CalculatedContentTemplateGeneratorTests()
         {
             _templateGenerator = new TestCalculatedContentTemplateGenerator();
+            _templateGeneratorProjection = new TestProjectionCalculatedContentTemplateGenerator();
         }
 
         [Theory]
@@ -31,7 +34,20 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests
             TestModel model = JsonConvert.DeserializeObject<TestModel>(modelJson);
             JObject expected = JObject.Parse(expectedJson);
 
-            JObject deviceData = await _templateGenerator.GenerateTemplate(model, CancellationToken.None);
+            JArray deviceData = await _templateGenerator.GenerateTemplates(model, CancellationToken.None);
+
+            Assert.Single(deviceData);
+            Assert.True(JToken.DeepEquals(expected, deviceData.FirstOrDefault()));
+        }
+
+        [Theory]
+        [FileData(@"TestInput/deviceData_Projection.json", @"Expected/deviceData_Projection.json")]
+        public async Task GivenProjectionModel_WhenGenerateTemplateCalled_TemplatesGenerated(string modelJson, string expectedJson)
+        {
+            TestModelProjection model = JsonConvert.DeserializeObject<TestModelProjection>(modelJson);
+            JArray expected = JArray.Parse(expectedJson);
+
+            JArray deviceData = await _templateGeneratorProjection.GenerateTemplates(model, CancellationToken.None);
 
             Assert.True(JToken.DeepEquals(expected, deviceData));
         }

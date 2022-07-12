@@ -38,12 +38,12 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests
             TestModel model = JsonConvert.DeserializeObject<TestModel>(modelJson);
             JObject expected = JObject.Parse(expectedJson);
 
-            JObject deviceData = await _deviceDataTemplateGenerator.GenerateTemplate(model, CancellationToken.None);
-            var deviceTemplate = deviceData["template"].ToObject<CalculatedFunctionContentTemplate>();
+            JArray deviceData = await _deviceDataTemplateGenerator.GenerateTemplates(model, CancellationToken.None);
+            var deviceTemplate = deviceData[0]["template"].ToObject<CalculatedFunctionContentTemplate>();
 
-            JObject fhirMapping = await _fhirMappingTemplateGenerator.GenerateTemplate(deviceTemplate, CancellationToken.None);
+            JArray fhirMappings = await _fhirMappingTemplateGenerator.GenerateTemplates(deviceTemplate, CancellationToken.None);
 
-            Assert.True(JToken.DeepEquals(expected, fhirMapping));
+            Assert.True(JToken.DeepEquals(expected, fhirMappings.FirstOrDefault()));
         }
     }
 }

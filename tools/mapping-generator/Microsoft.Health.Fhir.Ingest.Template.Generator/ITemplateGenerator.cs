@@ -13,11 +13,11 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         where TModel : class
     {
         /// <summary>
-        /// Generates a Template and converts it to a JObject.
+        /// Generates one or more Templates and converts them to a JArray.
         /// </summary>
         /// <param name="model">The model used to generate the Template.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="JObject"/></returns>
-        Task<JObject> GenerateTemplate(TModel model, CancellationToken cancellationToken);
+        Task<JArray> GenerateTemplates(TModel model, CancellationToken cancellationToken);
     }
 }

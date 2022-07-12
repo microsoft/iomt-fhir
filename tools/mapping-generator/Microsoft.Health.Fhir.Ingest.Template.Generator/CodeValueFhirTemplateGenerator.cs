@@ -22,7 +22,6 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         {
             var tasks = new List<Task>()
             {
-                Task.Run(async () => template.TypeName = await GetTypeName(model, cancellationToken)),
                 Task.Run(async () => template.Category = await GetCategory(model, cancellationToken)),
                 Task.Run(async () => template.Codes = await GetCodes(model, cancellationToken)),
                 Task.Run(async () => template.Value = await GetValue(model, cancellationToken)),
@@ -37,15 +36,15 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Generator
         /// </summary>
         /// <remarks>
         /// The TypeName property is used to correlate device content templates with FHIR mapping templates,
-        /// the TModlel and CodeValueFhirTemplate TypeName properties should always be the same.
+        /// the TModel and CodeValueFhirTemplate TypeName properties should always be the same.
         /// If this method is not overridden, model.TypeName will be used.
         /// </remarks>
         /// <param name="model">The model that the CodeValueFhirTemplate is generated from.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
         /// <returns><see cref="string"/></returns>
-        public override Task<string> GetTypeName(TModel model, CancellationToken cancellationToken)
+        public override Task<IEnumerable<string>> GetTypeNames(TModel model, CancellationToken cancellationToken)
         {
-            return Task.FromResult(model.TypeName);
+            return Task.FromResult<IEnumerable<string>>(new List<string>() { model.TypeName });
         }
 
         /// <summary>
