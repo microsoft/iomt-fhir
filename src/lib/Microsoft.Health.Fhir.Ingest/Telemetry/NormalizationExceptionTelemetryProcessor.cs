@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 
@@ -15,7 +16,11 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     public class NormalizationExceptionTelemetryProcessor : ExceptionTelemetryProcessor
     {
         private readonly string _connectorStage = ConnectorOperation.Normalization;
-        private static readonly Type[] DefaultExceptions = new[] { typeof(IncompatibleDataException) };
+        private static readonly Type[] DefaultExceptions = new[]
+        {
+            typeof(IncompatibleDataException),
+            typeof(InvalidDataFormatException),
+        };
 
         public NormalizationExceptionTelemetryProcessor(params Type[] handledExceptionTypes)
             : base(handledExceptionTypes.Union(DefaultExceptions).ToArray())
