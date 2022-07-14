@@ -257,8 +257,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
         {
-            var type = exception.GetType().ToString();
-            var metric = type.ToErrorMetric(ConnectorOperation.Normalization, ErrorType.DeviceMessageError, ErrorSeverity.Warning);
+            var metric = IomtMetrics.UnhandledException(exception.GetType().ToString(), ConnectorOperation.Normalization, ErrorType.DeviceMessageError, ErrorSeverity.Warning);
             logger.LogMetric(metric, 1);
         }
     }
