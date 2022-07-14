@@ -28,7 +28,7 @@ namespace Microsoft.Health.Logging.Telemetry
             Exception ex,
             ITelemetryLogger logger)
         {
-            return HandleException(ex, logger);
+            return HandleException(ex, logger, handledExceptionMetric: null, unhandledExceptionMetric: null);
         }
 
         public virtual void LogExceptionMetric(

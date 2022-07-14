@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj" />
   </ItemGroup>

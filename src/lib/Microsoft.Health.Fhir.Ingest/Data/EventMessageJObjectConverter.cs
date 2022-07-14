@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using EnsureThat;
 using Microsoft.Health.Events.Model;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Toolkit.HighPerformance;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -30,16 +31,23 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             JObject token = new ();
             JToken body = null;
 
-            if (input.Body.Length > 0)
+            try
             {
-                using StreamReader streamReader = new StreamReader(input.Body.AsStream(), Encoding.UTF8);
-                using JsonReader jsonReader = new JsonTextReader(streamReader);
-                body = JToken.ReadFrom(jsonReader, loadSettings);
-            }
+                if (input.Body.Length > 0)
+                {
+                    using StreamReader streamReader = new StreamReader(input.Body.AsStream(), Encoding.UTF8);
+                    using JsonReader jsonReader = new JsonTextReader(streamReader);
+                    body = JToken.ReadFrom(jsonReader, loadSettings);
+                }
 
-            token[BodyAttr] = body;
-            token[PropertiesAttr] = JToken.FromObject(input.Properties, jsonSerializer);
-            token[SystemPropertiesAttr] = JToken.FromObject(input.SystemProperties, jsonSerializer);
+                token[BodyAttr] = body;
+                token[PropertiesAttr] = JToken.FromObject(input.Properties, jsonSerializer);
+                token[SystemPropertiesAttr] = JToken.FromObject(input.SystemProperties, jsonSerializer);
+            }
+            catch (JsonReaderException ex)
+            {
+                throw new InvalidDataFormatException("Invalid event message. Cannot be parsed into a JSON object.", ex);
+            }
 
             return token;
         }

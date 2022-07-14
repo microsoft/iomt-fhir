@@ -18,12 +18,18 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     public class NormalizationExceptionTelemetryProcessor : ExceptionTelemetryProcessor
     {
         private readonly string _connectorStage = ConnectorOperation.Normalization;
-        private static readonly Type[] DefaultExceptions = new[] { typeof(IncompatibleDataException) };
+
+        private static readonly Type[] DefaultExceptions = new[]
+        {
+            typeof(IncompatibleDataException),
+            typeof(InvalidDataFormatException),
+        };
 
         private IErrorMessageService _errorMessageService;
         private static readonly Type[] DefaultExceptionsWithErrorMessageService = new[]
         {
             typeof(IncompatibleDataException),
+            typeof(InvalidDataFormatException),
             typeof(ValidationException),
             typeof(NormalizationDataMappingException),
             typeof(EventHubProducerClientException),

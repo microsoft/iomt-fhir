@@ -5,10 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Health.Fhir.Ingest.Template.Serialization.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template
+namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
 {
     /// <summary>
     /// A custom JsonConverter which supports creating a TemplateExpression from either a String or JObject.
@@ -71,7 +72,27 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (value == null)
+            {
+                writer.WriteNull();
+            }
+
+            if (value is TemplateExpression expression)
+            {
+                if (expression.Language == null)
+                {
+                    // The Language property is null so this expression is the default language.
+                    writer.WriteValue(expression.Value);
+                    return;
+                }
+
+                JObject json = serializer.SerializeValue(expression);
+
+                json.WriteTo(writer);
+                return;
+            }
+
+            throw new NotSupportedException($"TemplateExpressionJsonConverter cannot convert type: {value.GetType()}");
         }
     }
 }

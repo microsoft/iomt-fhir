@@ -8,11 +8,8 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class JsonPathContentTemplate : LineAwareJsonObject
+    public class JsonPathContentTemplate : Template
     {
-        [JsonProperty(Required = Required.Always)]
-        public virtual string TypeName { get; set; }
-
         [JsonProperty(Required = Required.Always)]
         public virtual string TypeMatchExpression { get; set; }
 

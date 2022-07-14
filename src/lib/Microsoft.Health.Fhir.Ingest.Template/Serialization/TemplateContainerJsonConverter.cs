@@ -4,10 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Fhir.Ingest.Template.Serialization.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Fhir.Ingest.Template
+namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
 {
     /// <summary>
     /// A JsonConverter to create a TemplateContainer and preserve line details inside of the inner Template.
@@ -45,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                 var templateContainer = new TemplateContainer();
                 serializer.Populate(templateContainerObject.CreateReader(), templateContainer);
                 /**
-                 * At this point the TemplateConainer is fully populated but the inner 'Template' contains no line numbers.
+                 * At this point the TemplateContainer is fully populated but the inner 'Template' contains no line numbers.
                  * Replace the 'Template' property with that of the templateContainerObject, which will contain line
                  * information
                  */
@@ -64,11 +65,21 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value != null)
+            if (value == null)
             {
-                var templateContainerObject = JObject.FromObject(value, serializer);
-                templateContainerObject.WriteTo(writer);
+                writer.WriteNull();
+                return;
             }
+
+            if (value is TemplateContainer container)
+            {
+                JObject jObject = serializer.SerializeValue(container);
+
+                jObject.WriteTo(writer);
+                return;
+            }
+
+            throw new NotSupportedException($"TemplateContainerJsonConverter cannot convert type: {value.GetType()}");
         }
     }
 }

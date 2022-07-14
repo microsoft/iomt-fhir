@@ -11,7 +11,7 @@ Please make sure your machine meets the below system requirements:
 ### Client App
 
 - **NodeJS** version 14.15.1 and above
-- **npm** version 6.14.8 and above
+- **npm** version 8.13.2 and above
 
 To check NodeJS installation, use below commands:
 
