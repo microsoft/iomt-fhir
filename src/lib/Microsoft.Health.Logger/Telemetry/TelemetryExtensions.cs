@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Metrics;
+using Microsoft.Health.Common.Extension;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
@@ -24,6 +25,7 @@ namespace Microsoft.Health.Logging.Telemetry
 
             exceptionTelemetry.Properties.Add("message", ex.Message ?? string.Empty);
             exceptionTelemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
+            exceptionTelemetry.Properties.Add("logToCustomerIot", ex.LogToCustomer().ToString());
 
             telemetryClient.TrackException(exceptionTelemetry);
         }
