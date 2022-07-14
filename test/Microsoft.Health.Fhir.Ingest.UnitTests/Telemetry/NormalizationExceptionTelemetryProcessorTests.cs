@@ -8,6 +8,7 @@ using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
 
@@ -22,8 +23,9 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             var log = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
 
-            var exProcessor = new NormalizationExceptionTelemetryProcessor();
+            var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
             var handled = exProcessor.HandleException(ex, log);
             Assert.True(handled);
 
@@ -36,8 +38,9 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             var log = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
 
-            var exProcessor = new NormalizationExceptionTelemetryProcessor();
+            var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
             var handled = exProcessor.HandleException(ex, log);
             Assert.False(handled);
 

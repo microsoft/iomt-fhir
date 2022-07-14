@@ -17,7 +17,9 @@ using Microsoft.Health.Extensions.Fhir.Config;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
@@ -47,6 +49,7 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
             // Register extensions
+            builder.Services.TryAddSingleton<IExceptionTelemetryProcessor, FhirExceptionTelemetryProcessor>();
             builder.AddExtension<MeasurementFhirImportProvider>()
                 .BindOptions<MeasurementFhirImportOptions>();
 

@@ -6,14 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Config;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
+using Microsoft.Health.Logging.Telemetry;
 using System;
 using System.Linq;
 
@@ -47,6 +48,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
             services.TryAddSingleton<ResourceManagementService>();
+            services.TryAddSingleton<IExceptionTelemetryProcessor, FhirExceptionTelemetryProcessor>();
             services.TryAddSingleton<MeasurementFhirImportOptions>();
             services.TryAddSingleton<MeasurementFhirImportService>();
             services.TryAddSingleton(ResolveMeasurementImportProvider);
@@ -56,7 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
 
-            IOptions<MeasurementFhirImportOptions> options = Options.Create(new MeasurementFhirImportOptions());
+            var options = Options.Create(serviceProvider.GetRequiredService<MeasurementFhirImportOptions>());
             var logger = new LoggerFactory();
             var measurementImportService = new MeasurementFhirImportProvider(Configuration, options, logger, serviceProvider);
 

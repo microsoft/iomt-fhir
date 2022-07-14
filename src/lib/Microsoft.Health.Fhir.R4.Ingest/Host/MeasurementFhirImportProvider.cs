@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Fhir.Ingest.Host
 {
@@ -18,8 +19,8 @@ namespace Microsoft.Health.Fhir.Ingest.Host
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public MeasurementFhirImportProvider(IConfiguration config, IOptions<MeasurementFhirImportOptions> options, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
-            : base(config, options, loggerFactory)
+        public MeasurementFhirImportProvider(IConfiguration config, IOptions<MeasurementFhirImportOptions> options, ILoggerFactory loggerFactory, IServiceProvider serviceProvider, IExceptionTelemetryProcessor exceptionProcessor = null)
+            : base(config, options, loggerFactory, exceptionProcessor)
         {
             _serviceProvider = EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
         }

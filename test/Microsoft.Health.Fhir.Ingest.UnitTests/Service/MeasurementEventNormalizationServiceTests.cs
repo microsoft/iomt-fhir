@@ -151,7 +151,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             _converter.Convert(null).ReturnsForAnyArgs(v => throw ex);
 
-            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
 
             var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
             await srv.ProcessAsync(events, _consumer);
@@ -171,7 +172,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                    .ToDictionary(ed => ed, ed => JToken.FromObject(new object()));
             _converter.Convert(null).ReturnsForAnyArgs(args => events[args.Arg<EventData>()]);
 
-            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
+
+            _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
 
             var srv = new MeasurementEventNormalizationService(_logger, _template, _converter, _exceptionTelemetryProcessor, 1);
             var exception = await Assert.ThrowsAsync<AggregateException>(() => srv.ProcessAsync(events.Keys, _consumer));

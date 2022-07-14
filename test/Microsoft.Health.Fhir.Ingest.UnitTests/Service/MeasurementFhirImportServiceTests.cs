@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Common.Config;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
@@ -28,8 +29,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
+            var exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
 
             var stream = Substitute.For<Stream>();
             stream.CanRead.Returns(true);
@@ -49,8 +51,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
+            var exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
 
             var measurements = new IMeasurementGroup[] { Substitute.For<IMeasurementGroup>(), Substitute.For<IMeasurementGroup>() };
 
@@ -70,7 +73,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var fhirService = Substitute.For<FhirImportService>();
             fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options);
+            var exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
+            var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
 
             var measurements = new MeasurementGroup[] { Substitute.For<MeasurementGroup>(), Substitute.For<MeasurementGroup>() };
 
@@ -92,14 +96,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
-            options.ExceptionService.HandleException(null, null).ReturnsForAnyArgs(true);
+
+            var exceptionProcessor = Substitute.For<IExceptionTelemetryProcessor>();
+            exceptionProcessor.HandleException(null, null).ReturnsForAnyArgs(true);
 
             var exception = new InvalidOperationException();
 
             var fhirService = Substitute.For<FhirImportService>();
             fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
-            var fhirImport = new MeasurementFhirImportService(fhirService, options);
+            var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionProcessor);
 
             var measurements = new IMeasurementGroup[] { Substitute.For<IMeasurementGroup>(), Substitute.For<IMeasurementGroup>() };
 
@@ -107,7 +113,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-            options.ExceptionService.Received(2).HandleException(exception, log);
+            exceptionProcessor.Received(2).HandleException(exception, log);
         }
 
         [Fact]
@@ -116,8 +122,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
+            var exceptionProcessor = Substitute.For<IExceptionTelemetryProcessor>();
 
-            var fhirImport = new TestFhirImportService(fhirService, options);
+            var fhirImport = new TestFhirImportService(fhirService, options, exceptionProcessor);
 
             var measurements = new IMeasurementGroup[]
             {
@@ -138,7 +145,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
 
-            var fhirImport = new TestFhirImportService(fhirService, options);
+            var exceptionProcessor = Substitute.For<IExceptionTelemetryProcessor>();
+            var fhirImport = new TestFhirImportService(fhirService, options, exceptionProcessor);
 
             var measurements = new IMeasurementGroup[]
             {
@@ -160,8 +168,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
             var fhirService = Substitute.For<FhirImportService>();
+            var exceptionProcessor = Substitute.For<IExceptionTelemetryProcessor>();
 
-            var fhirImport = new TestFhirImportService(fhirService, options);
+            var fhirImport = new TestFhirImportService(fhirService, options, exceptionProcessor);
 
             var measurements = new IMeasurementGroup[]
             {
@@ -206,7 +215,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var options = Substitute.For<MeasurementFhirImportOptions>();
 
             options.ParallelTaskOptions.Returns(parallelTaskOptions);
-            options.ExceptionService.Returns(exceptionProcessor);
             options.TemplateFactory.Returns(templateFactory);
 
             return options;
@@ -214,8 +222,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private class TestFhirImportService : MeasurementFhirImportService
         {
-            public TestFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options)
-                : base(fhirImportService, options)
+            public TestFhirImportService(FhirImportService fhirImportService, MeasurementFhirImportOptions options, IExceptionTelemetryProcessor exceptionTelemetryProcessor)
+                : base(fhirImportService, options, exceptionTelemetryProcessor)
             {
             }
 

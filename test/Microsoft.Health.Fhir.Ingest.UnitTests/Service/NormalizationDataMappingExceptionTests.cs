@@ -13,14 +13,14 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public void GivenNullException_WhenCtor_ThenNullArgumentExceptionThrown_Test()
         {
-            Assert.Throws<ArgumentNullException>(() => new NormalizationDataMappingException(null));
+            Assert.Throws<ArgumentNullException>(() => new NormalizationDataMappingException(null, null));
         }
 
         [Fact]
         public void GivenSingleException_WhenCtor_ThenMessageSet_Test()
         {
             var ex = new Exception("message");
-            var ndmex = new NormalizationDataMappingException(ex);
+            var ndmex = new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException));
 
             Assert.Equal(ex.Message, ndmex.Message);
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var ex1 = new Exception("nested a", ex2);
             var ex = new Exception("message", ex1);
 
-            var ndmex = new NormalizationDataMappingException(ex);
+            var ndmex = new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException));
 
             var messages = ndmex.Message.Split('\n');
 

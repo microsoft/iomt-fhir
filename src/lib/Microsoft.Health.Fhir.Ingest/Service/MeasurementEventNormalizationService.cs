@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,6 +14,7 @@ using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -120,6 +121,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         {
                             var stopWatch = new Stopwatch();
                             stopWatch.Start();
+
                             foreach (var measurement in _contentTemplate.GetMeasurements(token))
                             {
                                 measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
@@ -136,7 +138,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         catch (Exception ex)
                         {
                             // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                            throw new NormalizationDataMappingException(ex);
+                            throw new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException));
                         }
                     }
                     catch (Exception ex)
@@ -208,6 +210,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         /// <returns>Returns true if the exception is handled and false otherwise.</returns>
         private Task<bool> ProcessErrorAsync(Exception ex, EventData data)
         {
+            var events = new List<EventData>() { data };
+            ex.AddEventContext(events);
+
             var handled = _exceptionTelemetryProcessor.HandleException(ex, _log);
             return Task.FromResult(!handled);
         }
