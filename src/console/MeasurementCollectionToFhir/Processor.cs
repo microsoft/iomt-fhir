@@ -61,7 +61,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             if (_errorMessageService != null && policyResult.FinalException != null)
             {
                 policyResult.FinalException.AddEventContext(events);
-                var errorMessage = new ErrorMessage(policyResult.FinalException);
+                var errorMessage = new IomtErrorMessage(policyResult.FinalException);
                 _errorMessageService.ReportError(errorMessage);
             }
 

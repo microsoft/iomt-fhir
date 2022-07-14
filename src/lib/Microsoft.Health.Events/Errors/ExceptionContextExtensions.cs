@@ -15,15 +15,17 @@ namespace Microsoft.Health.Events.Errors
         private const string EventsAttr = "RelatedEvents";
 
         // remove when we move off of IEventMessage
-        public static void AddEventContext(this Exception ex, IEnumerable<IEventMessage> events)
+        public static Exception AddEventContext(this Exception ex, IEnumerable<IEventMessage> events)
         {
             ex.Data[EventsAttr] = events;
+            return ex;
         }
 
-        public static void AddEventContext(this Exception ex, IEventMessage evt)
+        public static Exception AddEventContext(this Exception ex, IEventMessage evt)
         {
             var list = new List<IEventMessage>() { evt };
             ex.Data[EventsAttr] = list;
+            return ex;
         }
 
         // remove when we move off of IEventMessage

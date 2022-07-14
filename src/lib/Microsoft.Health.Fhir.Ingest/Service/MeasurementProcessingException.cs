@@ -4,43 +4,31 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text;
-using EnsureThat;
-using Microsoft.Health.Events.Errors;
-using Microsoft.Health.Events.Model;
+using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class MeasurementProcessingException : Exception
+    public class MeasurementProcessingException : IomtTelemetryFormattableException
     {
-        public MeasurementProcessingException(Exception ex, IEventMessage evt)
-            : base(IncludeContext(ex, evt), ex)
+        private static readonly string _errorType = ErrorType.FHIRConversionError;
+
+        public MeasurementProcessingException(
+            string message,
+            Exception innerException,
+            string errorName)
+            : base(
+                  message,
+                  innerException,
+                  name: $"{_errorType}{errorName}",
+                  operation: ConnectorOperation.Grouping)
         {
-            EnsureArg.IsNotNull(ex, nameof(ex));
-            EnsureArg.IsNotNull(evt, nameof(evt));
         }
 
-        private static string IncludeContext(Exception ex, IEventMessage evt = null)
-        {
-            EnsureArg.IsNotNull(ex, nameof(ex));
-            EnsureArg.IsNotNull(evt, nameof(evt));
+        public override string ErrType => _errorType;
 
-            if (evt != null)
-            {
-                ex.AddEventContext(evt);
-            }
+        public override string ErrSeverity => ErrorSeverity.Critical;
 
-            StringBuilder sb = new (ex.Message);
-
-            Exception innerException = ex.InnerException;
-            int exceptionCount = 0;
-            while (innerException != null)
-            {
-                sb.Append($"\n{++exceptionCount}:{innerException.Message}");
-                innerException = innerException.InnerException;
-            }
-
-            return sb.ToString();
-        }
+        public override string ErrSource => nameof(ErrorSource.Service);
     }
 }

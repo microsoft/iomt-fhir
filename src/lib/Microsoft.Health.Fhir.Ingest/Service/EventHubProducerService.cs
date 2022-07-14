@@ -67,7 +67,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             catch (Exception ex)
             {
-                throw new EventHubProducerClientException(ex);
+                throw new EventHubProducerClientException(ex.Message, ex, nameof(EventHubProducerClientException));
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             catch (Exception ex)
             {
-                throw new EventHubProducerClientException(ex);
+                throw new EventHubProducerClientException(ex.Message, ex, nameof(EventHubProducerClientException));
             }
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             catch (Exception ex)
             {
-                throw new EventHubProducerClientException(ex);
+                throw new EventHubProducerClientException(ex.Message, ex, nameof(EventHubProducerClientException));
             }
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             catch (Exception ex)
             {
-                throw new EventHubProducerClientException(ex);
+                throw new EventHubProducerClientException(ex.Message, ex, nameof(EventHubProducerClientException));
             }
         }
     }

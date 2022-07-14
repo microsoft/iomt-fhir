@@ -61,7 +61,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
                 catch (Exception ex)
                 {
-                    throw new FhirDataMappingException(ex);
+                    // user story 93303 to include appropriate message context for this error.
+                    throw new FhirDataMappingException(ex.Message, ex, nameof(FhirDataMappingException));
                 }
 
                 foreach (var grp in grps)

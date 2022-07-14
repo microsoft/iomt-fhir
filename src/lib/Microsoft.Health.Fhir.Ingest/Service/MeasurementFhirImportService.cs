@@ -66,31 +66,27 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
 
             // Step 2: Transform the events into Measurements and group into Measurement Groups
-            Tuple<IEnumerable<IMeasurementGroup>, Dictionary<IMeasurement, IEventMessage>> parseEventData;
+            (IEnumerable<IMeasurementGroup> groups, Dictionary<IMeasurement, IEventMessage> lookup) parseEventData;
             IEnumerable<IMeasurementGroup> measurementGroups = null;
             Dictionary<IMeasurement, IEventMessage> measurementToEventMapping = null;
 
             try
             {
                 parseEventData = ParseEventData(events, log);
-                measurementGroups = parseEventData.Item1;
-                measurementToEventMapping = parseEventData.Item2;
+                measurementGroups = parseEventData.groups;
+                measurementToEventMapping = parseEventData.lookup;
             }
             catch (Exception ex)
             {
+                var eventsWithExceptions = ex.GetRelatedLegacyEvents();
                 if (!_exceptionTelemetryProcessor.HandleException(ex, log))
                 {
                     throw;
                 }
                 else
                 {
-                    Console.WriteLine(events.Count());
-
                     // remove the event(s) from the batch
-                    var eventsWithExceptions = ex.GetRelatedLegacyEvents();
                     events = events.Where(e => !eventsWithExceptions.Contains(e)).ToList();
-
-                    Console.WriteLine(events.Count());
                 }
             }
 
@@ -171,7 +167,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return measurementGroups;
         }
 
-        private static Tuple<IEnumerable<IMeasurementGroup>, Dictionary<IMeasurement, IEventMessage>> ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger logger)
+        private static (IEnumerable<IMeasurementGroup> groups, Dictionary<IMeasurement, IEventMessage> lookup) ParseEventData(IEnumerable<IEventMessage> data, ITelemetryLogger logger)
         {
             var partitionId = data.FirstOrDefault()?.PartitionId;
 
@@ -187,7 +183,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
                 catch (Exception ex)
                 {
-                    throw new MeasurementProcessingException(ex, e);
+                    throw new MeasurementProcessingException(ex.Message, ex, nameof(MeasurementProcessingException))
+                        .AddEventContext(e);
                 }
             })
             .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
@@ -207,7 +204,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             })
             .ToArray();
 
-            return Tuple.Create(measurementGroups, dictionary);
+            return (measurementGroups, dictionary);
         }
 
         private static async Task CalculateMetricsAsync(IList<Measurement> measurements, ITelemetryLogger log, string partitionId = null)

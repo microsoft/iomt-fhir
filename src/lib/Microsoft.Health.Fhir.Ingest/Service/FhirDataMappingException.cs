@@ -4,34 +4,31 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text;
-using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class FhirDataMappingException : Exception
+    public class FhirDataMappingException : IomtTelemetryFormattableException
     {
-        public FhirDataMappingException(Exception ex)
-            : base(BuildMessage(ex), ex)
+        private static readonly string _errorType = ErrorType.FHIRConversionError;
+
+        public FhirDataMappingException(
+            string message,
+            Exception innerException,
+            string errorName)
+            : base(
+                  message,
+                  innerException,
+                  name: $"{_errorType}{errorName}",
+                  operation: ConnectorOperation.FHIRConversion)
         {
-            EnsureArg.IsNotNull(ex, nameof(ex));
         }
 
-        private static string BuildMessage(Exception ex)
-        {
-            EnsureArg.IsNotNull(ex, nameof(ex));
+        public override string ErrType => _errorType;
 
-            StringBuilder sb = new (ex.Message);
+        public override string ErrSeverity => ErrorSeverity.Critical;
 
-            Exception innerException = ex.InnerException;
-            int exceptionCount = 0;
-            while (innerException != null)
-            {
-                sb.Append($"\n{++exceptionCount}:{innerException.Message}");
-                innerException = innerException.InnerException;
-            }
-
-            return sb.ToString();
-        }
+        public override string ErrSource => nameof(ErrorSource.User);
     }
 }

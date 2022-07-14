@@ -67,12 +67,10 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var handledExceptionMetric = ex is NotSupportedException ? IomtMetrics.NotSupported() : IomtMetrics.HandledException(exceptionTypeName, _connectorStage);
             var handledException = HandleException(ex, logger, handledExceptionMetric, IomtMetrics.UnhandledException(exceptionTypeName, _connectorStage));
 
-            if (handledException)
+            if (handledException && _errorMessageService != null)
             {
-                // send to error message service
-                if (_errorMessageService != null)
                 {
-                    var errorMessage = new ErrorMessage(ex);
+                    var errorMessage = new IomtErrorMessage(ex);
                     _errorMessageService.ReportError(errorMessage);
                 }
             }

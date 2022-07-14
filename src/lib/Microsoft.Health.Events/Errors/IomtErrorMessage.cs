@@ -5,32 +5,21 @@
 
 using System;
 using System.Collections.Generic;
-using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Health.Events.Model;
 
 namespace Microsoft.Health.Events.Errors
 {
-    public class ErrorMessage
+    public class IomtErrorMessage : IErrorMessageWithEvents
     {
-        public ErrorMessage()
-        {
-        }
-
-        public ErrorMessage(IDictionary<string, object> dictionary)
-        {
-            EnsureArg.IsNotNull(dictionary);
-            Values = dictionary;
-        }
-
-        public ErrorMessage(Exception ex, IDictionary<string, object> dictionary = null)
+        public IomtErrorMessage(Exception ex, IDictionary<string, object> dictionary = null)
         {
             Type = ex.GetType().Name;
             Details = ex.Message;
             ErrorTimestamp = DateTimeOffset.UtcNow;
 
-            RelatedEvents = ex.GetRelatedEvents();
             RelatedLegacyEvents = ex.GetRelatedLegacyEvents();
+            RelatedEvents = ex.GetRelatedEvents();
 
             Values = dictionary;
         }
