@@ -6,6 +6,8 @@
 using System.Text;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
+using Microsoft.Health.Fhir.Ingest.Service;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
@@ -15,12 +17,21 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         public JToken Convert(EventData input)
         {
             EnsureArg.IsNotNull(input, nameof(input));
+            JToken token;
 
-            var body = input.Body.Count > 0
-                ? JToken.Parse(Encoding.UTF8.GetString(input.Body.Array, input.Body.Offset, input.Body.Count))
-                : null;
-            var data = new { Body = body, input.Properties, input.SystemProperties };
-            var token = JToken.FromObject(data);
+            try
+            {
+                var body = input.Body.Count > 0
+                    ? JToken.Parse(Encoding.UTF8.GetString(input.Body.Array, input.Body.Offset, input.Body.Count))
+                    : null;
+                var data = new { Body = body, input.Properties, input.SystemProperties };
+                token = JToken.FromObject(data);
+            }
+            catch (JsonReaderException ex)
+            {
+                throw new InvalidDataFormatException("Invalid event message. Cannot be parsed into a JSON object.", ex);
+            }
+
             return token;
         }
     }

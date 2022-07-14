@@ -6,6 +6,7 @@
 using System;
 using System.Text;
 using Microsoft.Azure.EventHubs;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
 using Xunit;
@@ -87,6 +88,14 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             Assert.Equal("{\"scope\":\"device\",\"type\":\"sas\",\"issuer\":\"iothub\",\"acceptingIpFilterRule\":null}", token["SystemProperties"]["iothub-connection-auth-method"].ToString());
             Assert.Equal("636845741198574895", token["SystemProperties"]["iothub-connection-auth-generation-id"].ToString());
             Assert.Equal("2019-02-01T22:46:01.8750000Z", token["SystemProperties"]["iothub-enqueuedtime"].ToObject<DateTime>().ToString("o"));
+        }
+
+        [Fact]
+        public void GivenInvalidEvent_WhenConvert_ThenExceptionThrown_Test()
+        {
+            var evt = new EventData(Encoding.Unicode.GetBytes("{invalid json}"));
+
+            Assert.Throws<InvalidDataFormatException>(() => new EventDataWithJsonBodyToJTokenConverter().Convert(evt));
         }
     }
 }
