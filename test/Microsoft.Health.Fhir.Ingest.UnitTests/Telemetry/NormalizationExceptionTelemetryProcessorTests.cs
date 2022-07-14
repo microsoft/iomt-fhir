@@ -29,7 +29,12 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var handled = exProcessor.HandleException(ex, log);
             Assert.True(handled);
 
-            log.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
+            log.Received(1).LogError(ex);
+            log.Received(1).LogMetric(
+                Arg.Is<Metric>(m =>
+                string.Equals(m.Name, exType.Name) &&
+                string.Equals(m.Dimensions[DimensionNames.Name], exType.Name)),
+                1);
         }
 
         [Theory]
@@ -43,13 +48,6 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
             var handled = exProcessor.HandleException(ex, log);
             Assert.False(handled);
-
-            log.Received(1).LogError(ex);
-            log.Received(1).LogMetric(
-                Arg.Is<Metric>(m =>
-                string.Equals(m.Name, nameof(IomtMetrics.UnhandledException)) &&
-                string.Equals(m.Dimensions[DimensionNames.Name], exType.Name)),
-                1);
         }
     }
 }
