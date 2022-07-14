@@ -16,7 +16,6 @@ using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -139,14 +138,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await _consumer.Received(2).AddAsync(Arg.Is<IEnumerable<IMeasurement>>(l => l.Count() == 5), Arg.Any<CancellationToken>());
         }
 
-        [Fact]
-        public async Task GivenEventsAndDefaultErrorConsumer_WhenProcessAsyncAndHandleableConsumerErrors_ThenExceptionNotThrown_Test()
+        [Theory]
+        [InlineData(typeof(IncompatibleDataException))]
+        [InlineData(typeof(InvalidDataFormatException))]
+        public async Task GivenEventsAndDefaultErrorConsumer_WhenProcessAsyncAndHandleableConsumerErrors_ThenExceptionNotThrown_Test(System.Type exType)
         {
+            var ex = Activator.CreateInstance(exType) as Exception;
+
             _template.GetMeasurements(null).ReturnsForAnyArgs(new[] { Substitute.For<Measurement>() });
 
             var events = Enumerable.Range(0, 10).Select(i => BuildEvent(i)).ToArray();
 
-            _converter.Convert(null).ReturnsForAnyArgs(v => throw new IncompatibleDataException());
+            _converter.Convert(null).ReturnsForAnyArgs(v => throw ex);
 
             _exceptionTelemetryProcessor = new NormalizationExceptionTelemetryProcessor();
 

@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
@@ -16,6 +17,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     {
         [Theory]
         [InlineData(typeof(IncompatibleDataException))]
+        [InlineData(typeof(InvalidDataFormatException))]
         public void GivenHandledExceptionTypes_WhenHandleExpection_ThenMetricLoggedAndTrueReturned_Test(System.Type exType)
         {
             var log = Substitute.For<ITelemetryLogger>();
