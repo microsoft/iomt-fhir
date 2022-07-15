@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,7 +10,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest
 {
-    public class FhirResourceNotFoundException : IomtTelemetryFormattableException
+    public class FhirResourceNotFoundException : CustomerLoggedFormattableException
     {
         public FhirResourceNotFoundException(ResourceType resourceType)
            : base($"Fhir resource of type {resourceType} not found.")

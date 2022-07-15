@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Events.Telemetry.Exceptions
 {
-    public sealed class UnauthorizedAccessEventHubException : IomtTelemetryFormattableException
+    public sealed class UnauthorizedAccessEventHubException : CustomerLoggedFormattableException
     {
         private static readonly string _errorType = ErrorType.EventHubError;
 
