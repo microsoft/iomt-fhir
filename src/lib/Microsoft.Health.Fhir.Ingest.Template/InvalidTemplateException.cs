@@ -5,10 +5,12 @@
 
 using System;
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class InvalidTemplateException : Exception, IExceptionWithLineInfo
+    public class InvalidTemplateException : CustomerLoggedFormattableException, IExceptionWithLineInfo
     {
         private readonly ILineInfo _lineInfo;
 
@@ -39,5 +41,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         public ILineInfo GetLineInfo => _lineInfo;
 
         public bool HasLineInfo => _lineInfo.HasLineInfo();
+
+        public override string ErrSource => nameof(ErrorSource.User);
+
+        public override string ErrSeverity => ErrorSeverity.Critical;
     }
 }
