@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -268,5 +269,6 @@ namespace Microsoft.Health.Logging.Telemetry
                     break;
             }
         }
+
     }
 }

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -189,28 +188,32 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private void NormalizeMessage(JObject token, IEventMessage evt, IContentTemplate template, IList<(string sourcePartition, IMeasurement measurement)> collector)
         {
-            Stopwatch sw = Stopwatch.StartNew();
             int projections = 0;
 
-            foreach (var measurement in template.GetMeasurements(token))
+            using (ITimed normalizeDuration = _logger.TrackDuration(IomtMetrics.NormalizedEventGenerationTimeMs(evt.PartitionId)))
             {
-                try
+                foreach (var measurement in template.GetMeasurements(token))
                 {
-                    measurement.IngestionTimeUtc = evt.EnqueuedTime.UtcDateTime;
-                    collector.Add((evt.PartitionId, measurement));
-                    projections++;
-                }
-                catch (Exception ex)
-                {
-                    // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                    throw new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException))
-                        .AddEventContext(evt);
+                    try
+                    {
+                        measurement.IngestionTimeUtc = evt.EnqueuedTime.UtcDateTime;
+                        collector.Add((evt.PartitionId, measurement));
+                        projections++;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Translate all Normalization Mapping exceptions into a common type for easy identification.
+                        throw new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException))
+                            .AddEventContext(evt);
+                    }
                 }
             }
 
-            sw.Stop();
-
-            RecordNormalizationEventMetrics(evt, projections, sw.Elapsed, _logger);
+            if (projections == 0)
+            {
+                _logger.LogTrace($"No measurements projected for event {evt.SequenceNumber}.");
+                _logger.LogMetric(IomtMetrics.DroppedEvent(evt.PartitionId), 1);
+            }
         }
 
         private static void RecordIngressMetrics(IEventMessage evt, ITelemetryLogger log)
@@ -228,17 +231,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             log.LogMetric(
                 IomtMetrics.DeviceEventProcessingLatencyMs(evt.PartitionId),
                 deviceEventProcessingLatency.TotalSeconds);
-        }
-
-        private static void RecordNormalizationEventMetrics(IEventMessage evt, int projectedMessages, TimeSpan duration, ITelemetryLogger log)
-        {
-            log.LogMetric(IomtMetrics.NormalizedEventGenerationTimeMs(evt.PartitionId), duration.TotalMilliseconds);
-
-            if (projectedMessages == 0)
-            {
-                log.LogTrace($"No measurements projected for event {evt.SequenceNumber}.");
-                log.LogMetric(IomtMetrics.DroppedEvent(evt.PartitionId), 1);
-            }
         }
 
         private AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger)
