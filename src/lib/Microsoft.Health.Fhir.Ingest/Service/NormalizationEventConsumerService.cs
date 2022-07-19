@@ -85,30 +85,33 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await semaphore.WaitAsync();
             try
             {
-                if (NormalizationTemplate.template == null)
+                using (ITimed templateGeneration = _logger.TrackDuration(IomtMetrics.NormalizationTemplateGenerationMs()))
                 {
-                    _logger.LogTrace("Initializing normalization template from blob.");
-                    DateTimeOffset timestamp = DateTimeOffset.UtcNow;
-                    var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition);
-                    var templateContext = _collectionTemplateFactory.Create(content);
-                    templateContext.EnsureValid();
-                    NormalizationTemplate = (templateContext.Template, timestamp);
-                }
-                else
-                {
-                    DateTimeOffset updatedTimestamp = DateTimeOffset.UtcNow;
-                    var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition, NormalizationTemplate.timestamp);
-
-                    if (content != null)
+                    if (NormalizationTemplate.template == null)
                     {
-                        _logger.LogTrace("New normalization template content detected, updating template.");
+                        _logger.LogTrace("Initializing normalization template from blob.");
+                        DateTimeOffset timestamp = DateTimeOffset.UtcNow;
+                        var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition);
                         var templateContext = _collectionTemplateFactory.Create(content);
                         templateContext.EnsureValid();
-                        NormalizationTemplate = (templateContext.Template, updatedTimestamp);
+                        NormalizationTemplate = (templateContext.Template, timestamp);
                     }
-                }
+                    else
+                    {
+                        DateTimeOffset updatedTimestamp = DateTimeOffset.UtcNow;
+                        var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition, NormalizationTemplate.timestamp);
 
-                return NormalizationTemplate.template;
+                        if (content != null)
+                        {
+                            _logger.LogTrace("New normalization template content detected, updating template.");
+                            var templateContext = _collectionTemplateFactory.Create(content);
+                            templateContext.EnsureValid();
+                            NormalizationTemplate = (templateContext.Template, updatedTimestamp);
+                        }
+                    }
+
+                    return NormalizationTemplate.template;
+                }
             }
             finally
             {
@@ -159,7 +162,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Step 3: Send normalized events to Event Hub
             try
             {
-                await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
+                _logger.LogMetric(IomtMetrics.MeasurementBatchSize(), normalizationBatch.Count);
+
+                using (ITimed normalizeDuration = _logger.TrackDuration(IomtMetrics.MeasurementBatchSubmissionMs()))
+                {
+                    await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
+                }
             }
             catch (Exception ex)
             {

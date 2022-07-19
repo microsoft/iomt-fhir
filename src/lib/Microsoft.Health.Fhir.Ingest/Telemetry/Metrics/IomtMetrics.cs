@@ -181,5 +181,35 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization)
                 .AddDimension(_partitionDimension, partitionId);
         }
+
+        /// <summary>
+        /// The time taken to generate the Normalization Template.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric NormalizationTemplateGenerationMs()
+        {
+            return IomtMetricDefinition.NormalizationTemplateGenerationMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization);
+        }
+
+        /// <summary>
+        /// The time taken to submit a batch of Measurements to the internal EventHub
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric MeasurementBatchSubmissionMs()
+        {
+            return IomtMetricDefinition.MeasurementBatchSubmissionMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization);
+        }
+
+        /// <summary>
+        /// The size of a batch of Measurements to submit to the internal EventHub
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric MeasurementBatchSize()
+        {
+            return IomtMetricDefinition.MeasurementBatchSize
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization);
+        }
     }
 }
