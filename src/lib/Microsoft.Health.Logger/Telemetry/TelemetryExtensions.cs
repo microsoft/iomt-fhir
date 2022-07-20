@@ -15,6 +15,9 @@ namespace Microsoft.Health.Logging.Telemetry
     public static class TelemetryExtensions
     {
         private static readonly string _namespace = MetricIdentifier.DefaultMetricNamespace;
+        private static readonly string _helplinkAttribute = "helpLink";
+        private static readonly string _messageAttribute = "message";
+        private static readonly string _logToCustomerAttribute = "logToCustomerIot";
 
         public static void LogException(this TelemetryClient telemetryClient, Exception ex)
         {
@@ -23,9 +26,9 @@ namespace Microsoft.Health.Logging.Telemetry
 
             var exceptionTelemetry = new ExceptionTelemetry(ex);
 
-            exceptionTelemetry.Properties.Add("message", ex.Message ?? string.Empty);
-            exceptionTelemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
-            exceptionTelemetry.Properties.Add("logToCustomerIot", ex.LogToCustomer().ToString());
+            exceptionTelemetry.Properties.Add(_messageAttribute, ex.Message ?? string.Empty);
+            exceptionTelemetry.Properties.Add(_helplinkAttribute, ex.HelpLink ?? string.Empty);
+            exceptionTelemetry.Properties.Add(_logToCustomerAttribute, ex.LogToCustomer().ToString());
 
             telemetryClient.TrackException(exceptionTelemetry);
         }
