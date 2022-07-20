@@ -43,7 +43,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
 
         [Theory]
         [InlineData(typeof(Exception))]
-        public void GivenUnhandledExceptionTypes_WhenHandleExpection_ThenMetricLoggedAndFalseReturned_Test(System.Type exType)
+        public void GivenUnhandledExceptionTypes_WhenHandleExpection_ThenFalseReturned_Test(System.Type exType)
         {
             var log = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
