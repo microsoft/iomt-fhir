@@ -52,7 +52,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             var exceptionTypeName = ex.GetType().Name;
-            var handledException = HandleException(ex, logger, IomtMetrics.HandledException(exceptionTypeName, _connectorStage), IomtMetrics.UnhandledException(exceptionTypeName, _connectorStage));
+            var handledException = HandleException(ex, logger, IomtMetrics.HandledException(exceptionTypeName, _connectorStage));
 
             if (handledException && _errorMessageService != null)
             {

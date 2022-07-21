@@ -16,6 +16,7 @@ using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Host;
 using Microsoft.Health.Fhir.Ingest.Service;
+using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Polly;
@@ -97,8 +98,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 
         private static void TrackExceptionMetric(Exception exception, ITelemetryLogger logger)
         {
-            var type = exception.GetType().ToString();
-            var metric = type.ToErrorMetric(ConnectorOperation.FHIRConversion, ErrorType.GeneralError, ErrorSeverity.Warning);
+            var metric = IomtMetrics.UnhandledException(exception.GetType().ToString(), ConnectorOperation.FHIRConversion, ErrorType.GeneralError, ErrorSeverity.Warning);
             logger.LogMetric(metric, 1);
         }
     }

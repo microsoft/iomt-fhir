@@ -65,7 +65,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
             var exceptionTypeName = ex.GetType().Name;
 
             var handledExceptionMetric = ex is NotSupportedException ? IomtMetrics.NotSupported() : IomtMetrics.HandledException(exceptionTypeName, _connectorStage);
-            var handledException = HandleException(ex, logger, handledExceptionMetric, IomtMetrics.UnhandledException(exceptionTypeName, _connectorStage));
+            var handledException = HandleException(ex, logger, handledExceptionMetric);
 
             if (handledException && _errorMessageService != null)
             {
