@@ -66,7 +66,6 @@ namespace Microsoft.Health.Logging.Telemetry
             {
                 logger.LogError(ex);
                 LogExceptionMetric(ex, logger, handledExceptionMetric);
-                logger.LogError(ex);
                 return true;
             }
 
