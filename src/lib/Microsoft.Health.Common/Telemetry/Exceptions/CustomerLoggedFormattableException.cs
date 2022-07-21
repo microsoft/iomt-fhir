@@ -12,19 +12,19 @@ namespace Microsoft.Health.Common.Telemetry.Exceptions
     {
         public CustomerLoggedFormattableException()
         {
-            this.SetLogToCustomer(true);
+            this.SetShouldLogToCustomer(true);
         }
 
         public CustomerLoggedFormattableException(string message)
             : base(message)
         {
-            this.SetLogToCustomer(true);
+            this.SetShouldLogToCustomer(true);
         }
 
         public CustomerLoggedFormattableException(string message, Exception innerException)
             : base(message, innerException)
         {
-            this.SetLogToCustomer(true);
+            this.SetShouldLogToCustomer(true);
         }
 
         public CustomerLoggedFormattableException(
@@ -34,7 +34,7 @@ namespace Microsoft.Health.Common.Telemetry.Exceptions
             string operation)
             : base(message, innerException, name, operation)
         {
-            this.SetLogToCustomer(true);
+            this.SetShouldLogToCustomer(true);
         }
     }
 }

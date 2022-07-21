@@ -15,8 +15,8 @@ namespace Microsoft.Health.Common.Extension
         /// Flags the exception as being logged to the customer or not.
         /// </summary>
         /// <param name="error">The root exception</param>
-        /// <param name="logToCustomer">Boolean to set whether the exception should be logger to third-party customers</param>
-        public static void SetLogToCustomer(this Exception error, bool logToCustomer)
+        /// <param name="logToCustomer">Boolean to set whether the exception should be logged to third-party customers</param>
+        public static void SetShouldLogToCustomer(this Exception error, bool logToCustomer)
         {
             error.Data[LogToCustomerAttribute] = logToCustomer;
         }
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Common.Extension
         /// </summary>
         /// <param name="error">The root exception</param>
         /// <returns>True iff the exception should be logged to third-party customers</returns>
-        public static bool LogToCustomer(this Exception error)
+        public static bool ShouldLogToCustomer(this Exception error)
         {
             return error.Data[LogToCustomerAttribute] as bool? ?? false;
         }

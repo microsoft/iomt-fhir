@@ -28,7 +28,7 @@ namespace Microsoft.Health.Logging.Telemetry
 
             exceptionTelemetry.Properties.Add(_messageAttribute, ex.Message ?? string.Empty);
             exceptionTelemetry.Properties.Add(_helplinkAttribute, ex.HelpLink ?? string.Empty);
-            exceptionTelemetry.Properties.Add(_logToCustomerAttribute, ex.LogToCustomer().ToString());
+            exceptionTelemetry.Properties.Add(_logToCustomerAttribute, ex.ShouldLogToCustomer().ToString());
 
             telemetryClient.TrackException(exceptionTelemetry);
         }

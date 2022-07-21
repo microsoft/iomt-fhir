@@ -15,17 +15,17 @@ namespace Microsoft.Health.Common
         public void ExceptionNotLoggedByDefault()
         {
             var exception = new Exception();
-            Assert.False(exception.LogToCustomer());
+            Assert.False(exception.ShouldLogToCustomer());
         }
 
         [Fact]
         public void ExceptionSetLogToCustomer()
         {
             var exception = new Exception();
-            exception.SetLogToCustomer(true);
-            Assert.True(exception.LogToCustomer());
-            exception.SetLogToCustomer(false);
-            Assert.False(exception.LogToCustomer());
+            exception.SetShouldLogToCustomer(true);
+            Assert.True(exception.ShouldLogToCustomer());
+            exception.SetShouldLogToCustomer(false);
+            Assert.False(exception.ShouldLogToCustomer());
         }
     }
 }
