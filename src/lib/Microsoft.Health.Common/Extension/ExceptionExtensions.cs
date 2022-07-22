@@ -16,9 +16,10 @@ namespace Microsoft.Health.Common.Extension
         /// </summary>
         /// <param name="error">The root exception</param>
         /// <param name="logToCustomer">Boolean to set whether the exception should be logged to third-party customers</param>
-        public static void SetShouldLogToCustomer(this Exception error, bool logToCustomer)
+        public static Exception SetLogForwarding(this Exception error, bool logToCustomer)
         {
             error.Data[LogToCustomerAttribute] = logToCustomer;
+            return error;
         }
 
         /// <summary>
@@ -26,7 +27,7 @@ namespace Microsoft.Health.Common.Extension
         /// </summary>
         /// <param name="error">The root exception</param>
         /// <returns>True iff the exception should be logged to third-party customers</returns>
-        public static bool ShouldLogToCustomer(this Exception error)
+        public static bool IsLogForwardingEnabled(this Exception error)
         {
             return error.Data[LogToCustomerAttribute] as bool? ?? false;
         }

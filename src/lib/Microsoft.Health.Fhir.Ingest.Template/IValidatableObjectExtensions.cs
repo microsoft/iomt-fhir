@@ -38,9 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (!input.IsValid(out string errMessage))
             {
-                var ex = new ValidationException(errMessage);
-                ex.SetShouldLogToCustomer(true);
-                throw ex;
+                throw new ValidationException(errMessage).SetLogForwarding(true);
             }
         }
     }
