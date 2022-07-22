@@ -19,7 +19,7 @@ namespace Microsoft.Health.Common
         }
 
         [Fact]
-        public void ExceptionSetLogToCustomer()
+        public void ExceptionSetLogForwarding()
         {
             var exception = new Exception();
             exception.SetLogForwarding(true);

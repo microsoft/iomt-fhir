@@ -9,16 +9,16 @@ namespace Microsoft.Health.Common.Extension
 {
     public static class ExceptionExtensions
     {
-        private const string LogToCustomerAttribute = "LogToCustomer";
+        private const string LogForwardingAttribute = "ShouldForwardLog";
 
         /// <summary>
         /// Flags the exception as being logged to the customer or not.
         /// </summary>
         /// <param name="error">The root exception</param>
-        /// <param name="logToCustomer">Boolean to set whether the exception should be logged to third-party customers</param>
-        public static Exception SetLogForwarding(this Exception error, bool logToCustomer)
+        /// <param name="shouldForwardLog">Boolean to set whether the exception should be logged to third-party</param>
+        public static Exception SetLogForwarding(this Exception error, bool shouldForwardLog)
         {
-            error.Data[LogToCustomerAttribute] = logToCustomer;
+            error.Data[LogForwardingAttribute] = shouldForwardLog;
             return error;
         }
 
@@ -26,10 +26,10 @@ namespace Microsoft.Health.Common.Extension
         /// Returns true iff the exception is flagged as being logged to the customer.
         /// </summary>
         /// <param name="error">The root exception</param>
-        /// <returns>True iff the exception should be logged to third-party customers</returns>
+        /// <returns>True iff the exception should be logged to third-party</returns>
         public static bool IsLogForwardingEnabled(this Exception error)
         {
-            return error.Data[LogToCustomerAttribute] as bool? ?? false;
+            return error.Data[LogForwardingAttribute] as bool? ?? false;
         }
     }
 }
