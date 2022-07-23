@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Text;
+using Azure.Messaging.EventHubs;
 using EnsureThat;
-using Microsoft.Azure.EventHubs;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,8 +21,8 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
             try
             {
-                var body = input.Body.Count > 0
-                    ? JToken.Parse(Encoding.UTF8.GetString(input.Body.Array, input.Body.Offset, input.Body.Count))
+                var body = input.Body.Length > 0
+                    ? JToken.Parse(Encoding.UTF8.GetString(input.Body.ToArray()))
                     : null;
                 var data = new { Body = body, input.Properties, input.SystemProperties };
                 token = JToken.FromObject(data);

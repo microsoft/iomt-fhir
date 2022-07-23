@@ -5,7 +5,7 @@
 
 using System;
 using System.Text;
-using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
@@ -33,12 +33,11 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         {
             var bodyObj = new { p1 = 1, p2 = "a", p3 = new DateTime(2019, 01, 01, 12, 30, 20) };
             var currentTime = DateTime.UtcNow;
-            var offset = Guid.NewGuid().ToString();
+            var offset = 1000;
             var partitionKey = Guid.NewGuid().ToString();
 
-            var evt = new EventData(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(bodyObj)));
+            var evt = new MockEventData(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(bodyObj)), systemProperties: new MockEventSystemProperties(100, currentTime, offset, partitionKey));
             evt.Properties.Add("a", 10);
-            evt.SystemProperties = new EventData.SystemPropertiesCollection(100, currentTime, offset, partitionKey);
             var token = new EventDataWithJsonBodyToJTokenConverter().Convert(evt);
 
             Assert.NotNull(token);
@@ -63,7 +62,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
 
         [Theory]
         [FileData(@"TestInput/data_IotHubPayloadExample.json")]
-        public void GivenIoTCentralPopulatedEvent_WhenConvert_ThenTokenWithNonSerializedBodyAndPropertiesReturned_Test(string json)
+        public void GivenIotCentralPopulatedEvent_WhenConvert_ThenTokenWithNonSerializedBodyAndPropertiesReturned_Test(string json)
         {
             var evt = EventDataTestHelper.BuildEventFromJson(json);
 

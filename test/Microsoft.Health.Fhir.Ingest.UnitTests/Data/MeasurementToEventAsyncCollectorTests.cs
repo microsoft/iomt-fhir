@@ -5,7 +5,7 @@
 
 using System;
 using System.Text;
-using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Tests.Common;
 using Newtonsoft.Json;
@@ -27,7 +27,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             await collector.AddAsync(measurement).ConfigureAwait(false);
 
             await eh.Received(1)
-                .SendAsync(Arg.Is<EventData>(evt => JsonConvert.DeserializeObject<Measurement>(Encoding.UTF8.GetString(evt.Body.Array, evt.Body.Offset, evt.Body.Count)).DeviceId == measurement.DeviceId), "1");
+                .SendAsync(Arg.Is<EventData>(evt => JsonConvert.DeserializeObject<Measurement>(Encoding.UTF8.GetString(evt.Body.ToArray())).DeviceId == measurement.DeviceId), "1");
         }
 
         [Fact]

@@ -11,8 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Azure.Messaging.EventHubs;
 using EnsureThat;
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Fhir.Ingest.Data;
@@ -104,8 +104,8 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     var createdMeasurements = new List<(string, IMeasurement)>();
                     try
                     {
-                        string partitionId = evt.SystemProperties.PartitionKey;
-                        var deviceEventProcessingLatency = DateTime.UtcNow - evt.SystemProperties.EnqueuedTimeUtc;
+                        string partitionId = evt.PartitionKey;
+                        var deviceEventProcessingLatency = DateTime.UtcNow - evt.EnqueuedTime.ToUniversalTime();
 
                         _log.LogMetric(
                             IomtMetrics.DeviceEventProcessingLatency(partitionId),
@@ -124,7 +124,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                             foreach (var measurement in _contentTemplate.GetMeasurements(token))
                             {
-                                measurement.IngestionTimeUtc = evt.SystemProperties.EnqueuedTimeUtc;
+                                measurement.IngestionTimeUtc = evt.EnqueuedTime.ToUniversalTime().DateTime;
                                 createdMeasurements.Add((partitionId, measurement));
 
                                 stopWatch.Stop();

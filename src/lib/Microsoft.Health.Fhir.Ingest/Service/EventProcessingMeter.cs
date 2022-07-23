@@ -3,11 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -19,21 +20,23 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             foreach (var e in events)
             {
-                var bodySizeBytes = e.Body.Array.Length;
-                ingressSizeBytes = ingressSizeBytes + bodySizeBytes + CalculateDictionarySizeBytes(e.Properties) + CalculateDictionarySizeBytes(e.SystemProperties);
+                var bodySizeBytes = e.Body.Length;
+                var propSizeBytes = CalculateDictionarySizeBytes(e.Properties);
+                var syspSizeBytes = CalculateDictionarySizeBytes(e.SystemProperties);
+                ingressSizeBytes += bodySizeBytes + propSizeBytes + syspSizeBytes;
             }
 
             var eventStats = new EventStats()
             {
-                TotalEventsProcessedBytes = ingressSizeBytes,
+                TotalEventsProcessedBytes = Convert.ToDouble(ingressSizeBytes),
             };
 
             return Task.FromResult(eventStats);
         }
 
-        private double CalculateDictionarySizeBytes(IDictionary<string, object> dictionary)
+        private int CalculateDictionarySizeBytes(IEnumerable<KeyValuePair<string, object>> dictionary)
         {
-            double bytes = dictionary.Aggregate(0, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
+            int bytes = dictionary.Aggregate(0, (current, entry) => current + Encoding.UTF8.GetByteCount(entry.Key) + Encoding.UTF8.GetByteCount(entry.Value.ToString()));
             return bytes;
         }
     }

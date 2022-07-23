@@ -5,16 +5,17 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
+using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
-using Microsoft.Azure.EventHubs;
 
 namespace Microsoft.Health.Fhir.Ingest.Config
 {
     public class EventHubMeasurementCollectorOptions
     {
-        private readonly ConcurrentDictionary<string, EventHubClient> _clients = new ConcurrentDictionary<string, EventHubClient>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, EventHubProducerClient> _clients = new (StringComparer.OrdinalIgnoreCase);
 
-        public EventHubClient GetEventHubClient(string eventHubName, string connection)
+        public EventHubProducerClient GetEventHubClient(string eventHubName, string connection)
         {
             EnsureArg.IsNotNullOrWhiteSpace(eventHubName, nameof(eventHubName));
 
@@ -35,18 +36,22 @@ namespace Microsoft.Health.Fhir.Ingest.Config
             _clients[eventHubName] = CreateClient(eventHubName, connection);
         }
 
-        private static EventHubClient CreateClient(string eventHubName, string connection)
+        private static EventHubProducerClient CreateClient(string eventHubName, string connection)
         {
             EnsureArg.IsNotNullOrWhiteSpace(eventHubName, nameof(eventHubName));
             EnsureArg.IsNotNullOrWhiteSpace(connection, nameof(connection));
 
-            var sb = new EventHubsConnectionStringBuilder(connection);
-            if (string.IsNullOrWhiteSpace(sb.EntityPath))
-            {
-                sb.EntityPath = eventHubName;
-            }
+            // Check if entity path is defined in the connection string
+            var entityToken = connection.Split(';').FirstOrDefault(t => t.StartsWith("EntityPath="));
 
-            return EventHubClient.CreateFromConnectionString(sb.ToString());
+            if (entityToken == null)
+            {
+                return new EventHubProducerClient(connection, eventHubName);
+            }
+            else
+            {
+                return new EventHubProducerClient(connection);
+            }
         }
     }
 }

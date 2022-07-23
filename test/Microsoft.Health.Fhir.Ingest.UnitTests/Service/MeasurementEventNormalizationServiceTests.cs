@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -116,7 +116,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 Arg.Is<IEnumerable<IMeasurement>>(
                     measurements =>
                         measurements.Count() == 10 &&
-                        measurements.Where(m => events.Any(e => m.IngestionTimeUtc == e.SystemProperties.EnqueuedTimeUtc)).Count() == 10),
+                        measurements.Where(m => events.Any(e => m.IngestionTimeUtc == e.EnqueuedTime.ToUniversalTime().DateTime)).Count() == 10),
                 Arg.Any<CancellationToken>());
         }
 
@@ -229,10 +229,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static EventData BuildEvent(int? sequence = 0)
         {
-            return new EventData(Array.Empty<byte>())
-            {
-                SystemProperties = new EventData.SystemPropertiesCollection(sequence.Value, DateTime.UtcNow.AddSeconds(sequence.Value - 10), sequence?.ToString(), 0.ToString()),
-            };
+            return new EventData(Array.Empty<byte>());
         }
     }
 }

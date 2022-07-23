@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Azure.EventHubs;
 using Xunit;
 
 namespace Microsoft.Health.Fhir.Ingest.Config
@@ -85,8 +84,7 @@ namespace Microsoft.Health.Fhir.Ingest.Config
 
         private static string CreateTestConnectionString()
         {
-            return new EventHubsConnectionStringBuilder(endpointAddress: new System.Uri("https://test"), entityPath: "test", sharedAccessKeyName: "name", sharedAccessKey: "key")
-                .ToString();
+            return "Endpoint=https://test;SharedAccessKeyName=name;SharedAccessKey=key;EntityPath=test";
         }
     }
 }

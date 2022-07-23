@@ -6,11 +6,11 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
 using DevLab.JmesPath;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Options;

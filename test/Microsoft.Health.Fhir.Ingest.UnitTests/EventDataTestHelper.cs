@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest
@@ -20,22 +20,13 @@ namespace Microsoft.Health.Fhir.Ingest
             var propContent = JToken.Parse(token["Properties"].Value<string>());
             var syspContent = JToken.Parse(token["SystemProperties"].Value<string>());
 
-            var eventData = new EventData(Convert.FromBase64String(bodyContent.Value<string>()));
             var properties = propContent.ToObject<Dictionary<string, object>>();
+            var sysProperties = new MockEventSystemProperties(syspContent);
 
-            foreach (var p in properties)
-            {
-                eventData.Properties.Add(p);
-            }
-
-            eventData.SystemProperties = new EventData.SystemPropertiesCollection(0, default(DateTime), null, null);
-            eventData.SystemProperties.Clear();
-            var sysProperties = syspContent.ToObject<Dictionary<string, object>>();
-
-            foreach (var sp in sysProperties)
-            {
-                eventData.SystemProperties.Add(sp.Key, sp.Value);
-            }
+            var eventData = new MockEventData(
+                eventBody: Convert.FromBase64String(bodyContent.Value<string>()),
+                properties: properties,
+                systemProperties: sysProperties);
 
             return eventData;
         }
