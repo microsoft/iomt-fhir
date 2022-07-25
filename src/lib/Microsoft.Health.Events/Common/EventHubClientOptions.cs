@@ -28,5 +28,7 @@ namespace Microsoft.Health.Events.Common
         public string EventHubName { get; set; }
 
         public string ConnectionString { get; set; }
+
+        public int InternalClientCount { get; set; } = 2;
     }
 }

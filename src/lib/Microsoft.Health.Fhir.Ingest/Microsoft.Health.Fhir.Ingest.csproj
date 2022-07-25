@@ -6,6 +6,7 @@
     <AssemblyName>Microsoft.Health.Fhir.Ingest</AssemblyName>
     <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
     <langversion>10.0</langversion>
+    <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
   <PropertyGroup>
     <IsPackable>true</IsPackable>

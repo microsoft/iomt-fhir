@@ -29,6 +29,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private ICheckpointClient _checkpointClient;
         private ITelemetryLogger _logger;
         private const int _timeBuffer = -5;
+        private const int _concurrentEventBatchProcessingCount = 50;
 
         public EventBatchingService(IEventConsumerService eventConsumerService, EventBatchingOptions options, ICheckpointClient checkpointClient, ITelemetryLogger logger, IEventProcessingMetricMeters eventProcessingMetricMeters = null)
         {
@@ -120,6 +121,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
+
             await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdTimeReached));
         }
 
@@ -129,6 +131,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             {
                 _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
                 var events = await GetPartition(partitionId).Flush(windowEnd);
+
                 await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdWaitReached));
             }
         }
@@ -144,7 +147,23 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         private async Task CompleteProcessing(string partitionId, IEnumerable<IEventMessage> events, string triggerReason)
         {
-            await _eventConsumerService.ConsumeEvents(events);
+            IList<IEventMessage> eventsToSubmit = new List<IEventMessage>();
+            var tasks = new List<Task>();
+
+            foreach (var e in events)
+            {
+                eventsToSubmit.Add(e);
+                if (eventsToSubmit.Count % _concurrentEventBatchProcessingCount == 0)
+                {
+                    var eventsToSubmitCopy = eventsToSubmit;
+                    eventsToSubmit = new List<IEventMessage>();
+                    tasks.Add(Task.Run(async () => await _eventConsumerService.ConsumeEvents(eventsToSubmitCopy).ConfigureAwait(false)));
+                }
+            }
+
+            tasks.Add(Task.Run(async () => await _eventConsumerService.ConsumeEvents(eventsToSubmit).ConfigureAwait(false)));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             IEnumerable<KeyValuePair<Metric, double>> eventMetrics = null;
 
@@ -154,6 +173,9 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
 
             await UpdateCheckpoint(events, eventMetrics);
+
+            // TODO Don't worry about update checkpointing after each batch. Just continue to work on event batches per partition in separate Tasks. Keep
+            // the train moving. See if this improves throughput...
 
             LogDataFreshness(partitionId, triggerReason, events);
         }

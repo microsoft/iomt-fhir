@@ -91,6 +91,101 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         }
 
         [Fact]
+        public async void Projection_Submission_Test()
+        {
+            var mockEventDataBatch = EventHubsModelFactory.EventDataBatch(
+                100000,
+                new List<EventData>(),
+                new CreateBatchOptions()
+                {
+                    PartitionKey = "partition123",
+                },
+                (data) => true);
+
+            _eventHubService.CreateEventDataBatchAsync(Arg.Any<string>()).Returns(mockEventDataBatch);
+            var now = DateTime.Now;
+            var measurementCount = 50000;
+
+            var measurements = Enumerable.Range(0, measurementCount).Select(i =>
+            {
+                var mockMeasurement = Substitute.For<IMeasurement>();
+                mockMeasurement.DeviceId.Returns($"deviceId");
+                mockMeasurement.OccurrenceTimeUtc.Returns(now);
+                mockMeasurement.Type.Returns("mockType");
+                mockMeasurement.Properties.Returns(new List<MeasurementProperty>
+                {
+                    new MeasurementProperty()
+                    {
+                        Name = "mockName1",
+                        Value = "mockValue1",
+                    },
+                    new MeasurementProperty()
+                    {
+                        Name = "mockName2",
+                        Value = "mockValue2",
+                    },
+                });
+                return mockMeasurement;
+            });
+
+            foreach (var m in measurements)
+            {
+                await _measurementCollector.AddAsync(m, default);
+            }
+
+            await _eventHubService.Received(measurementCount)
+                .SendAsync(
+                    Arg.Any<EventDataBatch>(),
+                    default);
+        }
+
+        [Fact]
+        public async void Projection_Submission_Batch_Test()
+        {
+            var mockEventDataBatch = EventHubsModelFactory.EventDataBatch(
+                100000,
+                new List<EventData>(),
+                new CreateBatchOptions()
+                {
+                    PartitionKey = "partition123",
+                },
+                (data) => true);
+
+            _eventHubService.CreateEventDataBatchAsync(Arg.Any<string>()).Returns(mockEventDataBatch);
+            var now = DateTime.Now;
+            var measurementCount = 50000;
+
+            var measurements = Enumerable.Range(0, measurementCount).Select(i =>
+            {
+                var mockMeasurement = Substitute.For<IMeasurement>();
+                mockMeasurement.DeviceId.Returns($"deviceId");
+                mockMeasurement.OccurrenceTimeUtc.Returns(now);
+                mockMeasurement.Type.Returns("mockType");
+                mockMeasurement.Properties.Returns(new List<MeasurementProperty>
+                {
+                    new MeasurementProperty()
+                    {
+                        Name = "mockName1",
+                        Value = "mockValue1",
+                    },
+                    new MeasurementProperty()
+                    {
+                        Name = "mockName2",
+                        Value = "mockValue2",
+                    },
+                });
+                return mockMeasurement;
+            });
+
+            await _measurementCollector.AddAsync(measurements, default);
+            await _eventHubService.Received(1).CreateEventDataBatchAsync("123");
+            await _eventHubService.Received(1)
+                .SendAsync(
+                    Arg.Is<EventDataBatch>(data => data.Count == measurementCount),
+                    default);
+        }
+
+        [Fact]
         public async void GivenCollectionOfMeasurements_WhenAddAsync_AndEventsCannotFitInSingleBatch_ThenEventsAreSentInAMultipeBatches_Test()
         {
             var count = 0;
