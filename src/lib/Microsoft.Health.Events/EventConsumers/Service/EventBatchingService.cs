@@ -121,7 +121,6 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
-
             await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdTimeReached));
         }
 
@@ -131,7 +130,6 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             {
                 _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
                 var events = await GetPartition(partitionId).Flush(windowEnd);
-
                 await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdWaitReached));
             }
         }
@@ -173,9 +171,6 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
 
             await UpdateCheckpoint(events, eventMetrics);
-
-            // TODO Don't worry about update checkpointing after each batch. Just continue to work on event batches per partition in separate Tasks. Keep
-            // the train moving. See if this improves throughput...
 
             LogDataFreshness(partitionId, triggerReason, events);
         }
