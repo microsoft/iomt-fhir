@@ -4,6 +4,7 @@
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>7.3</LangVersion>
+    <PackageVersion>1.0.4</PackageVersion>
   </PropertyGroup>
   <PropertyGroup>
     <IsPackable>true</IsPackable>

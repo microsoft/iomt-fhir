@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class PatientDeviceMismatchException : CustomerLoggedFormattableException
+    public class PatientDeviceMismatchException : ThirdPartyLoggedFormattableException
     {
         public PatientDeviceMismatchException()
             : base()

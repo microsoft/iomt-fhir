@@ -10,7 +10,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class InvalidTemplateException : CustomerLoggedFormattableException, IExceptionWithLineInfo
+    public class InvalidTemplateException : ThirdPartyLoggedFormattableException, IExceptionWithLineInfo
     {
         private readonly ILineInfo _lineInfo;
 

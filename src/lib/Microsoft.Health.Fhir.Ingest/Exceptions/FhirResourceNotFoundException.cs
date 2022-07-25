@@ -10,7 +10,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Fhir.Ingest
 {
-    public class FhirResourceNotFoundException : CustomerLoggedFormattableException
+    public class FhirResourceNotFoundException : ThirdPartyLoggedFormattableException
     {
         public FhirResourceNotFoundException(ResourceType resourceType)
            : base($"Fhir resource of type {resourceType} not found.")

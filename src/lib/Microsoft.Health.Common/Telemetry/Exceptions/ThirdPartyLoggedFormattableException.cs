@@ -8,26 +8,26 @@ using Microsoft.Health.Common.Extension;
 
 namespace Microsoft.Health.Common.Telemetry.Exceptions
 {
-    public class CustomerLoggedFormattableException : IomtTelemetryFormattableException
+    public class ThirdPartyLoggedFormattableException : IomtTelemetryFormattableException
     {
-        public CustomerLoggedFormattableException()
+        public ThirdPartyLoggedFormattableException()
         {
             this.SetLogForwarding(true);
         }
 
-        public CustomerLoggedFormattableException(string message)
+        public ThirdPartyLoggedFormattableException(string message)
             : base(message)
         {
             this.SetLogForwarding(true);
         }
 
-        public CustomerLoggedFormattableException(string message, Exception innerException)
+        public ThirdPartyLoggedFormattableException(string message, Exception innerException)
             : base(message, innerException)
         {
             this.SetLogForwarding(true);
         }
 
-        public CustomerLoggedFormattableException(
+        public ThirdPartyLoggedFormattableException(
             string message,
             Exception innerException,
             string name,
