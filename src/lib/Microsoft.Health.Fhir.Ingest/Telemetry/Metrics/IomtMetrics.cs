@@ -183,6 +183,17 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         }
 
         /// <summary>
+        /// The time taken to normalize all messages in the batch.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric NormalizationTimePerBatchMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.NormalizationTimePerBatchMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
         /// The time taken to generate the Normalization Template.
         /// </summary>
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param

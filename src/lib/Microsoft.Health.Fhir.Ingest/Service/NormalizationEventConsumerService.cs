@@ -143,18 +143,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Step 2: Normalize each event in the event batch
             var normalizationBatch = new List<(string sourcePartition, IMeasurement measurement)>(50);
 
-            foreach (var evt in events)
+            using (ITimed normalizeBatchDuration = _logger.TrackDuration(IomtMetrics.NormalizationTimePerBatchMs()))
             {
-                try
+                foreach (var evt in events)
                 {
-                    ProcessEvent(evt, template, normalizationBatch);
-                }
-                catch (Exception ex)
-                {
-                    ex.AddEventContext(evt);
-                    if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                    try
                     {
-                        throw; // Immediately throw original exception if it is not handled
+                        ProcessEvent(evt, template, normalizationBatch);
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.AddEventContext(evt);
+                        if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                        {
+                            throw; // Immediately throw original exception if it is not handled
+                        }
                     }
                 }
             }
