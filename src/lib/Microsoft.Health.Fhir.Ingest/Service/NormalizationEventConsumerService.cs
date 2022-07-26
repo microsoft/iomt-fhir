@@ -80,12 +80,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        private async Task<IContentTemplate> GetNormalizationTemplate()
+        private async Task<IContentTemplate> GetNormalizationTemplate(string partitionId)
         {
             await semaphore.WaitAsync();
             try
             {
-                using (ITimed templateGeneration = _logger.TrackDuration(IomtMetrics.NormalizationTemplateGenerationMs()))
+                using (ITimed templateGeneration = _logger.TrackDuration(IomtMetrics.NormalizationTemplateGenerationMs(partitionId)))
                 {
                     if (NormalizationTemplate.template == null)
                     {
@@ -121,11 +121,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events)
         {
+            string partitionId = null;
+
+            if (events.Count() > 0)
+            {
+                partitionId = events.First().PartitionId;
+            }
+
             // Step 1: Get the normalization mapping template
             IContentTemplate template = null;
             try
             {
-                template = await GetNormalizationTemplate();
+                template = await GetNormalizationTemplate(partitionId); // include partition id for metrics purposes
             }
             catch (Exception ex)
             {
@@ -143,7 +150,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Step 2: Normalize each event in the event batch
             var normalizationBatch = new List<(string sourcePartition, IMeasurement measurement)>(50);
 
-            using (ITimed normalizeBatchDuration = _logger.TrackDuration(IomtMetrics.NormalizationTimePerBatchMs()))
+            using (ITimed normalizeBatchDuration = _logger.TrackDuration(IomtMetrics.NormalizationTimePerBatchMs(partitionId)))
             {
                 foreach (var evt in events)
                 {
@@ -165,9 +172,9 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Step 3: Send normalized events to Event Hub
             try
             {
-                _logger.LogMetric(IomtMetrics.MeasurementBatchSize(), normalizationBatch.Count);
+                _logger.LogMetric(IomtMetrics.MeasurementBatchSize(partitionId), normalizationBatch.Count);
 
-                using (ITimed normalizeDuration = _logger.TrackDuration(IomtMetrics.MeasurementBatchSubmissionMs()))
+                using (ITimed normalizeDuration = _logger.TrackDuration(IomtMetrics.MeasurementBatchSubmissionMs(partitionId)))
                 {
                     await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
                 }
