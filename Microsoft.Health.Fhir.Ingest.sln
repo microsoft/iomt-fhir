@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29009.5
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest", "src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj", "{269436ED-1F69-4A83-A2EB-FBE82233472F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest", "src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj", "{269436ED-1F69-4A83-A2EB-FBE82233472F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{513D67B4-80E1-476D-955F-E7E7C79D144A}"
 EndProject
@@ -13,14 +13,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FAF8B402-8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Host", "src\func\Microsoft.Health.Fhir.Ingest.Host\Microsoft.Health.Fhir.Ingest.Host.csproj", "{11F6C10F-483A-4DD7-99A3-14FDD5CCA3F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.UnitTests", "test\Microsoft.Health.Fhir.Ingest.UnitTests\Microsoft.Health.Fhir.Ingest.UnitTests.csproj", "{F6422A39-DC02-436B-AC1F-82CC9CF75E73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.UnitTests", "test\Microsoft.Health.Fhir.Ingest.UnitTests\Microsoft.Health.Fhir.Ingest.UnitTests.csproj", "{F6422A39-DC02-436B-AC1F-82CC9CF75E73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.R4.Ingest", "src\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj", "{98D001A4-3B1B-4E60-9148-71881A0D457D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{11032625-0B2B-4468-B1F1-431B5682DB7A} = {11032625-0B2B-4468-B1F1-431B5682DB7A}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.R4.Ingest.UnitTests", "test\Microsoft.Health.Fhir.R4.Ingest.UnitTests\Microsoft.Health.Fhir.R4.Ingest.UnitTests.csproj", "{10E71A88-CC24-4DFA-92F3-18E47D42E985}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.R4.Ingest.UnitTests", "test\Microsoft.Health.Fhir.R4.Ingest.UnitTests\Microsoft.Health.Fhir.R4.Ingest.UnitTests.csproj", "{10E71A88-CC24-4DFA-92F3-18E47D42E985}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{AC515DEF-E7DA-4D6C-8EBC-0F17DE83E400}"
 EndProject
@@ -42,7 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "basic", "basic", "{81D325F3
 		sample\templates\basic\fhirmapping.json = sample\templates\basic\fhirmapping.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Fhir", "src\lib\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj", "{11032625-0B2B-4468-B1F1-431B5682DB7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir", "src\lib\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj", "{11032625-0B2B-4468-B1F1-431B5682DB7A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir.R4", "src\lib\Microsoft.Health.Extensions.Fhir.R4\Microsoft.Health.Extensions.Fhir.R4.csproj", "{124A0B74-0FED-473A-86FA-1806B07FF64C}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -51,15 +51,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Common", "src\lib\Microsoft.Health.Common\Microsoft.Health.Common.csproj", "{B5BDAF20-DA88-47AF-94C2-33789479DF99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Tests.Common", "test\Microsoft.Health.Tests.Common\Microsoft.Health.Tests.Common.csproj", "{9779F9F5-1F23-48B5-B271-0497D9ECE956}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Tests.Common", "test\Microsoft.Health.Tests.Common\Microsoft.Health.Tests.Common.csproj", "{9779F9F5-1F23-48B5-B271-0497D9ECE956}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Common.UnitTests", "test\Microsoft.Health.Common.UnitTests\Microsoft.Health.Common.UnitTests.csproj", "{F8F17DE0-1A3D-4E08-98C0-7EF9AD1E98B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Common.UnitTests", "test\Microsoft.Health.Common.UnitTests\Microsoft.Health.Common.UnitTests.csproj", "{F8F17DE0-1A3D-4E08-98C0-7EF9AD1E98B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Fhir.UnitTests", "test\Microsoft.Health.Extensions.Fhir.UnitTests\Microsoft.Health.Extensions.Fhir.UnitTests.csproj", "{73C97786-1CC7-4CF9-A420-8AB66D0BD731}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir.UnitTests", "test\Microsoft.Health.Extensions.Fhir.UnitTests\Microsoft.Health.Extensions.Fhir.UnitTests.csproj", "{73C97786-1CC7-4CF9-A420-8AB66D0BD731}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Fhir.R4.UnitTests", "test\Microsoft.Health.Extensions.Fhir.R4.UnitTests\Microsoft.Health.Extensions.Fhir.R4.UnitTests.csproj", "{90402958-43C6-43E8-A22A-1B1469A4FCC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Fhir.R4.UnitTests", "test\Microsoft.Health.Extensions.Fhir.R4.UnitTests\Microsoft.Health.Extensions.Fhir.R4.UnitTests.csproj", "{90402958-43C6-43E8-A22A-1B1469A4FCC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Extensions.Host", "src\lib\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj", "{9110663E-BFA0-4082-B1BE-F85D91DEFCA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Extensions.Host", "src\lib\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj", "{9110663E-BFA0-4082-B1BE-F85D91DEFCA2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "healthkitOnFhir", "healthkitOnFhir", "{31F33751-AA52-4B4C-816B-31B69913B346}"
 	ProjectSection(SolutionItems) = preProject
@@ -67,15 +67,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "healthkitOnFhir", "healthki
 		sample\templates\healthkitOnFhir\fhirmapping.json = sample\templates\healthkitOnFhir\fhirmapping.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Template", "src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj", "{85D653A7-0E63-4751-8904-728156807A14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template", "src\lib\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj", "{85D653A7-0E63-4751-8904-728156807A14}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Schema", "src\lib\Microsoft.Health.Fhir.Ingest.Schema\Microsoft.Health.Fhir.Ingest.Schema.csproj", "{A85AB6BC-698C-460F-81D4-9D1D2BD14B71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Template.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Template.UnitTests\Microsoft.Health.Fhir.Ingest.Template.UnitTests.csproj", "{EE072537-807D-4FE2-BFEB-424B64DCD7F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Template.UnitTests\Microsoft.Health.Fhir.Ingest.Template.UnitTests.csproj", "{EE072537-807D-4FE2-BFEB-424B64DCD7F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Tests.Common.R4", "test\Microsoft.Health.Tests.Common.R4\Microsoft.Health.Tests.Common.R4.csproj", "{0B0F4BCE-E439-47AB-A67A-8B3778407339}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Tests.Common.R4", "test\Microsoft.Health.Tests.Common.R4\Microsoft.Health.Tests.Common.R4.csproj", "{0B0F4BCE-E439-47AB-A67A-8B3778407339}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Events", "src\lib\Microsoft.Health.Events\Microsoft.Health.Events.csproj", "{22275DE3-859D-40F0-9547-7711568164C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Events", "src\lib\Microsoft.Health.Events\Microsoft.Health.Events.csproj", "{22275DE3-859D-40F0-9547-7711568164C0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "console", "console", "{1EF3584A-C437-4B45-8BF8-1597D5A8DBC7}"
 EndProject
@@ -96,15 +96,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "legacy", "legacy", "{657FB6
 		sample\templates\sandbox\legacy\devicecontent.json = sample\templates\sandbox\legacy\devicecontent.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Expressions", "src\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj", "{0BC152B5-DF88-4750-A7CC-1B7429D879F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Expressions", "src\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj", "{0BC152B5-DF88-4750-A7CC-1B7429D879F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Expressions.UnitTests", "test\Microsoft.Health.Expressions.UnitTests\Microsoft.Health.Expressions.UnitTests.csproj", "{9BF918FE-E09B-4072-8CC5-2BE479230719}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Expressions.UnitTests", "test\Microsoft.Health.Expressions.UnitTests\Microsoft.Health.Expressions.UnitTests.csproj", "{9BF918FE-E09B-4072-8CC5-2BE479230719}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation", "src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj", "{7F507901-30BD-41CD-99B8-FD8FA103D70A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Validation", "src\lib\Microsoft.Health.Fhir.Ingest.Validation\Microsoft.Health.Fhir.Ingest.Validation.csproj", "{7F507901-30BD-41CD-99B8-FD8FA103D70A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.Ingest.Validation.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Validation.UnitTests\Microsoft.Health.Fhir.Ingest.Validation.UnitTests.csproj", "{34B7EABB-DC53-47AC-86E0-35596FF18312}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Validation.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Validation.UnitTests\Microsoft.Health.Fhir.Ingest.Validation.UnitTests.csproj", "{34B7EABB-DC53-47AC-86E0-35596FF18312}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Fhir.R4.Ingest.Templates", "src\lib\Microsoft.Health.Fhir.R4.Ingest.Templates\Microsoft.Health.Fhir.R4.Ingest.Templates.csproj", "{90B4DFD0-D039-438D-9541-A12482C2D9BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.R4.Ingest.Templates", "src\lib\Microsoft.Health.Fhir.R4.Ingest.Templates\Microsoft.Health.Fhir.R4.Ingest.Templates.csproj", "{90B4DFD0-D039-438D-9541-A12482C2D9BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

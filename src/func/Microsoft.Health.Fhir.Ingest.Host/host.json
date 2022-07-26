@@ -15,11 +15,21 @@
   },
   "extensions": {
     "eventHubs": {
-      "batchCheckpointFrequency": 1,
-      "eventProcessorOptions": {
-        "maxBatchSize": 1024,
-        "prefetchCount": 2048
-      }
+      "maxEventBatchSize": 1024,
+      "prefetchCount": 2048,
+      "transportType": "amqpTcp",
+      "batchCheckpointFrequency": 1
+    },
+    "initialOffsetOptions": {
+      "type": "fromStart",
+      "enqueuedTimeUtc": ""
+    },
+    "clientRetryOptions": {
+      "mode": "exponential",
+      "tryTimeout": "00:01:00",
+      "delay": "00:00:00.80",
+      "maximumDelay": "00:01:00",
+      "maximumRetries": 3
     }
   },
   "version": "2.0"
