@@ -78,7 +78,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
                         }
                         catch (Exception e)
                         {
-                            exceptions.Add(new IncompatibleDataException($"Encounted an error while extracting value for [{name}] using expression {expression.Value}", e, valueLineInfo));
+                            exceptions.Add(new IncompatibleDataException($"Encountered an error while extracting value for [{name}] using expression {expression.Value}", e, valueLineInfo));
                         }
                     }
                 }

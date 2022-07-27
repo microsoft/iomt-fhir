@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
-    public class MultipleResourceFoundException<T> : IomtTelemetryFormattableException
+    public class MultipleResourceFoundException<T> : ThirdPartyLoggedFormattableException
     {
         public MultipleResourceFoundException(int resourceCount)
             : base($"Multiple resources {resourceCount} of type {typeof(T)} found, expected one")

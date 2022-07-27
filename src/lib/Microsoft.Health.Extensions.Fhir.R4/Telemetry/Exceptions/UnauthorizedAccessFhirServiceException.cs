@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 {
-    public sealed class UnauthorizedAccessFhirServiceException : IomtTelemetryFormattableException
+    public sealed class UnauthorizedAccessFhirServiceException : ThirdPartyLoggedFormattableException
     {
         private static readonly string _errorType = ErrorType.FHIRServiceError;
 
