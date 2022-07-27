@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.Health.Common.Extension;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 using Xunit;
 
 namespace Microsoft.Health.Common
@@ -26,6 +27,17 @@ namespace Microsoft.Health.Common
             Assert.True(exception.IsLogForwardingEnabled());
             exception.SetLogForwarding(false);
             Assert.False(exception.IsLogForwardingEnabled());
+        }
+
+        [Fact]
+        public void ThirdPartyLoggedException_Enables_LogForwarding()
+        {
+            var exception = new TestException();
+            Assert.True(exception.IsLogForwardingEnabled());
+        }
+
+        private class TestException : ThirdPartyLoggedFormattableException
+        {
         }
     }
 }
