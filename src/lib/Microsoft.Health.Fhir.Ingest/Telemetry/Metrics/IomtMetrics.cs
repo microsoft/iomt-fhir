@@ -159,11 +159,11 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 });
         }
 
-        public static Metric UnhandledException(string exceptionName, string connectorStage)
+        public static Metric UnhandledException(string exceptionName, string connectorStage, string errorType = null, string errorSeverity = null)
         {
             EnsureArg.IsNotNullOrWhiteSpace(exceptionName);
 
-            return nameof(UnhandledException).ToErrorMetric(connectorStage, ErrorType.GeneralError, ErrorSeverity.Critical, errorName: exceptionName);
+            return nameof(UnhandledException).ToErrorMetric(connectorStage, errorType ?? ErrorType.GeneralError, errorSeverity ?? ErrorSeverity.Critical, errorName: exceptionName);
         }
 
         public static Metric HandledException(string exceptionName, string connectorStage)
