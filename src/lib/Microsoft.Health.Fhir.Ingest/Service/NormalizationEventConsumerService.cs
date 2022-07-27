@@ -80,35 +80,38 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        private async Task<IContentTemplate> GetNormalizationTemplate()
+        private async Task<IContentTemplate> GetNormalizationTemplate(string partitionId)
         {
             await semaphore.WaitAsync();
             try
             {
-                if (NormalizationTemplate.template == null)
+                using (ITimed templateGeneration = _logger.TrackDuration(IomtMetrics.NormalizationTemplateGenerationMs(partitionId)))
                 {
-                    _logger.LogTrace("Initializing normalization template from blob.");
-                    DateTimeOffset timestamp = DateTimeOffset.UtcNow;
-                    var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition);
-                    var templateContext = _collectionTemplateFactory.Create(content);
-                    templateContext.EnsureValid();
-                    NormalizationTemplate = (templateContext.Template, timestamp);
-                }
-                else
-                {
-                    DateTimeOffset updatedTimestamp = DateTimeOffset.UtcNow;
-                    var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition, NormalizationTemplate.timestamp);
-
-                    if (content != null)
+                    if (NormalizationTemplate.template == null)
                     {
-                        _logger.LogTrace("New normalization template content detected, updating template.");
+                        _logger.LogTrace("Initializing normalization template from blob.");
+                        DateTimeOffset timestamp = DateTimeOffset.UtcNow;
+                        var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition);
                         var templateContext = _collectionTemplateFactory.Create(content);
                         templateContext.EnsureValid();
-                        NormalizationTemplate = (templateContext.Template, updatedTimestamp);
+                        NormalizationTemplate = (templateContext.Template, timestamp);
                     }
-                }
+                    else
+                    {
+                        DateTimeOffset updatedTimestamp = DateTimeOffset.UtcNow;
+                        var content = await _templateManager.GetTemplateContentIfChangedSince(_templateDefinition, NormalizationTemplate.timestamp);
 
-                return NormalizationTemplate.template;
+                        if (content != null)
+                        {
+                            _logger.LogTrace("New normalization template content detected, updating template.");
+                            var templateContext = _collectionTemplateFactory.Create(content);
+                            templateContext.EnsureValid();
+                            NormalizationTemplate = (templateContext.Template, updatedTimestamp);
+                        }
+                    }
+
+                    return NormalizationTemplate.template;
+                }
             }
             finally
             {
@@ -118,11 +121,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events)
         {
+            string partitionId = null;
+
+            if (events.Count() > 0)
+            {
+                partitionId = events.First().PartitionId;
+            }
+
             // Step 1: Get the normalization mapping template
             IContentTemplate template = null;
             try
             {
-                template = await GetNormalizationTemplate();
+                template = await GetNormalizationTemplate(partitionId); // include partition id for metrics purposes
             }
             catch (Exception ex)
             {
@@ -140,18 +150,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Step 2: Normalize each event in the event batch
             var normalizationBatch = new List<(string sourcePartition, IMeasurement measurement)>(50);
 
-            foreach (var evt in events)
+            using (ITimed normalizeBatchDuration = _logger.TrackDuration(IomtMetrics.NormalizationTimePerBatchMs(partitionId)))
             {
-                try
+                foreach (var evt in events)
                 {
-                    ProcessEvent(evt, template, normalizationBatch);
-                }
-                catch (Exception ex)
-                {
-                    ex.AddEventContext(evt);
-                    if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                    try
                     {
-                        throw; // Immediately throw original exception if it is not handled
+                        ProcessEvent(evt, template, normalizationBatch);
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.AddEventContext(evt);
+                        if (!_exceptionTelemetryProcessor.HandleException(ex, _logger))
+                        {
+                            throw; // Immediately throw original exception if it is not handled
+                        }
                     }
                 }
             }
@@ -159,7 +172,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             // Step 3: Send normalized events to Event Hub
             try
             {
-                await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
+                _logger.LogMetric(IomtMetrics.MeasurementBatchSize(partitionId), normalizationBatch.Count);
+
+                using (ITimed normalizeDuration = _logger.TrackDuration(IomtMetrics.MeasurementBatchSubmissionMs(partitionId)))
+                {
+                    await _collector.AddAsync(items: normalizationBatch.Select(data => data.measurement), cancellationToken: CancellationToken.None);
+                }
             }
             catch (Exception ex)
             {

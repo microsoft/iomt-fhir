@@ -144,18 +144,24 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         private async Task CompleteProcessing(string partitionId, IEnumerable<IEventMessage> events, string triggerReason)
         {
-            await _eventConsumerService.ConsumeEvents(events);
-
-            IEnumerable<KeyValuePair<Metric, double>> eventMetrics = null;
-
-            if (_eventProcessingMetricMeters != null)
+            using (ITimed flushProcessingTime = _logger.TrackDuration(EventMetrics.BatchFlushDurationMs(partitionId)))
             {
-                eventMetrics = await _eventProcessingMetricMeters.GetMetrics(events);
+                await _eventConsumerService.ConsumeEvents(events);
+
+                IEnumerable<KeyValuePair<Metric, double>> eventMetrics = null;
+
+                if (_eventProcessingMetricMeters != null)
+                {
+                    eventMetrics = await _eventProcessingMetricMeters.GetMetrics(events);
+                }
+
+                using (ITimed timer = _logger.TrackDuration(EventMetrics.CheckpointUpdateDurationMs(partitionId)))
+                {
+                    await UpdateCheckpoint(events, eventMetrics);
+                }
+
+                LogDataFreshness(partitionId, triggerReason, events);
             }
-
-            await UpdateCheckpoint(events, eventMetrics);
-
-            LogDataFreshness(partitionId, triggerReason, events);
         }
 
         public Task ConsumeEvents(IEnumerable<IEventMessage> events)
