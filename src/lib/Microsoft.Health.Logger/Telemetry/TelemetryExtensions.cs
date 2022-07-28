@@ -9,6 +9,8 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Metrics;
 using Microsoft.Health.Common.Extension;
+using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
@@ -18,6 +20,7 @@ namespace Microsoft.Health.Logging.Telemetry
         private const string _helplinkAttribute = "helpLink";
         private const string _messageAttribute = "message";
         private const string _logForwardingAttribute = "logToCustomerIot";
+        private const string _operationAttribute = "operation";
 
         public static void LogException(this TelemetryClient telemetryClient, Exception ex)
         {
@@ -29,6 +32,15 @@ namespace Microsoft.Health.Logging.Telemetry
             exceptionTelemetry.Properties.Add(_messageAttribute, ex.Message ?? string.Empty);
             exceptionTelemetry.Properties.Add(_helplinkAttribute, ex.HelpLink ?? string.Empty);
             exceptionTelemetry.Properties.Add(_logForwardingAttribute, ex.IsLogForwardingEnabled().ToString());
+
+            if (ex is IomtTelemetryFormattableException fex)
+            {
+                exceptionTelemetry.Properties.Add(_operationAttribute, fex.Operation);
+            }
+            else
+            {
+                exceptionTelemetry.Properties.Add(_operationAttribute, ConnectorOperation.Unknown);
+            }
 
             telemetryClient.TrackException(exceptionTelemetry);
         }
