@@ -19,6 +19,7 @@
 		<FhirVersion Condition="'$(FhirVersion)' == ''">R4</FhirVersion>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
 		<PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.32" />
 		<PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="5.0.1" />
@@ -28,7 +29,6 @@
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Logging.ApplicationInsights" Version="3.0.30" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.12" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
