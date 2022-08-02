@@ -93,7 +93,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             }
             else
             {
-                telemetryConfig = new TelemetryConfiguration(instrumentationKey);
+                telemetryConfig = new TelemetryConfiguration()
+                {
+                    ConnectionString = $"InstrumentationKey={instrumentationKey}",
+                };
                 telemetryClient = new TelemetryClient(telemetryConfig);
             }
 

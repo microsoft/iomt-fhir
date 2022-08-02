@@ -40,7 +40,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var response = await service.CheckHealth();
 
             Assert.Equal(401, response.StatusCode);
-            Assert.Equal("Unauthorized: ", response.Message);
+            Assert.StartsWith("Unauthorized:", response.Message);
         }
 
         [Fact]
