@@ -5,7 +5,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<RootNamespace>Microsoft.Health.Expressions.UnitTests</RootNamespace>
 		<AssemblyName>Microsoft.Health.Expressions.UnitTests</AssemblyName>
-		<LangVersion>7.3</LangVersion>
+		<LangVersion>10.0</LangVersion>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -30,6 +30,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<AdditionalFiles Include="..\..\stylecop.json" Link="stylecop.json" />

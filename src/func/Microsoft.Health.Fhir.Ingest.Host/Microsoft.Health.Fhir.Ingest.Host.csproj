@@ -6,7 +6,7 @@
     <HighEntropyVA>true</HighEntropyVA>
     <AssemblyName>Microsoft.Health.Fhir.Ingest.Host</AssemblyName>
     <RootNamespace>Microsoft.Health.Fhir.Ingest.Host</RootNamespace>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -42,6 +42,7 @@
     </PackageReference>
     <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+	<PackageReference Include="Azure.Storage.Queues" Version="12.11.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
