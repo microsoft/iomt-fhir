@@ -20,6 +20,7 @@ namespace Microsoft.Health.Events.Model
         public EventMessage(
             string partitionId,
             ReadOnlyMemory<byte> body,
+            string bodyContentType,
             long sequenceNumber,
             long offset,
             DateTimeOffset enqueuedTime,
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Events.Model
         {
             PartitionId = partitionId;
             Body = body;
+            BodyContentType = bodyContentType;
             SequenceNumber = sequenceNumber;
             Offset = offset;
             EnqueuedTime = enqueuedTime;
@@ -37,7 +39,9 @@ namespace Microsoft.Health.Events.Model
 
         public string PartitionId { get; }
 
-        public ReadOnlyMemory<byte> Body { get; }
+        public ReadOnlyMemory<byte> Body { get; set; }
+
+        public string BodyContentType { get; }
 
         public long SequenceNumber { get; }
 
