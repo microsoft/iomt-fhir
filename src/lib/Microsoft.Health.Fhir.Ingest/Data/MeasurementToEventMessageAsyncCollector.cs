@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json;
@@ -23,17 +25,18 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         private readonly IEventHubMessageService _eventHubService;
         private readonly IHashCodeFactory _hashCodeFactory;
         private readonly ITelemetryLogger _telemetryLogger;
-        private readonly string _compressionEnabled;
+        private readonly IOptions<MeasurementToEventMessageAsyncCollectorOptions> _options;
 
         public MeasurementToEventMessageAsyncCollector(
             IEventHubMessageService eventHubService,
             IHashCodeFactory hashCodeFactory,
-            ITelemetryLogger telemetryLogger)
+            ITelemetryLogger telemetryLogger,
+            IOptions<MeasurementToEventMessageAsyncCollectorOptions> options = null)
         {
             _eventHubService = EnsureArg.IsNotNull(eventHubService, nameof(eventHubService));
             _hashCodeFactory = EnsureArg.IsNotNull(hashCodeFactory, nameof(hashCodeFactory));
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
-            _compressionEnabled = Environment.GetEnvironmentVariable("CompressionEnabled");
+            _options = options;
         }
 
         public async Task AddAsync(IMeasurement item, CancellationToken cancellationToken = default(CancellationToken))
@@ -72,7 +75,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     // Behavior is to compress the entire measurement group and send it
                     // When decompression is supported on the fhirtransformation side,
                     // the compression enhancement will be changed to be on by default.
-                    if (_compressionEnabled != null && _compressionEnabled == "True")
+                    if (_options != null && _options.Value.UseCompressionOnSend == true)
                     {
                         var measurementGroupContent = JsonConvert.SerializeObject(grp, Formatting.None);
                         var contentBytes = Encoding.UTF8.GetBytes(measurementGroupContent);
