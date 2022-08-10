@@ -18,6 +18,7 @@ using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
+using Microsoft.Toolkit.HighPerformance;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -143,19 +144,17 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         var partitionId = events.FirstOrDefault()?.PartitionId;
 
                         // decompress the measurement group if it is compressed
-                        byte[] bytes;
-                        if (evt.BodyContentType == "application/gzip")
+                        IEnumerable<Measurement> measurementGroup = null;
+                        if (evt.BodyContentType == Compression.GzipContentType)
                         {
-                            bytes = Compression.DecompressWithGzip(evt.Body.ToArray());
-                            evt.Body = new ReadOnlyMemory<byte>(bytes);
+                            using var stream = Compression.DecompressWithGzip(evt.Body.AsStream());
+                            measurementGroup = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<Measurement>>(stream);
                         }
                         else
                         {
-                            bytes = evt.Body.ToArray();
+                            using var stream = evt.Body.AsStream();
+                            measurementGroup = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<Measurement>>(stream);
                         }
-
-                        // deserialize
-                        IEnumerable<Measurement> measurementGroup = JsonConvert.DeserializeObject<IEnumerable<Measurement>>(System.Text.Encoding.UTF8.GetString(bytes));
 
                         // group
                         groupedMeasurements = measurementGroup.GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")

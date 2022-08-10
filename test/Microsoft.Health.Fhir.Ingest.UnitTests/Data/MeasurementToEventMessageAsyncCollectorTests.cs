@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
@@ -22,14 +24,16 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         private IHashCodeGenerator _hashCodeGenerator;
         private ITelemetryLogger _telemetryLogger;
         private IEnumerableAsyncCollector<IMeasurement> _measurementCollector;
+        private IOptions<MeasurementToEventMessageAsyncCollectorOptions> _options;
 
         public MeasurementToEventMessageAsyncCollectorTests()
         {
             _eventHubService = Substitute.For<IEventHubMessageService>();
             _hashCodeFactory = Substitute.For<IHashCodeFactory>();
             _telemetryLogger = Substitute.For<ITelemetryLogger>();
+            _options = Substitute.For<IOptions<MeasurementToEventMessageAsyncCollectorOptions>>();
 
-            _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger);
+            _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger, _options);
             _hashCodeGenerator = Substitute.For<IHashCodeGenerator>();
             _hashCodeGenerator.GenerateHashCode(Arg.Any<string>()).Returns("123");
             _hashCodeFactory.CreateDeterministicHashCodeGenerator().Returns(_hashCodeGenerator);

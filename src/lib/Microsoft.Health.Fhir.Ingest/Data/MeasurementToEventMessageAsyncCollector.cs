@@ -31,12 +31,12 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             IEventHubMessageService eventHubService,
             IHashCodeFactory hashCodeFactory,
             ITelemetryLogger telemetryLogger,
-            IOptions<MeasurementToEventMessageAsyncCollectorOptions> options = null)
+            IOptions<MeasurementToEventMessageAsyncCollectorOptions> options)
         {
             _eventHubService = EnsureArg.IsNotNull(eventHubService, nameof(eventHubService));
             _hashCodeFactory = EnsureArg.IsNotNull(hashCodeFactory, nameof(hashCodeFactory));
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
-            _options = options;
+            _options = options ?? Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
         }
 
         public async Task AddAsync(IMeasurement item, CancellationToken cancellationToken = default(CancellationToken))
@@ -78,10 +78,9 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     if (_options != null && _options.Value.UseCompressionOnSend == true)
                     {
                         var measurementGroupContent = JsonConvert.SerializeObject(grp, Formatting.None);
-                        var contentBytes = Encoding.UTF8.GetBytes(measurementGroupContent);
-                        var compressedBytes = Common.IO.Compression.CompressWithGzip(contentBytes);
+                        var compressedBytes = Common.IO.Compression.CompressWithGzip(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(grp));
                         var eventData = new EventData(compressedBytes);
-                        eventData.ContentType = "application/gzip";
+                        eventData.ContentType = Common.IO.Compression.GzipContentType;
                         eventData.Properties["IsMeasurementGroup"] = true;
 
                         if (!currentEventDataBatch.TryAdd(eventData))

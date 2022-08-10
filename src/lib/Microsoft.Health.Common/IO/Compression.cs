@@ -10,6 +10,8 @@ namespace Microsoft.Health.Common.IO
 {
     public static class Compression
     {
+        public static string GzipContentType { get; } = "application/gzip";
+
         public static byte[] CompressWithGzip(byte[] bytes)
         {
             using (var memoryStream = new MemoryStream())
@@ -23,19 +25,31 @@ namespace Microsoft.Health.Common.IO
             }
         }
 
+        public static Stream DecompressWithGzip(Stream compressedStream)
+        {
+            var decompressedStream = new MemoryStream();
+
+            using (var gzip = new GZipStream(compressedStream, CompressionMode.Decompress))
+            {
+                gzip.CopyTo(decompressedStream);
+                decompressedStream.Position = 0;
+                return decompressedStream;
+            }
+        }
+
         public static byte[] DecompressWithGzip(byte[] bytes)
         {
             using (var compressedStream = new MemoryStream(bytes))
             {
-                var decompressedStream = new MemoryStream();
+                using (var decompressedStream = new MemoryStream())
                 {
                     using (var gzip = new GZipStream(compressedStream, CompressionMode.Decompress))
                     {
                         gzip.CopyTo(decompressedStream);
                     }
-                }
 
-                return decompressedStream.ToArray();
+                    return decompressedStream.ToArray();
+                }
             }
         }
     }
