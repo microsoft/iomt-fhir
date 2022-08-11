@@ -208,20 +208,20 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
 
-            JObject o = JObject.Parse(
-            @"{
-		        'Type': 'summary',
+            JArray o = JArray.Parse(
+            @"[{
+                'Type': 'summary',
                 'OccurrenceTimeUtc': '2020-08-10T00:15:00Z',
-		        'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
-		        'DeviceId': 'ABC',
-		        'PatientId': '123',
-		        'EncounterId': null,
-		        'CorrelationId': null,
-		        'Properties': [
+                'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
+                'DeviceId': 'ABC',
+                'PatientId': '123',
+                'EncounterId': null,
+                'CorrelationId': null,
+                'Properties': [
                     { 'Name': 'testdata1','Value':'1'},
-			        { 'Name': 'testdata2','Value':'2'}
-		        ]
-	         }");
+                    { 'Name': 'testdata2','Value':'2'}
+                ]
+            }]");
 
             var jsonString = JsonConvert.SerializeObject(o, Formatting.None);
             var contentBytes = Encoding.UTF8.GetBytes(jsonString);
@@ -249,18 +249,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             JArray o = JArray.Parse(
             @"[{
-		        'Type': 'summary',
+                'Type': 'summary',
                 'OccurrenceTimeUtc': '2020-08-10T00:15:00Z',
-		        'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
-		        'DeviceId': 'ABC',
-		        'PatientId': '123',
-		        'EncounterId': null,
-		        'CorrelationId': null,
-		        'Properties': [
+                'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
+                'DeviceId': 'ABC',
+                'PatientId': '123',
+                'EncounterId': null,
+                'CorrelationId': null,
+                'Properties': [
                     { 'Name': 'testdata1','Value':'1'},
-			        { 'Name': 'testdata2','Value':'2'}
-		        ]
-	         }]");
+                    { 'Name': 'testdata2','Value':'2'}
+                ]
+            }]");
 
             var jsonString = JsonConvert.SerializeObject(o, Formatting.None);
             var contentBytes = Encoding.UTF8.GetBytes(jsonString);
@@ -289,18 +289,18 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             JArray o = JArray.Parse(
             @"[{
-		        'Type': 'summary',
+                'Type': 'summary',
                 'OccurrenceTimeUtc': '2020-08-10T00:15:00Z',
-		        'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
-		        'DeviceId': 'ABC',
-		        'PatientId': '123',
-		        'EncounterId': null,
-		        'CorrelationId': null,
-		        'Properties': [
+                'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
+                'DeviceId': 'ABC',
+                'PatientId': '123',
+                'EncounterId': null,
+                'CorrelationId': null,
+                'Properties': [
                     { 'Name': 'testdata1','Value':'1'},
-			        { 'Name': 'testdata2','Value':'2'}
-		        ]
-	         }]");
+                    { 'Name': 'testdata2','Value':'2'}
+                ]
+            }]");
 
             var jsonString = JsonConvert.SerializeObject(o, Formatting.None);
             var contentBytes = Encoding.UTF8.GetBytes(jsonString);
