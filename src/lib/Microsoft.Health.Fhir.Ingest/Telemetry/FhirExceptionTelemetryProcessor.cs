@@ -39,11 +39,13 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         // The following additional exceptions logged to the error message service immediately and are not retried:
         // - ValidationException (Template validation errors)
         // - MeasurementProcessingException (Could not convert event to measurement)
+        // - MeasurementGroupProcessingException (Could not process measurement group)
         // - FhirDataMappingException (FHIR mapping template exception)
         public FhirExceptionTelemetryProcessor(IErrorMessageService errorMessageService)
             : base(
                 typeof(ValidationException),
                 typeof(MeasurementProcessingException),
+                typeof(MeasurementGroupProcessingException),
                 typeof(FhirDataMappingException),
                 typeof(PatientDeviceMismatchException),
                 typeof(ResourceIdentityNotDefinedException),
