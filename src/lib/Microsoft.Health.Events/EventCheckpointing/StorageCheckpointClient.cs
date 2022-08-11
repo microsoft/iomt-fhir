@@ -31,9 +31,9 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private readonly string _blobPath;
         private readonly ITelemetryLogger _logger;
         private readonly BlobContainerClient _storageClient;
-        private const string lastProcessedKey = "LastProcessed";
-        private const string sequenceNumberKey = "SequenceNumber";
-        private const string offsetKey = "Offset";
+        private const string LastProcessedKey = "LastProcessed";
+        private const string SequenceNumberKey = "SequenceNumber";
+        private const string OffsetKey = "Offset";
 
         public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger logger)
         {
@@ -67,9 +67,9 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             var metadata = new Dictionary<string, string>()
             {
-                { lastProcessedKey,  lastProcessed },
-                { sequenceNumberKey,  checkpoint.SequenceNumber.ToString() },
-                { offsetKey,  checkpoint.Offset.ToString() },
+                { LastProcessedKey,  lastProcessed },
+                { SequenceNumberKey,  checkpoint.SequenceNumber.ToString() },
+                { OffsetKey,  checkpoint.Offset.ToString() },
             };
 
             try
@@ -107,17 +107,17 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     long sequenceNumber = -1;
                     long offset = -1;
 
-                    if (blob.Metadata.TryGetValue(lastProcessedKey, out var str))
+                    if (blob.Metadata.TryGetValue(LastProcessedKey, out var str))
                     {
                         DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
                     }
 
-                    if (blob.Metadata.TryGetValue(sequenceNumberKey, out var sequenceNumberString))
+                    if (blob.Metadata.TryGetValue(SequenceNumberKey, out var sequenceNumberString))
                     {
                         long.TryParse(sequenceNumberString, out sequenceNumber);
                     }
 
-                    if (blob.Metadata.TryGetValue(offsetKey, out var offsetString))
+                    if (blob.Metadata.TryGetValue(OffsetKey, out var offsetString))
                     {
                         long.TryParse(offsetString, out offset);
                     }
