@@ -15,8 +15,8 @@ namespace Microsoft.Health.Events.Model
                 eventArgs.Partition.PartitionId,
                 eventArgs.Data.Body,
                 eventArgs.Data.ContentType,
-                eventArgs.Data.Offset,
                 eventArgs.Data.SequenceNumber,
+                eventArgs.Data.Offset,
                 eventArgs.Data.EnqueuedTime.UtcDateTime,
                 eventArgs.Data.Properties,
                 eventArgs.Data.SystemProperties);
