@@ -31,7 +31,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             _eventHubService = Substitute.For<IEventHubMessageService>();
             _hashCodeFactory = Substitute.For<IHashCodeFactory>();
             _telemetryLogger = Substitute.For<ITelemetryLogger>();
-            _options = Substitute.For<IOptions<MeasurementToEventMessageAsyncCollectorOptions>>();
+            _options = Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
 
             _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger, _options);
             _hashCodeGenerator = Substitute.For<IHashCodeGenerator>();
