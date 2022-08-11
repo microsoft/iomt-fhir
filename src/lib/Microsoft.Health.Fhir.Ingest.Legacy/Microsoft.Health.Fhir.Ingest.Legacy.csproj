@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <HighEntropyVA>true</HighEntropyVA>
-    <AssemblyName>Microsoft.Health.Fhir.Ingest</AssemblyName>
+    <AssemblyName>Microsoft.Health.Fhir.Ingest.Legacy</AssemblyName>
     <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
     <langversion>10.0</langversion>
   </PropertyGroup>
@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
+    <PackageReference Include="Microsoft.Azure.EventHubs" Version="3.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.31" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
@@ -50,5 +51,6 @@
     <ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
   </ItemGroup>
 </Project>

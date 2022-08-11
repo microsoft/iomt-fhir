@@ -3,14 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Azure.Messaging.EventHubs;
+using Microsoft.Azure.EventHubs;
 
-namespace Microsoft.Health.Fhir.Ingest.Service
+namespace Microsoft.Health.Events.Errors
 {
-    public interface IEventProcessingMeter
+    public static class ExceptionContextExtensions
     {
-        Task<EventStats> CalculateEventStats(IEnumerable<EventData> events);
+        private const string EventsAttr = "RelatedEvents";
+
+        public static void AddEventContext(this Exception ex, IEnumerable<EventData> events)
+        {
+            ex.Data[EventsAttr] = events;
+        }
     }
 }

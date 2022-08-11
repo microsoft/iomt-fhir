@@ -37,10 +37,14 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
+    <ProjectReference Include="..\..\src\lib\Microsoft.Health.Fhir.Ingest.Legacy\Microsoft.Health.Fhir.Ingest.Legacy.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Tests.Common\Microsoft.Health.Tests.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="TestInput\data_CodeValueFhirTemplate_Valid.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestInput\data_IotHubPayloadExample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

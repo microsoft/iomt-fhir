@@ -64,7 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.$(FhirVersion).Ingest\Microsoft.Health.Fhir.$(FhirVersion).Ingest.csproj" />
-    <ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
     <ProjectReference Include="..\..\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
+    <ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.Ingest.Legacy\Microsoft.Health.Fhir.Ingest.Legacy.csproj" />
+    <ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
   </ItemGroup>
 </Project>
