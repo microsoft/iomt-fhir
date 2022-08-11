@@ -39,6 +39,6 @@
 		<ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
 		<ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
 		<ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
-		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.0.36" />
+		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
 	</ItemGroup>
 </Project>

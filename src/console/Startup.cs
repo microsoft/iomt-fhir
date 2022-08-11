@@ -27,7 +27,6 @@ using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Common.Telemetry;
 using IEventProcessingMeter = Microsoft.Health.Events.Common.IEventProcessingMeter;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
-using Azure.Messaging.EventHubs.Producer;
 using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Extensions.Options;
