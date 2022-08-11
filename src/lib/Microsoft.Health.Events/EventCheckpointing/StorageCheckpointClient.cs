@@ -31,9 +31,9 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private readonly string _blobPath;
         private readonly ITelemetryLogger _logger;
         private readonly BlobContainerClient _storageClient;
-        private static string lastProcessedKey = "LastProcessed";
-        private static string sequenceNumberKey = "SequenceNumber";
-        private static string offsetKey = "Offset";
+        private const string lastProcessedKey = "LastProcessed";
+        private const string sequenceNumberKey = "SequenceNumber";
+        private const string offsetKey = "Offset";
 
         public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger logger)
         {
