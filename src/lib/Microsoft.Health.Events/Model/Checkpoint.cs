@@ -14,5 +14,9 @@ namespace Microsoft.Health.Events.Model
         public string Id { get; set; }
 
         public DateTimeOffset LastProcessed { get; set; }
+
+        public long SequenceNumber { get; set; } = -1;
+
+        public long Offset { get; set; } = -1;
     }
 }
