@@ -98,45 +98,44 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             Task<Checkpoint> GetCheckpointAsync()
             {
-                var checkpoint = new Checkpoint();
-
                 foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
                 {
                     var partitionId = blob.Name.Split('/').Last();
 
                     // All checkpoint files matching the supplied blob prefix will be returned. Ensure we only work with the correct checkpoint file
-                    if (!string.Equals(partitionIdentifier, partitionId, StringComparison.Ordinal))
+                    if (string.Equals(partitionIdentifier, partitionId, StringComparison.Ordinal))
                     {
-                        continue;
+                        DateTimeOffset lastEventTimestamp = DateTime.MinValue;
+                        long sequenceNumber = -1;
+                        long offset = -1;
+
+                        if (blob.Metadata.TryGetValue(LastProcessedKey, out var str))
+                        {
+                            DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
+                        }
+
+                        if (blob.Metadata.TryGetValue(SequenceNumberKey, out var sequenceNumberString))
+                        {
+                            long.TryParse(sequenceNumberString, out sequenceNumber);
+                        }
+
+                        if (blob.Metadata.TryGetValue(OffsetKey, out var offsetString))
+                        {
+                            long.TryParse(offsetString, out offset);
+                        }
+
+                        var checkpoint = new Checkpoint();
+                        checkpoint.Prefix = _blobPath;
+                        checkpoint.Id = partitionId;
+                        checkpoint.LastProcessed = lastEventTimestamp;
+                        checkpoint.SequenceNumber = sequenceNumber;
+                        checkpoint.Offset = offset;
+
+                        return Task.FromResult(checkpoint);
                     }
-
-                    DateTimeOffset lastEventTimestamp = DateTime.MinValue;
-                    long sequenceNumber = -1;
-                    long offset = -1;
-
-                    if (blob.Metadata.TryGetValue(LastProcessedKey, out var str))
-                    {
-                        DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
-                    }
-
-                    if (blob.Metadata.TryGetValue(SequenceNumberKey, out var sequenceNumberString))
-                    {
-                        long.TryParse(sequenceNumberString, out sequenceNumber);
-                    }
-
-                    if (blob.Metadata.TryGetValue(OffsetKey, out var offsetString))
-                    {
-                        long.TryParse(offsetString, out offset);
-                    }
-
-                    checkpoint.Prefix = _blobPath;
-                    checkpoint.Id = partitionId;
-                    checkpoint.LastProcessed = lastEventTimestamp;
-                    checkpoint.SequenceNumber = sequenceNumber;
-                    checkpoint.Offset = offset;
                 }
 
-                return Task.FromResult(checkpoint);
+                return Task.FromResult(new Checkpoint());
             }
 
             try
