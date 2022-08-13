@@ -92,13 +92,13 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
+        public async Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
         {
             var prefix = $"{_blobPath}{partitionIdentifier}";
 
-            Task<Checkpoint> GetCheckpointAsync()
+            async Task<Checkpoint> GetCheckpointAsync()
             {
-                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
+                await foreach (BlobItem blob in _storageClient.GetBlobsAsync(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
                 {
                     var partitionId = blob.Name.Split('/').Last();
 
@@ -131,16 +131,16 @@ namespace Microsoft.Health.Events.EventCheckpointing
                         checkpoint.SequenceNumber = sequenceNumber;
                         checkpoint.Offset = offset;
 
-                        return Task.FromResult(checkpoint);
+                        return checkpoint;
                     }
                 }
 
-                return Task.FromResult(new Checkpoint());
+                return new Checkpoint();
             }
 
             try
             {
-                return GetCheckpointAsync();
+                return await GetCheckpointAsync();
             }
             catch (Exception ex)
             {
