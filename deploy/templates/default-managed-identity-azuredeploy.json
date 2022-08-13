@@ -528,7 +528,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2016-08-01",
+      "apiVersion": "2022-03-01",
       "name": "[variables('app_service_name')]",
       "location": "[parameters('ResourceLocation')]",
       "tags": {
@@ -557,7 +557,7 @@
       },
       "resources": [
         {
-          "apiVersion": "2015-08-01",
+          "apiVersion": "2022-03-01",
           "name": "appsettings",
           "type": "config",
           "dependsOn": [
@@ -584,7 +584,7 @@
           }
         },
         {
-          "apiVersion": "2015-08-01",
+          "apiVersion": "2022-03-01",
           "name": "web",
           "type": "sourcecontrols",
           "condition": "[variables('deploy_source_code')]",
@@ -602,7 +602,7 @@
     },
     {
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2016-08-01",
+      "apiVersion": "2022-03-01",
       "name": "[concat(variables('app_service_name'), '/web')]",
       "location": "[parameters('ResourceLocation')]",
       "dependsOn": [
@@ -612,7 +612,7 @@
         "numberOfWorkers": 1,
         "defaultDocuments": [
         ],
-        "netFrameworkVersion": "v4.0",
+        "netFrameworkVersion": "v6.0",
         "phpVersion": "5.6",
         "pythonVersion": "",
         "nodeVersion": "",
@@ -688,7 +688,7 @@
         "http20Enabled": false,
         "minTlsVersion": "1.2",
         "ftpsState": "FtpsOnly",
-        "reservedInstanceCount": 0
+        "PreWarmedInstanceCount": 0
       }
     },
     {
