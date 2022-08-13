@@ -103,6 +103,13 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
                 {
                     var partitionId = blob.Name.Split('/').Last();
+
+                    // All checkpoint files matching the supplied blob prefix will be returned. Ensure we only work with the correct checkpoint file
+                    if (!string.Equals(partitionIdentifier, partitionId, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
                     DateTimeOffset lastEventTimestamp = DateTime.MinValue;
                     long sequenceNumber = -1;
                     long offset = -1;
