@@ -98,41 +98,44 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             async Task<Checkpoint> GetCheckpointAsync()
             {
-                await foreach (BlobItem blob in _storageClient.GetBlobsAsync(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
+                try
                 {
-                    var partitionId = blob.Name.Split('/').Last();
+                    var requestConditions = new BlobRequestConditions();
+                    var propsResponse = await _storageClient.GetBlobClient(prefix).GetPropertiesAsync(requestConditions, cancellationToken);
+                    var props = propsResponse.Value;
 
-                    // All checkpoint files matching the supplied blob prefix will be returned. Ensure we only work with the correct checkpoint file
-                    if (string.Equals(partitionIdentifier, partitionId, StringComparison.Ordinal))
+                    DateTimeOffset lastEventTimestamp = DateTime.MinValue;
+                    long sequenceNumber = -1;
+                    long offset = -1;
+
+                    if (props.Metadata.TryGetValue(LastProcessedKey, out var str))
                     {
-                        DateTimeOffset lastEventTimestamp = DateTime.MinValue;
-                        long sequenceNumber = -1;
-                        long offset = -1;
-
-                        if (blob.Metadata.TryGetValue(LastProcessedKey, out var str))
-                        {
-                            DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
-                        }
-
-                        if (blob.Metadata.TryGetValue(SequenceNumberKey, out var sequenceNumberString))
-                        {
-                            long.TryParse(sequenceNumberString, out sequenceNumber);
-                        }
-
-                        if (blob.Metadata.TryGetValue(OffsetKey, out var offsetString))
-                        {
-                            long.TryParse(offsetString, out offset);
-                        }
-
-                        var checkpoint = new Checkpoint();
-                        checkpoint.Prefix = _blobPath;
-                        checkpoint.Id = partitionId;
-                        checkpoint.LastProcessed = lastEventTimestamp;
-                        checkpoint.SequenceNumber = sequenceNumber;
-                        checkpoint.Offset = offset;
-
-                        return checkpoint;
+                        DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
                     }
+
+                    if (props.Metadata.TryGetValue(SequenceNumberKey, out var sequenceNumberString))
+                    {
+                        long.TryParse(sequenceNumberString, out sequenceNumber);
+                    }
+
+                    if (props.Metadata.TryGetValue(OffsetKey, out var offsetString))
+                    {
+                        long.TryParse(offsetString, out offset);
+                    }
+
+                    var checkpoint = new Checkpoint();
+                    checkpoint.Prefix = _blobPath;
+                    checkpoint.Id = partitionIdentifier;
+                    checkpoint.LastProcessed = lastEventTimestamp;
+                    checkpoint.SequenceNumber = sequenceNumber;
+                    checkpoint.Offset = offset;
+
+                    return checkpoint;
+                }
+                catch (RequestFailedException e) when (e.ErrorCode == BlobErrorCode.BlobNotFound)
+                {
+                    // No checkpoint exists yet for this partition. Ignore
+                    _logger.LogTrace($"The checkpoint file for partition {partitionIdentifier} does not exist");
                 }
 
                 return new Checkpoint();
