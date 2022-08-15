@@ -14,7 +14,6 @@ using System.Threading.Tasks.Dataflow;
 using EnsureThat;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
