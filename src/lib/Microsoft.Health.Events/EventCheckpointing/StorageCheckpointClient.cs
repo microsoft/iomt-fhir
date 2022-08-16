@@ -98,8 +98,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
-                var requestConditions = new BlobRequestConditions();
-                var propsResponse = await _storageClient.GetBlobClient(patitionCheckpointFileBlobPath).GetPropertiesAsync(requestConditions, cancellationToken);
+                var propsResponse = await _storageClient.GetBlobClient(patitionCheckpointFileBlobPath).GetPropertiesAsync(cancellationToken: cancellationToken);
                 var props = propsResponse.Value;
 
                 DateTimeOffset lastEventTimestamp = DateTime.MinValue;
