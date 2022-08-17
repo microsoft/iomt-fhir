@@ -94,11 +94,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
         public async Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
         {
-            var patitionCheckpointFileBlobPath = $"{_blobPath}{partitionIdentifier}";
+            var partitionCheckpointFileBlobPath = $"{_blobPath}{partitionIdentifier}";
 
             try
             {
-                var propsResponse = await _storageClient.GetBlobClient(patitionCheckpointFileBlobPath).GetPropertiesAsync(cancellationToken: cancellationToken);
+                var propsResponse = await _storageClient.GetBlobClient(partitionCheckpointFileBlobPath).GetPropertiesAsync(cancellationToken: cancellationToken);
                 var props = propsResponse.Value;
 
                 DateTimeOffset lastEventTimestamp = DateTime.MinValue;
