@@ -1,0 +1,60 @@
+[
+  {
+    "templateType": "CalculatedContent",
+    "template": {
+      "typeMatchExpression": "$..[?(@diastolic && @systolic)]",
+      "deviceIdExpression": "$.device",
+      "patientIdExpression": "$.patient",
+      "encounterIdExpression": "$.encounter",
+      "timestampExpression": "$.time",
+      "correlationIdExpression": "$.correlation",
+      "values": [
+        {
+          "valueName": "diastolic",
+          "valueExpression": "$.diastolic"
+        },
+        {
+          "valueName": "systolic",
+          "valueExpression": "$.systolic"
+        }
+      ],
+      "typeName": "Blood Pressure"
+    }
+  },
+  {
+    "templateType": "CalculatedContent",
+    "template": {
+      "typeMatchExpression": "$..[?(@heartRate)]",
+      "deviceIdExpression": "$.device",
+      "patientIdExpression": "$.patient",
+      "encounterIdExpression": "$.encounter",
+      "timestampExpression": "$.time",
+      "correlationIdExpression": "$.correlation",
+      "values": [
+        {
+          "valueName": "beatsPerMinute",
+          "valueExpression": "$.heartRate"
+        }
+      ],
+      "typeName": "Heart Rate"
+    }
+  },
+  {
+    "templateType": "CalculatedContent",
+    "template": {
+      "typeMatchExpression": "$..[?(@oxygenSaturation)]",
+      "deviceIdExpression": "$.device",
+      "patientIdExpression": "$.patient",
+      "encounterIdExpression": "$.encounter",
+      "timestampExpression": "$.time",
+      "correlationIdExpression": "$.correlation",
+      "values": [
+        {
+          "valueName": "oxygenPercentage",
+          "valueExpression": "$.oxygenSaturation"
+        }
+      ],
+      "typeName": "Oxygen Saturation"
+    }
+  }
+]

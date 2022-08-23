@@ -1,0 +1,12 @@
+[
+  {
+    "code": "8480-6",
+    "display": "Systolic blood pressure",
+    "system": "http://loinc.org"
+  },
+  {
+    "code": "271649006",
+    "display": "Systolic blood pressure",
+    "system": "http://snomed.info/sct"
+  }
+]

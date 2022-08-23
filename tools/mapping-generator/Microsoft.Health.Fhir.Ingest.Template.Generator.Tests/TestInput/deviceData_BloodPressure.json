@@ -1,0 +1,12 @@
+{
+  "type": "Blood Pressure",
+  "time": "2022-07-01T12:01:00Z",
+  "device": "TestDeviceId",
+  "patient": "TestPatientId",
+  "encounter": "TestEncounter",
+  "correlation": "TestCorrelation",
+  "values": {
+    "diastolic": 79,
+    "systolic": 119
+  }
+}

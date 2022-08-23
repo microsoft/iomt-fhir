@@ -1,0 +1,74 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "category": [
+      {
+        "text": "Vital Signs",
+        "codes": [
+          {
+            "code": "vital-signs",
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "display": "Vital Signs"
+          }
+        ]
+      }
+    ],
+    "codes": [
+      {
+        "code": "85354-9",
+        "system": "http://loinc.org",
+        "display": "Blood pressure panel"
+      },
+      {
+        "code": "75367002",
+        "system": "http://snomed.info/sct",
+        "display": "Blood pressure"
+      }
+    ],
+    "components": [
+      {
+        "codes": [
+          {
+            "code": "8867-4",
+            "system": "http://loinc.org",
+            "display": "Diastolic blood pressure"
+          },
+          {
+            "code": "271650006",
+            "system": "http://snomed.info/sct",
+            "display": "Diastolic blood pressure"
+          }
+        ],
+        "value": {
+          "unit": "mmHg",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmHg",
+          "valueName": "diastolic",
+          "valueType": "Quantity"
+        }
+      },
+      {
+        "codes": [
+          {
+            "code": "8480-6",
+            "system": "http://loinc.org",
+            "display": "Systolic blood pressure"
+          },
+          {
+            "code": "271649006",
+            "system": "http://snomed.info/sct",
+            "display": "Systolic blood pressure"
+          }
+        ],
+        "value": {
+          "unit": "mmHg",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmHg",
+          "valueName": "systolic",
+          "valueType": "Quantity"
+        }
+      }
+    ],
+    "typeName": "Blood Pressure"
+  }
+}

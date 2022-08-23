@@ -1,0 +1,12 @@
+[
+  {
+    "code": "85354-9",
+    "display": "Blood pressure panel",
+    "system": "http://loinc.org"
+  },
+  {
+    "code": "75367002",
+    "display": "Blood pressure",
+    "system": "http://snomed.info/sct"
+  }
+]

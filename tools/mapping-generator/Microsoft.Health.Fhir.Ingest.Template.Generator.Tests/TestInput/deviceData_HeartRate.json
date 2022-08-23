@@ -1,0 +1,11 @@
+{
+  "type": "Heart Rate",
+  "time": "2022-07-01T12:00:00Z",
+  "device": "TestDeviceId",
+  "patient": "TestPatientId",
+  "encounter": "TestEncounter",
+  "correlation": "TestCorrelation",
+  "values": {
+    "beatsPerMinute": 66
+  }
+}

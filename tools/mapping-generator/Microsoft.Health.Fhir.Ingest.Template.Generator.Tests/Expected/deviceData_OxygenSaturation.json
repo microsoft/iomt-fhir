@@ -1,0 +1,18 @@
+{
+  "templateType": "CalculatedContent",
+  "template": {
+    "typeMatchExpression": "$..[?(@.type=='Oxygen Saturation')]",
+    "deviceIdExpression": "$.device",
+    "patientIdExpression": "$.patient",
+    "encounterIdExpression": "$.encounter",
+    "timestampExpression": "$.time",
+    "correlationIdExpression": "$.correlation",
+    "values": [
+      {
+        "valueName": "oxygenPercentage",
+        "valueExpression": "$.values.oxygenPercentage"
+      }
+    ],
+    "typeName": "Oxygen Saturation"
+  }
+}

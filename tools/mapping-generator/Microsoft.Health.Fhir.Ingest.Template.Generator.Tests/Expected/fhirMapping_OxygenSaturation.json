@@ -1,0 +1,37 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "category": [
+      {
+        "text": "Vital Signs",
+        "codes": [
+          {
+            "code": "vital-signs",
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "display": "Vital Signs"
+          }
+        ]
+      }
+    ],
+    "codes": [
+      {
+        "code": "2708-6",
+        "system": "http://loinc.org",
+        "display": "Oxygen saturation in Arterial blood"
+      },
+      {
+        "code": "103228002",
+        "system": "http://snomed.info/sct",
+        "display": "Hemoglobin saturation with oxygen "
+      }
+    ],
+    "value": {
+      "unit": "%",
+      "system": "http://unitsofmeasure.org",
+      "code": "%",
+      "valueName": "oxygenPercentage",
+      "valueType": "Quantity"
+    },
+    "typeName": "Oxygen Saturation"
+  }
+}
