@@ -76,11 +76,9 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
                 return;
             }
 
-            Type type = null;
-
             if (value is FhirValueType fhirValue)
             {
-                if (_typeLookup.TryGetValue(fhirValue.ValueType, out type))
+                if (_typeLookup.TryGetValue(fhirValue.ValueType, out Type type))
                 {
                     JObject jObject = serializer.SerializeValue(fhirValue, type);
                     jObject.WriteTo(writer);
@@ -89,7 +87,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
                 }
             }
 
-            throw new NotSupportedException($"AbstractJsonConverter cannot convert type: {type.Name}");
+            throw new NotSupportedException($"AbstractJsonConverter cannot convert type: {value.GetType()}");
         }
 
         private static string TrimBaseType(string typeName, string baseTypeName)
