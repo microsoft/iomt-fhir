@@ -157,7 +157,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         }
 
                         // group
-                        groupedMeasurements = measurementGroup.GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
+                        groupedMeasurements = measurementGroup.GroupBy(GetMeasurementKey)
                         .Select(g =>
                         {
                             IList<Measurement> measurements = g.ToList();
@@ -301,7 +301,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         .AddEventContext(e);
                 }
             })
-            .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
+            .GroupBy(GetMeasurementKey)
             .Select(g =>
             {
                 IList<Measurement> measurements = g.ToList();
@@ -352,6 +352,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         (nowRef - m.IngestionTimeUtc.Value).TotalMilliseconds);
                 }
             }).ConfigureAwait(false);
+        }
+
+        private static string GetMeasurementKey(Measurement m)
+        {
+            return $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}";
         }
     }
 }
