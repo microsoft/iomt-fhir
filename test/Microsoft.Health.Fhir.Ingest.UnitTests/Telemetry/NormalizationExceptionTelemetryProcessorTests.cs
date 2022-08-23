@@ -5,8 +5,10 @@
 
 using System;
 using Microsoft.Health.Common.Telemetry;
+using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Xunit;
 
@@ -16,35 +18,36 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     {
         [Theory]
         [InlineData(typeof(IncompatibleDataException))]
+        [InlineData(typeof(InvalidDataFormatException))]
         public void GivenHandledExceptionTypes_WhenHandleExpection_ThenMetricLoggedAndTrueReturned_Test(System.Type exType)
         {
             var log = Substitute.For<ITelemetryLogger>();
             var ex = Activator.CreateInstance(exType) as Exception;
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
 
-            var exProcessor = new NormalizationExceptionTelemetryProcessor();
+            var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
             var handled = exProcessor.HandleException(ex, log);
             Assert.True(handled);
-
-            log.ReceivedWithAnyArgs(1).LogMetric(null, default(double));
-        }
-
-        [Theory]
-        [InlineData(typeof(Exception))]
-        public void GivenUnhandledExceptionTypes_WhenHandleExpection_ThenMetricLoggedAndFalseReturned_Test(System.Type exType)
-        {
-            var log = Substitute.For<ITelemetryLogger>();
-            var ex = Activator.CreateInstance(exType) as Exception;
-
-            var exProcessor = new NormalizationExceptionTelemetryProcessor();
-            var handled = exProcessor.HandleException(ex, log);
-            Assert.False(handled);
 
             log.Received(1).LogError(ex);
             log.Received(1).LogMetric(
                 Arg.Is<Metric>(m =>
-                string.Equals(m.Name, nameof(IomtMetrics.UnhandledException)) &&
+                string.Equals(m.Name, exType.Name) &&
                 string.Equals(m.Dimensions[DimensionNames.Name], exType.Name)),
                 1);
+        }
+
+        [Theory]
+        [InlineData(typeof(Exception))]
+        public void GivenUnhandledExceptionTypes_WhenHandleExpection_ThenFalseReturned_Test(System.Type exType)
+        {
+            var log = Substitute.For<ITelemetryLogger>();
+            var ex = Activator.CreateInstance(exType) as Exception;
+            var exceptionConfig = Substitute.For<IExceptionTelemetryProcessorConfig>();
+
+            var exProcessor = new NormalizationExceptionTelemetryProcessor(exceptionConfig);
+            var handled = exProcessor.HandleException(ex, log);
+            Assert.False(handled);
         }
     }
 }

@@ -54,7 +54,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 // Get required ids
                 var ids = await ResourceIdentityService.ResolveResourceIdentitiesAsync(data).ConfigureAwait(false);
 
-                var grps = _fhirTemplateProcessor.CreateObservationGroups(config, data);
+                IEnumerable<IObservationGroup> grps = null;
+                try
+                {
+                    grps = _fhirTemplateProcessor.CreateObservationGroups(config, data);
+                }
+                catch (Exception ex)
+                {
+                    // user story 93303 to include appropriate message context for this error.
+                    throw new FhirDataMappingException(ex.Message, ex, nameof(FhirDataMappingException));
+                }
 
                 foreach (var grp in grps)
                 {

@@ -27,6 +27,8 @@ using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Common.Telemetry;
 using IEventProcessingMeter = Microsoft.Health.Events.Common.IEventProcessingMeter;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
+using Azure.Messaging.EventHubs.Producer;
+using Microsoft.Health.Events.Errors;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -81,14 +83,16 @@ namespace Microsoft.Health.Fhir.Ingest.Console
                 var collector = ResolveEventCollector(serviceProvider);
                 var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
                 var exceptionTelemetryProcessor = serviceProvider.GetRequiredService<NormalizationExceptionTelemetryProcessor>();
-                var deviceDataNormalization = new NormalizationEventConsumerService(new EventMessageJObjectConverter(), template, templateManager, collector, logger, collectionContentFactory, exceptionTelemetryProcessor);
+                var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
+                var deviceDataNormalization = new NormalizationEventConsumerService(new EventMessageJObjectConverter(), template, templateManager, collector, logger, collectionContentFactory, exceptionTelemetryProcessor, errorMessageService);
                 eventConsumers.Add(deviceDataNormalization);
             }
             else if (applicationType == _measurementToFhirAppType)
             {
                 template = Configuration.GetSection("Template:FhirMapping").Value;
                 var importService = serviceProvider.GetRequiredService<MeasurementFhirImportService>();
-                var measurementCollectionToFhir = new MeasurementCollectionToFhir.Processor(template, templateManager, importService, logger);
+                var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
+                var measurementCollectionToFhir = new MeasurementCollectionToFhir.Processor(template, templateManager, importService, logger, errorMessageService);
                 eventConsumers.Add(measurementCollectionToFhir);
             }
             else
@@ -151,14 +155,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console
 
         public virtual IEnumerableAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
         {
-            var eventHubProducerOptions = new EventHubClientOptions();
-            Configuration.GetSection("NormalizationEventHub").Bind(eventHubProducerOptions);
+            var eventHubClientOptions = new EventHubClientOptions();
+            Configuration.GetSection("NormalizationEventHub").Bind(eventHubClientOptions);
 
             var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
-            var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubProducerOptions);
+            var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubClientOptions);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
 
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient), new HashCodeFactory(), logger);
+            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger);
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)
@@ -198,6 +202,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventBatchingOptions = new EventBatchingOptions();
             Configuration.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingOptions);
             var eventBatchingService = new EventBatchingService(eventConsumerService, eventBatchingOptions, checkpointClient, logger, eventProcessingMetricMeters);
+
             var eventHubReader = new EventProcessor(eventProcessorClient, eventBatchingService, checkpointClient, logger);
             return eventHubReader;
         }
