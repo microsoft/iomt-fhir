@@ -67,6 +67,28 @@ namespace Microsoft.Health.Events.Telemetry
         }
 
         /// <summary>
+        /// Signals the amount of time taken to completely flush a batch.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the event hub</param>
+        public static Metric BatchFlushDurationMs(string partitionId)
+        {
+            return EventMetricDefinition.BatchFlushDurationMs
+                .CreateBaseMetric(Category.Traffic, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
+        /// Signals the amount of time taken to update a checkpoint.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the event hub</param>
+        public static Metric CheckpointUpdateDurationMs(string partitionId)
+        {
+            return EventMetricDefinition.CheckpointUpdateDurationMs
+                .CreateBaseMetric(Category.Traffic, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
         /// Signals that a batch of event hub events was consumed downstream.
         /// </summary>
         /// <param name="eventMetricDefinition">The metric definition that contains a metric name for the metric emitted after events are consumed</param>\

@@ -8,12 +8,16 @@ using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Metrics;
+using Microsoft.Health.Common.Extension;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
     public static class TelemetryExtensions
     {
         private static readonly string _namespace = MetricIdentifier.DefaultMetricNamespace;
+        private const string _helplinkAttribute = "helpLink";
+        private const string _messageAttribute = "message";
+        private const string _logForwardingAttribute = "logToCustomerIot";
 
         public static void LogException(this TelemetryClient telemetryClient, Exception ex)
         {
@@ -22,8 +26,9 @@ namespace Microsoft.Health.Logging.Telemetry
 
             var exceptionTelemetry = new ExceptionTelemetry(ex);
 
-            exceptionTelemetry.Properties.Add("message", ex.Message ?? string.Empty);
-            exceptionTelemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
+            exceptionTelemetry.Properties.Add(_messageAttribute, ex.Message ?? string.Empty);
+            exceptionTelemetry.Properties.Add(_helplinkAttribute, ex.HelpLink ?? string.Empty);
+            exceptionTelemetry.Properties.Add(_logForwardingAttribute, ex.IsLogForwardingEnabled().ToString());
 
             telemetryClient.TrackException(exceptionTelemetry);
         }

@@ -16,6 +16,10 @@ namespace Microsoft.Health.Events.Telemetry
 
         public static EventMetricDefinition EventsFlushed { get; } = new EventMetricDefinition(nameof(EventsFlushed));
 
+        public static EventMetricDefinition BatchFlushDurationMs { get; } = new EventMetricDefinition(nameof(BatchFlushDurationMs));
+
+        public static EventMetricDefinition CheckpointUpdateDurationMs { get; } = new EventMetricDefinition(nameof(CheckpointUpdateDurationMs));
+
         public static EventMetricDefinition EventHubChanged { get; } = new EventMetricDefinition(nameof(EventHubChanged));
 
         public static EventMetricDefinition EventHubPartitionInitialized { get; } = new EventMetricDefinition(nameof(EventHubPartitionInitialized));

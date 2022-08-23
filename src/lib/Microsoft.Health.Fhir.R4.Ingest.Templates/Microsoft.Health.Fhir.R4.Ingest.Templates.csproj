@@ -28,7 +28,7 @@
 		<None Remove="Extensions\" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Hl7.Fhir.R4" Version="3.2.0" />
+		<PackageReference Include="Hl7.Fhir.R4" Version="4.1.0" />
     </ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />

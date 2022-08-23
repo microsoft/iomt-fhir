@@ -95,8 +95,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                 if (normalizationSettings.Value.LogDeviceIngressSizeBytes)
                 {
-                    IEventProcessingMeter meter = new EventProcessingMeter();
-                    var eventStats = await meter.CalculateEventStats(events);
+                    var eventStats = await events.CalculateEventStats();
                     _logger.LogMetric(
                         IomtMetrics.DeviceIngressSizeBytes(),
                         eventStats.TotalEventsProcessedBytes);

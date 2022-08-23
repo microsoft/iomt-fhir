@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using EnsureThat;
+using Microsoft.Health.Common.Extension;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 
             if (!input.IsValid(out string errMessage))
             {
-                throw new ValidationException(errMessage);
+                throw new ValidationException(errMessage).SetLogForwarding(true);
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.2.32602.215
+VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest", "src\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj", "{269436ED-1F69-4A83-A2EB-FBE82233472F}"
 EndProject
@@ -111,6 +111,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template.Generator", "tools\mapping-generator\Microsoft.Health.Fhir.Ingest.Template.Generator\Microsoft.Health.Fhir.Ingest.Template.Generator.csproj", "{3A335D57-CF8D-4C1F-89F6-AAF703A8B501}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests", "tools\mapping-generator\Microsoft.Health.Fhir.Ingest.Template.Generator.Tests\Microsoft.Health.Fhir.Ingest.Template.Generator.UnitTests.csproj", "{9F9457B4-17DF-489C-A73F-25868FE64E5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Legacy", "src\lib\Microsoft.Health.Fhir.Ingest.Legacy\Microsoft.Health.Fhir.Ingest.Legacy.csproj", "{061E438E-828D-496C-B22F-507287667B0E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Fhir.Ingest.Legacy.UnitTests", "test\Microsoft.Health.Fhir.Ingest.Legacy.UnitTests\Microsoft.Health.Fhir.Ingest.Legacy.UnitTests.csproj", "{03DDFBF2-50B3-4B27-84DC-19D84CEB1288}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -230,6 +233,14 @@ Global
 		{9F9457B4-17DF-489C-A73F-25868FE64E5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F9457B4-17DF-489C-A73F-25868FE64E5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F9457B4-17DF-489C-A73F-25868FE64E5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{061E438E-828D-496C-B22F-507287667B0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{061E438E-828D-496C-B22F-507287667B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{061E438E-828D-496C-B22F-507287667B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{061E438E-828D-496C-B22F-507287667B0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03DDFBF2-50B3-4B27-84DC-19D84CEB1288}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03DDFBF2-50B3-4B27-84DC-19D84CEB1288}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03DDFBF2-50B3-4B27-84DC-19D84CEB1288}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03DDFBF2-50B3-4B27-84DC-19D84CEB1288}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -269,6 +280,8 @@ Global
 		{90B4DFD0-D039-438D-9541-A12482C2D9BE} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
 		{3A335D57-CF8D-4C1F-89F6-AAF703A8B501} = {80C3D951-E8D3-4DAB-9482-852EB9A6D542}
 		{9F9457B4-17DF-489C-A73F-25868FE64E5A} = {80C3D951-E8D3-4DAB-9482-852EB9A6D542}
+		{061E438E-828D-496C-B22F-507287667B0E} = {513D67B4-80E1-476D-955F-E7E7C79D144A}
+		{03DDFBF2-50B3-4B27-84DC-19D84CEB1288} = {FAF8B402-892E-4EA2-B4CF-69B0C70BA762}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A358924D-F948-4AE8-8CD0-A0F56225CE0C}

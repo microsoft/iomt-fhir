@@ -11,7 +11,9 @@ namespace Microsoft.Health.Events.Model
     {
         string PartitionId { get; }
 
-        ReadOnlyMemory<byte> Body { get; }
+        ReadOnlyMemory<byte> Body { get; set; }
+
+        string BodyContentType { get; }
 
         long SequenceNumber { get; }
 

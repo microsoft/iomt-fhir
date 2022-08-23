@@ -27,8 +27,9 @@ using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Common.Telemetry;
 using IEventProcessingMeter = Microsoft.Health.Events.Common.IEventProcessingMeter;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
-using Azure.Messaging.EventHubs.Producer;
 using Microsoft.Health.Events.Errors;
+using Microsoft.Health.Fhir.Ingest.Config;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -161,8 +162,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
             var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubClientOptions);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
-
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger);
+            var options = Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
+            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger, options);
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)

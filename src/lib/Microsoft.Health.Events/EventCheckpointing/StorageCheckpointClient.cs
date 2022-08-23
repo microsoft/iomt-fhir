@@ -31,6 +31,9 @@ namespace Microsoft.Health.Events.EventCheckpointing
         private readonly string _blobPath;
         private readonly ITelemetryLogger _logger;
         private readonly BlobContainerClient _storageClient;
+        private const string LastProcessedKey = "LastProcessed";
+        private const string SequenceNumberKey = "SequenceNumber";
+        private const string OffsetKey = "Offset";
 
         public StorageCheckpointClient(BlobContainerClient containerClient, StorageCheckpointOptions storageCheckpointOptions, EventHubClientOptions eventHubClientOptions, ITelemetryLogger logger)
         {
@@ -64,7 +67,9 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             var metadata = new Dictionary<string, string>()
             {
-                { "LastProcessed",  lastProcessed },
+                { LastProcessedKey,  lastProcessed },
+                { SequenceNumberKey,  checkpoint.SequenceNumber.ToString() },
+                { OffsetKey,  checkpoint.Offset.ToString() },
             };
 
             try
@@ -87,35 +92,49 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
+        public async Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionIdentifier, CancellationToken cancellationToken)
         {
-            var prefix = $"{_blobPath}{partitionIdentifier}";
-
-            Task<Checkpoint> GetCheckpointAsync()
-            {
-                var checkpoint = new Checkpoint();
-
-                foreach (BlobItem blob in _storageClient.GetBlobs(traits: BlobTraits.Metadata, states: BlobStates.None, prefix: prefix, cancellationToken: cancellationToken))
-                {
-                    var partitionId = blob.Name.Split('/').Last();
-                    DateTimeOffset lastEventTimestamp = DateTime.MinValue;
-
-                    if (blob.Metadata.TryGetValue("LastProcessed", out var str))
-                    {
-                        DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
-                    }
-
-                    checkpoint.Prefix = _blobPath;
-                    checkpoint.Id = partitionId;
-                    checkpoint.LastProcessed = lastEventTimestamp;
-                }
-
-                return Task.FromResult(checkpoint);
-            }
+            var partitionCheckpointFileBlobPath = $"{_blobPath}{partitionIdentifier}";
 
             try
             {
-                return GetCheckpointAsync();
+                var propsResponse = await _storageClient.GetBlobClient(partitionCheckpointFileBlobPath).GetPropertiesAsync(cancellationToken: cancellationToken);
+                var props = propsResponse.Value;
+
+                DateTimeOffset lastEventTimestamp = DateTime.MinValue;
+                long sequenceNumber = -1;
+                long offset = -1;
+
+                if (props.Metadata.TryGetValue(LastProcessedKey, out var str))
+                {
+                    DateTimeOffset.TryParse(str, null, DateTimeStyles.AssumeUniversal, out lastEventTimestamp);
+                }
+
+                if (props.Metadata.TryGetValue(SequenceNumberKey, out var sequenceNumberString))
+                {
+                    long.TryParse(sequenceNumberString, out sequenceNumber);
+                }
+
+                if (props.Metadata.TryGetValue(OffsetKey, out var offsetString))
+                {
+                    long.TryParse(offsetString, out offset);
+                }
+
+                var checkpoint = new Checkpoint();
+                checkpoint.Prefix = _blobPath;
+                checkpoint.Id = partitionIdentifier;
+                checkpoint.LastProcessed = lastEventTimestamp;
+                checkpoint.SequenceNumber = sequenceNumber;
+                checkpoint.Offset = offset;
+
+                return checkpoint;
+            }
+            catch (RequestFailedException e) when (e.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                // No checkpoint exists yet for this partition. This can happen when a new IotConnector has not yet
+                // processed any messages. Ignore
+                _logger.LogTrace($"The checkpoint file {partitionIdentifier} does not exist");
+                return new Checkpoint();
             }
             catch (Exception ex)
             {
@@ -137,6 +156,8 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     LastProcessed = eventArgs.EnqueuedTime,
                     Id = partitionId,
                     Prefix = _blobPath,
+                    SequenceNumber = eventArgs.SequenceNumber,
+                    Offset = eventArgs.Offset,
                 };
 
                 await UpdateCheckpointAsync(checkpoint);

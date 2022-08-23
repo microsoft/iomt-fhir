@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Service;
 using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json;
@@ -23,15 +25,18 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         private readonly IEventHubMessageService _eventHubService;
         private readonly IHashCodeFactory _hashCodeFactory;
         private readonly ITelemetryLogger _telemetryLogger;
+        private readonly IOptions<MeasurementToEventMessageAsyncCollectorOptions> _options;
 
         public MeasurementToEventMessageAsyncCollector(
             IEventHubMessageService eventHubService,
             IHashCodeFactory hashCodeFactory,
-            ITelemetryLogger telemetryLogger)
+            ITelemetryLogger telemetryLogger,
+            IOptions<MeasurementToEventMessageAsyncCollectorOptions> options)
         {
             _eventHubService = EnsureArg.IsNotNull(eventHubService, nameof(eventHubService));
             _hashCodeFactory = EnsureArg.IsNotNull(hashCodeFactory, nameof(hashCodeFactory));
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
+            _options = options ?? Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
         }
 
         public async Task AddAsync(IMeasurement item, CancellationToken cancellationToken = default(CancellationToken))
@@ -66,30 +71,52 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     var partitionKey = grp.Key;
                     var currentEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
 
-                    foreach (var m in grp)
+                    // Compression enhancement (off by default)
+                    // Behavior is to compress the entire measurement group and send it
+                    // When decompression is supported on the fhirtransformation side,
+                    // the compression enhancement will be changed to be on by default.
+                    if (_options != null && _options.Value.UseCompressionOnSend == true)
                     {
-                        var measurementContent = JsonConvert.SerializeObject(m, Formatting.None);
-                        var contentBytes = Encoding.UTF8.GetBytes(measurementContent);
-                        var eventData = new EventData(contentBytes);
+                        var measurementGroupContent = JsonConvert.SerializeObject(grp, Formatting.None);
+                        var compressedBytes = Common.IO.Compression.CompressWithGzip(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(grp));
+                        var eventData = new EventData(compressedBytes);
+                        eventData.ContentType = Common.IO.Compression.GzipContentType;
+                        eventData.Properties["IsMeasurementGroup"] = true;
 
                         if (!currentEventDataBatch.TryAdd(eventData))
                         {
-                            // The current EventDataBatch cannot hold any more events. Create a new EventDataBatch and add this new message to it.
-                            var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
+                            _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement group exceeded the maximum message batch size of {currentEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
 
-                            if (!newEventDataBatch.TryAdd(eventData))
+                            // consider sending to error message service
+                        }
+                    }
+                    else
+                    {
+                        foreach (var m in grp)
+                        {
+                            var measurementContent = JsonConvert.SerializeObject(m, Formatting.None);
+                            var contentBytes = Encoding.UTF8.GetBytes(measurementContent);
+                            var eventData = new EventData(contentBytes);
+
+                            if (!currentEventDataBatch.TryAdd(eventData))
                             {
-                                // The measurement event is greater than the size allowed by EventHub. Log and discard. Keep the existing batch as there may
-                                // be room for more events.
-                                // TODO in this case we should send this to a dead letter queue. We'd need to see how we can send it, as it is too big for EventHub...
-                                _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement event exceeded the maximum message batch size of {newEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
-                            }
-                            else
-                            {
-                                // Submit the current batch, and replace the currentEventDataBatch with newEventDataBatch
-                                await _eventHubService.SendAsync(currentEventDataBatch, cancellationToken);
-                                currentEventDataBatch.Dispose();
-                                currentEventDataBatch = newEventDataBatch;
+                                // The current EventDataBatch cannot hold any more events. Create a new EventDataBatch and add this new message to it.
+                                var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
+
+                                if (!newEventDataBatch.TryAdd(eventData))
+                                {
+                                    // The measurement event is greater than the size allowed by EventHub. Log and discard. Keep the existing batch as there may
+                                    // be room for more events.
+                                    // TODO in this case we should send this to a dead letter queue. We'd need to see how we can send it, as it is too big for EventHub...
+                                    _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement event exceeded the maximum message batch size of {newEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
+                                }
+                                else
+                                {
+                                    // Submit the current batch, and replace the currentEventDataBatch with newEventDataBatch
+                                    await _eventHubService.SendAsync(currentEventDataBatch, cancellationToken);
+                                    currentEventDataBatch.Dispose();
+                                    currentEventDataBatch = newEventDataBatch;
+                                }
                             }
                         }
                     }

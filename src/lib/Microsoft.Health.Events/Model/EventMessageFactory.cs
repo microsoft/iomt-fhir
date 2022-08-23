@@ -14,8 +14,9 @@ namespace Microsoft.Health.Events.Model
             var eventMessage = new EventMessage(
                 eventArgs.Partition.PartitionId,
                 eventArgs.Data.Body,
-                eventArgs.Data.Offset,
+                eventArgs.Data.ContentType,
                 eventArgs.Data.SequenceNumber,
+                eventArgs.Data.Offset,
                 eventArgs.Data.EnqueuedTime.UtcDateTime,
                 eventArgs.Data.Properties,
                 eventArgs.Data.SystemProperties);
