@@ -62,7 +62,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             if (throwOnMultipleFound && resourceCount > 1)
             {
-                throw new MultipleResourceFoundException<TResource>(resourceCount);
+                throw new MultipleResourceFoundException<TResource>(resourceCount, resources.Select(r => r.Id));
             }
 
             return resources.FirstOrDefault();
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Extensions.Fhir
             return bundle?.Entry?.Count ?? 0;
         }
 
-        private static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(
+        public static async Task<IEnumerable<TResource>> ReadFromBundleWithContinuationAsync<TResource>(
             this Bundle bundle,
             IFhirService fhirService,
             int? count = null)

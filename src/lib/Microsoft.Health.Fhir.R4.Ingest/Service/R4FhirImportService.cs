@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Caching.Memory;
@@ -85,12 +86,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             if (!_observationCache.TryGetValue(cacheKey, out Model.Observation existingObservation))
             {
                 existingObservation = await GetObservationFromServerAsync(identifier).ConfigureAwait(false);
-
-                // Discovered an issue where FHIR Service is only matching on first 128 characters of the identifier.  This is a temporary measure to prevent merging of different observations until a fix is available.
-                if (existingObservation != null && !existingObservation.Identifier.Exists(i => i.IsExactly(identifier)))
-                {
-                    throw new NotSupportedException("FHIR Service returned matching observation but expected identifier was not present.");
-                }
             }
 
             var policyResult = await Policy<(Model.Observation observation, ResourceOperation operationType)>
@@ -202,7 +197,35 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         protected virtual async Task<Model.Observation> GetObservationFromServerAsync(Model.Identifier identifier)
         {
             var result = await _fhirService.SearchForResourceAsync(Model.ResourceType.Observation, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
-            return await result.ReadOneFromBundleWithContinuationAsync<Model.Observation>(_fhirService);
+
+            var foundObservations = (await result.ReadFromBundleWithContinuationAsync<Model.Observation>(_fhirService).ConfigureAwait(false))
+                .ToArray();
+
+            if (foundObservations.Length == 0)
+            {
+                return null;
+            }
+
+            // Discovered an issue where FHIR Service is only matching on first 128 characters of the identifier.
+            // Match observations that match the desired identifier.
+            // This will also prevent merging observations that share the first 128 characters.
+
+            var matchedObservations = foundObservations
+                .Where(obs => obs.Identifier.Any(id => identifier.IsExactly(id)))
+                .ToArray();
+
+            if (matchedObservations.Length == 0)
+            {
+                return null;
+            }
+
+            if (matchedObservations.Length == 1)
+            {
+                return matchedObservations[0];
+            }
+
+            // More than one Observation found with the same identifier.
+            throw new MultipleResourceFoundException<Model.Observation>(matchedObservations.Length, matchedObservations.Select(obs => obs.Id));
         }
     }
 }
