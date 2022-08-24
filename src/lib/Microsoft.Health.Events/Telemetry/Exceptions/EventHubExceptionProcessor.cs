@@ -55,6 +55,9 @@ namespace Microsoft.Health.Events.Telemetry.Exceptions
                         case EventHubsException.FailureReason.ServiceCommunicationProblem:
                             message = EventResources.EventHubServiceCommunicationProblem;
                             break;
+                        case EventHubsException.FailureReason.ConsumerDisconnected:
+                            message = EventResources.EventHubMultipleConsumersError;
+                            break;
                         default:
                             return (exception, reason.ToString());
                     }

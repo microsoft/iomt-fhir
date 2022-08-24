@@ -104,5 +104,22 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 EventHubExceptionProcessor.ProcessException(ex, Logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
             }
         }
+
+        protected virtual void HandleOwnershipFailure(AggregateException ex)
+        {
+            foreach (var e in ex.InnerExceptions)
+            {
+                var eventHubException = e as EventHubsException;
+
+                // another consumer with a higher epoch has ownership
+                if (eventHubException != null && eventHubException.Reason == EventHubsException.FailureReason.ConsumerDisconnected)
+                {
+                    EventHubExceptionProcessor.ProcessException(eventHubException, Logger, errorMetricName: EventHubErrorCode.ConfigurationError.ToString());
+                    return;
+                }
+            }
+
+            throw ex;
+        }
     }
 }
