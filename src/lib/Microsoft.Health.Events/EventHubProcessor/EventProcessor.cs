@@ -46,7 +46,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 }
 
                 Logger.LogTrace("Unable to read from event hub. Retrying in 1 minute");
-                await Task.Delay(TimeSpan.FromMinutes(1));
+                await Task.Delay(TimeSpan.FromMinutes(1), ct);
             }
 
             // Wait indefinitely until cancellation is requested
