@@ -25,38 +25,42 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // Reset previous checkpoints corresponding to an older source event hub (i.e. applicable if the source event hub changes)
             await CheckpointClient.ResetCheckpointsAsync(ct);
 
-            bool connected = false;
+            EventProcessorClient.ProcessEventAsync += ProcessEventHandler;
+            EventProcessorClient.ProcessErrorAsync += ProcessErrorHandler;
+            EventProcessorClient.PartitionInitializingAsync += ProcessInitializingHandler;
 
+            // Try to connect and read events
+            bool connected = false;
             while (!connected)
             {
                 try
                 {
-                    EventProcessorClient.ProcessEventAsync += ProcessEventHandler;
-                    EventProcessorClient.ProcessErrorAsync += ProcessErrorHandler;
-                    EventProcessorClient.PartitionInitializingAsync += ProcessInitializingHandler;
-
-                    Console.WriteLine($"Starting event hub processor at {DateTime.UtcNow}");
+                    Logger.LogTrace($"Starting event hub processor at {DateTime.UtcNow}");
                     await EventProcessorClient.StartProcessingAsync(ct);
                     connected = true;
-
-                    // Wait indefinitely until cancellation is requested
-                    ct.WaitHandle.WaitOne();
-
-                    await EventProcessorClient.StopProcessingAsync();
+                    break;
                 }
                 catch (AggregateException ex)
                 {
                     HandleOwnershipFailure(ex);
                 }
-                finally
-                {
-                    EventProcessorClient.ProcessEventAsync -= ProcessEventHandler;
-                    EventProcessorClient.ProcessErrorAsync -= ProcessErrorHandler;
-                    EventProcessorClient.PartitionInitializingAsync -= ProcessInitializingHandler;
-                }
 
-                Console.WriteLine("Unable to read from event hub. Retrying in 1 minute");
+                Logger.LogTrace("Unable to read from event hub. Retrying in 1 minute");
                 await Task.Delay(TimeSpan.FromMinutes(1));
+            }
+
+            // Wait indefinitely until cancellation is requested
+            try
+            {
+                ct.WaitHandle.WaitOne();
+
+                await EventProcessorClient.StopProcessingAsync();
+            }
+            finally
+            {
+                EventProcessorClient.ProcessEventAsync -= ProcessEventHandler;
+                EventProcessorClient.ProcessErrorAsync -= ProcessErrorHandler;
+                EventProcessorClient.PartitionInitializingAsync -= ProcessInitializingHandler;
             }
         }
     }

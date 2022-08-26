@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -107,16 +108,14 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         protected virtual void HandleOwnershipFailure(AggregateException ex)
         {
-            foreach (var e in ex.InnerExceptions)
-            {
-                var eventHubException = e as EventHubsException;
+            var consumerDisconnectedEx = ex.InnerExceptions
+                .OfType<EventHubsException>()
+                .FirstOrDefault(e => e.Reason == EventHubsException.FailureReason.ConsumerDisconnected);
 
-                // another consumer with a higher epoch has ownership
-                if (eventHubException != null && eventHubException.Reason == EventHubsException.FailureReason.ConsumerDisconnected)
-                {
-                    EventHubExceptionProcessor.ProcessException(eventHubException, Logger, errorMetricName: EventHubErrorCode.ConfigurationError.ToString());
-                    return;
-                }
+            if (consumerDisconnectedEx != null)
+            {
+                EventHubExceptionProcessor.ProcessException(consumerDisconnectedEx, Logger, errorMetricName: EventHubErrorCode.ConfigurationError.ToString());
+                return;
             }
 
             throw ex;
