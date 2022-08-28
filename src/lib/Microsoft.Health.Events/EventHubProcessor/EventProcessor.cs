@@ -29,12 +29,29 @@ namespace Microsoft.Health.Events.EventHubProcessor
             EventProcessorClient.ProcessErrorAsync += ProcessErrorHandler;
             EventProcessorClient.PartitionInitializingAsync += ProcessInitializingHandler;
 
+            // Try to connect and read events
+            bool connected = false;
+            while (!connected)
+            {
+                try
+                {
+                    Logger.LogTrace($"Starting event hub processor at {DateTime.UtcNow}");
+                    await EventProcessorClient.StartProcessingAsync(ct);
+                    connected = true;
+                    break;
+                }
+                catch (AggregateException ex)
+                {
+                    HandleOwnershipFailure(ex);
+                }
+
+                Logger.LogTrace("Unable to read from event hub. Retrying in 1 minute");
+                await Task.Delay(TimeSpan.FromMinutes(1), ct);
+            }
+
+            // Wait indefinitely until cancellation is requested
             try
             {
-                Console.WriteLine($"Starting event hub processor at {DateTime.UtcNow}");
-                await EventProcessorClient.StartProcessingAsync(ct);
-
-                // Wait indefinitely until cancellation is requested
                 ct.WaitHandle.WaitOne();
 
                 await EventProcessorClient.StopProcessingAsync();

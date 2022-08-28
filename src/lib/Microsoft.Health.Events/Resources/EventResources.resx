@@ -129,6 +129,9 @@
   <data name="EventHubInvalidConsumerGroup" xml:space="preserve">
     <value>Verify that the provided Event Hub contains the provided consumer group.</value>
   </data>
+  <data name="EventHubMultipleConsumersError" xml:space="preserve">
+    <value>Verify that no other Event Consumers are connected to the source Event Hub.</value>
+  </data>
   <data name="EventHubResourceNotFound" xml:space="preserve">
     <value>Verify that the provided Event Hubs Namespace contains the provided Event Hub and that the provided Event Hub contains the provided consumer group.</value>
   </data>

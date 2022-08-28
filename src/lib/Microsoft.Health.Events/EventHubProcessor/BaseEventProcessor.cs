@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -103,6 +104,21 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
                 EventHubExceptionProcessor.ProcessException(ex, Logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
             }
+        }
+
+        protected virtual void HandleOwnershipFailure(AggregateException ex)
+        {
+            var consumerDisconnectedEx = ex.InnerExceptions
+                .OfType<EventHubsException>()
+                .FirstOrDefault(e => e.Reason == EventHubsException.FailureReason.ConsumerDisconnected);
+
+            if (consumerDisconnectedEx != null)
+            {
+                EventHubExceptionProcessor.ProcessException(consumerDisconnectedEx, Logger, errorMetricName: EventHubErrorCode.ConfigurationError.ToString());
+                return;
+            }
+
+            throw ex;
         }
     }
 }

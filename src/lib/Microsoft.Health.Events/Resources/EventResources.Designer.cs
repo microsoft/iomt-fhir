@@ -19,7 +19,7 @@ namespace Microsoft.Health.Events.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EventResources {
@@ -93,6 +93,15 @@ namespace Microsoft.Health.Events.Resources {
         internal static string EventHubInvalidConsumerGroup {
             get {
                 return ResourceManager.GetString("EventHubInvalidConsumerGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verify that no other Event Consumers are connected to the source Event Hub..
+        /// </summary>
+        internal static string EventHubMultipleConsumersError {
+            get {
+                return ResourceManager.GetString("EventHubMultipleConsumersError", resourceCulture);
             }
         }
         
