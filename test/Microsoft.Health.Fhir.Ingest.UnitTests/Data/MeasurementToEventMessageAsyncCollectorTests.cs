@@ -24,16 +24,14 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         private IHashCodeGenerator _hashCodeGenerator;
         private ITelemetryLogger _telemetryLogger;
         private IEnumerableAsyncCollector<IMeasurement> _measurementCollector;
-        private IOptions<MeasurementToEventMessageAsyncCollectorOptions> _options;
 
         public MeasurementToEventMessageAsyncCollectorTests()
         {
             _eventHubService = Substitute.For<IEventHubMessageService>();
             _hashCodeFactory = Substitute.For<IHashCodeFactory>();
             _telemetryLogger = Substitute.For<ITelemetryLogger>();
-            _options = Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
 
-            _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger, _options);
+            _measurementCollector = new MeasurementToEventMessageAsyncCollector(_eventHubService, _hashCodeFactory, _telemetryLogger);
             _hashCodeGenerator = Substitute.For<IHashCodeGenerator>();
             _hashCodeGenerator.GenerateHashCode(Arg.Any<string>()).Returns("123");
             _hashCodeFactory.CreateDeterministicHashCodeGenerator().Returns(_hashCodeGenerator);
