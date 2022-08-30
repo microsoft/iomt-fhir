@@ -91,7 +91,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             else if (applicationType == _measurementToFhirAppType)
             {
                 template = Configuration.GetSection("Template:FhirMapping").Value;
-                var importService = serviceProvider.GetRequiredService<MeasurementFhirImportService>();
+                var importService = serviceProvider.GetRequiredService<IImportService>();
                 var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
                 var measurementCollectionToFhir = new MeasurementCollectionToFhir.Processor(template, templateManager, importService, logger, errorMessageService);
                 eventConsumers.Add(measurementCollectionToFhir);
@@ -162,8 +162,19 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
             var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubClientOptions);
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
-            var options = Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger, options);
+            
+            var collectorOptions = new CollectorOptions();
+            Configuration.GetSection(CollectorOptions.Settings).Bind(collectorOptions);
+
+            if (collectorOptions.UseCompressionOnSend)
+            {
+                return new MeasurementGroupToCompressedEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger);
+            }
+            else
+            {
+                return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger);
+            }
+
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)

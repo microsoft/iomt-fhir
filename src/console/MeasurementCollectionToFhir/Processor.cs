@@ -26,7 +26,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
     public class Processor : IEventConsumer
     {
         private ITemplateManager _templateManager;
-        private MeasurementFhirImportService _measurementImportService;
+        private IImportService _measurementImportService;
         private string _templateDefinition;
         private ITelemetryLogger _logger;
         private IErrorMessageService _errorMessageService;
@@ -35,7 +35,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
         public Processor(
             [Blob("template/%Template:FhirMapping%", FileAccess.Read)] string templateDefinition,
             ITemplateManager templateManager,
-            [MeasurementFhirImport] MeasurementFhirImportService measurementImportService,
+            IImportService measurementImportService,
             ITelemetryLogger logger,
             IErrorMessageService errorMessageService = null)
         {
