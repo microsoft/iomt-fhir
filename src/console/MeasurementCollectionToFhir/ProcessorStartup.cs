@@ -51,20 +51,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             services.TryAddSingleton<IExceptionTelemetryProcessor, FhirExceptionTelemetryProcessor>();
             
             services.TryAddSingleton<MeasurementFhirImportOptions>();
+            MeasurementImportServiceExtensions.AddImportService(services, Configuration);
 
-            var collectorOptions = new CollectorOptions();
-            Configuration.GetSection(CollectorOptions.Settings).Bind(collectorOptions);
-
-            if (!collectorOptions.UseCompressionOnSend)
-            {
-                services.TryAddSingleton<IImportService, MeasurementFhirImportService>();
-            }
-            else
-            {
-                services.TryAddSingleton<IImportService, MeasurementGroupFhirImportService>();
-            }
-            
-            
             services.TryAddSingleton(ResolveMeasurementImportProvider);
         }
 

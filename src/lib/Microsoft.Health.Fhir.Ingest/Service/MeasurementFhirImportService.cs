@@ -9,11 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Common.IO;
 using Microsoft.Health.Common.Service;
 using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Exceptions;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
@@ -175,6 +177,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             IEnumerable<IMeasurementGroup> measurementGroups = data.Select(e =>
             {
+                if (e.BodyContentType == Compression.GzipContentType)
+                {
+                    throw new CompressionNotSupportedException();
+                }
+
                 try
                 {
                     var measurement = JsonConvert.DeserializeObject<Measurement>(System.Text.Encoding.Default.GetString(e.Body.ToArray()));
