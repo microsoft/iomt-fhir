@@ -17,14 +17,14 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public class MeasurementToEventMessageAsyncCollector :
+    public class MeasurementGroupToCompressedEventMessageAsyncCollector :
         IEnumerableAsyncCollector<IMeasurement>
     {
         private readonly IEventHubMessageService _eventHubService;
         private readonly IHashCodeFactory _hashCodeFactory;
         private readonly ITelemetryLogger _telemetryLogger;
 
-        public MeasurementToEventMessageAsyncCollector(
+        public MeasurementGroupToCompressedEventMessageAsyncCollector(
             IEventHubMessageService eventHubService,
             IHashCodeFactory hashCodeFactory,
             ITelemetryLogger telemetryLogger)
@@ -66,32 +66,21 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                     var partitionKey = grp.Key;
                     var currentEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
 
-                    foreach (var m in grp)
+                    // Compression enhancement
+                    // Behavior is to compress the entire measurement group and send it
+                    // When decompression is supported on the fhirtransformation side,
+                    // the compression enhancement class will be injected at startup by default
+                    var measurementGroupContent = JsonConvert.SerializeObject(grp, Formatting.None);
+                    var compressedBytes = Common.IO.Compression.CompressWithGzip(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(grp));
+                    var eventData = new EventData(compressedBytes);
+                    eventData.ContentType = Common.IO.Compression.GzipContentType;
+                    eventData.Properties["IsMeasurementGroup"] = true;
+
+                    if (!currentEventDataBatch.TryAdd(eventData))
                     {
-                        var measurementContent = JsonConvert.SerializeObject(m, Formatting.None);
-                        var contentBytes = Encoding.UTF8.GetBytes(measurementContent);
-                        var eventData = new EventData(contentBytes);
+                        _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement group exceeded the maximum message batch size of {currentEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
 
-                        if (!currentEventDataBatch.TryAdd(eventData))
-                        {
-                            // The current EventDataBatch cannot hold any more events. Create a new EventDataBatch and add this new message to it.
-                            var newEventDataBatch = await _eventHubService.CreateEventDataBatchAsync(partitionKey);
-
-                            if (!newEventDataBatch.TryAdd(eventData))
-                            {
-                                // The measurement event is greater than the size allowed by EventHub. Log and discard. Keep the existing batch as there may
-                                // be room for more events.
-                                // TODO in this case we should send this to a dead letter queue. We'd need to see how we can send it, as it is too big for EventHub...
-                                _telemetryLogger.LogError(new ArgumentOutOfRangeException($"A measurement event exceeded the maximum message batch size of {newEventDataBatch.MaximumSizeInBytes} bytes. It will be skipped."));
-                            }
-                            else
-                            {
-                                // Submit the current batch, and replace the currentEventDataBatch with newEventDataBatch
-                                await _eventHubService.SendAsync(currentEventDataBatch, cancellationToken);
-                                currentEventDataBatch.Dispose();
-                                currentEventDataBatch = newEventDataBatch;
-                            }
-                        }
+                        // consider sending to error message service
                     }
 
                     // Send over the remaining events

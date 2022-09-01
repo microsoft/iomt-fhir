@@ -28,8 +28,6 @@ using Microsoft.Health.Common.Telemetry;
 using IEventProcessingMeter = Microsoft.Health.Events.Common.IEventProcessingMeter;
 using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Events.Errors;
-using Microsoft.Health.Fhir.Ingest.Config;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -57,6 +55,23 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             services.AddSingleton(ResolveEventConsumerService);
             services.AddSingleton(ResolveEventProcessorClient);
             services.AddSingleton(ResolveEventProcessor);
+            services.AddSingleton((sp) =>
+            {
+                var options = new EventHubClientOptions();
+                Configuration.GetSection("NormalizationEventHub").Bind(options);
+                return options;
+            });
+            services.AddSingleton((sp) =>
+            {
+                var options = sp.GetRequiredService<EventHubClientOptions>();
+                var eventHubProducerFactory = sp.GetRequiredService<IEventProducerClientFactory>();
+                var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(options);
+                return eventHubProducerClient;
+            });
+            services.AddSingleton<IEventHubMessageService, EventHubProducerService>();
+            services.AddSingleton<IHashCodeFactory, HashCodeFactory>();
+
+            EventMessageAsyncCollectorExtensions.AddEventMessageAsyncCollector(services, Configuration);
             services.AddNormalizationExceptionTelemetryProcessor(Configuration);
         }
         public virtual TemplateManager ResolveTemplateManager(IServiceProvider serviceProvider)
@@ -81,7 +96,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             if (applicationType == _normalizationAppType)
             {
                 template = Configuration.GetSection("Template:DeviceContent").Value;
-                var collector = ResolveEventCollector(serviceProvider);
+                var collector = serviceProvider.GetRequiredService<IEnumerableAsyncCollector<IMeasurement>>();
                 var collectionContentFactory = serviceProvider.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
                 var exceptionTelemetryProcessor = serviceProvider.GetRequiredService<NormalizationExceptionTelemetryProcessor>();
                 var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
@@ -91,7 +106,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             else if (applicationType == _measurementToFhirAppType)
             {
                 template = Configuration.GetSection("Template:FhirMapping").Value;
-                var importService = serviceProvider.GetRequiredService<MeasurementFhirImportService>();
+                var importService = serviceProvider.GetRequiredService<IImportService>();
                 var errorMessageService = serviceProvider.GetService<IErrorMessageService>();
                 var measurementCollectionToFhir = new MeasurementCollectionToFhir.Processor(template, templateManager, importService, logger, errorMessageService);
                 eventConsumers.Add(measurementCollectionToFhir);
@@ -152,18 +167,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console
             var eventConsumers = serviceProvider.GetRequiredService<List<IEventConsumer>>();
             var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
             return new EventConsumerService(eventConsumers, logger);
-        }
-
-        public virtual IEnumerableAsyncCollector<IMeasurement> ResolveEventCollector(IServiceProvider serviceProvider)
-        {
-            var eventHubClientOptions = new EventHubClientOptions();
-            Configuration.GetSection("NormalizationEventHub").Bind(eventHubClientOptions);
-
-            var eventHubProducerFactory = serviceProvider.GetRequiredService<IEventProducerClientFactory>();
-            var eventHubProducerClient = eventHubProducerFactory.GetEventHubProducerClient(eventHubClientOptions);
-            var logger = serviceProvider.GetRequiredService<ITelemetryLogger>();
-            var options = Options.Create(new MeasurementToEventMessageAsyncCollectorOptions());
-            return new MeasurementToEventMessageAsyncCollector(new EventHubProducerService(eventHubProducerClient, logger), new HashCodeFactory(), logger, options);
         }
 
         public virtual EventProcessorClient ResolveEventProcessorClient(IServiceProvider serviceProvider)

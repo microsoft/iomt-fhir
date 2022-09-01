@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ using Microsoft.Health.Common.Config;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
+using Microsoft.Health.Fhir.Ingest.Exceptions;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
@@ -237,47 +239,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
-        public async void GivenMeasurementGroupEvent_WhenProcessEventsAsync_ThenProcessAsyncInvokedAndCompleteSuccessfully_Test()
-        {
-            var log = Substitute.For<ITelemetryLogger>();
-            var options = BuildMockOptions();
-            var fhirService = Substitute.For<FhirImportService>();
-            var exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
-
-            var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
-
-            JArray o = JArray.Parse(
-            @"[{
-                'Type': 'summary',
-                'OccurrenceTimeUtc': '2020-08-10T00:15:00Z',
-                'IngestionTimeUtc': '2022-08-10T19:29:56.993Z',
-                'DeviceId': 'ABC',
-                'PatientId': '123',
-                'EncounterId': null,
-                'CorrelationId': null,
-                'Properties': [
-                    { 'Name': 'testdata1','Value':'1'},
-                    { 'Name': 'testdata2','Value':'2'}
-                ]
-            }]");
-
-            var jsonString = JsonConvert.SerializeObject(o, Formatting.None);
-            var contentBytes = Encoding.UTF8.GetBytes(jsonString);
-
-            // set IsMeasurementGroup property
-            var events = new List<EventMessage>()
-            {
-                new EventMessage("0", contentBytes, null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>() { { "IsMeasurementGroup", true } }, new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
-            };
-
-            await fhirImport.ProcessEventsAsync(events, string.Empty, log);
-
-            options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
-        }
-
-        [Fact]
-        public async void GivenCompressedMeasurementGroupEvent_WhenProcessEventsAsync_ThenProcessAsyncInvokedAndCompleteSuccessfully_Test()
+        public async void GivenCompressedMeasurementGroupEvent_WhenProcessEventsAsync_ThenCompressionNotSupportedExceptionThrown_Test()
         {
             var log = Substitute.For<ITelemetryLogger>();
             var options = BuildMockOptions();
@@ -315,10 +277,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 new EventMessage("0", compressedBytes, Common.IO.Compression.GzipContentType, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>() { { "IsMeasurementGroup", true } }, new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
             };
 
-            await fhirImport.ProcessEventsAsync(events, string.Empty, log);
+            var ex = await Assert.ThrowsAsync<CompressionNotSupportedException>(async () => await fhirImport.ProcessEventsAsync(events, string.Empty, log));
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
+            exceptionTelemetryProcessor.Received(1).HandleException(ex, log);
         }
 
         private static Stream ToStream(object obj)

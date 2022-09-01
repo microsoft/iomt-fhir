@@ -49,19 +49,20 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 
             services.TryAddSingleton<ResourceManagementService>();
             services.TryAddSingleton<IExceptionTelemetryProcessor, FhirExceptionTelemetryProcessor>();
+            
             services.TryAddSingleton<MeasurementFhirImportOptions>();
-            services.TryAddSingleton<MeasurementFhirImportService>();
+            MeasurementImportServiceExtensions.AddImportService(services, Configuration);
+
             services.TryAddSingleton(ResolveMeasurementImportProvider);
         }
 
         private MeasurementFhirImportProvider ResolveMeasurementImportProvider(IServiceProvider serviceProvider)
         {
             EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-
+            
             var options = Options.Create(serviceProvider.GetRequiredService<MeasurementFhirImportOptions>());
             var logger = new LoggerFactory();
             var measurementImportService = new MeasurementFhirImportProvider(Configuration, options, logger, serviceProvider);
-
             return measurementImportService;
         }
 

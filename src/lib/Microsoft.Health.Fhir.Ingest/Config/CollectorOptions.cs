@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Fhir.Ingest.Config
 {
-    public class MeasurementToEventMessageAsyncCollectorOptions
+    public class CollectorOptions
     {
         public const string Settings = "CollectorOptions";
 
