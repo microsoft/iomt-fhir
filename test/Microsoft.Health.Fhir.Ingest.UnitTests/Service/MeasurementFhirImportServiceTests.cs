@@ -283,7 +283,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             exceptionTelemetryProcessor.Received(1).HandleException(ex, log);
         }
 
-
         private static Stream ToStream(object obj)
         {
             var stream = new MemoryStream();
