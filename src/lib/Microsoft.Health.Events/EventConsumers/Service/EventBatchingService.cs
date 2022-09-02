@@ -57,7 +57,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             return _eventPartitions[partitionId];
         }
 
-        private bool EventPartitionExists(string partitionId)
+        public bool EventPartitionExists(string partitionId)
         {
             return _eventPartitions.ContainsKey(partitionId);
         }
@@ -65,6 +65,14 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private EventPartition CreatePartitionIfMissing(string partitionId, DateTime initTime, TimeSpan flushTimespan)
         {
             return _eventPartitions.GetOrAdd(partitionId, new EventPartition(partitionId, initTime, flushTimespan, _logger));
+        }
+
+        public void NewPartitionInitialized(string partitionId)
+        {
+            if (EventPartitionExists(partitionId))
+            {
+                _eventPartitions.TryRemove(partitionId, out _);
+            }
         }
 
         public async Task ConsumeEvent(IEventMessage eventArg)

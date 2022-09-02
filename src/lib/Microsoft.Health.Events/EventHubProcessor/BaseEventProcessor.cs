@@ -91,6 +91,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
             try
             {
+                EventConsumerService.NewPartitionInitialized(partitionId);
                 var checkpoint = await CheckpointClient.GetCheckpointForPartitionAsync(partitionId, initArgs.CancellationToken);
                 initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
                 Logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
