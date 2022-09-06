@@ -190,5 +190,36 @@ namespace Microsoft.Health.Events.UnitTest
 
             Assert.Equal(endWindow2, partitionWindow2);
         }
+
+        [Fact]
+        public async void GivenBatchServiceCreated_WhenPartitionClosing_ThenPartitionQueueCleared_Test()
+        {
+            var partitionId = "0";
+            var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
+
+            var enqueuedTime = DateTime.UtcNow;
+
+            var event1 = new EventMessage(partitionId, new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            await eventReader.ConsumeEvent(event1);
+
+            var endWindow = enqueuedTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
+            var partitionWindow = eventReader.GetPartition(partitionId).GetPartitionWindow();
+
+            Assert.Equal(endWindow, partitionWindow);
+
+            eventReader.PartitionClosing(partitionId);
+            var partitionExists = eventReader.EventPartitionExists(partitionId);
+
+            Assert.False(partitionExists);
+
+            var enqueuedTime2 = DateTime.UtcNow;
+            var event2 = new EventMessage(partitionId, new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime2, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            await eventReader.ConsumeEvent(event2);
+
+            var endWindow2 = enqueuedTime2.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
+            var partitionWindow2 = eventReader.GetPartition(partitionId).GetPartitionWindow();
+
+            Assert.Equal(endWindow2, partitionWindow2);
+        }
     }
 }

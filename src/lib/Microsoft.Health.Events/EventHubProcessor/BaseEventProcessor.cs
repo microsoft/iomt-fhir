@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,6 +106,14 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
                 EventHubExceptionProcessor.ProcessException(ex, Logger, errorMetricName: EventHubErrorCode.EventHubPartitionInitFailed.ToString());
             }
+        }
+
+        protected virtual Task PartitionClosingHandler(PartitionClosingEventArgs args)
+        {
+            var partitionId = args.PartitionId;
+            Logger.LogTrace($"Received PartitionClosingEvent for {partitionId}");
+            EventConsumerService.PartitionClosing(args.PartitionId);
+            return Task.CompletedTask;
         }
 
         protected virtual void HandleOwnershipFailure(AggregateException ex)

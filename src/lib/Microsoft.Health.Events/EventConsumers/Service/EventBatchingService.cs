@@ -69,6 +69,16 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         public void NewPartitionInitialized(string partitionId)
         {
+            ClearPartition(partitionId);
+        }
+
+        public void PartitionClosing(string partitionId)
+        {
+            ClearPartition(partitionId);
+        }
+
+        public void ClearPartition(string partitionId)
+        {
             if (EventPartitionExists(partitionId))
             {
                 _eventPartitions.TryRemove(partitionId, out _);
