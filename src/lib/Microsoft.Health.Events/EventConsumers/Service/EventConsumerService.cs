@@ -46,5 +46,10 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 }
             }
         }
+
+        public void NewPartitionInitialized(string partitionId)
+        {
+            // do nothing
+        }
     }
 }
