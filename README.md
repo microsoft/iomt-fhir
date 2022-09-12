@@ -4,9 +4,9 @@
 
 The IoMT FHIR Connector for Azure is an open-source project for ingesting data from IoMT (internet of medical things) devices and persisting the data in a FHIR&reg; server. The goal of this Microsoft Healthcare project is to enable developers to rapidly deploy a service for ingesting high frequency IoMT data and landing the data in a FHIR server of their choice.
 
-Device data can be written to directly to the IoMT FHIR Connector for Azure or seamlessly used in concert with other Azure IoT solutions (IoT Hub and IoT Central). Please be aware the the connector itself is an open-source project and does not provide device security or management. The Azure IoT solutions themselves support compliance with national, regional, and industry-specific requirements.
+Device data can be directly written to the IoMT FHIR Connector for Azure or seamlessly used in concert with other Azure IoT solutions (IoT Hub and IoT Central). Please be aware the the connector itself is an open-source project and does not provide device security or management. The Azure IoT solutions themselves support compliance with national, regional, and industry-specific requirements.
 
-The IoMT FHIR Connector for Azure is intended only for use in transferring and formatting data.  It is not intended for use as a medical device or to perform any analysis or any medical function and the performance of the software for such purposes has not been established.  You bear sole responsibility for any use of this software, including incorporation into any product intended for a medical purpose.
+The IoMT FHIR Connector for Azure is intended only for use in transferring and formatting data.  It is not intended for use as a medical device or to perform any analysis or any medical function, and the performance of the software for such purposes has not been established.  You bear sole responsibility for any use of this software, including incorporation into any product intended for a medical purpose.
 
 The IoMT FHIR Connector for Azure is built with extensibility in mind, enabling developers to modify and extend the capabilities to support additional device mapping template types and FHIR resources. The different points for extension are:
 * Normalization: Device data information is extracted into a common format for further processing.
