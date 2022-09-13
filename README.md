@@ -4,17 +4,15 @@
 
 The IoMT FHIR Connector for Azure is an open-source project for ingesting data from IoMT (internet of medical things) devices and persisting the data in a FHIR&reg; server. The goal of this Microsoft Healthcare project is to enable developers to rapidly deploy a service for ingesting high frequency IoMT data and landing the data in a FHIR server of their choice.
 
-Device data can be written to directly to the IoMT FHIR Connector for Azure or seamlessly used in concert with other Azure IoT solutions (IoT Hub and IoT Central).  The connector does not provide device security or management which are covered by the Azure IoT solutions mentioned.
+Device data can be directly written to the IoMT FHIR Connector for Azure or seamlessly used in concert with other Azure IoT solutions (IoT Hub and IoT Central). Please be aware the the connector itself is an open-source project and does not provide device security or management. The Azure IoT solutions themselves support compliance with national, regional, and industry-specific requirements.
+
+The IoMT FHIR Connector for Azure is intended only for use in transferring and formatting data.  It is not intended for use as a medical device or to perform any analysis or any medical function, and the performance of the software for such purposes has not been established.  You bear sole responsibility for any use of this software, including incorporation into any product intended for a medical purpose.
 
 The IoMT FHIR Connector for Azure is built with extensibility in mind, enabling developers to modify and extend the capabilities to support additional device mapping template types and FHIR resources. The different points for extension are:
 * Normalization: Device data information is extracted into a common format for further processing.
 * FHIR Conversion: Normalized and grouped data is mapped to FHIR.  Observations are created or updated according to configured templates and linked to the device and patient.
 
 The IoMT FHIR Connector for Azure empowers developers – saving time when they need to quickly integrate IoMT data into their FHIR server for use in their own applications or providing them with a foundation on which they can customize their own IoMT FHIR connector service. As an open source project, contributions and feedback from the FHIR developer community will continue to improve this project.
-
-Privacy and security are top priorities and the IoMT FHIR Connector for Azure has been developed in support of requirements for Protected Health Information (PHI). All the Azure services used in IoMT FHIR Connector for Azure [meet the compliance requirements for Protected Health Information](https://www.microsoft.com/en-us/trustcenter/compliance/complianceofferings).
-
-This open source project is fully backed by the Microsoft Healthcare team, but we know that this project will only get better with your feedback and contributions. We are leading the development of this code base, and test builds and deployments daily.
 
 # Setup and Requirements
 - R4 FHIR server with support for Device, Patient, and Observation resources.
@@ -85,4 +83,4 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-FHIR&reg; is the registered trademark of HL7 and is used with the permission of HL7. 
+FHIR&reg; is a registered trademark of Health Level Seven International, registered in the U.S. Trademark Office and is used with their permission.
