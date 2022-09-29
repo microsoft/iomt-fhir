@@ -9,11 +9,14 @@ using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Rest;
+using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Extensions.Fhir.Search
 {
     public static class SearchExtensions
     {
+        public const string SearchDateFormat = "yyyy-MM-ddTHH:mm:ssZ";
+
         public static Hl7.Fhir.Rest.SearchParams MatchOnId(this Hl7.Fhir.Rest.SearchParams searchParams, string id)
         {
             EnsureArg.IsNotNull(searchParams, nameof(searchParams));
@@ -201,9 +204,9 @@ namespace Microsoft.Health.Extensions.Fhir.Search
 
         public static string ToExpandedSearchQueryParameters(this Hl7.Fhir.Model.Identifier identifier)
         {
-            EnsureArg.IsNotNull(identifier?.Value, nameof(identifier.Value));
+            EnsureArg.IsNotNullOrWhiteSpace(identifier?.Value, nameof(identifier.Value));
 
-            string[] components = identifier.Value?.Split('.');
+            string[] components = identifier.Value.Split('.');
 
             // Check if the identifier contains at least 5 components separated by '.', e.g. 'patientId.deviceId.typeName.startTime.endTime'.
             if (components.Length >= 5)
@@ -214,7 +217,7 @@ namespace Microsoft.Health.Extensions.Fhir.Search
                     // Make sure the end component can be converted to an ISO 8601 time string.
                     if (TryGetFormattedDateString(components[components.Count() - 1], out string end))
                     {
-                        // Merge any componets the might make up the typeName.
+                        // Merge any components that might make up the typeName.
                         // This will happen if the type name contains one or more '.'.
                         string[] codeComponents = components.Skip(2).Take(components.Length - 4).ToArray();
                         string code = string.Join('.', codeComponents);
@@ -234,10 +237,10 @@ namespace Microsoft.Health.Extensions.Fhir.Search
             EnsureArg.IsNotNullOrWhiteSpace(text, nameof(text));
 
             // Ensure the string is the expected format 'yyyyMMddHHmmssZ' defined in the TimePeriodMeasurementObservationGroup class.
-            if (DateTimeOffset.TryParseExact(text, "yyyyMMddHHmmssZ", CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.None, out DateTimeOffset result))
+            if (DateTimeOffset.TryParseExact(text, TimePeriodMeasurementObservationGroup.DateFormat, CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.None, out DateTimeOffset result))
             {
-                // Return an ISO 8601 time string compatible with the FHIR service.
-                dateString = result.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture.DateTimeFormat);
+                // Return an ISO 8601 time string compatible with the FHIR service 'yyyy-MM-ddTHH:mm:ssZ'.
+                dateString = result.ToString(SearchDateFormat, CultureInfo.InvariantCulture.DateTimeFormat);
                 return true;
             }
 
