@@ -196,7 +196,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         protected virtual async Task<Model.Observation> GetObservationFromServerAsync(Model.Identifier identifier)
         {
-            var result = await _fhirService.SearchForResourceAsync(Model.ResourceType.Observation, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
+            var result = await _fhirService.SearchForResourceAsync(Model.ResourceType.Observation, identifier.ToExpandedSearchQueryParameters()).ConfigureAwait(false);
 
             var foundObservations = (await result.ReadFromBundleWithContinuationAsync<Model.Observation>(_fhirService).ConfigureAwait(false))
                 .ToArray();

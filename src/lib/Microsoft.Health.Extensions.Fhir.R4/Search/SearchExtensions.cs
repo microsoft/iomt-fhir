@@ -5,14 +5,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Hl7.Fhir.Rest;
+using Microsoft.Health.Fhir.Ingest.Data;
 
 namespace Microsoft.Health.Extensions.Fhir.Search
 {
     public static class SearchExtensions
     {
+        public const string SearchDateFormat = "yyyy-MM-ddTHH:mm:ssZ";
+
         public static Hl7.Fhir.Rest.SearchParams MatchOnId(this Hl7.Fhir.Rest.SearchParams searchParams, string id)
         {
             EnsureArg.IsNotNull(searchParams, nameof(searchParams));
@@ -196,6 +200,52 @@ namespace Microsoft.Health.Extensions.Fhir.Search
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
             return $"identifier={identifier.ToSearchToken()}";
+        }
+
+        public static string ToExpandedSearchQueryParameters(this Hl7.Fhir.Model.Identifier identifier)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(identifier?.Value, nameof(identifier.Value));
+
+            string[] components = identifier.Value.Split('.');
+
+            // Check if the identifier contains at least 5 components separated by '.', e.g. 'patientId.deviceId.typeName.startTime.endTime'.
+            if (components.Length >= 5)
+            {
+                // Make sure the start component can be converted to an ISO 8601 time string.
+                if (TryGetFormattedDateString(components[components.Count() - 2], out string start))
+                {
+                    // Make sure the end component can be converted to an ISO 8601 time string.
+                    if (TryGetFormattedDateString(components[components.Count() - 1], out string end))
+                    {
+                        // Merge any components that might make up the typeName.
+                        // This will happen if the type name contains one or more '.'.
+                        string[] codeComponents = components.Skip(2).Take(components.Length - 4).ToArray();
+                        string code = string.Join('.', codeComponents);
+
+                        // Return the expanded search string.
+                        return $"subject={components[0]}&device={components[1]}&code={code}&date=ge{start}&date=le{end}";
+                    }
+                }
+            }
+
+            // Default to searching with the identifier.
+            return ToSearchQueryParameter(identifier);
+        }
+
+        private static bool TryGetFormattedDateString(string text, out string dateString)
+        {
+            EnsureArg.IsNotNullOrWhiteSpace(text, nameof(text));
+
+            // Ensure the string is the expected format 'yyyyMMddHHmmssZ' defined in the TimePeriodMeasurementObservationGroup class.
+            if (DateTimeOffset.TryParseExact(text, TimePeriodMeasurementObservationGroup.DateFormat, CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.None, out DateTimeOffset result))
+            {
+                // Return an ISO 8601 time string compatible with the FHIR service 'yyyy-MM-ddTHH:mm:ssZ'.
+                dateString = result.ToString(SearchDateFormat, CultureInfo.InvariantCulture.DateTimeFormat);
+                return true;
+            }
+
+            dateString = null;
+            return false;
         }
     }
 }
