@@ -20,13 +20,15 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
         private DateTime _partitionWindow;
         private TimeSpan _flushTimespan;
         private ITelemetryLogger _logger;
+        private int _maxEvents;
 
-        public EventPartition(string partitionId, DateTime initDateTime, TimeSpan flushTimespan, ITelemetryLogger logger)
+        public EventPartition(string partitionId, DateTime initDateTime, TimeSpan flushTimespan, int maxEvents, ITelemetryLogger logger)
         {
             _partitionId = partitionId;
             _partition = new ConcurrentQueue<IEventMessage>();
             _partitionWindow = initDateTime.Add(flushTimespan);
             _flushTimespan = flushTimespan;
+            _maxEvents = maxEvents;
             _logger = logger;
         }
 
@@ -54,13 +56,12 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             return _partition.Count;
         }
 
-        // flush a fixed number of events
-        public Task<List<IEventMessage>> Flush(int numEvents)
+        public Task<List<IEventMessage>> FlushMaxEvents()
         {
             var count = 0;
             var events = new List<IEventMessage>();
 
-            while (count < numEvents)
+            while (count < _maxEvents)
             {
                 if (_partition.TryDequeue(out var dequeuedEvent))
                 {
@@ -72,6 +73,22 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             _logger.LogTrace($"Flushed {events.Count} events on partition {_partitionId}");
             _logger.LogMetric(EventMetrics.EventsFlushed(_partitionId), events.Count);
             return Task.FromResult(events);
+        }
+
+        public void ChangeMaxEventsForPartition(int maxEvents)
+        {
+            if (_maxEvents == maxEvents)
+            {
+                return;
+            }
+
+            _logger.LogTrace($"Updating maximum events on partition {_partitionId} from {_maxEvents} to {maxEvents}");
+            _maxEvents = maxEvents;
+        }
+
+        public int GetMaxEventsForPartition()
+        {
+            return _maxEvents;
         }
 
         // flush up to a date time

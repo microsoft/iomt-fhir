@@ -16,5 +16,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         Task ConsumeEvent(IEventMessage eventArg);
 
         void NewPartitionInitialized(string partitionId);
+
+        void PartitionProcessingStopped(string partitionId);
     }
 }

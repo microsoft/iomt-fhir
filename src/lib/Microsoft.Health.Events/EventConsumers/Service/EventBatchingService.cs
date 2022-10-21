@@ -23,6 +23,8 @@ namespace Microsoft.Health.Events.EventConsumers.Service
     {
         private ConcurrentDictionary<string, EventPartition> _eventPartitions;
         private int _maxEvents;
+        private int? _scaledOutMaxEventsAllPartitions;
+        private int? _scaledOutMaxEventsPerPartition;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
         private IEventProcessingMetricMeters _eventProcessingMetricMeters;
@@ -40,6 +42,8 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             _eventConsumerService = eventConsumerService;
             _eventProcessingMetricMeters = eventProcessingMetricMeters;
             _maxEvents = options.MaxEvents;
+            _scaledOutMaxEventsAllPartitions = options.MaxEventsAllPartitions;
+            _scaledOutMaxEventsPerPartition = null;
             _flushTimespan = TimeSpan.FromSeconds(options.FlushTimespan);
             _checkpointClient = checkpointClient;
             _logger = logger;
@@ -64,7 +68,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         private EventPartition CreatePartitionIfMissing(string partitionId, DateTime initTime, TimeSpan flushTimespan)
         {
-            return _eventPartitions.GetOrAdd(partitionId, new EventPartition(partitionId, initTime, flushTimespan, _logger));
+            return _eventPartitions.GetOrAdd(partitionId, new EventPartition(partitionId, initTime, flushTimespan, _maxEvents, _logger));
         }
 
         public void NewPartitionInitialized(string partitionId)
@@ -73,6 +77,34 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             {
                 _eventPartitions.TryRemove(partitionId, out _);
             }
+
+            // if _scaledOutMaxEventsAllPartitions is set then assume horizontal scaling is enabled
+            if (_scaledOutMaxEventsAllPartitions != null)
+            {
+                CalculateMaximumEventsPerPartition();
+            }
+        }
+
+        public void PartitionProcessingStopped(string partitionId)
+        {
+            if (EventPartitionExists(partitionId))
+            {
+                _eventPartitions.TryRemove(partitionId, out _);
+            }
+
+            if (_scaledOutMaxEventsAllPartitions != null)
+            {
+                CalculateMaximumEventsPerPartition();
+            }
+        }
+
+        public void CalculateMaximumEventsPerPartition()
+        {
+            // if 1 partition is held then allocate all events to that partition
+            // if 2 partitions is held then allocate half of the events to one partition and half to the other partition
+            // etc
+            // if the result would be lower than MaxEvents, then use MaxEvents
+            _scaledOutMaxEventsPerPartition = Math.Max(_scaledOutMaxEventsAllPartitions.Value / Math.Max(_eventPartitions.Count, 1), _maxEvents);
         }
 
         public async Task ConsumeEvent(IEventMessage eventArg)
@@ -107,7 +139,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                     await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
                 }
 
-                if (partition.GetPartitionBatchCount() >= _maxEvents)
+                if (partition.GetPartitionBatchCount() >= partition.GetMaxEventsForPartition())
                 {
                     await ThresholdCountReached(partitionId);
                 }
@@ -116,9 +148,16 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         private async Task ThresholdCountReached(string partitionId)
         {
-            _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
-            var events = await GetPartition(partitionId).Flush(_maxEvents);
+            var partition = GetPartition(partitionId);
+            _logger.LogTrace($"Partition {partitionId} threshold count {partition.GetMaxEventsForPartition()} was reached.");
+            var events = await partition.FlushMaxEvents();
             await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdCountReached));
+
+            // option to change the batch size in horizontal scaling scenarios
+            if (_scaledOutMaxEventsPerPartition != null)
+            {
+                partition.ChangeMaxEventsForPartition(_scaledOutMaxEventsPerPartition.Value);
+            }
         }
 
         private async Task ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)

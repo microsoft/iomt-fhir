@@ -121,5 +121,13 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
             throw ex;
         }
+
+        protected virtual void PartitionClosingAsync(PartitionClosingEventArgs partitionClosingEventArgs)
+        {
+            var partitionId = partitionClosingEventArgs.PartitionId;
+            var reason = partitionClosingEventArgs.Reason;
+            Logger.LogTrace($"Stopping processing for partition {partitionId}. Reason {reason}");
+            EventConsumerService.PartitionProcessingStopped(partitionId);
+        }
     }
 }
