@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
             decimal value;
             try
             {
-                value = decimal.Parse(values.Single().Item2, CultureInfo.InvariantCulture);
+                value = decimal.Parse(values.Last().Item2, CultureInfo.InvariantCulture);
             }
             catch (Exception ex)
             {
