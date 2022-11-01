@@ -122,12 +122,21 @@ namespace Microsoft.Health.Events.EventHubProcessor
             throw ex;
         }
 
-        protected virtual void PartitionClosingAsync(PartitionClosingEventArgs partitionClosingEventArgs)
+        protected virtual Task PartitionClosingHandler(PartitionClosingEventArgs partitionClosingEventArgs)
         {
-            var partitionId = partitionClosingEventArgs.PartitionId;
-            var reason = partitionClosingEventArgs.Reason;
-            Logger.LogTrace($"Stopping processing for partition {partitionId}. Reason {reason}");
-            EventConsumerService.PartitionProcessingStopped(partitionId);
+            try
+            {
+                var partitionId = partitionClosingEventArgs.PartitionId;
+                var reason = partitionClosingEventArgs.Reason;
+                Logger.LogTrace($"Stopping processing for partition {partitionId}. Reason {reason}");
+                EventConsumerService.PartitionProcessingStopped(partitionId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }
