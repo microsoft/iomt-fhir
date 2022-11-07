@@ -62,7 +62,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
             if (throwOnMultipleFound && resourceCount > 1)
             {
-                throw new MultipleResourceFoundException<TResource>(resourceCount, resources.Select(r => r.Id));
+                throw new MultipleResourceFoundException<TResource>(resourceCount, resources.Select(r => r.ToMetadata()));
             }
 
             return resources.FirstOrDefault();

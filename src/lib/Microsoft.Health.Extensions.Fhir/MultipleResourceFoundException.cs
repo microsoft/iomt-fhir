@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Common.Telemetry.Exceptions;
@@ -22,8 +23,8 @@ namespace Microsoft.Health.Extensions.Fhir
         {
         }
 
-        public MultipleResourceFoundException(int resourceCount, IEnumerable<string> ids)
-            : base(GenerateErrorMessage<T>(resourceCount, ids))
+        public MultipleResourceFoundException(int resourceCount, IEnumerable<IResourceMetadata> metadata)
+            : base(GenerateErrorMessage<T>(resourceCount, metadata))
         {
         }
 
@@ -43,14 +44,14 @@ namespace Microsoft.Health.Extensions.Fhir
 
         public override string Operation => ConnectorOperation.FHIRConversion;
 
-        private static string GenerateErrorMessage<TResource>(int resourceCount, IEnumerable<string> ids)
+        private static string GenerateErrorMessage<TResource>(int resourceCount, IEnumerable<IResourceMetadata> metadata)
         {
             var sb = new StringBuilder($"Multiple resources {resourceCount} of type {typeof(T)} found, expected one.");
 
-            if (ids != null)
+            if (metadata != null)
             {
-                sb.Append(" Resource internal ids: ");
-                sb.Append(string.Join(", ", ids));
+                sb.Append(" Resource metadata: ");
+                sb.Append(string.Join(", ", metadata.Select(m => $"[Resource {nameof(m.Id)}:{m.Id}; {nameof(m.VersionId)}:{m.VersionId}; {nameof(m.LastUpdated)}:{m.LastUpdated}]")));
                 sb.Append(".");
             }
 

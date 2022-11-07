@@ -225,7 +225,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
 
             // More than one Observation found with the same identifier.
-            throw new MultipleResourceFoundException<Model.Observation>(matchedObservations.Length, matchedObservations.Select(obs => obs.Id));
+            throw new MultipleResourceFoundException<Model.Observation>(matchedObservations.Length, matchedObservations.Select(obs => obs.ToMetadata()));
         }
     }
 }
