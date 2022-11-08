@@ -23,5 +23,17 @@ namespace Microsoft.Health.Extensions.Fhir
 
             return resource.DeepCopy() as TResource;
         }
+
+        public static IResourceMetadata ToMetadata(this Resource resource)
+        {
+            EnsureArg.IsNotNull(resource, nameof(resource));
+
+            return new ResourceMetadata
+            {
+                Id = resource.Id,
+                VersionId = resource.VersionId,
+                LastUpdated = resource.Meta?.LastUpdated?.UtcDateTime,
+            };
+        }
     }
 }
