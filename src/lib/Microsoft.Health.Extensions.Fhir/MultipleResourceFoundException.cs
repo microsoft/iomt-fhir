@@ -50,9 +50,9 @@ namespace Microsoft.Health.Extensions.Fhir
 
             if (metadata != null)
             {
-                sb.Append(" Resource metadata: ");
-                sb.Append(string.Join(", ", metadata.Select(m => $"[Resource {nameof(m.Id)}:{m.Id}; {nameof(m.VersionId)}:{m.VersionId}; {nameof(m.LastUpdated)}:{m.LastUpdated}]")));
-                sb.Append(".");
+                sb.Append(" Resource metadata: ")
+                    .Append(string.Join(", ", metadata.Select(m => $"[Resource {nameof(m.Id)}:{m.Id}; {nameof(m.VersionId)}:{m.VersionId}; {nameof(m.LastUpdated)}:{m.LastUpdated}]")))
+                    .Append(".");
             }
 
             return sb.ToString();
