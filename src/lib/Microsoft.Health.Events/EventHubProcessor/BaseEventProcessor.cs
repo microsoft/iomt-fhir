@@ -97,9 +97,11 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 Logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
                 Logger.LogMetric(EventMetrics.EventHubPartitionInitialized(partitionId), 1);
             }
-#pragma warning disable CA1031
+            catch (TaskCanceledException ex)
+            {
+                Logger.LogTrace($"PartitionInitializingEventArgs received a cancellation request for partition {partitionId} {ex.Message}");
+            }
             catch (Exception ex)
-#pragma warning restore CA1031
             {
                 Logger.LogTrace($"Failed to initialize partition {partitionId} from checkpoint");
 
