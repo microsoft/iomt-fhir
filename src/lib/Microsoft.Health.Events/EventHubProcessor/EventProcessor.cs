@@ -28,6 +28,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             EventProcessorClient.ProcessEventAsync += ProcessEventHandler;
             EventProcessorClient.ProcessErrorAsync += ProcessErrorHandler;
             EventProcessorClient.PartitionInitializingAsync += ProcessInitializingHandler;
+            EventProcessorClient.PartitionClosingAsync += PartitionClosingHandler;
 
             // Try to connect and read events
             bool connected = false;
@@ -61,6 +62,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 EventProcessorClient.ProcessEventAsync -= ProcessEventHandler;
                 EventProcessorClient.ProcessErrorAsync -= ProcessErrorHandler;
                 EventProcessorClient.PartitionInitializingAsync -= ProcessInitializingHandler;
+                EventProcessorClient.PartitionClosingAsync -= PartitionClosingHandler;
             }
         }
     }

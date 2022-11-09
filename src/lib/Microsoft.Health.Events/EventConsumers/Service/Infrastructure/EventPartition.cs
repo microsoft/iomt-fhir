@@ -54,18 +54,24 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             return _partition.Count;
         }
 
-        // flush a fixed number of events
-        public Task<List<IEventMessage>> Flush(int numEvents)
+        public Task<List<IEventMessage>> FlushMaxEvents(int maxEvents)
         {
             var count = 0;
             var events = new List<IEventMessage>();
 
-            while (count < numEvents)
+            while (count < maxEvents)
             {
                 if (_partition.TryDequeue(out var dequeuedEvent))
                 {
                     events.Add(dequeuedEvent);
                     count++;
+                }
+                else
+                {
+                    // if the max events was modified such that max events is now greater than
+                    // the number of events held in the partition, then we need to exit the while loop
+                    // when the partition is empty
+                    break;
                 }
             }
 
