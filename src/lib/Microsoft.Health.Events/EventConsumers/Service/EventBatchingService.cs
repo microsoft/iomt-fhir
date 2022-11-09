@@ -115,10 +115,9 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             // Use locking to prevent multiple threads from changing the maximum events value at the same time.
             lock (_lock)
             {
-                _logger.LogTrace($"Currently processing {_partitionCount} partitions");
                 var newMaxEventsValue = Math.Max(_scaledOutMaxEventsAllPartitions.Value / Math.Max(_partitionCount, 1), _maxEvents);
                 var oldMaxEventsValue = _scaledOutMaxEventsPerPartition;
-                _logger.LogTrace($"Updating maximum events from {oldMaxEventsValue} to {newMaxEventsValue}");
+                _logger.LogTrace($"Currently processing {_partitionCount} partitions. Updating maximum events from {oldMaxEventsValue} to {newMaxEventsValue}");
                 _scaledOutMaxEventsPerPartition = newMaxEventsValue;
             }
         }
@@ -139,6 +138,9 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
+        // Retrieves the maximum events for a partition
+        // The code does not lock when reading _scaledOutMaxEventsPerPartition since there is a performance hit with locking
+        // and it is acceptible to read a snapshot of the value
         public int GetMaximumEventsForPartition()
         {
             if (_scaledOutMaxEventsPerPartition <= 0)
