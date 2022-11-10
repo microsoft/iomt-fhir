@@ -51,5 +51,10 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         {
             // do nothing
         }
+
+        public void PartitionProcessingStopped(string partitionId)
+        {
+            // do nothing
+        }
     }
 }

@@ -12,5 +12,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         public int FlushTimespan { get; set; }
 
         public int MaxEvents { get; set; }
+
+        public int? MaxEventsAllPartitions { get; set; }
     }
 }

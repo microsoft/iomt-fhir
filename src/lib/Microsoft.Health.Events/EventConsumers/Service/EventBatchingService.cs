@@ -23,6 +23,10 @@ namespace Microsoft.Health.Events.EventConsumers.Service
     {
         private ConcurrentDictionary<string, EventPartition> _eventPartitions;
         private int _maxEvents;
+        private int? _scaledOutMaxEventsAllPartitions;
+        private int _scaledOutMaxEventsPerPartition;
+        private static object _lock = new object();
+        private int _partitionCount;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
         private IEventProcessingMetricMeters _eventProcessingMetricMeters;
@@ -40,6 +44,9 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             _eventConsumerService = eventConsumerService;
             _eventProcessingMetricMeters = eventProcessingMetricMeters;
             _maxEvents = options.MaxEvents;
+            _scaledOutMaxEventsAllPartitions = options.MaxEventsAllPartitions;
+            _scaledOutMaxEventsPerPartition = 0;
+            _partitionCount = 0;
             _flushTimespan = TimeSpan.FromSeconds(options.FlushTimespan);
             _checkpointClient = checkpointClient;
             _logger = logger;
@@ -72,6 +79,77 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             if (EventPartitionExists(partitionId))
             {
                 _eventPartitions.TryRemove(partitionId, out _);
+            }
+
+            IncrementPartitionCount();
+
+            // if _scaledOutMaxEventsAllPartitions is set then assume we want to adjust the batch size based on
+            // how many partitions are currently held by the processor.
+            if (_scaledOutMaxEventsAllPartitions != null)
+            {
+                ChangeMaximumEventsPerPartition();
+            }
+        }
+
+        public void PartitionProcessingStopped(string partitionId)
+        {
+            if (EventPartitionExists(partitionId))
+            {
+                _eventPartitions.TryRemove(partitionId, out _);
+            }
+
+            DecrementPartitionCount();
+
+            if (_scaledOutMaxEventsAllPartitions != null)
+            {
+                ChangeMaximumEventsPerPartition();
+            }
+        }
+
+        private void ChangeMaximumEventsPerPartition()
+        {
+            // If 1 partition is held then allocate all events to that partition.
+            // If 2 partitions are held then allocate half of the events to one partition and half to the other partition
+            // etc
+            // If the result would be lower than MaxEvents, then use MaxEvents.
+            // Use locking to prevent multiple threads from changing the maximum events value at the same time.
+            lock (_lock)
+            {
+                var newMaxEventsValue = Math.Max(_scaledOutMaxEventsAllPartitions.Value / Math.Max(_partitionCount, 1), _maxEvents);
+                var oldMaxEventsValue = _scaledOutMaxEventsPerPartition;
+                _logger.LogTrace($"Currently processing {_partitionCount} partitions. Updating maximum events from {oldMaxEventsValue} to {newMaxEventsValue}");
+                _scaledOutMaxEventsPerPartition = newMaxEventsValue;
+            }
+        }
+
+        private void IncrementPartitionCount()
+        {
+            lock (_lock)
+            {
+                _partitionCount++;
+            }
+        }
+
+        private void DecrementPartitionCount()
+        {
+            lock (_lock)
+            {
+                _partitionCount--;
+            }
+        }
+
+        // Retrieves the maximum events for a partition
+        // The code does not lock when reading _scaledOutMaxEventsPerPartition since there is a performance hit with locking
+        // and it is acceptible to read a snapshot of the value
+        public int GetMaximumEventsForPartition()
+        {
+            if (_scaledOutMaxEventsPerPartition <= 0)
+            {
+                return _maxEvents;
+            }
+            else
+            {
+                return _scaledOutMaxEventsPerPartition;
             }
         }
 
@@ -107,17 +185,19 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                     await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
                 }
 
-                if (partition.GetPartitionBatchCount() >= _maxEvents)
+                var maxEventsForPartition = GetMaximumEventsForPartition();
+                if (partition.GetPartitionBatchCount() >= maxEventsForPartition)
                 {
-                    await ThresholdCountReached(partitionId);
+                    await ThresholdCountReached(partitionId, maxEventsForPartition);
                 }
             }
         }
 
-        private async Task ThresholdCountReached(string partitionId)
+        private async Task ThresholdCountReached(string partitionId, int maxEventsForPartition)
         {
-            _logger.LogTrace($"Partition {partitionId} threshold count {_maxEvents} was reached.");
-            var events = await GetPartition(partitionId).Flush(_maxEvents);
+            var partition = GetPartition(partitionId);
+            _logger.LogTrace($"Partition {partitionId} threshold count {maxEventsForPartition} was reached.");
+            var events = await partition.FlushMaxEvents(maxEventsForPartition);
             await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdCountReached));
         }
 

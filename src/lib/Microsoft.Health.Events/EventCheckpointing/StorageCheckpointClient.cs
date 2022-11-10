@@ -86,6 +86,10 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     }
                 }
             }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogTrace(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(new StorageCheckpointClientException($"Unable to update checkpoint. {ex.Message}", ex));
@@ -136,6 +140,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
                 _logger.LogTrace($"The checkpoint file {partitionIdentifier} does not exist");
                 return new Checkpoint();
             }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogTrace(ex.Message);
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(new StorageCheckpointClientException($"Unable to get checkpoint for partition. {ex.Message}", ex));
@@ -171,6 +180,10 @@ namespace Microsoft.Health.Events.EventCheckpointing
                         _logger.LogMetric(metric.Key, metric.Value);
                     }
                 }
+            }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogTrace(ex.Message);
             }
             catch (Exception ex)
             {
@@ -217,6 +230,10 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
                 _logger.LogTrace($"Exiting {nameof(ResetCheckpointsAsync)}.");
             }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogTrace(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(new StorageCheckpointClientException($"Unable to reset checkpoints. {ex.Message}", ex));
@@ -239,6 +256,10 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     var eventHubsConnectionStringProperties = EventHubsConnectionStringProperties.Parse(eventHubClientOptions.ConnectionString);
                     eventHubNamespaceFQDN = eventHubsConnectionStringProperties.FullyQualifiedNamespace;
                     eventHubName = eventHubsConnectionStringProperties.EventHubName;
+                }
+                catch (TaskCanceledException ex)
+                {
+                    _logger.LogTrace(ex.Message);
                 }
                 catch (Exception ex)
                 {
