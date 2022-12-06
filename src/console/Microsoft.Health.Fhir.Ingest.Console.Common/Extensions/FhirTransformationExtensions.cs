@@ -82,8 +82,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             MeasurementImportServiceExtensions.AddImportService(services, config);
             services.AddSingleton(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
 
-            // services.AddSingleton(sp => Options.Create(new FhirClientFactoryOptions { UseManagedIdentity = true }));
-
             services.AddSingleton(sp => {
                 // Get IAzureExternalIdentityCredentialProvider if it exists, else use IAzureCredentialProvider
                 var externalMiTokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>();
