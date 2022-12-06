@@ -3,8 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Events.EventHubProcessor;
+using Microsoft.Health.Fhir.Ingest.Console.Common.Extensions;
 using Microsoft.Health.Logging.Telemetry;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,15 +18,18 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
     {
         public static async Task Main()
         {
-            var startup = new Startup();
-            startup.ConfigureServices(startup.ServiceCollection);
-            startup.ServiceCollection.AddSingleton<ITelemetryLogger>(startup.AddApplicationInsightsLogging());
-            var serviceProvider = startup.ServiceCollection.BuildServiceProvider();
-
-            var eventHubReader = serviceProvider.GetRequiredService<IResumableEventProcessor>();
-
-            var ct = new CancellationToken();
-            await eventHubReader.RunAsync(ct);
+            var config = EnvironmentConfiguration.GetEnvironmentConfig();
+            await CreateHostBuilder(config).Build().RunAsync();
         }
+
+        public static IHostBuilder CreateHostBuilder(IConfiguration config) =>
+            Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+                .ConfigureServices((hostContext, services) =>
+                {
+                    Startup startup = new Startup(config);
+                    startup.ConfigureServices(services);
+                    services.AddApplicationInsightsLogging(config);
+                    services.AddHostedService<EventHubReaderService>();
+                });
     }
 }

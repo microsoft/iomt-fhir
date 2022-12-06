@@ -35,13 +35,11 @@ namespace Microsoft.Health.Events.EventHubProcessor
             EventProcessorClient.ProcessEventAsync += ProcessEventHandler;
             EventProcessorClient.ProcessErrorAsync += ProcessErrorHandler;
             EventProcessorClient.PartitionInitializingAsync += ProcessInitializingHandler;
+            EventProcessorClient.PartitionClosingAsync += PartitionClosingHandler;
 
             _isInitialized = true;
 
             await ResumeAsync(ct);
-
-            // wait indefinitely?
-            ct.WaitHandle.WaitOne();
         }
 
         public async Task ResumeAsync(CancellationToken ct)
@@ -106,6 +104,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     EventProcessorClient.ProcessEventAsync -= ProcessEventHandler;
                     EventProcessorClient.ProcessErrorAsync -= ProcessErrorHandler;
                     EventProcessorClient.PartitionInitializingAsync -= ProcessInitializingHandler;
+                    EventProcessorClient.PartitionClosingAsync -= PartitionClosingHandler;
                     _isInitialized = false;
                 }
             }
