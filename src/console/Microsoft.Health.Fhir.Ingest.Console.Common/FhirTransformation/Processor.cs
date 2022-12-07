@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Events.EventConsumers;
@@ -22,19 +22,20 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
     {
         private ITemplateManager _templateManager;
         private IImportService _measurementImportService;
-        private string _templateDefinition;
+        private string _templateName;
         private ITelemetryLogger _logger;
-        private IErrorMessageService _errorMessageService;
+        private IErrorMessageService? _errorMessageService;
         private AsyncPolicy _retryPolicy;
 
         public Processor(
-            [Blob("template/%Template:FhirMapping%", FileAccess.Read)] string templateDefinition,
+            IOptions<TemplateOptions> templateOptions,
             ITemplateManager templateManager,
             IImportService measurementImportService,
             ITelemetryLogger logger,
-            IErrorMessageService errorMessageService = null)
+            IErrorMessageService? errorMessageService = null)
         {
-            _templateDefinition = EnsureArg.IsNotNullOrWhiteSpace(templateDefinition, nameof(templateDefinition));
+            EnsureArg.IsNotNull(templateOptions, nameof(templateOptions));
+            _templateName = EnsureArg.IsNotNullOrWhiteSpace(templateOptions.Value.FhirMapping, nameof(templateOptions.Value.FhirMapping));
             _templateManager = EnsureArg.IsNotNull(templateManager, nameof(templateManager));
             _measurementImportService = EnsureArg.IsNotNull(measurementImportService, nameof(measurementImportService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -48,7 +49,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
         {
             EnsureArg.IsNotNull(events);
 
-            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
+            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateName)));
 
             // This is a fallback option to skip any bad messages.
             // In known cases, the exception would be caught earlier and logged to the error message service.
@@ -58,7 +59,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
             {
                 policyResult.FinalException.AddEventContext(events);
                 var errorMessage = new IomtErrorMessage(policyResult.FinalException);
-                _errorMessageService.ReportError(errorMessage);
+                _errorMessageService?.ReportError(errorMessage);
             }
 
         }
@@ -68,7 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
             await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger).ConfigureAwait(false);
         }
 
-        private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger, IErrorMessageService errorMessageService)
+        private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger, IErrorMessageService? errorMessageService)
         {
             bool ExceptionRetryableFilter(Exception ee)
             {

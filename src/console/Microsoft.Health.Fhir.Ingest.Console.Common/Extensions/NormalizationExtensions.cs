@@ -13,12 +13,12 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.EventProducers;
+using Microsoft.Health.Events.Model;
 using Microsoft.Health.Events.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Service;
-using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
-using Microsoft.Health.Logging.Telemetry;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
@@ -70,16 +70,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
         public static void AddNormalizationEventConsumer(this IServiceCollection services, IConfiguration config)
         {
+            services.AddOptions<TemplateOptions>().Bind(config.GetSection(TemplateOptions.Settings));
+            services.AddSingleton<Data.IConverter<IEventMessage, JObject>, EventMessageJObjectConverter>();
+            services.AddSingleton<NormalizationEventConsumerService>();
+
             services.AddSingleton<IEnumerable<IEventConsumer>>((sp) =>
             {
-                // Add IEnumerable<IEventConsumer>() - (this is used by EventConsumerService)
-                string template = config.GetSection("Template:DeviceContent").Value;
-                var templateManager = sp.GetRequiredService<TemplateManager>();
-                var logger = sp.GetRequiredService<ITelemetryLogger>();
-                var collector = sp.GetRequiredService<IEnumerableAsyncCollector<IMeasurement>>();
-                var collectionContentFactory = sp.GetRequiredService<CollectionTemplateFactory<IContentTemplate, IContentTemplate>>();
-                var exceptionTelemetryProcessor = sp.GetRequiredService<NormalizationExceptionTelemetryProcessor>();
-                return new List<IEventConsumer>() { new NormalizationEventConsumerService(new EventMessageJObjectConverter(), template, templateManager, collector, logger, collectionContentFactory, exceptionTelemetryProcessor) };
+                var consumer = sp.GetRequiredService<NormalizationEventConsumerService>();
+                return new List<IEventConsumer>() { consumer };
             });
         }
 

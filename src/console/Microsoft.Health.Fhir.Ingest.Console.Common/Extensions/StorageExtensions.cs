@@ -46,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
         public static void AddTemplateManager(this IServiceCollection services, IConfiguration config)
         {
-            services.AddSingleton((sp) =>
+            services.AddSingleton<ITemplateManager>((sp) =>
             {
                 var tokenProvider = sp.GetService<IAzureCredentialProvider>();
                 var blobClientFactory = sp.GetRequiredService<BlobContainerClientFactory>();

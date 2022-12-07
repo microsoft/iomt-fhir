@@ -57,14 +57,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
         public static void AddNormalizedEventConsumer(this IServiceCollection services, IConfiguration config)
         {
+            services.AddOptions<TemplateOptions>().Bind(config.GetSection(TemplateOptions.Settings));
+            services.AddSingleton<Processor>();
             services.AddSingleton<IEnumerable<IEventConsumer>>((sp) =>
             {
-                // Add IEnumerable<IEventConsumer>() - (this is used by EventConsumerService)
-                string template = config.GetSection("Template:FhirMapping").Value;
-                var templateManager = sp.GetRequiredService<TemplateManager>();
-                var logger = sp.GetRequiredService<ITelemetryLogger>();
-                var importService = sp.GetRequiredService<IImportService>();
-                return new List<IEventConsumer>() { new Processor(template, templateManager, importService, logger) };
+                var processor = sp.GetRequiredService<Processor>();
+                return new List<IEventConsumer>() { processor };
             });
         }
 
