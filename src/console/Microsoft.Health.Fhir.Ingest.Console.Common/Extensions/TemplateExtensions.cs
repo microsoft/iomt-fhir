@@ -14,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class TemplateExtensions
     {
-        public static void AddContentTemplateFactories(this IServiceCollection services)
+        public static IServiceCollection AddContentTemplateFactories(this IServiceCollection services)
         {
             services.AddSingleton<IExpressionRegister>(sp => new AssemblyExpressionRegister(typeof(IExpressionRegister).Assembly, sp.GetRequiredService<ITelemetryLogger>()));
             services.AddSingleton(
@@ -31,6 +31,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, IotCentralJsonPathContentTemplateFactory>();
             services.AddSingleton<ITemplateFactory<TemplateContainer, IContentTemplate>, CalculatedFunctionContentTemplateFactory>();
             services.AddSingleton<CollectionTemplateFactory<IContentTemplate, IContentTemplate>, CollectionContentTemplateFactory>();
+
+            return services;
         }
     }
 }

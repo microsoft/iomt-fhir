@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class NormalizationExtensions
     {
-        public static void AddEventProducer(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddEventProducer(this IServiceCollection services, IConfiguration config)
         {
             services.AddSingleton<IEventHubMessageService, EventHubProducerService>();
             services.AddSingleton<IHashCodeFactory, HashCodeFactory>();
@@ -38,9 +38,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var eventHubProducerFactory = sp.GetRequiredService<IEventProducerClientFactory>();
                 return eventHubProducerFactory.GetEventHubProducerClient(options, tokenProvider);
             });
+
+            return services;
         }
 
-        public static void AddEventProcessor(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddEventProcessor(this IServiceCollection services, IConfiguration config)
         {
             services.AddEventCheckpointing();
 
@@ -62,13 +64,16 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var tokenProvider = externalMiTokenProvider ?? serviceMiTokenProvider;
 
                 var eventProcessorClientFactory = sp.GetRequiredService<IEventProcessorClientFactory>();
+
                 var eventProcessorClientOptions = new EventProcessorClientOptions() { MaximumWaitTime = TimeSpan.FromSeconds(60) };
                 var storageCheckpointClient = sp.GetRequiredService<StorageCheckpointClient>();
                 return eventProcessorClientFactory.CreateProcessorClient(storageCheckpointClient.GetBlobContainerClient(), options, eventProcessorClientOptions, tokenProvider);
             });
+
+            return services;
         }
 
-        public static void AddNormalizationEventConsumer(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddNormalizationEventConsumer(this IServiceCollection services, IConfiguration config)
         {
             services.AddOptions<TemplateOptions>().Bind(config.GetSection(TemplateOptions.Settings));
             services.AddSingleton<Data.IConverter<IEventMessage, JObject>, EventMessageJObjectConverter>();
@@ -79,9 +84,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var consumer = sp.GetRequiredService<NormalizationEventConsumerService>();
                 return new List<IEventConsumer>() { consumer };
             });
+
+            return services;
         }
 
-        public static void AddEventProcessingMetricMeters(this IServiceCollection services)
+        public static IServiceCollection AddEventProcessingMetricMeters(this IServiceCollection services)
         {
             services.AddSingleton<IEventProcessingMetricMeters>((sp) =>
             {
@@ -90,6 +97,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var meters = new EventProcessingMetricMeters(new List<Events.Common.IEventProcessingMeter>() { meter });
                 return meters;
             });
+
+            return services;
         }
     }
 }

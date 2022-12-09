@@ -28,26 +28,14 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalization
         {
             base.ConfigureServices(services);
 
-            // Add default Azure credential provider
-            services.AddDefaultCredentialProvider();
-
-            // Add template manager
-            services.AddTemplateManager(Configuration);
-
-            // Add event processor
-            services.AddEventProcessor(Configuration);
-
-            // Add exception handling
-            services.AddNormalizationExceptionTelemetryProcessor(Configuration);
-
-            // Add normalization consumer services
-            services.AddNormalizationEventConsumer(Configuration);
-
-            // Add event processing meters
-            services.AddEventProcessingMetricMeters();
-
-            // Add event producer
-            services.AddEventProducer(Configuration);
+            services.AddDefaultCredentialProvider()
+                .AddTemplateManager(Configuration)
+                .AddEventProcessor(Configuration)
+                .AddNormalizationExceptionTelemetryProcessor(Configuration)
+                .AddNormalizationEventConsumer(Configuration)
+                .AddEventProcessingMetricMeters()
+                .AddEventProducerFactory()
+                .AddEventProducer(Configuration);
         }
     }
 }

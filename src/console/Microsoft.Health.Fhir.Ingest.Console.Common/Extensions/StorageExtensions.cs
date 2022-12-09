@@ -15,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class StorageExtensions
     {
-        public static void AddStorageClient(this IServiceCollection services, IConfiguration config, string applicationType)
+        public static IServiceCollection AddStorageClient(this IServiceCollection services, IConfiguration config, string applicationType)
         {
             services.AddSingleton<BlobContainerClientFactory>();
 
@@ -42,9 +42,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var tokenProvider = sp.GetService<IAzureCredentialProvider>();
                 return factory.CreateStorageClient(checkpointContainerOptions, tokenProvider);
             });
+
+            return services;
         }
 
-        public static void AddTemplateManager(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddTemplateManager(this IServiceCollection services, IConfiguration config)
         {
             services.AddSingleton<ITemplateManager>((sp) =>
             {
@@ -55,6 +57,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var containerClient = blobClientFactory.CreateStorageClient(containerOptions, tokenProvider);
                 return new TemplateManager(containerClient);
             });
+
+            return services;
         }
     }
 }

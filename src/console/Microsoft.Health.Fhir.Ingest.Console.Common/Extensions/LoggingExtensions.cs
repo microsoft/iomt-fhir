@@ -14,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class LoggingExtensions
     {
-        public static void AddApplicationInsightsLogging(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddApplicationInsightsLogging(this IServiceCollection services, IConfiguration configuration)
         {
             var instrumentationKey = configuration.GetSection("APPINSIGHTS_INSTRUMENTATIONKEY").Value;
 
@@ -37,6 +37,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
             var logger = new IomtTelemetryLogger(telemetryClient);
             services.AddSingleton<ITelemetryLogger>(logger);
+
+            return services;
         }
     }
 }

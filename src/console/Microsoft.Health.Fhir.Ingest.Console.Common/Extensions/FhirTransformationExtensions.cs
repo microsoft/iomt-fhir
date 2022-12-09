@@ -32,7 +32,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class FhirTransformationExtensions
     {
-        public static void AddNormalizedEventReader(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddNormalizedEventReader(this IServiceCollection services, IConfiguration config)
         {
             services.AddEventCheckpointing();
 
@@ -53,9 +53,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var storageCheckpointClient = sp.GetRequiredService<StorageCheckpointClient>();
                 return eventProcessorClientFactory.CreateProcessorClient(storageCheckpointClient.GetBlobContainerClient(), options, eventProcessorClientOptions, tokenProvider);
             });
+
+            return services;
         }
 
-        public static void AddNormalizedEventConsumer(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddNormalizedEventConsumer(this IServiceCollection services, IConfiguration config)
         {
             services.AddOptions<TemplateOptions>().Bind(config.GetSection(TemplateOptions.Settings));
             services.AddSingleton<Processor>();
@@ -64,9 +66,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var processor = sp.GetRequiredService<Processor>();
                 return new List<IEventConsumer>() { processor };
             });
+
+            return services;
         }
 
-        public static void AddFhirImportServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddFhirImportServices(this IServiceCollection services, IConfiguration config)
         {
             services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
             services.Configure<ObservationCacheOptions>(config.GetSection(ObservationCacheOptions.Settings));
@@ -78,6 +82,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             services.AddSingleton<IExceptionTelemetryProcessor, FhirExceptionTelemetryProcessor>();
             services.AddSingleton<MeasurementFhirImportOptions>();
             MeasurementImportServiceExtensions.AddImportService(services, config);
+
             services.AddSingleton(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
 
             services.AddSingleton(sp => {
@@ -104,6 +109,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var resourceIdentityOptions = sp.GetRequiredService<IOptions<ResourceIdentityOptions>>();
                 return ResourceIdentityServiceFactory.Instance.Create(resourceIdentityOptions.Value, fhirService);
             });
+
+            return services;
         }
     }
 }

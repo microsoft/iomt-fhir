@@ -28,13 +28,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common
 
         public virtual void ConfigureServices(IServiceCollection services)
         {
-            services.AddContentTemplateFactories();
-            services.AddEventProcessorClientFactory();
-            services.AddEventConsumerService();
-            services.AddEventHubConsumerClientFactory();
-            services.AddStorageClient(Configuration, ApplicationType);
-            services.AddEventProducerFactory();
-            services.AddResumableEventProcessor(Configuration);
+            services.AddContentTemplateFactories()
+                .AddEventProcessorClientFactory()
+                .AddEventConsumerService()
+                .AddEventHubConsumerClientFactory()
+                .AddStorageClient(Configuration, ApplicationType)
+                .AddResumableEventProcessor(Configuration);
         }
     }
 }

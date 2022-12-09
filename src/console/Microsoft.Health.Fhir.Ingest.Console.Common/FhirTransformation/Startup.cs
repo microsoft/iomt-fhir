@@ -32,11 +32,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
                 .ToList()
                 .ForEach(env => Environment.SetEnvironmentVariable(env.Path, env.Value));
 
-            services.AddDefaultCredentialProvider();
-            services.AddTemplateManager(Configuration);
-            services.AddNormalizedEventReader(Configuration);
-            services.AddNormalizedEventConsumer(Configuration);
-            services.AddFhirImportServices(Configuration);
+            services.AddDefaultCredentialProvider()
+                .AddTemplateManager(Configuration)
+                .AddNormalizedEventReader(Configuration)
+                .AddNormalizedEventConsumer(Configuration)
+                .AddFhirImportServices(Configuration);
         }
     }
 }

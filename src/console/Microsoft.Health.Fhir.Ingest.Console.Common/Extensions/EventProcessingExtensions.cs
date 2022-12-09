@@ -20,27 +20,31 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class EventProcessingExtensions
     {
-        public static void AddEventProcessorClientFactory(this IServiceCollection services)
+        public static IServiceCollection AddEventProcessorClientFactory(this IServiceCollection services)
         {
             services.AddSingleton<IEventProcessorClientFactory, EventProcessorClientFactory>();
+            return services;
         }
 
-        public static void AddEventConsumerService(this IServiceCollection services)
+        public static IServiceCollection AddEventConsumerService(this IServiceCollection services)
         {
             services.AddSingleton<IEventConsumerService, EventConsumerService>();
+            return services;
         }
 
-        public static void AddEventHubConsumerClientFactory(this IServiceCollection services)
+        public static IServiceCollection AddEventHubConsumerClientFactory(this IServiceCollection services)
         {
             services.AddSingleton<IEventHubConsumerClientFactory, EventHubConsumerClientFactory>();
+            return services;
         }
 
-        public static void AddEventProducerFactory(this IServiceCollection services)
+        public static IServiceCollection AddEventProducerFactory(this IServiceCollection services)
         {
             services.AddSingleton<IEventProducerClientFactory, EventProducerClientFactory>();
+            return services;
         }
 
-        public static void AddEventCheckpointing(this IServiceCollection services)
+        public static IServiceCollection AddEventCheckpointing(this IServiceCollection services)
         {
             services.AddSingleton((sp) =>
             {
@@ -50,9 +54,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var checkpointBlobClient = sp.GetRequiredService<BlobContainerClient>();
                 return new StorageCheckpointClient(checkpointBlobClient, storageOptions, eventProcessorOptions, logger);
             });
+
+            return services;
         }
 
-        public static void AddResumableEventProcessor(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddResumableEventProcessor(this IServiceCollection services, IConfiguration config)
         {
             services.AddSingleton<IResumableEventProcessor>((sp) =>
             {
@@ -67,6 +73,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 var eventProcessorClient = sp.GetRequiredService<EventProcessorClient>();
                 return new ResumableEventProcessor(eventProcessorClient, eventBatchingService, checkpointClient, logger);
             });
+
+            return services;
         }
     }
 }

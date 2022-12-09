@@ -11,9 +11,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class CredentialProviderExtensions
     {
-        public static void AddDefaultCredentialProvider(this IServiceCollection services)
+        public static IServiceCollection AddDefaultCredentialProvider(this IServiceCollection services)
         {
             services.AddSingleton<IAzureCredentialProvider, AzureCredentialProvider>();
+            return services;
         }
     }
 }

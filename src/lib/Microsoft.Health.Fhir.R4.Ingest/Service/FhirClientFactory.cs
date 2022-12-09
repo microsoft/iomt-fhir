@@ -17,6 +17,7 @@ using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Config;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Metrics;
+using Microsoft.Health.Extensions.Host.Auth;
 using Microsoft.Health.Logging.Telemetry;
 using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
 using IFhirClient = Microsoft.Health.Fhir.Client.IFhirClient;
@@ -38,9 +39,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public IFhirClient Create()
         {
-            EnsureArg.IsNotNull(_options.CredentialProvider);
-            var tokenCredential = _options.CredentialProvider.GetCredential();
-            return CreateCustomAuthClient(tokenCredential, _logger);
+            // if client id and secret are supplied then use OAuth
+            // if not supplied then use managed identity
+            var clientId = System.Environment.GetEnvironmentVariable("FhirService:ClientId");
+            var clientSecret = System.Environment.GetEnvironmentVariable("FhirService:ClientSecret");
+            if (clientId != null && clientSecret != null)
+            {
+                var tokenProvider = new OAuthConfidentialClientAuthService();
+                return CreateCustomAuthClient(tokenProvider, _logger);
+            }
+            else
+            {
+                EnsureArg.IsNotNull(_options.CredentialProvider, nameof(_options.CredentialProvider));
+                var tokenCredential = _options.CredentialProvider.GetCredential();
+                return CreateCustomAuthClient(tokenCredential, _logger);
+            }
         }
 
 #pragma warning disable CA2000
