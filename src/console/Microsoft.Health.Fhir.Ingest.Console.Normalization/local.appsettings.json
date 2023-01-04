@@ -1,0 +1,21 @@
+﻿{
+  "APPINSIGHTS_INSTRUMENTATIONKEY": "",
+  "EventBatching:FlushTimespan": 30,
+  "EventBatching:MaxEvents": 20,
+  "Checkpoint:BlobPrefix": "Normalization",
+  "CheckpointStorage:AuthenticationType": "ManagedIdentity",
+  "CheckpointStorage:BlobStorageContainerUri": "",
+  "CheckpointStorage:BlobContainerName": "checkpoint",
+  "TemplateStorage:AuthenticationType": "ManagedIdentity",
+  "TemplateStorage:BlobStorageContainerUri": "",
+  "TemplateStorage:BlobContainerName": "template",
+  "InputEventHub:AuthenticationType": "ManagedIdentity",
+  "InputEventHub:EventHubNamespaceFQDN": "",
+  "InputEventHub:EventHubConsumerGroup": "$Default",
+  "InputEventHub:EventHubName": "",
+  "NormalizationEventHub:AuthenticationType": "ManagedIdentity",
+  "NormalizationEventHub:EventHubNamespaceFQDN": "",
+  "NormalizationEventHub:EventHubConsumerGroup": "$Default",
+  "NormalizationEventHub:EventHubName": "",
+  "Template:DeviceContent": "devicecontent.json"
+}

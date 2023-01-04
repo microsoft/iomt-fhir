@@ -8,6 +8,17 @@
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Microsoft.Health.Fhir.Ingest.Console.Common\**" />
+	  <Compile Remove="Microsoft.Health.Fhir.Ingest.Console.FhirTransformation\**" />
+	  <Compile Remove="Microsoft.Health.Fhir.Ingest.Console.Normalization\**" />
+	  <EmbeddedResource Remove="Microsoft.Health.Fhir.Ingest.Console.Common\**" />
+	  <EmbeddedResource Remove="Microsoft.Health.Fhir.Ingest.Console.FhirTransformation\**" />
+	  <EmbeddedResource Remove="Microsoft.Health.Fhir.Ingest.Console.Normalization\**" />
+	  <None Remove="Microsoft.Health.Fhir.Ingest.Console.Common\**" />
+	  <None Remove="Microsoft.Health.Fhir.Ingest.Console.FhirTransformation\**" />
+	  <None Remove="Microsoft.Health.Fhir.Ingest.Console.Normalization\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
 			<PrivateAssets>all</PrivateAssets>

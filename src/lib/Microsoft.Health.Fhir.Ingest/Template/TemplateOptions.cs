@@ -3,10 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Extensions.Fhir.Config
+namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class FhirClientFactoryOptions
+    public class TemplateOptions
     {
-        public bool UseManagedIdentity { get; set; } = false;
+        public const string Settings = "Template";
+
+        public string DeviceContent { get; set; }
+
+        public string FhirMapping { get; set; }
     }
 }

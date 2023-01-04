@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Events.Errors;
 using Microsoft.Health.Events.EventConsumers;
@@ -36,6 +37,27 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private readonly IErrorMessageService _errorMessageService;
 
         private readonly SemaphoreSlim semaphore = new (1);
+
+        public NormalizationEventConsumerService(
+            IConverter<IEventMessage, JObject> converter,
+            IOptions<TemplateOptions> templateOptions,
+            ITemplateManager templateManager,
+            IEnumerableAsyncCollector<IMeasurement> collector,
+            ITelemetryLogger logger,
+            CollectionTemplateFactory<IContentTemplate, IContentTemplate> collectionTemplateFactory,
+            NormalizationExceptionTelemetryProcessor exceptionTelemetryProcessor,
+            IErrorMessageService errorMessageService = null)
+                : this(
+                converter,
+                templateOptions.Value.DeviceContent,
+                templateManager,
+                collector,
+                logger,
+                collectionTemplateFactory,
+                exceptionTelemetryProcessor,
+                errorMessageService)
+        {
+        }
 
         public NormalizationEventConsumerService(
             IConverter<IEventMessage, JObject> converter,

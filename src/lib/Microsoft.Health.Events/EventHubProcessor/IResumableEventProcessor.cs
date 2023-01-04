@@ -3,10 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Extensions.Fhir.Config
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Microsoft.Health.Events.EventHubProcessor
 {
-    public class FhirClientFactoryOptions
+    public interface IResumableEventProcessor : IDisposable
     {
-        public bool UseManagedIdentity { get; set; } = false;
+        Task ResumeAsync(CancellationToken ct);
+
+        Task RunAsync(CancellationToken ct);
+
+        Task SuspendAsync(CancellationToken ct);
     }
 }

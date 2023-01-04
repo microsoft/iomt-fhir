@@ -3,10 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Extensions.Fhir.Config
+using Microsoft.Extensions.Caching.Memory;
+
+namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class FhirClientFactoryOptions
+    public class ObservationCacheOptions : MemoryCacheOptions
     {
-        public bool UseManagedIdentity { get; set; } = false;
+        public const string Settings = "ObservationCache";
+
+        public ObservationCacheOptions()
+        {
+            SizeLimit = 5000;
+        }
     }
 }
