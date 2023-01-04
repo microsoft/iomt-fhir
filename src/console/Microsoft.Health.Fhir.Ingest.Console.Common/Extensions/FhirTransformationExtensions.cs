@@ -11,15 +11,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Common;
 using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
 using Microsoft.Health.Events.EventHubProcessor;
-using Microsoft.Health.Extensions.Fhir.Config;
+using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Service;
-using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Console.FhirTransformation;
 using Microsoft.Health.Fhir.Ingest.Host;
@@ -75,7 +73,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             services.Configure<ResourceIdentityOptions>(config.GetSection("ResourceIdentity"));
             services.Configure<ObservationCacheOptions>(config.GetSection(ObservationCacheOptions.Settings));
             services.AddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            services.AddSingleton<IFactory<IFhirClient>, FhirClientFactory>();
             services.AddSingleton<IFhirService, FhirService>();
             services.AddSingleton<FhirImportService, R4FhirImportService>();
 
@@ -83,15 +80,13 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             services.AddSingleton<MeasurementFhirImportOptions>();
             MeasurementImportServiceExtensions.AddImportService(services, config);
 
-            services.AddSingleton(sp => sp.GetRequiredService<IFactory<IFhirClient>>().Create());
-
-            services.AddSingleton(sp => {
-                // Get IAzureExternalIdentityCredentialProvider if it exists, else use IAzureCredentialProvider
-                var externalMiTokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>();
-                var serviceMiTokenProvider = sp.GetService<IAzureCredentialProvider>();
-                var tokenProvider = externalMiTokenProvider ?? serviceMiTokenProvider;
-                return Options.Create(new FhirClientFactoryOptions { CredentialProvider = tokenProvider });
-            });
+            // Add FHIR Client
+            // Use IAzureExternalIdentityCredentialProvider if it exists, else use IAzureCredentialProvider
+            var sp = services.BuildServiceProvider();
+            var externalMiTokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>();
+            var serviceMiTokenProvider = sp.GetService<IAzureCredentialProvider>();
+            var tokenProvider = externalMiTokenProvider ?? serviceMiTokenProvider;
+            services.AddFhirClient(config, tokenProvider);
 
             services.AddSingleton<IMemoryCache>(sp => new MemoryCache(sp.GetRequiredService<IOptions<ObservationCacheOptions>>()));
 

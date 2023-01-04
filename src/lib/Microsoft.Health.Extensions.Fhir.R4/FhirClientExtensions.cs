@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Extensions.Host.Auth;
 using Microsoft.Health.Logging.Telemetry;
 using FhirClient = Microsoft.Health.Fhir.Client.FhirClient;
@@ -17,7 +18,7 @@ namespace Microsoft.Health.Extensions.Fhir
 {
     public static class FhirClientExtensions
     {
-        public static IServiceCollection AddFhirClient(this IServiceCollection serviceCollection, IConfiguration configuration)
+        public static IServiceCollection AddFhirClient(this IServiceCollection serviceCollection, IConfiguration configuration, IAzureCredentialProvider credentialProvider = null)
         {
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
@@ -38,7 +39,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
                 return fhirClient;
             })
-            .AddAuthenticationHandler(serviceCollection, url, useManagedIdentity);
+            .AddAuthenticationHandler(serviceCollection, url, useManagedIdentity, credentialProvider);
 
             return serviceCollection;
         }
@@ -47,7 +48,8 @@ namespace Microsoft.Health.Extensions.Fhir
            this IHttpClientBuilder httpClientBuilder,
            IServiceCollection services,
            Uri uri,
-           bool useManagedIdentity)
+           bool useManagedIdentity,
+           IAzureCredentialProvider credentialProvider = null)
         {
             EnsureArg.IsNotNull(httpClientBuilder, nameof(httpClientBuilder));
             EnsureArg.IsNotNull(services, nameof(services));
@@ -56,6 +58,12 @@ namespace Microsoft.Health.Extensions.Fhir
             if (useManagedIdentity)
             {
                 services.TryAddSingleton(new ManagedIdentityAuthService());
+                httpClientBuilder.AddHttpMessageHandler(sp =>
+                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<ManagedIdentityAuthService>(), sp.GetRequiredService<ITelemetryLogger>()));
+            }
+            else if (credentialProvider != null)
+            {
+                services.TryAddSingleton(new ManagedIdentityAuthService(credentialProvider));
                 httpClientBuilder.AddHttpMessageHandler(sp =>
                     new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<ManagedIdentityAuthService>(), sp.GetRequiredService<ITelemetryLogger>()));
             }
