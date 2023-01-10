@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class InvalidDataFormatException : IomtTelemetryFormattableException
+    public class InvalidDataFormatException : ThirdPartyLoggedFormattableException
     {
         public InvalidDataFormatException()
             : base()

@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
-    public class FhirDataMappingException : IomtTelemetryFormattableException
+    public class FhirDataMappingException : ThirdPartyLoggedFormattableException
     {
         private static readonly string _errorType = ErrorType.FHIRConversionError;
 

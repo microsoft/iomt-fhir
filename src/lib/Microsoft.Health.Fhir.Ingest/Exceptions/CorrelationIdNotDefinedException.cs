@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Data
 {
-    public class CorrelationIdNotDefinedException : IomtTelemetryFormattableException
+    public class CorrelationIdNotDefinedException : ThirdPartyLoggedFormattableException
     {
         public CorrelationIdNotDefinedException(string message)
             : base(message)
