@@ -9,7 +9,7 @@ using Microsoft.Health.Common.Telemetry.Exceptions;
 
 namespace Microsoft.Health.Fhir.Ingest.Template
 {
-    public class TemplateNotFoundException : IomtTelemetryFormattableException
+    public class TemplateNotFoundException : ThirdPartyLoggedFormattableException
     {
         public TemplateNotFoundException(string message)
             : base(message)
