@@ -9,9 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Logging.Telemetry;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
@@ -46,8 +43,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console
         public static IConfiguration GetEnvironmentConfig()
         {
             IConfiguration config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile("local.appsettings.json", true, true)
+                .AddJsonFile("appsettings.json", true, reloadOnChange: false)
+                .AddJsonFile("local.appsettings.json", true, reloadOnChange: false)
                 .AddEnvironmentVariables()
                 .Build();
 
