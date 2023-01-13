@@ -9,6 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Logging.Telemetry;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Health.Fhir.Ingest.Console
 {
