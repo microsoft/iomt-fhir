@@ -1,15 +1,16 @@
-﻿using Hl7.Fhir.ElementModel.Types;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using Hl7.Fhir.Model;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Client;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
