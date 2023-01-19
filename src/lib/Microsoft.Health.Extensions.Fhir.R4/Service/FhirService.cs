@@ -95,7 +95,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             Bundle nextBundle = bundle;
             while (nextBundle?.NextLink != null)
             {
-                nextBundle = await _fhirClient.SearchAsync(bundle.NextLink.ToString(), cancellationToken).ConfigureAwait(false);
+                nextBundle = await _fhirClient.SearchAsync(nextBundle.NextLink.ToString(), cancellationToken).ConfigureAwait(false);
                 if (nextBundle != null)
                 {
                     yield return nextBundle;
