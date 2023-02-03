@@ -263,6 +263,8 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             // If no events were flushed for the partition (eg: trigger reason is ThresholdWaitReached - due to receival of MaxTimeEvent), then use the current timestamp.
             var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
             _logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(eventTimestampLastProcessed.ToString("yyyyMMddHHmmss")));
+
+            _logger.LogMetric(EventMetrics.EventFreshnessDelayPerPartition(partitionId, triggerReason), DateTime.UtcNow.Subtract(eventTimestampLastProcessed).TotalMinutes);
         }
     }
 }
