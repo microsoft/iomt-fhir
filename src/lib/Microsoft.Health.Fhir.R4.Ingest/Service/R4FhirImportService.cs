@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Caching.Memory;
@@ -48,8 +49,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         protected IResourceIdentityService ResourceIdentityService { get; }
 
-        public override async Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null)
+        public override async Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, CancellationToken ct, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null)
         {
+            ct.ThrowIfCancellationRequested();
+
             try
             {
                 // Get required ids
@@ -68,7 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                 foreach (var grp in grps)
                 {
-                    _ = await SaveObservationAsync(config, grp, ids).ConfigureAwait(false);
+                    _ = await SaveObservationAsync(config, grp, ids, ct).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -78,8 +81,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
         }
 
-        public virtual async Task<string> SaveObservationAsync(ILookupTemplate<IFhirTemplate> config, IObservationGroup observationGroup, IDictionary<ResourceType, string> ids)
+        public virtual async Task<string> SaveObservationAsync(ILookupTemplate<IFhirTemplate> config, IObservationGroup observationGroup, IDictionary<ResourceType, string> ids, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+
             var identifier = GenerateObservationIdentifier(observationGroup, ids);
             var cacheKey = $"{identifier.System}|{identifier.Value}";
 
@@ -117,7 +122,15 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                     if (existingObservation == null)
                     {
                         var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
-                        return (await _fhirService.CreateResourceAsync(newObservation).ConfigureAwait(false), ResourceOperation.Created);
+
+                        var result = await _fhirService.UpdateResourceAsync(newObservation).ConfigureAwait(false);
+
+                        if (result.VersionId != "1")
+                        {
+                            _logger.LogError(new Exception($"Two processes modified the same Obersvation: {result.Id}"));
+                        }
+
+                        return (result, ResourceOperation.Created);
                     }
 
                     // Merge the new data with the existing Observation.
@@ -167,6 +180,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             observation.Subject = patientId.ToReference<Model.Patient>();
             observation.Device = deviceId.ToReference<Model.Device>();
             observation.Identifier = new List<Model.Identifier> { observationId };
+            observation.Id = SHA256HashGenerator.ComputeHashForIdentifier(observationId);
 
             if (ids.TryGetValue(ResourceType.Encounter, out string encounterId))
             {

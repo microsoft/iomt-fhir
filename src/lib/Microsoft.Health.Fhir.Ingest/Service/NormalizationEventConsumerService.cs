@@ -84,7 +84,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private (IContentTemplate template, DateTimeOffset timestamp) NormalizationTemplate { get; set; }
 
-        public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
+        public async Task ConsumeAsync(IEnumerable<IEventMessage> events, CancellationToken ct)
         {
             EnsureArg.IsNotNull(events);
 
@@ -232,20 +232,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             using (ITimed normalizeDuration = _logger.TrackDuration(IomtMetrics.NormalizedEventGenerationTimeMs(evt.PartitionId)))
             {
-                foreach (var measurement in template.GetMeasurements(token))
+                try
                 {
-                    try
+                    foreach (var measurement in template.GetMeasurements(token))
                     {
                         measurement.IngestionTimeUtc = evt.EnqueuedTime.UtcDateTime;
                         collector.Add((evt.PartitionId, measurement));
                         projections++;
                     }
-                    catch (Exception ex)
-                    {
-                        // Translate all Normalization Mapping exceptions into a common type for easy identification.
-                        throw new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException))
-                            .AddEventContext(evt);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException))
+                        .AddEventContext(evt);
                 }
             }
 

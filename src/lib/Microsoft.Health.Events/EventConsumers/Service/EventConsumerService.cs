@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Events.Model;
@@ -24,12 +25,12 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public Task ConsumeEvent(IEventMessage eventArg)
+        public Task ConsumeEvent(IEventMessage eventArg, CancellationToken ct)
         {
             throw new NotImplementedException();
         }
 
-        public async Task ConsumeEvents(IEnumerable<IEventMessage> events)
+        public async Task ConsumeEvents(IEnumerable<IEventMessage> events, CancellationToken ct)
         {
             if (events.Any())
             {
@@ -37,7 +38,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 {
                     try
                     {
-                        await eventConsumer.ConsumeAsync(events).ConfigureAwait(false);
+                        await eventConsumer.ConsumeAsync(events, ct).ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {

@@ -19,7 +19,6 @@ using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 using Model = Hl7.Fhir.Model;
 using ResourceType = Microsoft.Health.Fhir.Ingest.Data.ResourceType;
@@ -55,22 +54,22 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var logger = Substitute.For<ITelemetryLogger>();
 
             var service = Substitute.ForPartsOf<R4FhirImportService>(identityService, fhirClient, templateProcessor, cache, logger)
-                .Mock(m => m.SaveObservationAsync(default, default, default).ReturnsForAnyArgs(string.Empty));
+                .Mock(m => m.SaveObservationAsync(default, default, default, default).ReturnsForAnyArgs(string.Empty));
 
-            await service.ProcessAsync(config, measurementGroup);
+            await service.ProcessAsync(config, measurementGroup, default);
 
             await identityService.Received(1).ResolveResourceIdentitiesAsync(measurementGroup);
             templateProcessor.Received(1).CreateObservationGroups(config, measurementGroup);
 
-            await service.Received(1).SaveObservationAsync(config, observationGroups[0], ids);
-            await service.Received(1).SaveObservationAsync(config, observationGroups[1], ids);
+            await service.Received(1).SaveObservationAsync(config, observationGroups[0], ids, default);
+            await service.Received(1).SaveObservationAsync(config, observationGroups[1], ids, default);
         }
 
         [Fact]
         public async void GivenNotFoundObservation_WhenSaveObservationAsync_ThenCreateInvoked_Test()
         {
             var fhirClient = Utilities.CreateMockFhirService();
-            fhirClient.CreateResourceAsync(Arg.Any<Observation>()).ReturnsForAnyArgs(Task.FromResult(new Observation()));
+            fhirClient.UpdateResourceAsync(Arg.Any<Observation>()).ReturnsForAnyArgs(Task.FromResult(new Observation()));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -87,7 +86,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
-            var result = await service.SaveObservationAsync(config, observationGroup, ids);
+            var result = await service.SaveObservationAsync(config, observationGroup, ids, default);
 
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationCreated", x.Dimensions[DimensionNames.Name])), 1);
         }
@@ -153,7 +152,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
-            var result = await service.SaveObservationAsync(config, observationGroup, ids);
+            var result = await service.SaveObservationAsync(config, observationGroup, ids, default);
 
             templateProcessor.ReceivedWithAnyArgs(1).MergeObservation(default, default, default);
             await fhirClient.ReceivedWithAnyArgs(1).UpdateResourceAsync<Observation>(default);
@@ -213,7 +212,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
-            var result = await service.SaveObservationAsync(config, observationGroup, ids);
+            var result = await service.SaveObservationAsync(config, observationGroup, ids, default);
 
             templateProcessor.ReceivedWithAnyArgs(2).MergeObservation(default, default, default);
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationUpdated", x.Dimensions[DimensionNames.Name])), 1);
@@ -233,7 +232,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var cache = Substitute.For<IMemoryCache>();
 
             var observationGroup = Substitute.For<IObservationGroup>();
-            var identifer = new Identifier();
+            var identifer = new Identifier("test", "test");
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
             var logger = Substitute.For<ITelemetryLogger>();
@@ -258,7 +257,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async Task GivenCachedObservationDeleted_WhenGenerateObservation_ThenCacheIsUpdatedAndCreateInvoked_Test()
         {
-            var savedObservation = new Observation { Id = "1" };
+            var savedObservation = new Observation { Id = "1", VersionId = "1" };
 
             // Mock the cached Observation
             var cache = Substitute.For<IMemoryCache>();
@@ -270,9 +269,19 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 });
 
             var fhirClient = Utilities.CreateMockFhirService();
-            fhirClient.UpdateResourceAsync(Arg.Any<Observation>()).ThrowsForAnyArgs(new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome())));
+
+            // throw an exception when we attempt to update a resource and the server conflicts with the cache
+            fhirClient.When(x => x.UpdateResourceAsync(Arg.Is<Observation>(x => x.Id == "cachedObservationId")))
+                .Do(x =>
+                {
+                    throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome()));
+                });
+
+            // do not throw an exception when creating a new obsvervation
+            fhirClient.UpdateResourceAsync(Arg.Is<Observation>(x => x.Id != "cachedObservationId"))
+                .Returns(Task.FromResult(savedObservation));
+
             fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(new Bundle()));
-            fhirClient.CreateResourceAsync(Arg.Any<Observation>()).ReturnsForAnyArgs(Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -282,7 +291,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var templateProcessor = Substitute.For<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>()
                 .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Observation()))
-                .Mock(m => m.MergeObservation(default, default, default).ReturnsForAnyArgs(new Observation { Id = "2" }));
+                .Mock(m => m.MergeObservation(default, default, default).ReturnsForAnyArgs(new Observation { Id = "cachedObservationId" }));
 
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 
@@ -290,7 +299,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
-            var result = await service.SaveObservationAsync(config, observationGroup, ids);
+            var result = await service.SaveObservationAsync(config, observationGroup, ids, default);
 
             var test = IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created);
 
@@ -331,7 +340,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
-            var result = await service.SaveObservationAsync(config, observationGroup, ids);
+            var result = await service.SaveObservationAsync(config, observationGroup, ids, default);
 
             var test = IomtMetrics.FhirResourceSaved(ResourceType.Observation, ResourceOperation.Created);
 
@@ -377,7 +386,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var service = new R4FhirImportService(identityService, fhirClient, templateProcessor, cache, logger);
 
-            var result = await service.SaveObservationAsync(config, observationGroup, ids);
+            var result = await service.SaveObservationAsync(config, observationGroup, ids, default);
 
             templateProcessor.ReceivedWithAnyArgs(1).MergeObservation(default, default, default);
             logger.Received(1).LogMetric(Arg.Is<Metric>(x => Equals("ObservationNoOperation", x.Dimensions[DimensionNames.Name])), 1);

@@ -152,7 +152,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public async Task SetCheckpointAsync(IEventMessage eventArgs, IEnumerable<KeyValuePair<Metric, double>> metrics = null)
+        public async Task SetCheckpointAsync(IEventMessage eventArgs, CancellationToken ct, IEnumerable<KeyValuePair<Metric, double>> metrics = null)
         {
             EnsureArg.IsNotNull(eventArgs);
             EnsureArg.IsNotNullOrWhiteSpace(eventArgs.PartitionId);

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.IO;
@@ -41,10 +42,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var template = BuildTemplate(templateDefinition, log);
             var measurementGroups = await ParseAsync(data, log).ConfigureAwait(false);
 
-            await SendMeasurementGroups(measurementGroups, template, log).ConfigureAwait(false);
+            await SendMeasurementGroups(measurementGroups, template, log, CancellationToken.None).ConfigureAwait(false);
         }
 
-        public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log)
+        public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log, CancellationToken ct)
         {
             // Step 1: Before processing events, validate the template
             ILookupTemplate<IFhirTemplate> template = null;
@@ -85,11 +86,11 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
             }
 
-            await ProcessMeasurementEvents(measurements, template, log);
-            await ProcessMeasurementGroupEvents(measurementGroups, template, log);
+            await ProcessMeasurementEvents(measurements, template, log, ct);
+            await ProcessMeasurementGroupEvents(measurementGroups, template, log, ct);
         }
 
-        private async Task ProcessMeasurementEvents(IEnumerable<IEventMessage> events, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log)
+        private async Task ProcessMeasurementEvents(IEnumerable<IEventMessage> events, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log, CancellationToken ct)
         {
             if (events.Count() == 0)
             {
@@ -123,10 +124,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             // Transform the Measurement Groups into Observations and write to the FHIR Server.
             // Exceptions are currently handled in SendMeasurementGroups
-            await SendMeasurementGroups(measurementGroups, template, log, measurementToEventMapping).ConfigureAwait(false);
+            await SendMeasurementGroups(measurementGroups, template, log, ct, measurementToEventMapping).ConfigureAwait(false);
         }
 
-        private async Task ProcessMeasurementGroupEvents(IEnumerable<IEventMessage> events, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log)
+        private async Task ProcessMeasurementGroupEvents(IEnumerable<IEventMessage> events, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log, CancellationToken ct)
         {
             if (events.Count() == 0)
             {
@@ -183,7 +184,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             .AddEventContext(evt);
                     }
 
-                    await SendMeasurementGroups(groupedMeasurements, template, log, null, evt).ConfigureAwait(false);
+                    await SendMeasurementGroups(groupedMeasurements, template, log, ct, null, evt).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -215,6 +216,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             IEnumerable<IMeasurementGroup> measurementGroups,
             ILookupTemplate<IFhirTemplate> template,
             ITelemetryLogger log,
+            CancellationToken ct,
             Dictionary<IMeasurement, IEventMessage> measurementEventLookup = null,
             IEventMessage measurementGroupEvent = null)
         {
@@ -227,7 +229,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         {
                             try
                             {
-                                await _fhirImportService.ProcessAsync(template, m).ConfigureAwait(false);
+                                await _fhirImportService.ProcessAsync(template, m, ct).ConfigureAwait(false);
                             }
                             catch (Exception ex)
                             {

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Template;
@@ -38,7 +39,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 return GenerateObservationId(observationGroup, deviceId, patientId);
             }
 
-            public override Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null)
+            public override Task ProcessAsync(ILookupTemplate<IFhirTemplate> config, IMeasurementGroup data, CancellationToken ct, Func<Exception, IMeasurementGroup, Task<bool>> errorConsumer = null)
             {
                 throw new NotImplementedException();
             }

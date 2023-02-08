@@ -29,14 +29,14 @@ namespace Microsoft.Health.Events.UnitTest
             var logger = Substitute.For<ITelemetryLogger>();
             var eventConsumer = Substitute.For<IEventConsumer>();
 
-            eventConsumer.ConsumeAsync(Arg.Any<IEnumerable<IEventMessage>>()).ReturnsForAnyArgs(Task.FromException(new Exception("failure")));
+            eventConsumer.ConsumeAsync(Arg.Any<IEnumerable<IEventMessage>>(), default).ReturnsForAnyArgs(Task.FromException(new Exception("failure")));
 
             var eventEventConsumers = new List<IEventConsumer>() { eventConsumer };
             var eventConsumerService = new EventConsumerService(eventEventConsumers, logger);
 
-            await eventConsumerService.ConsumeEvents(initialBatch);
+            await eventConsumerService.ConsumeEvents(initialBatch, default);
             logger.Received(1).LogError(Arg.Is<Exception>(ex => ex.Message == "failure"));
-            await eventConsumer.Received(1).ConsumeAsync(initialBatch);
+            await eventConsumer.Received(1).ConsumeAsync(initialBatch, default);
         }
     }
 }

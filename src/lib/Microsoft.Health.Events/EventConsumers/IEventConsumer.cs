@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Events.Model;
 
@@ -11,6 +12,6 @@ namespace Microsoft.Health.Events.EventConsumers
 {
     public interface IEventConsumer
     {
-        Task ConsumeAsync(IEnumerable<IEventMessage> events);
+        Task ConsumeAsync(IEnumerable<IEventMessage> events, CancellationToken ct);
     }
 }

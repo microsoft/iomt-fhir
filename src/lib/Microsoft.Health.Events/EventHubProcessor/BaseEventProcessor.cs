@@ -55,6 +55,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 // The event arguments contain a cancellation token that the EventProcessorClient uses to signal the handler that processing should cease as soon as possible.
                 // This is most commonly seen when the EventProcessorClient is stopping or has encountered an unrecoverable problem.
                 Logger.LogTrace($"ProcessEventArgs contain a cancellation request {eventArgs.Partition.PartitionId}");
+
                 return;
             }
 
@@ -68,7 +69,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 evt = new MaximumWaitEvent(eventArgs.Partition.PartitionId, DateTime.UtcNow);
             }
 
-            await EventConsumerService.ConsumeEvent(evt);
+            await EventConsumerService.ConsumeEvent(evt, eventArgs.CancellationToken);
         }
 
         protected virtual Task ProcessErrorHandler(ProcessErrorEventArgs eventArgs)
@@ -94,6 +95,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 EventConsumerService.NewPartitionInitialized(partitionId);
                 var checkpoint = await CheckpointClient.GetCheckpointForPartitionAsync(partitionId, initArgs.CancellationToken);
                 initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
+
                 Logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
                 Logger.LogMetric(EventMetrics.EventHubPartitionInitialized(partitionId), 1);
             }
@@ -131,6 +133,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 var partitionId = partitionClosingEventArgs.PartitionId;
                 var reason = partitionClosingEventArgs.Reason;
                 Logger.LogTrace($"Stopping processing for partition {partitionId}. Reason {reason}");
+
                 EventConsumerService.PartitionProcessingStopped(partitionId);
             }
             catch (Exception ex)

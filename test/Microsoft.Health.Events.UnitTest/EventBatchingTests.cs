@@ -36,7 +36,7 @@ namespace Microsoft.Health.Events.UnitTest
 
             var event1 = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
 
-            await eventReader.ConsumeEvent(event1);
+            await eventReader.ConsumeEvent(event1, default);
 
             var endWindow = enqueuedTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
             var partitionWindow = eventReader.GetPartition("0").GetPartitionWindow();
@@ -51,14 +51,14 @@ namespace Microsoft.Health.Events.UnitTest
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-901);
             var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(firstEvent);
+            await eventReader.ConsumeEvent(firstEvent, default);
 
             var endWindow = firstEventTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
             Assert.Equal(endWindow, eventReader.GetPartition("0").GetPartitionWindow());
 
             var nextEventTime = DateTime.UtcNow;
             var nextEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 2, 2, nextEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(nextEvent);
+            await eventReader.ConsumeEvent(nextEvent, default);
 
             // check that the window is incremented up until next event is included in the current window
             var currentWindowStart = eventReader.GetPartition(nextEvent.PartitionId).GetPartitionWindow().Add(-TimeSpan.FromSeconds(_options.FlushTimespan));
@@ -74,7 +74,7 @@ namespace Microsoft.Health.Events.UnitTest
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-301);
             var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(firstEvent);
+            await eventReader.ConsumeEvent(firstEvent, default);
 
             // first window end is: utc - 1 second
             // utc - 301 seconds (firstEventTime) + 300 seconds (FlushTimespan)
@@ -83,10 +83,10 @@ namespace Microsoft.Health.Events.UnitTest
 
             var nextEventTime = DateTime.UtcNow;
             var nextEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 2, 2, nextEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(nextEvent);
+            await eventReader.ConsumeEvent(nextEvent, default);
 
             // flush the 1 event that exists within the first window, verify event outside of window is in queue
-            await _eventConsumerService.Received(1).ConsumeEvents(Arg.Is<IEnumerable<IEventMessage>>(x => x.Count() == 1));
+            await _eventConsumerService.Received(1).ConsumeEvents(Arg.Is<IEnumerable<IEventMessage>>(x => x.Count() == 1), default);
             var expectedQueueCount = 1;
             Assert.Equal(expectedQueueCount, eventReader.GetPartition(firstEvent.PartitionId).GetPartitionBatchCount());
 
@@ -104,16 +104,16 @@ namespace Microsoft.Health.Events.UnitTest
 
             var newEventTime = DateTime.UtcNow;
             var newEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, newEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(newEvent);
-            await eventReader.ConsumeEvent(newEvent);
+            await eventReader.ConsumeEvent(newEvent, default);
+            await eventReader.ConsumeEvent(newEvent, default);
 
             var endWindow = newEventTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
             Assert.Equal(endWindow, eventReader.GetPartition(newEvent.PartitionId).GetPartitionWindow());
 
-            await _eventConsumerService.Received(0).ConsumeEvents(Arg.Any<IEnumerable<IEventMessage>>());
+            await _eventConsumerService.Received(0).ConsumeEvents(Arg.Any<IEnumerable<IEventMessage>>(), default);
 
-            await eventReader.ConsumeEvent(newEvent);
-            await _eventConsumerService.Received(1).ConsumeEvents(Arg.Any<IEnumerable<IEventMessage>>());
+            await eventReader.ConsumeEvent(newEvent, default);
+            await _eventConsumerService.Received(1).ConsumeEvents(Arg.Any<IEnumerable<IEventMessage>>(), default);
 
             Assert.Equal(endWindow, eventReader.GetPartition(newEvent.PartitionId).GetPartitionWindow());
         }
@@ -125,11 +125,11 @@ namespace Microsoft.Health.Events.UnitTest
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-400);
             var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(firstEvent);
+            await eventReader.ConsumeEvent(firstEvent, default);
 
             var maxWaitEvent = new MaximumWaitEvent("0", DateTime.UtcNow.AddSeconds(-10));
-            await eventReader.ConsumeEvent(maxWaitEvent);
-            await _eventConsumerService.Received(1).ConsumeEvents(Arg.Any<IEnumerable<IEventMessage>>());
+            await eventReader.ConsumeEvent(maxWaitEvent, default);
+            await _eventConsumerService.Received(1).ConsumeEvents(Arg.Any<IEnumerable<IEventMessage>>(), default);
         }
 
         [Fact]
@@ -139,11 +139,11 @@ namespace Microsoft.Health.Events.UnitTest
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-30);
             var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(firstEvent);
+            await eventReader.ConsumeEvent(firstEvent, default);
 
             var maxWaitEvent = new MaximumWaitEvent("0", DateTime.UtcNow.AddSeconds(-10));
-            await eventReader.ConsumeEvent(maxWaitEvent);
-            await _eventConsumerService.Received(0).ConsumeEvents(Arg.Any<IEnumerable<EventMessage>>());
+            await eventReader.ConsumeEvent(maxWaitEvent, default);
+            await _eventConsumerService.Received(0).ConsumeEvents(Arg.Any<IEnumerable<EventMessage>>(), default);
         }
 
         [Fact]
@@ -155,9 +155,9 @@ namespace Microsoft.Health.Events.UnitTest
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-301);
             var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(firstEvent);
+            await eventReader.ConsumeEvent(firstEvent, default);
 
-            await _checkpointClient.Received(1).SetCheckpointAsync(firstEvent);
+            await _checkpointClient.Received(1).SetCheckpointAsync(firstEvent, default);
         }
 
         [Fact]
@@ -169,7 +169,7 @@ namespace Microsoft.Health.Events.UnitTest
             var enqueuedTime = DateTime.UtcNow;
 
             var event1 = new EventMessage(partitionId, new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(event1);
+            await eventReader.ConsumeEvent(event1, default);
 
             var endWindow = enqueuedTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
             var partitionWindow = eventReader.GetPartition(partitionId).GetPartitionWindow();
@@ -183,7 +183,7 @@ namespace Microsoft.Health.Events.UnitTest
 
             var enqueuedTime2 = DateTime.UtcNow;
             var event2 = new EventMessage(partitionId, new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime2, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
-            await eventReader.ConsumeEvent(event2);
+            await eventReader.ConsumeEvent(event2, default);
 
             var endWindow2 = enqueuedTime2.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
             var partitionWindow2 = eventReader.GetPartition(partitionId).GetPartitionWindow();

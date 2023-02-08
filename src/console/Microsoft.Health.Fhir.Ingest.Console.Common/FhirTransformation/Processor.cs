@@ -45,17 +45,19 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
             EventMetrics.SetConnectorOperation(ConnectorOperation.FHIRConversion);
         }
 
-        public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
+        public async Task ConsumeAsync(IEnumerable<IEventMessage> events, CancellationToken ct)
         {
             EnsureArg.IsNotNull(events);
 
-            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateName)));
+            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateName), ct));
 
             // This is a fallback option to skip any bad messages.
             // In known cases, the exception would be caught earlier and logged to the error message service.
             // If processing reaches this point in the code, the exception is unknown and retry attempts have failed.
             // If the error message service is enabled, the expectation is to log an error, and all events, and move on.
-            if (_errorMessageService != null && policyResult.FinalException != null)
+            if (_errorMessageService != null
+                && policyResult.FinalException != null
+                && policyResult.FinalException is not TaskCanceledException)
             {
                 policyResult.FinalException.AddEventContext(events);
                 var errorMessage = new IomtErrorMessage(policyResult.FinalException);
@@ -64,15 +66,21 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
 
         }
 
-        private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)
+        private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent, CancellationToken ct)
         {
-            await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger).ConfigureAwait(false);
+            await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger, ct).ConfigureAwait(false);
         }
 
         private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger, IErrorMessageService? errorMessageService)
         {
             bool ExceptionRetryableFilter(Exception ee)
             {
+                if (ee is TaskCanceledException)
+                {
+                    logger.LogTrace($"The task was cancelled.");
+                    return false;
+                }
+
                 logger.LogTrace($"Encountered retryable exception {ee.GetType()}");
                 logger.LogError(ee);
                 TrackExceptionMetric(ee, logger);

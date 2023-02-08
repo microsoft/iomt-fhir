@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -47,7 +46,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.DidNotReceiveWithAnyArgs().ProcessAsync(default, default);
+            await fhirService.DidNotReceiveWithAnyArgs().ProcessAsync(default, default, default);
         }
 
         [Fact]
@@ -65,7 +64,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, null);
+            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, null, default);
         }
 
         [Fact]
@@ -76,7 +75,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             var exception = new InvalidOperationException();
             var fhirService = Substitute.For<FhirImportService>();
-            fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
+            fhirService.ProcessAsync(default, default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
             var exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
             var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
@@ -93,7 +92,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 });
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
+            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default, default);
         }
 
         [Fact]
@@ -108,7 +107,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var exception = new InvalidOperationException();
 
             var fhirService = Substitute.For<FhirImportService>();
-            fhirService.ProcessAsync(default, default).ReturnsForAnyArgs(Task.FromException(exception));
+            fhirService.ProcessAsync(default, default, default).ReturnsForAnyArgs(Task.FromException(exception));
 
             var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionProcessor);
 
@@ -117,7 +116,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
+            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default, default);
             exceptionProcessor.Received(2).HandleException(exception, log);
         }
 
@@ -140,7 +139,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             Assert.Equal(1, fhirImport.WorkItemCount);
-            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
+            await fhirService.ReceivedWithAnyArgs(2).ProcessAsync(default, default, default);
         }
 
         [Fact]
@@ -164,7 +163,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             Assert.Equal(3, fhirImport.WorkItemCount);
-            await fhirService.ReceivedWithAnyArgs(4).ProcessAsync(default, default);
+            await fhirService.ReceivedWithAnyArgs(4).ProcessAsync(default, default, default);
         }
 
         [Fact]
@@ -192,7 +191,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             await fhirImport.ProcessStreamAsync(ToStream(measurements), string.Empty, log);
 
             Assert.Equal(1, fhirImport.WorkItemCount);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
+            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default, default);
 
             // Telemetry logging is async/non-blocking. Ensure enough time has pass so section is hit.
             await Task.Delay(1000);
@@ -232,10 +231,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 new EventMessage("0", contentBytes, null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
             };
 
-            await fhirImport.ProcessEventsAsync(events, string.Empty, log);
+            await fhirImport.ProcessEventsAsync(events, string.Empty, log, default);
 
             options.TemplateFactory.Received(1).Create(string.Empty);
-            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default);
+            await fhirService.ReceivedWithAnyArgs(1).ProcessAsync(default, default, default);
         }
 
         [Fact]
@@ -277,7 +276,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 new EventMessage("0", compressedBytes, Common.IO.Compression.GzipContentType, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>() { { "IsMeasurementGroup", true } }, new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
             };
 
-            var ex = await Assert.ThrowsAsync<CompressionNotSupportedException>(async () => await fhirImport.ProcessEventsAsync(events, string.Empty, log));
+            var ex = await Assert.ThrowsAsync<CompressionNotSupportedException>(async () => await fhirImport.ProcessEventsAsync(events, string.Empty, log, default));
 
             options.TemplateFactory.Received(1).Create(string.Empty);
             exceptionTelemetryProcessor.Received(1).HandleException(ex, log);
