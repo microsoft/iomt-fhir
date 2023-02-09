@@ -126,13 +126,11 @@ namespace Microsoft.Health.Events.Telemetry
         /// Signals the amount of time that has passed since the timestamp corresponding to the last processed event per partition. Calculated by subtracting the timestamp of the last processed event from the current time. If there are no events to be processed, the delay is 0.
         /// </summary>
         /// <param name="partitionId">The partition id of the event hub</param>
-        /// <param name="triggerReason">The trigger that caused the events to be flushed and processed</param
-        public static Metric EventFreshnessDelayPerPartition(string partitionId, string triggerReason)
+        public static Metric EventFreshnessDelayPerPartition(string partitionId)
         {
             return EventMetricDefinition.EventFreshnessDelayPerPartition
                 .CreateBaseMetric(Category.Latency, _connectorOperation)
-                .AddDimension(_partitionDimension, partitionId)
-                .AddDimension(_reasonDimension, triggerReason);
+                .AddDimension(_partitionDimension, partitionId);
         }
 
         /// <summary>
