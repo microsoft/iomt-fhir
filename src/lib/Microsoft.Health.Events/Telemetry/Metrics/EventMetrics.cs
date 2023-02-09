@@ -130,9 +130,9 @@ namespace Microsoft.Health.Events.Telemetry
         public static Metric EventFreshnessDelayPerPartition(string partitionId, string triggerReason)
         {
             return EventMetricDefinition.EventFreshnessDelayPerPartition
-            .CreateBaseMetric(Category.Latency, _connectorOperation)
-            .AddDimension(_partitionDimension, partitionId)
-            .AddDimension(_reasonDimension, triggerReason);
+                .CreateBaseMetric(Category.Latency, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId)
+                .AddDimension(_reasonDimension, triggerReason);
         }
 
         /// <summary>
