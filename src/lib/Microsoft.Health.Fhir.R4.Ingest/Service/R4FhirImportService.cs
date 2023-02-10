@@ -117,36 +117,39 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         _observationCache.Remove(cacheKey);
                     }
                 })
-                .ExecuteAndCaptureAsync(async () =>
-                {
-                    if (existingObservation == null)
+                .ExecuteAndCaptureAsync(
+                    async (cancellationToken) =>
                     {
-                        var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
-
-                        var result = await _fhirService.UpdateResourceAsync(newObservation).ConfigureAwait(false);
-
-                        if (result.VersionId != "1")
+                        if (existingObservation == null)
                         {
-                            _logger.LogError(new Exception($"Two processes modified the same Obersvation: {result.Id}"));
-                            _logger.LogMetric(IomtMetrics.FHIRResourceContention(ResourceType.Observation), 1);
+                            var newObservation = GenerateObservation(config, observationGroup, identifier, ids);
+
+                            ct.ThrowIfCancellationRequested();
+
+                            var result = await _fhirService.UpdateResourceAsync(newObservation).ConfigureAwait(false);
+
+                            if (result.VersionId != "1")
+                            {
+                                _logger.LogError(new Exception($"Two processes modified the same Obersvation: {result.Id}"));
+                                _logger.LogMetric(IomtMetrics.FHIRResourceContention(ResourceType.Observation), 1);
+                            }
+
+                            return (result, ResourceOperation.Created);
                         }
 
-                        return (result, ResourceOperation.Created);
-                    }
+                        // Merge the new data with the existing Observation.
+                        var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
 
-                    // Merge the new data with the existing Observation.
-                    var mergedObservation = MergeObservation(config, existingObservation, observationGroup);
+                        // Check to see if there are any changes after merging and update the Status to amended if changed.
+                        if (!existingObservation.AmendIfChanged(mergedObservation))
+                        {
+                            // There are no changes to the Observation - Do not update.
+                            return (existingObservation, ResourceOperation.NoOperation);
+                        }
 
-                    // Check to see if there are any changes after merging and update the Status to amended if changed.
-                    if (!existingObservation.AmendIfChanged(mergedObservation))
-                    {
-                        // There are no changes to the Observation - Do not update.
-                        return (existingObservation, ResourceOperation.NoOperation);
-                    }
-
-                    // Update the Observation. Some failures will be handled in the RetryAsync block above.
-                    return (await _fhirService.UpdateResourceAsync(mergedObservation).ConfigureAwait(false), ResourceOperation.Updated);
-                }).ConfigureAwait(false);
+                        // Update the Observation. Some failures will be handled in the RetryAsync block above.
+                        return (await _fhirService.UpdateResourceAsync(mergedObservation).ConfigureAwait(false), ResourceOperation.Updated);
+                    }, cancellationToken: ct).ConfigureAwait(false);
 
             var exception = policyResult.FinalException;
 
