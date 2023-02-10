@@ -43,5 +43,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static IomtMetricDefinition MeasurementBatchSubmissionMs { get; } = new IomtMetricDefinition(nameof(MeasurementBatchSubmissionMs));
 
         public static IomtMetricDefinition MeasurementBatchSize { get; } = new IomtMetricDefinition(nameof(MeasurementBatchSize));
+
+        public static IomtMetricDefinition FHIRResourceContention { get; } = new IomtMetricDefinition(nameof(FHIRResourceContention));
     }
 }

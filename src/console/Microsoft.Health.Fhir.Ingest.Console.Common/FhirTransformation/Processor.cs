@@ -77,7 +77,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
             {
                 if (ee is TaskCanceledException)
                 {
-                    logger.LogTrace($"The task was cancelled.");
+                    logger.LogTrace($"The FHIR import was aborted due to task cancellation.");
                     return false;
                 }
 

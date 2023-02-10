@@ -42,7 +42,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var template = BuildTemplate(templateDefinition, log);
             var measurementGroups = await ParseAsync(data, log).ConfigureAwait(false);
 
-            await SendMeasurementGroups(measurementGroups, template, log, CancellationToken.None).ConfigureAwait(false);
+            await SendMeasurementGroups(measurementGroups, template, log, default).ConfigureAwait(false);
         }
 
         public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log, CancellationToken ct)

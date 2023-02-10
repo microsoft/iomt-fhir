@@ -69,7 +69,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         public async void GivenNotFoundObservation_WhenSaveObservationAsync_ThenCreateInvoked_Test()
         {
             var fhirClient = Utilities.CreateMockFhirService();
-            fhirClient.UpdateResourceAsync(Arg.Any<Observation>()).ReturnsForAnyArgs(Task.FromResult(new Observation()));
+            fhirClient.UpdateResourceAsync(Arg.Any<Observation>()).ReturnsForAnyArgs(Task.FromResult(new Observation() { Id = "123", VersionId = "1" }));
 
             var ids = BuildIdCollection();
             var identityService = Substitute.For<IResourceIdentityService>()
@@ -78,7 +78,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var observationGroup = Substitute.For<IObservationGroup>();
 
             var templateProcessor = Substitute.For<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>>()
-                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Observation()));
+                .Mock(m => m.CreateObservation(default, default).ReturnsForAnyArgs(new Observation() { Id = "123", VersionId = "1" }));
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ILookupTemplate<IFhirTemplate>>();
 

@@ -128,6 +128,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         if (result.VersionId != "1")
                         {
                             _logger.LogError(new Exception($"Two processes modified the same Obersvation: {result.Id}"));
+                            _logger.LogMetric(IomtMetrics.FHIRResourceContention(ResourceType.Observation), 1);
                         }
 
                         return (result, ResourceOperation.Created);

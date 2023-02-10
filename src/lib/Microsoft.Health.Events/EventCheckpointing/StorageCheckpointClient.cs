@@ -56,10 +56,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
             return _storageClient;
         }
 
-        public async Task UpdateCheckpointAsync(Checkpoint checkpoint)
+        public async Task UpdateCheckpointAsync(Checkpoint checkpoint, CancellationToken ct)
         {
             EnsureArg.IsNotNull(checkpoint);
             EnsureArg.IsNotNullOrWhiteSpace(checkpoint.Id);
+
             var lastProcessed = EnsureArg.IsNotNullOrWhiteSpace(checkpoint.LastProcessed.DateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
 
             var blobName = $"{checkpoint.Prefix}{checkpoint.Id}";
@@ -74,6 +75,8 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 try
                 {
                     await blobClient.SetMetadataAsync(metadata);
@@ -159,6 +162,8 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var partitionId = eventArgs.PartitionId;
                 var checkpoint = new Checkpoint
                 {
@@ -169,7 +174,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     Offset = eventArgs.Offset,
                 };
 
-                await UpdateCheckpointAsync(checkpoint);
+                await UpdateCheckpointAsync(checkpoint, ct);
 
                 _logger.LogMetric(EventMetrics.EventWatermark(partitionId), 1);
 
