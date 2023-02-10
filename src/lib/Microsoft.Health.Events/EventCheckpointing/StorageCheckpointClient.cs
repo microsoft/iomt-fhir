@@ -79,13 +79,13 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
                 try
                 {
-                    await blobClient.SetMetadataAsync(metadata);
+                    await blobClient.SetMetadataAsync(metadata, null, ct);
                 }
                 catch (RequestFailedException ex) when ((ex.ErrorCode == BlobErrorCode.BlobNotFound) || (ex.ErrorCode == BlobErrorCode.ContainerNotFound))
                 {
                     using (var blobContent = new MemoryStream(Array.Empty<byte>()))
                     {
-                        await blobClient.UploadAsync(blobContent, metadata: metadata).ConfigureAwait(false);
+                        await blobClient.UploadAsync(blobContent, metadata: metadata, cancellationToken: ct).ConfigureAwait(false);
                     }
                 }
             }
