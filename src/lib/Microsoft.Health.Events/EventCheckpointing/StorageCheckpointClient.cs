@@ -75,8 +75,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
-                ct.ThrowIfCancellationRequested();
-
                 try
                 {
                     await blobClient.SetMetadataAsync(metadata, null, ct);
@@ -162,8 +160,6 @@ namespace Microsoft.Health.Events.EventCheckpointing
 
             try
             {
-                ct.ThrowIfCancellationRequested();
-
                 var partitionId = eventArgs.PartitionId;
                 var checkpoint = new Checkpoint
                 {
