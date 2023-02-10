@@ -243,6 +243,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
                 catch (Exception ex)
                 {
+                    // Translate all Normalization Mapping exceptions into a common type for easy identification.
                     throw new NormalizationDataMappingException(ex, nameof(NormalizationDataMappingException))
                         .AddEventContext(evt);
                 }
