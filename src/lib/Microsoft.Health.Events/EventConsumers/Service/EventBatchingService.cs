@@ -26,6 +26,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private int? _scaledOutMaxEventsAllPartitions;
         private int _scaledOutMaxEventsPerPartition;
         private static object _lock = new object();
+        private static object _freshnessLock = new object();
         private int _partitionCount;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
@@ -155,41 +156,50 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         public async Task ConsumeEvent(IEventMessage eventArg)
         {
-            EnsureArg.IsNotNull(eventArg);
-
-            var partitionId = eventArg.PartitionId;
-            var eventEnqueuedTime = eventArg.EnqueuedTime.UtcDateTime;
-
-            if (eventArg is MaximumWaitEvent)
+            try
             {
-                if (EventPartitionExists(partitionId))
+                EnsureArg.IsNotNull(eventArg);
+
+                var partitionId = eventArg.PartitionId;
+                var eventEnqueuedTime = eventArg.EnqueuedTime.UtcDateTime;
+
+                if (eventArg is MaximumWaitEvent)
                 {
-                    var windowThresholdTime = GetPartition(partitionId).GetPartitionWindow();
-                    await ThresholdWaitReached(partitionId, windowThresholdTime);
+                    if (EventPartitionExists(partitionId))
+                    {
+                        var windowThresholdTime = GetPartition(partitionId).GetPartitionWindow();
+                        await ThresholdWaitReached(partitionId, windowThresholdTime);
+                    }
+                    else
+                    {
+                        // If we received the timer event and there are no enqueued events in the partition, then simply update the data freshness.
+                        LogDataFreshness(partitionId, triggerReason: nameof(ThresholdWaitReached));
+                        LogFreshnessDelay(partitionId);
+                    }
                 }
                 else
                 {
-                    // If we received the timer event and there are no enqueued events in the partition, then simply update the data freshness.
-                    LogDataFreshness(partitionId, triggerReason: nameof(ThresholdWaitReached));
+                    var partition = CreatePartitionIfMissing(partitionId, eventEnqueuedTime, _flushTimespan);
+
+                    partition.Enqueue(eventArg);
+
+                    var windowThresholdTime = partition.GetPartitionWindow();
+                    if (eventEnqueuedTime > windowThresholdTime)
+                    {
+                        await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
+                    }
+
+                    var maxEventsForPartition = GetMaximumEventsForPartition();
+                    if (partition.GetPartitionBatchCount() >= maxEventsForPartition)
+                    {
+                        await ThresholdCountReached(partitionId, maxEventsForPartition);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                var partition = CreatePartitionIfMissing(partitionId, eventEnqueuedTime, _flushTimespan);
-
-                partition.Enqueue(eventArg);
-
-                var windowThresholdTime = partition.GetPartitionWindow();
-                if (eventEnqueuedTime > windowThresholdTime)
-                {
-                    await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
-                }
-
-                var maxEventsForPartition = GetMaximumEventsForPartition();
-                if (partition.GetPartitionBatchCount() >= maxEventsForPartition)
-                {
-                    await ThresholdCountReached(partitionId, maxEventsForPartition);
-                }
+                LogFreshnessDelay(partitionId);
+                throw;
             }
         }
 
@@ -249,6 +259,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 }
 
                 LogDataFreshness(partitionId, triggerReason, events);
+                LogFreshnessDelay(partitionId, events);
             }
         }
 
@@ -263,7 +274,11 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             // If no events were flushed for the partition (eg: trigger reason is ThresholdWaitReached - due to receival of MaxTimeEvent), then use the current timestamp.
             var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
             _logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(eventTimestampLastProcessed.ToString("yyyyMMddHHmmss")));
+        }
 
+        private void LogFreshnessDelay(string partitionId, IEnumerable<IEventMessage> events = null)
+        {
+            var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
             _logger.LogMetric(EventMetrics.EventFreshnessDelayPerPartition(partitionId), DateTime.UtcNow.Subtract(eventTimestampLastProcessed).TotalMinutes);
         }
     }

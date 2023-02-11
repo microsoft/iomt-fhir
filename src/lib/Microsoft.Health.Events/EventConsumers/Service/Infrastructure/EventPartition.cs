@@ -20,6 +20,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
         private DateTime _partitionWindow;
         private TimeSpan _flushTimespan;
         private ITelemetryLogger _logger;
+        private DateTime _eventFreshness;
 
         public EventPartition(string partitionId, DateTime initDateTime, TimeSpan flushTimespan, ITelemetryLogger logger)
         {
@@ -28,6 +29,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             _partitionWindow = initDateTime.Add(flushTimespan);
             _flushTimespan = flushTimespan;
             _logger = logger;
+            _eventFreshness = initDateTime;
         }
 
         public void Enqueue(IEventMessage eventArg)
@@ -52,6 +54,16 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
         public int GetPartitionBatchCount()
         {
             return _partition.Count;
+        }
+
+        public DateTime GetPartitionFreshness()
+        {
+            return _eventFreshness;
+        }
+
+        public void UpdatePartitionFreshness(DateTime updatedFreshness)
+        {
+            _eventFreshness = updatedFreshness;
         }
 
         public Task<List<IEventMessage>> FlushMaxEvents(int maxEvents)
