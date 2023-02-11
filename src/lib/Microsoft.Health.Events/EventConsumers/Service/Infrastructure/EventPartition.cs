@@ -21,6 +21,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
         private TimeSpan _flushTimespan;
         private ITelemetryLogger _logger;
         private DateTime _eventFreshness;
+        private static object _lock = new object();
 
         public EventPartition(string partitionId, DateTime initDateTime, TimeSpan flushTimespan, ITelemetryLogger logger)
         {
@@ -29,7 +30,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
             _partitionWindow = initDateTime.Add(flushTimespan);
             _flushTimespan = flushTimespan;
             _logger = logger;
-            _eventFreshness = initDateTime;
+            _eventFreshness = initDateTime.UtcDateTime;
         }
 
         public void Enqueue(IEventMessage eventArg)
@@ -58,12 +59,18 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
 
         public DateTime GetPartitionFreshness()
         {
-            return _eventFreshness;
+            lock (_lock)
+            {
+                return _eventFreshness;
+            }
         }
 
         public void UpdatePartitionFreshness(DateTime updatedFreshness)
         {
-            _eventFreshness = updatedFreshness;
+            lock (_lock)
+            {
+                _eventFreshness = updatedFreshness.UtcDateTime;
+            }
         }
 
         public Task<List<IEventMessage>> FlushMaxEvents(int maxEvents)
@@ -87,6 +94,11 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
                 }
             }
 
+            if (!events.Count == 0)
+            {
+                UpdatePartitionFreshness(events.Last().EnqueuedTime.UtcDateTime);
+            } 
+            
             _logger.LogTrace($"Flushed {events.Count} events on partition {_partitionId}");
             _logger.LogMetric(EventMetrics.EventsFlushed(_partitionId), events.Count);
             return Task.FromResult(events);
@@ -108,6 +120,11 @@ namespace Microsoft.Health.Events.EventConsumers.Service.Infrastructure
                 {
                     break;
                 }
+            }
+
+            if (!events.Count == 0)
+            {
+                UpdatePartitionFreshness(events.Last().EnqueuedTime.UtcDateTime);
             }
 
             _logger.LogTrace($"Flushed {events.Count} events up to {dateTime} on partition {_partitionId}");

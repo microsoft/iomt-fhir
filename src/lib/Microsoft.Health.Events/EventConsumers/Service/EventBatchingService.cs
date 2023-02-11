@@ -26,7 +26,6 @@ namespace Microsoft.Health.Events.EventConsumers.Service
         private int? _scaledOutMaxEventsAllPartitions;
         private int _scaledOutMaxEventsPerPartition;
         private static object _lock = new object();
-        private static object _freshnessLock = new object();
         private int _partitionCount;
         private TimeSpan _flushTimespan;
         private IEventConsumerService _eventConsumerService;
@@ -278,7 +277,15 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
         private void LogFreshnessDelay(string partitionId, IEnumerable<IEventMessage> events = null)
         {
-            var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
+            if (events.Any())
+            {
+                var eventTimestampLastProcessed = GetPartition(partitionId).GetPartitionFreshness();
+            }
+            else
+            {
+                var eventTimestampLastProcessed = DateTime.UtcNow;
+            }
+
             _logger.LogMetric(EventMetrics.EventFreshnessDelayPerPartition(partitionId), DateTime.UtcNow.Subtract(eventTimestampLastProcessed).TotalMinutes);
         }
     }
