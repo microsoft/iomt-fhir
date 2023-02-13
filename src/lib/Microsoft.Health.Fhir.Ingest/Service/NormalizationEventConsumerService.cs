@@ -84,7 +84,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private (IContentTemplate template, DateTimeOffset timestamp) NormalizationTemplate { get; set; }
 
-        public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
+        public async Task ConsumeAsync(IEnumerable<IEventMessage> events, CancellationToken ct)
         {
             EnsureArg.IsNotNull(events);
 

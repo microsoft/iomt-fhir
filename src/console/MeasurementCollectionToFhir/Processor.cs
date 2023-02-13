@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -49,11 +50,11 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
             EventMetrics.SetConnectorOperation(ConnectorOperation.FHIRConversion);
         }
 
-        public async Task ConsumeAsync(IEnumerable<IEventMessage> events)
+        public async Task ConsumeAsync(IEnumerable<IEventMessage> events, CancellationToken ct)
         {
             EnsureArg.IsNotNull(events);
 
-            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition)));
+            var policyResult = await _retryPolicy.ExecuteAndCaptureAsync(async () => await ConsumeAsyncImpl(events, _templateManager.GetTemplateAsString(_templateDefinition), ct));
 
             // This is a fallback option to skip any bad messages.
             // In known cases, the exception would be caught earlier and logged to the error message service.
@@ -68,9 +69,9 @@ namespace Microsoft.Health.Fhir.Ingest.Console.MeasurementCollectionToFhir
 
         }
 
-        private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent)
+        private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent, CancellationToken ct)
         {
-            await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger).ConfigureAwait(false);
+            await _measurementImportService.ProcessEventsAsync(events, templateContent, _logger, ct).ConfigureAwait(false);
         }
 
         private static AsyncPolicy CreateRetryPolicy(ITelemetryLogger logger, IErrorMessageService errorMessageService)

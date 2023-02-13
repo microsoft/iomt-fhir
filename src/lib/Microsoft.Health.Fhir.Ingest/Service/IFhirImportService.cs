@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
     public interface IFhirImportService<TData, TConfig>
     {
-        Task ProcessAsync(TConfig config, TData data, Func<Exception, TData, Task<bool>> errorConsumer = null);
+        Task ProcessAsync(TConfig config, TData data, CancellationToken ct, Func<Exception, TData, Task<bool>> errorConsumer = null);
     }
 }

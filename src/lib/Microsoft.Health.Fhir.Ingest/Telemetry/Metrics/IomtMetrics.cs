@@ -225,5 +225,18 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 .CreateBaseMetric(Category.Traffic, ConnectorOperation.Normalization)
                 .AddDimension(_partitionDimension, partitionId);
         }
+
+        /// <summary>
+        /// There are multiple processes updating the same FHIR resource.
+        /// </summary>
+        /// <param name="resourceType">The type of FHIR resource that was updated.</param>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric FHIRResourceContention(ResourceType resourceType, string partitionId = null)
+        {
+            return IomtMetricDefinition.FHIRResourceContention
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_nameDimension, resourceType.ToString())
+                .AddDimension(_partitionDimension, partitionId);
+        }
     }
 }

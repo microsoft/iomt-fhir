@@ -56,10 +56,11 @@ namespace Microsoft.Health.Events.EventCheckpointing
             return _storageClient;
         }
 
-        public async Task UpdateCheckpointAsync(Checkpoint checkpoint)
+        public async Task UpdateCheckpointAsync(Checkpoint checkpoint, CancellationToken ct)
         {
             EnsureArg.IsNotNull(checkpoint);
             EnsureArg.IsNotNullOrWhiteSpace(checkpoint.Id);
+
             var lastProcessed = EnsureArg.IsNotNullOrWhiteSpace(checkpoint.LastProcessed.DateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
 
             var blobName = $"{checkpoint.Prefix}{checkpoint.Id}";
@@ -76,13 +77,13 @@ namespace Microsoft.Health.Events.EventCheckpointing
             {
                 try
                 {
-                    await blobClient.SetMetadataAsync(metadata);
+                    await blobClient.SetMetadataAsync(metadata, null, ct);
                 }
                 catch (RequestFailedException ex) when ((ex.ErrorCode == BlobErrorCode.BlobNotFound) || (ex.ErrorCode == BlobErrorCode.ContainerNotFound))
                 {
                     using (var blobContent = new MemoryStream(Array.Empty<byte>()))
                     {
-                        await blobClient.UploadAsync(blobContent, metadata: metadata).ConfigureAwait(false);
+                        await blobClient.UploadAsync(blobContent, metadata: metadata, cancellationToken: ct).ConfigureAwait(false);
                     }
                 }
             }
@@ -152,7 +153,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
             }
         }
 
-        public async Task SetCheckpointAsync(IEventMessage eventArgs, IEnumerable<KeyValuePair<Metric, double>> metrics = null)
+        public async Task SetCheckpointAsync(IEventMessage eventArgs, CancellationToken ct, IEnumerable<KeyValuePair<Metric, double>> metrics = null)
         {
             EnsureArg.IsNotNull(eventArgs);
             EnsureArg.IsNotNullOrWhiteSpace(eventArgs.PartitionId);
@@ -169,7 +170,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
                     Offset = eventArgs.Offset,
                 };
 
-                await UpdateCheckpointAsync(checkpoint);
+                await UpdateCheckpointAsync(checkpoint, ct);
 
                 _logger.LogMetric(EventMetrics.EventWatermark(partitionId), 1);
 

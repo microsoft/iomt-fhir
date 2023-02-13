@@ -13,7 +13,7 @@ namespace Microsoft.Health.Events.EventCheckpointing
 {
     public interface ICheckpointClient
     {
-        Task SetCheckpointAsync(IEventMessage eventArg, IEnumerable<KeyValuePair<Metric, double>> metrics = null);
+        Task SetCheckpointAsync(IEventMessage eventArg, CancellationToken ct, IEnumerable<KeyValuePair<Metric, double>> metrics = null);
 
         Task<Checkpoint> GetCheckpointForPartitionAsync(string partitionId, CancellationToken cancellationToken);
 

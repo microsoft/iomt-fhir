@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.IO;
@@ -41,10 +42,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var template = BuildTemplate(templateDefinition, log);
             var measurementGroups = await ParseAsync(data, log).ConfigureAwait(false);
 
-            await ProcessMeasurementGroups(measurementGroups, template, log).ConfigureAwait(false);
+            await ProcessMeasurementGroups(measurementGroups, template, log, CancellationToken.None).ConfigureAwait(false);
         }
 
-        public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log)
+        public async Task ProcessEventsAsync(IEnumerable<IEventMessage> events, string templateDefinition, ITelemetryLogger log, CancellationToken ct)
         {
             // Step 1: Before processing events, validate the template
             ILookupTemplate<IFhirTemplate> template = null;
@@ -94,7 +95,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
             // Step 3: Transform the Measurement Groups into Observations and write to the FHIR Server.
             //         Exceptions are currently handled in ProcessMeasurementGroups
-            await ProcessMeasurementGroups(measurementGroups, template, log, measurementToEventMapping).ConfigureAwait(false);
+            await ProcessMeasurementGroups(measurementGroups, template, log, ct, measurementToEventMapping).ConfigureAwait(false);
         }
 
         private ILookupTemplate<IFhirTemplate> BuildTemplate(string templateDefinition, ITelemetryLogger log)
@@ -108,7 +109,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             return templateContext.Template;
         }
 
-        private async Task ProcessMeasurementGroups(IEnumerable<IMeasurementGroup> measurementGroups, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log, Dictionary<IMeasurement, IEventMessage> eventLookup = null)
+        private async Task ProcessMeasurementGroups(IEnumerable<IMeasurementGroup> measurementGroups, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log, CancellationToken ct, Dictionary<IMeasurement, IEventMessage> eventLookup = null)
         {
             // Group work by device to avoid race conditions when resource creation is enabled.
             var workItems = measurementGroups.GroupBy(grp => grp.DeviceId)
@@ -119,7 +120,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         {
                             try
                             {
-                                await _fhirImportService.ProcessAsync(template, m).ConfigureAwait(false);
+                                await _fhirImportService.ProcessAsync(template, m, ct).ConfigureAwait(false);
                             }
                             catch (Exception ex)
                             {

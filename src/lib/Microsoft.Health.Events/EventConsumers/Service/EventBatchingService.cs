@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
@@ -153,7 +154,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             }
         }
 
-        public async Task ConsumeEvent(IEventMessage eventArg)
+        public async Task ConsumeEvent(IEventMessage eventArg, CancellationToken ct)
         {
             EnsureArg.IsNotNull(eventArg);
 
@@ -165,7 +166,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 if (EventPartitionExists(partitionId))
                 {
                     var windowThresholdTime = GetPartition(partitionId).GetPartitionWindow();
-                    await ThresholdWaitReached(partitionId, windowThresholdTime);
+                    await ThresholdWaitReached(partitionId, windowThresholdTime, ct);
                 }
                 else
                 {
@@ -182,59 +183,59 @@ namespace Microsoft.Health.Events.EventConsumers.Service
                 var windowThresholdTime = partition.GetPartitionWindow();
                 if (eventEnqueuedTime > windowThresholdTime)
                 {
-                    await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime);
+                    await ThresholdTimeReached(partitionId, eventArg, windowThresholdTime, ct);
                 }
 
                 var maxEventsForPartition = GetMaximumEventsForPartition();
                 if (partition.GetPartitionBatchCount() >= maxEventsForPartition)
                 {
-                    await ThresholdCountReached(partitionId, maxEventsForPartition);
+                    await ThresholdCountReached(partitionId, maxEventsForPartition, ct);
                 }
             }
         }
 
-        private async Task ThresholdCountReached(string partitionId, int maxEventsForPartition)
+        private async Task ThresholdCountReached(string partitionId, int maxEventsForPartition, CancellationToken ct)
         {
             var partition = GetPartition(partitionId);
             _logger.LogTrace($"Partition {partitionId} threshold count {maxEventsForPartition} was reached.");
             var events = await partition.FlushMaxEvents(maxEventsForPartition);
-            await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdCountReached));
+            await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdCountReached), ct);
         }
 
-        private async Task ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd)
+        private async Task ThresholdTimeReached(string partitionId, IEventMessage eventArg, DateTime windowEnd, CancellationToken ct)
         {
             _logger.LogTrace($"Partition {partitionId} threshold time {_eventPartitions[partitionId].GetPartitionWindow()} was reached.");
 
             var queue = GetPartition(partitionId);
             var events = await queue.Flush(windowEnd);
             queue.IncrementPartitionWindow(eventArg.EnqueuedTime.UtcDateTime);
-            await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdTimeReached));
+            await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdTimeReached), ct);
         }
 
-        private async Task ThresholdWaitReached(string partitionId, DateTime windowEnd)
+        private async Task ThresholdWaitReached(string partitionId, DateTime windowEnd, CancellationToken ct)
         {
             if (windowEnd < DateTime.UtcNow.AddSeconds(_timeBuffer))
             {
                 _logger.LogTrace($"Partition {partitionId} threshold wait reached. Flushing {_eventPartitions[partitionId].GetPartitionBatchCount()} events up to: {windowEnd}");
                 var events = await GetPartition(partitionId).Flush(windowEnd);
-                await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdWaitReached));
+                await CompleteProcessing(partitionId, events, triggerReason: nameof(ThresholdWaitReached), ct);
             }
         }
 
-        private async Task UpdateCheckpoint(IEnumerable<IEventMessage> events, IEnumerable<KeyValuePair<Metric, double>> eventMetrics)
+        private async Task UpdateCheckpoint(IEnumerable<IEventMessage> events, IEnumerable<KeyValuePair<Metric, double>> eventMetrics, CancellationToken ct)
         {
             if (events.Count() > 0)
             {
                 var eventCheckpoint = events.ElementAt(events.Count() - 1);
-                await _checkpointClient.SetCheckpointAsync(eventCheckpoint, eventMetrics);
+                await _checkpointClient.SetCheckpointAsync(eventCheckpoint, ct, eventMetrics);
             }
         }
 
-        private async Task CompleteProcessing(string partitionId, IEnumerable<IEventMessage> events, string triggerReason)
+        private async Task CompleteProcessing(string partitionId, IEnumerable<IEventMessage> events, string triggerReason, CancellationToken ct)
         {
             using (ITimed flushProcessingTime = _logger.TrackDuration(EventMetrics.BatchFlushDurationMs(partitionId)))
             {
-                await _eventConsumerService.ConsumeEvents(events);
+                await _eventConsumerService.ConsumeEvents(events, ct);
 
                 IEnumerable<KeyValuePair<Metric, double>> eventMetrics = null;
 
@@ -245,14 +246,14 @@ namespace Microsoft.Health.Events.EventConsumers.Service
 
                 using (ITimed timer = _logger.TrackDuration(EventMetrics.CheckpointUpdateDurationMs(partitionId)))
                 {
-                    await UpdateCheckpoint(events, eventMetrics);
+                    await UpdateCheckpoint(events, eventMetrics, ct);
                 }
 
                 LogDataFreshness(partitionId, triggerReason, events);
             }
         }
 
-        public Task ConsumeEvents(IEnumerable<IEventMessage> events)
+        public Task ConsumeEvents(IEnumerable<IEventMessage> events, CancellationToken ct)
         {
             throw new NotImplementedException();
         }
