@@ -238,6 +238,70 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         }
 
         [Fact]
+        public async void GivenMultipleMeasurementEventsForSamePatientAndDevice_WhenProcessEventsAsync_ThenProcessAsyncInvokedWithExpectedMeasurementGroupData_Test()
+        {
+            var log = Substitute.For<ITelemetryLogger>();
+            var options = BuildMockOptions();
+            var fhirService = Substitute.For<FhirImportService>();
+            var exceptionTelemetryProcessor = Substitute.For<IExceptionTelemetryProcessor>();
+
+            var fhirImport = new MeasurementFhirImportService(fhirService, options, exceptionTelemetryProcessor);
+
+            // Mock event data for the same patient and device, with 2/3 events having the same 'OccurrenceTimeUtc' and with 'IngestionTimeUtc' 1s apart.
+            var event1OccurrenceTimeUtc = new DateTime(2020, 08, 10, 00, 15, 00);
+            var event1IngestionTimeUtc = new DateTime(2022, 08, 10, 12, 00, 00);
+            JObject event1 = JObject.Parse(
+            @$"{{
+                'Type': 'summary',
+                'OccurrenceTimeUtc': '{event1OccurrenceTimeUtc}',
+                'IngestionTimeUtc': '{event1IngestionTimeUtc}',
+                'DeviceId': 'ABC',
+                'PatientId': '123',
+                'EncounterId': null,
+                'CorrelationId': null,
+                'Properties': [
+                    {{ 'Name': 'testdata1','Value':'1'}},
+                    {{ 'Name': 'testdata2','Value':'2'}}
+                ]
+            }}");
+
+            var event2OccurrenceTimeUtc = event1OccurrenceTimeUtc;
+            var event2IngestionTimeUtc = event1IngestionTimeUtc.AddSeconds(1);
+            JObject event2 = new (event1)
+            {
+                ["IngestionTimeUtc"] = event2IngestionTimeUtc,
+            };
+
+            var event3OccurrenceTimeUtc = event1OccurrenceTimeUtc.AddMinutes(1);
+            var event3IngestionTimeUtc = event2IngestionTimeUtc.AddSeconds(1);
+            JObject event3 = new (event1)
+            {
+                ["OccurrenceTimeUtc"] = event3OccurrenceTimeUtc,
+                ["IngestionTimeUtc"] = event3IngestionTimeUtc,
+            };
+
+            var events = new List<EventMessage>()
+            {
+                new EventMessage("0",  Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(event1, Formatting.None)), null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
+                new EventMessage("0",  Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(event2, Formatting.None)), null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
+                new EventMessage("0",  Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(event3, Formatting.None)), null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
+            };
+
+            await fhirImport.ProcessEventsAsync(events, string.Empty, log, default);
+
+            options.TemplateFactory.Received(1).Create(string.Empty);
+            await fhirService.Received(1).ProcessAsync(
+               Arg.Any<ILookupTemplate<IFhirTemplate>>(),
+               Arg.Is<IMeasurementGroup>(m =>
+               m.Data.Count() == 2 &&
+               m.Data.ElementAt(0).IngestionTimeUtc == event2IngestionTimeUtc &&
+               m.Data.ElementAt(0).OccurrenceTimeUtc == event2OccurrenceTimeUtc &&
+               m.Data.ElementAt(1).IngestionTimeUtc == event3IngestionTimeUtc &&
+               m.Data.ElementAt(1).OccurrenceTimeUtc == event3OccurrenceTimeUtc),
+               default);
+        }
+
+        [Fact]
         public async void GivenCompressedMeasurementGroupEvent_WhenProcessEventsAsync_ThenCompressionNotSupportedExceptionThrown_Test()
         {
             var log = Substitute.For<ITelemetryLogger>();

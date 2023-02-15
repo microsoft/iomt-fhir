@@ -198,7 +198,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             .GroupBy(m => $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}")
             .Select(g =>
             {
-                IList<Measurement> measurements = g.ToList();
+                // In case of multiple measurements with the same OccurrenceTimeUtc within the batch, take the latest (based on IngestionTimeUtc) measurement
+                // to represent the recent/updated event data at that occurence timestamp.
+                IList<Measurement> measurements = g.GroupBy(x => x.OccurrenceTimeUtc).Select(y => y.OrderByDescending(d => d.IngestionTimeUtc).First()).ToList();
+
                 _ = CalculateMetricsAsync(measurements, logger, partitionId).ConfigureAwait(false);
                 return new MeasurementGroup
                 {
