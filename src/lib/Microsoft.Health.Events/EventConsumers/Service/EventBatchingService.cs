@@ -264,7 +264,7 @@ namespace Microsoft.Health.Events.EventConsumers.Service
             var eventTimestampLastProcessed = events?.Any() ?? false ? events.Last().EnqueuedTime.UtcDateTime : DateTime.UtcNow;
             _logger.LogMetric(EventMetrics.EventTimestampLastProcessedPerPartition(partitionId, triggerReason), double.Parse(eventTimestampLastProcessed.ToString("yyyyMMddHHmmss")));
 
-            _logger.LogMetric(EventMetrics.EventFreshnessDelayPerPartition(partitionId), DateTime.UtcNow.Subtract(eventTimestampLastProcessed).TotalMinutes);
+            _logger.LogMetric(EventMetrics.EventFreshnessDelayPerPartition(partitionId), DateTime.UtcNow.Subtract(eventTimestampLastProcessed).TotalMilliseconds);
         }
     }
 }
