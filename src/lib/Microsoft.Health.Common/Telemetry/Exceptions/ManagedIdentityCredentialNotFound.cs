@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.Health.Common.Telemetry.Exceptions
 {
-    public class ManagedIdentityCredentialNotFound : IomtTelemetryFormattableException
+    public class ManagedIdentityCredentialNotFound : ThirdPartyLoggedFormattableException
     {
         public ManagedIdentityCredentialNotFound(
             string message,
