@@ -26,6 +26,8 @@ namespace Microsoft.Health.Events.Telemetry
 
         public static EventMetricDefinition EventTimestampLastProcessedPerPartition { get; } = new EventMetricDefinition(nameof(EventTimestampLastProcessedPerPartition));
 
+        public static EventMetricDefinition EventFreshnessDelayPerPartition { get; } = new EventMetricDefinition(nameof(EventFreshnessDelayPerPartition));
+
         public static EventMetricDefinition EventsWatermarkUpdated { get; } = new EventMetricDefinition(nameof(EventsWatermarkUpdated));
 
         public static EventMetricDefinition DeviceIngressSizeBytes { get; } = new EventMetricDefinition(nameof(DeviceIngressSizeBytes));
