@@ -398,7 +398,7 @@ namespace Microsoft.Health.Fhir.Ingest.Data
         }
 
         [Fact]
-        public void GivenCollisions_WhenMergeData_ThenData1ValueUsed_Test()
+        public void GivenCollisions_WhenMergeData_ThenData2ValueUsed_Test()
         {
             var seedDt = new DateTime(2019, 1, 1, 0, 30, 0, DateTimeKind.Utc);
             var data1 = new[]
@@ -423,12 +423,12 @@ namespace Microsoft.Health.Fhir.Ingest.Data
                 v =>
                 {
                     Assert.Equal(seedDt, v.Time);
-                    Assert.Equal("1", v.Value);
+                    Assert.Equal("2", v.Value);
                 },
                 v =>
                 {
                     Assert.Equal(seedDt.AddMinutes(1), v.Time);
-                    Assert.Equal("1", v.Value);
+                    Assert.Equal("2", v.Value);
                 });
         }
 

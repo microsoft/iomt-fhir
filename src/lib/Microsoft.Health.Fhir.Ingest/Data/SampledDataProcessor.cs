@@ -67,38 +67,38 @@ namespace Microsoft.Health.Fhir.Ingest.Data
             return timeValues.ToArray();
         }
 
-        public virtual (DateTime Time, string Value)[] MergeData((DateTime Time, string Value)[] data1, (DateTime Time, string Value)[] data2)
+        public virtual (DateTime Time, string Value)[] MergeData((DateTime Time, string Value)[] existingData, (DateTime Time, string Value)[] newData)
         {
-            EnsureArg.IsNotNull(data1, nameof(data1));
-            EnsureArg.IsNotNull(data2, nameof(data2));
+            EnsureArg.IsNotNull(existingData, nameof(existingData));
+            EnsureArg.IsNotNull(newData, nameof(newData));
 
-            var output = new List<(DateTime Time, string Value)>(data1.Length + data2.Length);
-            var data1Pos = 0;
-            var data2Pos = 0;
+            var output = new List<(DateTime Time, string Value)>(existingData.Length + newData.Length);
+            var existingDataPos = 0;
+            var newDataPos = 0;
 
-            while (data1Pos < data1.Length || data2Pos < data2.Length)
+            while (existingDataPos < existingData.Length || newDataPos < newData.Length)
             {
-                if (data1Pos >= data1.Length)
+                if (existingDataPos >= existingData.Length)
                 {
-                    output.Add(data2[data2Pos++]);
+                    output.Add(newData[newDataPos++]);
                 }
-                else if (data2Pos >= data2.Length)
+                else if (newDataPos >= newData.Length)
                 {
-                    output.Add(data1[data1Pos++]);
+                    output.Add(existingData[existingDataPos++]);
                 }
-                else if (data1[data1Pos].Time < data2[data2Pos].Time)
+                else if (existingData[existingDataPos].Time < newData[newDataPos].Time)
                 {
-                    output.Add(data1[data1Pos++]);
+                    output.Add(existingData[existingDataPos++]);
                 }
-                else if (data1[data1Pos].Time > data2[data2Pos].Time)
+                else if (existingData[existingDataPos].Time > newData[newDataPos].Time)
                 {
-                    output.Add(data2[data2Pos++]);
+                    output.Add(newData[newDataPos++]);
                 }
                 else
                 {
-                    // Collision, take one and increment both
-                    output.Add(data1[data1Pos++]);
-                    data2Pos++;
+                    // In case of collision, take the new data to represent latest data, and increment both positions.
+                    output.Add(newData[newDataPos++]);
+                    existingDataPos++;
                 }
             }
 
