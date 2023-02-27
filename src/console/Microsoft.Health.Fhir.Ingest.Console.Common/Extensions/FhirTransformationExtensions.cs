@@ -9,6 +9,7 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Auth;
@@ -78,7 +79,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
             services.AddSingleton<IExceptionTelemetryProcessor, FhirExceptionTelemetryProcessor>();
             services.AddSingleton<MeasurementFhirImportOptions>();
-            MeasurementImportServiceExtensions.AddImportService(services, config);
+            services.AddSingleton<IImportService, MeasurementGroupFhirImportService>();
 
             // Add FHIR Client
             // Use IAzureExternalIdentityCredentialProvider if it exists, else use IAzureCredentialProvider
