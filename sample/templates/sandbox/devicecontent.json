@@ -9,7 +9,7 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.HeartRate",
             "valueName": "hr"
           }
@@ -24,7 +24,7 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.RespiratoryRate",
             "valueName": "respiratoryrate"
           }
@@ -39,7 +39,7 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.HeartRateVariability",
             "valueName": "hrv"
           }
@@ -54,7 +54,7 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.BodyTemperature",
             "valueName": "temp"
           }
@@ -69,12 +69,12 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.BloodPressure.Systolic",
             "valueName": "systolic"
           },
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.BloodPressure.Diastolic",
             "valueName": "diastolic"
           }
@@ -89,7 +89,7 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.RangeOfMotion",
             "valueName": "rangeofmotion"
           }
@@ -104,7 +104,7 @@
         "patientIdExpression": "$.deviceId",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.telemetry.KneeBend",
             "valueName": "kneebend"
           }

@@ -10,7 +10,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.heartRate",
             "valueName": "hr"
           }
@@ -26,7 +26,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.stepCount",
             "valueName": "steps"
           }
@@ -42,12 +42,12 @@
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.systolic",
             "valueName": "systolic"
           },
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.diastolic",
             "valueName": "diastolic"
           }
@@ -63,7 +63,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.bloodGlucose",
             "valueName": "glucose"
           }
@@ -79,7 +79,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.height",
             "valueName": "height"
           }
@@ -95,7 +95,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.bodyMass",
             "valueName": "bodyMass"
           }
@@ -111,7 +111,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.bodyTemperature",
             "valueName": "bodyTemperature"
           }
@@ -127,7 +127,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.oxygenSaturation",
             "valueName": "oxygenSaturation"
           }
@@ -143,7 +143,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.respiratoryRate",
             "valueName": "respiratoryRate"
           }
@@ -159,7 +159,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.activeEnergyBurned",
             "valueName": "activeEnergyBurned"
           }
@@ -175,7 +175,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.appleExerciseTime",
             "valueName": "appleExerciseTime"
           }
@@ -191,7 +191,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.appleStandTime",
             "valueName": "appleStandTime"
           }
@@ -207,7 +207,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.dietaryEnergyConsumed",
             "valueName": "dietaryEnergyConsumed"
           }
@@ -223,7 +223,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.environmentalAudioExposure",
             "valueName": "environmentalAudioExposure"
           }
@@ -239,7 +239,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.heartRateVariability",
             "valueName": "heartRateVariability"
           }
@@ -255,7 +255,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.restingHeartRate",
             "valueName": "restingHeartRate"
           }
@@ -271,7 +271,7 @@
         "timestampExpression": "$.endDate",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.walkingHeartRateAverage",
             "valueName": "walkingHeartRateAverage"
           }
