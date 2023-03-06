@@ -161,17 +161,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                         groupedMeasurements = measurementGroup.GroupBy(GetMeasurementKey)
                         .Select(g =>
                         {
-                            IList<Measurement> measurements = g.ToList();
-                            _ = CalculateMetricsAsync(measurements, log, partitionId).ConfigureAwait(false);
-                            return new MeasurementGroup
-                            {
-                                Data = measurements,
-                                MeasureType = measurements[0].Type,
-                                CorrelationId = measurements[0].CorrelationId,
-                                DeviceId = measurements[0].DeviceId,
-                                EncounterId = measurements[0].EncounterId,
-                                PatientId = measurements[0].PatientId,
-                            };
+                            return CreateMeasurementGroup(g, log, partitionId);
                         })
                         .ToArray();
                     }
@@ -306,17 +296,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             .GroupBy(GetMeasurementKey)
             .Select(g =>
             {
-                IList<Measurement> measurements = g.ToList();
-                _ = CalculateMetricsAsync(measurements, logger, partitionId).ConfigureAwait(false);
-                return new MeasurementGroup
-                {
-                    Data = measurements,
-                    MeasureType = measurements[0].Type,
-                    CorrelationId = measurements[0].CorrelationId,
-                    DeviceId = measurements[0].DeviceId,
-                    EncounterId = measurements[0].EncounterId,
-                    PatientId = measurements[0].PatientId,
-                };
+                return CreateMeasurementGroup(g, logger, partitionId);
             })
             .ToArray();
 
@@ -359,6 +339,29 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         private static string GetMeasurementKey(Measurement m)
         {
             return $"{m.DeviceId}-{m.Type}-{m.PatientId}-{m.EncounterId}-{m.CorrelationId}";
+        }
+
+        private static IList<Measurement> GroupMeasurementByIngestionTime(IEnumerable<Measurement> g)
+        {
+            // In case of multiple measurements with the same OccurrenceTimeUtc within the batch, take the latest (based on IngestionTimeUtc) measurement
+            // to represent the recent/updated event data at that occurrence timestamp.
+            IList<Measurement> measurements = g.GroupBy(x => x.OccurrenceTimeUtc).Select(y => y.OrderByDescending(d => d.IngestionTimeUtc).First()).ToList();
+            return measurements;
+        }
+
+        private static MeasurementGroup CreateMeasurementGroup(IEnumerable<Measurement> measurements, ITelemetryLogger log, string partitionId)
+        {
+            IList<Measurement> groupedMeasurements = GroupMeasurementByIngestionTime(measurements);
+            _ = CalculateMetricsAsync(groupedMeasurements, log, partitionId).ConfigureAwait(false);
+            return new MeasurementGroup
+            {
+                Data = groupedMeasurements,
+                MeasureType = groupedMeasurements[0].Type,
+                CorrelationId = groupedMeasurements[0].CorrelationId,
+                DeviceId = groupedMeasurements[0].DeviceId,
+                EncounterId = groupedMeasurements[0].EncounterId,
+                PatientId = groupedMeasurements[0].PatientId,
+            };
         }
     }
 }
