@@ -10,7 +10,7 @@
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.heartrate",
             "valueName": "hr"
           }
@@ -26,7 +26,7 @@
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.steps",
             "valueName": "steps"
           }
@@ -42,12 +42,12 @@
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.systolic",
             "valueName": "systolic"
           },
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.diastolic",
             "valueName": "diastolic"
           }
@@ -63,7 +63,7 @@
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.hrv",
             "valueName": "hrv"
           }
@@ -75,9 +75,11 @@
       "template": {
         "typeName": "deviceWorn",
         "typeMatchExpression": "$..[?(@deviceWorn)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.deviceWorn",
             "valueName": "deviceWorn"
           }
@@ -89,9 +91,11 @@
       "template": {
         "typeName": "deviceRemoved",
         "typeMatchExpression": "$..[?(@deviceRemoved)]",
+        "deviceIdExpression": "$.deviceid",
+        "timestampExpression": "$.measurementdatetime",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.deviceRemoved",
             "valueName": "deviceRemoved"
           }

@@ -9,7 +9,7 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.HeartRate",
             "valueName": "hr"
           }
@@ -24,7 +24,7 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.RespiratoryRate",
             "valueName": "respiratoryrate"
           }
@@ -39,7 +39,7 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.HeartRateVariability",
             "valueName": "hrv"
           }
@@ -54,7 +54,7 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.BodyTemperature",
             "valueName": "temp"
           }
@@ -69,12 +69,12 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.Systolic",
             "valueName": "systolic"
           },
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.Diastolic",
             "valueName": "diastolic"
           }
@@ -89,7 +89,7 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.RangeOfMotion",
             "valueName": "rangeofmotion"
           }
@@ -104,7 +104,7 @@
         "patientIdExpression": "$.SystemProperties.iothub-connection-device-id",
         "values": [
           {
-            "required": "true",
+            "required": true,
             "valueExpression": "$.Body.KneeBend",
             "valueName": "kneebend"
           }
