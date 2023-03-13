@@ -38,7 +38,8 @@ namespace Microsoft.Health.Common.Telemetry
                 return metric;
             }
 
-            metric.Dimensions.Add(dimensionName, dimensionValue);
+            metric.Dimensions[dimensionName] = dimensionValue;
+
             return metric;
         }
 

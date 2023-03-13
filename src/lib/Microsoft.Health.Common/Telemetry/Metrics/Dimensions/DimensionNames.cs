@@ -18,6 +18,11 @@ namespace Microsoft.Health.Common.Telemetry
         public static string Name => nameof(Name);
 
         /// <summary>
+        /// A metric dimension for a resource type.
+        /// </summary>
+        public static string ResourceType => nameof(ResourceType);
+
+        /// <summary>
         /// A metric dimension that represents each ingestion stage of the IoMT Connector.
         /// </summary>
         public static string Operation => nameof(Operation);
