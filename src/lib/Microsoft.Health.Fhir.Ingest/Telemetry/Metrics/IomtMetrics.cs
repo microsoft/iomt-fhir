@@ -235,9 +235,9 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         public static Metric FHIRResourceContention(ResourceType resourceType, string partitionId = null)
         {
             return IomtMetricDefinition.FHIRResourceContention
-               .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
-               .AddDimension(_resourceTypeDimension, resourceType.ToString())
-               .AddDimension(_partitionDimension, partitionId);
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_resourceTypeDimension, resourceType.ToString())
+                .AddDimension(_partitionDimension, partitionId);
         }
     }
 }
