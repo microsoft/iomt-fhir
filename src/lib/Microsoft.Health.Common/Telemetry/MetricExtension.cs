@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using EnsureThat;
 
 namespace Microsoft.Health.Common.Telemetry
@@ -33,12 +35,19 @@ namespace Microsoft.Health.Common.Telemetry
 
         public static Metric AddDimension(this Metric metric, string dimensionName, string dimensionValue)
         {
-            if (string.IsNullOrWhiteSpace(dimensionValue))
+            if (string.IsNullOrWhiteSpace(dimensionName) || string.IsNullOrWhiteSpace(dimensionValue))
             {
                 return metric;
             }
 
-            metric.Dimensions[dimensionName] = dimensionValue;
+            try
+            {
+                metric.Dimensions.Add(dimensionName, dimensionValue);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError($"An error occurred while adding dimension {dimensionName} to metric {metric.Name}. {ex}");
+            }
 
             return metric;
         }
