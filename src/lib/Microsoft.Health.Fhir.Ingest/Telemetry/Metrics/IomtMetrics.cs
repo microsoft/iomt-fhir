@@ -17,6 +17,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
     public static class IomtMetrics
     {
         private static readonly string _nameDimension = DimensionNames.Name;
+        private static readonly string _resourceTypeDimension = DimensionNames.ResourceType;
         private static readonly string _categoryDimension = DimensionNames.Category;
         private static readonly string _errorTypeDimension = DimensionNames.ErrorType;
         private static readonly string _errorSeverityDimension = DimensionNames.ErrorSeverity;
@@ -235,7 +236,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         {
             return IomtMetricDefinition.FHIRResourceContention
                 .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
-                .AddDimension(_nameDimension, resourceType.ToString())
+                .AddDimension(_resourceTypeDimension, resourceType.ToString())
                 .AddDimension(_partitionDimension, partitionId);
         }
     }
