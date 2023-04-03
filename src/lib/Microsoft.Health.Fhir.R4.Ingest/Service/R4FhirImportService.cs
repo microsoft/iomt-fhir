@@ -128,9 +128,13 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
                             var result = await _fhirService.UpdateResourceAsync(newObservation).ConfigureAwait(false);
 
-                            if (result.VersionId != "1")
+                            // If the version id is not equal to "1" on a create then it is likely two processes modified
+                            // the resource at the same time.
+                            // However we cannot check for not equal to "1" because a resource can be soft-deleted and recreated
+                            // and on the recreate the resource version will also be not equal to "1",
+                            // so instead we will check for resource version id = "2"
+                            if (result.VersionId == "2")
                             {
-                                _logger.LogError(new Exception($"Two processes modified the same Observation: {result.Id}"));
                                 _logger.LogMetric(IomtMetrics.FHIRResourceContention(ResourceType.Observation), 1);
                             }
 
