@@ -58,8 +58,6 @@ namespace Microsoft.Health.Logging.Telemetry
 
         private void LogAggregateException(AggregateException e)
         {
-            LogInnerException(e);
-
             foreach (var exception in e.InnerExceptions)
             {
                 LogExceptionWithProperties(exception);
