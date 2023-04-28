@@ -15,6 +15,7 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Logging.Telemetry;
 using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
@@ -60,6 +61,34 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
         public static IServiceCollection AddResumableEventProcessor(this IServiceCollection services, IConfiguration config)
         {
+            // if assigned partition processor is enabled then inject it
+            if (config.GetValue<bool>("UseAssignedPartitionProcessor"))
+            {
+                services.AddSingleton<ICheckpointClient, StorageCheckpointClient>();
+
+                services.AddSingleton(sp =>
+                {
+                    var eventBatchingServiceOptions = new EventBatchingOptions();
+                    config.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingServiceOptions);
+                    return eventBatchingServiceOptions;
+                });
+
+                services.AddSingleton<EventBatchingService>();
+
+                services.AddSingleton((sp) =>
+                {
+                    var options = new PartitionLockingBackgroundServiceOptions();
+                    config.GetSection("PartitionLocking").Bind(options);
+                    options.StorageTokenCredential = sp.GetService<IAzureCredentialProvider>();
+                    return options;
+                });
+
+                services.AddSingleton<PartitionLockingBackgroundService>();
+                services.AddSingleton<IResumableEventProcessor, ResumableAssignedPartitionProcessor>();
+
+                return services;
+            }
+
             services.AddSingleton<IResumableEventProcessor>((sp) =>
             {
                 var eventConsumerService = sp.GetRequiredService<IEventConsumerService>();

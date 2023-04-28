@@ -8,37 +8,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
 using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Primitives;
 using Azure.Messaging.EventHubs.Processor;
-using Azure.Storage.Blobs;
+using Microsoft.Health.Events.EventCheckpointing;
+using Microsoft.Health.Events.EventConsumers.Service;
+using Microsoft.Health.Events.Model;
+using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
-    public class StaticPartitionProcessor : PluggableCheckpointStoreEventProcessor<EventProcessorPartition>
+    public class AssignedPartitionProcessor : PluggableCheckpointStoreEventProcessor<EventProcessorPartition>
     {
-        // This example uses a connection string, so only the single constructor
-        // was implemented; applications will need to shadow each constructor of
-        // the PluggableCheckpointStoreEventProcessor that they are using.
+        private IEventConsumerService _eventConsumerService;
+
+        private ICheckpointClient _checkpointClient;
+
+        private ITelemetryLogger _logger;
 
         private readonly string[] _assignedPartitions;
 
-        public StaticPartitionProcessor(
-            BlobContainerClient storageClient,
+        public AssignedPartitionProcessor(
+            IEventConsumerService eventConsumerService,
+            StorageCheckpointClient checkpointClient,
+            ITelemetryLogger logger,
             string[] assignedPartitions,
             int eventBatchMaximumCount,
             string consumerGroup,
-            string connectionString,
+            TokenCredential tokenCredential,
             string eventHubName,
+            string fullyQualifiedNamespace,
             EventProcessorOptions clientOptions = default)
                 : base(
-                    new BlobCheckpointStore(storageClient),
+                    new BlobCheckpointStore(checkpointClient.GetBlobContainerClient()),
                     eventBatchMaximumCount,
                     consumerGroup,
-                    connectionString,
+                    fullyQualifiedNamespace,
                     eventHubName,
+                    tokenCredential,
                     clientOptions)
         {
+            _logger = logger;
+            _eventConsumerService = eventConsumerService;
+            _checkpointClient = checkpointClient;
             _assignedPartitions = assignedPartitions
                 ?? throw new ArgumentNullException(nameof(assignedPartitions));
         }
@@ -53,22 +67,21 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         // Tell the processor that it owns all of the available partitions for the Event Hub.
         protected override Task<IEnumerable<EventProcessorPartitionOwnership>> ListOwnershipAsync(
-    CancellationToken cancellationToken) =>
-        Task.FromResult(
-            _assignedPartitions.Select(partition =>
-                new EventProcessorPartitionOwnership
-                {
-                    FullyQualifiedNamespace = FullyQualifiedNamespace,
-                    EventHubName = EventHubName,
-                    ConsumerGroup = ConsumerGroup,
-                    PartitionId = partition.ToString(),
-                    OwnerIdentifier = Identifier,
-                    LastModifiedTime = DateTimeOffset.UtcNow,
-                }));
+            CancellationToken cancellationToken) =>
+                Task.FromResult(
+                    _assignedPartitions.Select(partition =>
+                        new EventProcessorPartitionOwnership
+                        {
+                            FullyQualifiedNamespace = FullyQualifiedNamespace,
+                            EventHubName = EventHubName,
+                            ConsumerGroup = ConsumerGroup,
+                            PartitionId = partition.ToString(),
+                            OwnerIdentifier = Identifier,
+                            LastModifiedTime = DateTimeOffset.UtcNow,
+                        }));
 
         // Accept any ownership claims attempted by the processor; this allows the processor to
         // simulate renewing ownership so that it continues to own all of its assigned partitions.
-
         protected override Task<IEnumerable<EventProcessorPartitionOwnership>> ClaimOwnershipAsync(
            IEnumerable<EventProcessorPartitionOwnership> desiredOwnership,
            CancellationToken cancellationToken) =>
@@ -78,49 +91,40 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     return ownership;
                 }));
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected async override Task OnProcessingEventBatchAsync(
             IEnumerable<EventData> events,
             EventProcessorPartition partition,
             CancellationToken cancellationToken)
         {
-            EventData lastEvent = null;
-
             try
             {
-                Console.WriteLine($"Received events for partition {partition.PartitionId}");
+                if (events.Count() == 0)
+                {
+                    var maxWaitEvent = new MaximumWaitEvent(partition.PartitionId, DateTime.UtcNow);
+                    await _eventConsumerService.ConsumeEvent(maxWaitEvent, cancellationToken);
+                    return;
+                }
 
                 foreach (var currentEvent in events)
                 {
-                    // Console.WriteLine($"Event: {currentEvent.EventBody}");
-                    lastEvent = currentEvent;
-                }
+                    var eventMessage = new EventMessage(
+                        partition.PartitionId,
+                        currentEvent.EventBody,
+                        currentEvent.ContentType,
+                        currentEvent.SequenceNumber,
+                        currentEvent.Offset,
+                        currentEvent.EnqueuedTime,
+                        currentEvent.Properties,
+                        currentEvent.SystemProperties);
 
-                if (lastEvent != null)
-                {
-                    // await UpdateCheckpointAsync(
-                    //    partition.PartitionId,
-                    //    lastEvent.Offset,
-                    //    lastEvent.SequenceNumber,
-                    //    cancellationToken)
-                    // .ConfigureAwait(false);
+                    await _eventConsumerService.ConsumeEvent(eventMessage, cancellationToken);
                 }
             }
             catch (Exception ex)
             {
-                // It is very important that you always guard against exceptions in
-                // your handler code; the processor does not have enough
-                // understanding of your code to determine the correct action to take.
-                // Any exceptions from your handlers go uncaught by the processor and
-                // will NOT be redirected to the error handler.
-                //
-                // In this case, the partition processing task will fault and be restarted
-                // from the last recorded checkpoint.
-
-                Console.WriteLine($"Exception while processing events: {ex}");
+                _logger.LogError(ex);
             }
         }
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
         protected override Task OnProcessingErrorAsync(
             Exception exception,
@@ -130,33 +134,40 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             try
             {
-                if (partition != null)
-                {
-                    Console.Error.WriteLine(
-                        $"Exception on partition {partition.PartitionId} while " +
-                        $"performing {operationDescription}: {exception}");
-                }
-                else
-                {
-                    Console.Error.WriteLine(
-                        $"Exception while performing {operationDescription}: {exception}");
-                }
+                _logger.LogError(exception);
             }
             catch (Exception ex)
             {
-                // It is very important that you always guard against exceptions
-                // in your handler code; the processor does not have enough
-                // understanding of your code to determine the correct action to
-                // take.  Any exceptions from your handlers go uncaught by the
-                // processor and will NOT be handled in any way.
-                //
-                // In this case, unhandled exceptions will not impact the processor
-                // operation but will go unobserved, hiding potential application problems.
-
-                Console.WriteLine($"Exception while processing events: {ex}");
+                _logger.LogError(ex);
             }
 
             return Task.CompletedTask;
+        }
+
+        protected async override Task<EventProcessorCheckpoint> GetCheckpointAsync(
+            string partitionId,
+            CancellationToken cancellationToken)
+        {
+            var checkpointValue = await _checkpointClient.GetCheckpointForPartitionAsync(partitionId, cancellationToken);
+
+            if (checkpointValue != null)
+            {
+                _logger.LogTrace($"Starting to process events from {checkpointValue.LastProcessed} on partition {partitionId}");
+
+                return new EventProcessorCheckpoint()
+                {
+                    FullyQualifiedNamespace = FullyQualifiedNamespace,
+                    EventHubName = EventHubName,
+                    ConsumerGroup = ConsumerGroup,
+                    PartitionId = partitionId,
+                    StartingPosition = EventPosition.FromEnqueuedTime(checkpointValue.LastProcessed),
+                };
+            }
+            else
+            {
+                _logger.LogTrace($"No checkpoint found for partition {partitionId}");
+                return null;
+            }
         }
 
         protected override Task OnInitializingPartitionAsync(
@@ -165,7 +176,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             try
             {
-                Console.WriteLine($"Initializing partition {partition.PartitionId}");
+                _logger.LogTrace($"Initializing partition {partition.PartitionId}");
             }
             catch (Exception ex)
             {
@@ -178,7 +189,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 // In this case, the partition processing task will fault and the
                 // partition will be initialized again.
 
-                Console.WriteLine($"Exception while initializing a partition: {ex}");
+                _logger.LogError(ex);
             }
 
             return Task.CompletedTask;
@@ -191,7 +202,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             try
             {
-                Console.WriteLine(
+                _logger.LogTrace(
                     $"No longer processing partition {partition.PartitionId} " +
                     $"because {reason}");
             }
@@ -206,7 +217,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 // In this case, unhandled exceptions will not impact the processor
                 // operation but will go unobserved, hiding potential application problems.
 
-                Console.WriteLine($"Exception while stopping processing for a partition: {ex}");
+                _logger.LogError(ex);
             }
 
             return Task.CompletedTask;

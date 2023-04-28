@@ -9,7 +9,6 @@ using Hl7.Fhir.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Common.Auth;
@@ -40,6 +39,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 // Add EventHubClientOptions (Used for EventProcessorClient - common to all applications)
                 var options = new EventHubClientOptions();
                 config.GetSection("NormalizationEventHub").Bind(options);
+                var tokenProvider = sp.GetService<IAzureCredentialProvider>();
+                options.EventHubTokenCredential = tokenProvider?.GetCredential();
                 return options;
             });
             services.AddSingleton((sp) =>
