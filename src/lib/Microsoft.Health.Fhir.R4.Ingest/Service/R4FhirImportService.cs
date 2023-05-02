@@ -59,19 +59,26 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 var ids = await ResourceIdentityService.ResolveResourceIdentitiesAsync(data).ConfigureAwait(false);
 
                 IEnumerable<IObservationGroup> grps = null;
-                try
+
+                using (ITimed createObservationGroupsMs = _logger.TrackDuration(IomtMetrics.CreateObservationGroupsMs()))
                 {
-                    grps = _fhirTemplateProcessor.CreateObservationGroups(config, data);
-                }
-                catch (Exception ex)
-                {
-                    // user story 93303 to include appropriate message context for this error.
-                    throw new FhirDataMappingException(ex.Message, ex, nameof(FhirDataMappingException));
+                    try
+                    {
+                        grps = _fhirTemplateProcessor.CreateObservationGroups(config, data);
+                    }
+                    catch (Exception ex)
+                    {
+                        // user story 93303 to include appropriate message context for this error.
+                        throw new FhirDataMappingException(ex.Message, ex, nameof(FhirDataMappingException));
+                    }
                 }
 
-                foreach (var grp in grps)
+                using (ITimed saveObservationGroupsMs = _logger.TrackDuration(IomtMetrics.SaveObservationGroupsMs()))
                 {
-                    _ = await SaveObservationAsync(config, grp, ids, ct).ConfigureAwait(false);
+                    foreach (var grp in grps)
+                    {
+                        _ = await SaveObservationAsync(config, grp, ids, ct).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex)

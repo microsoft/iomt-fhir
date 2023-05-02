@@ -86,8 +86,12 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 }
             }
 
-            await ProcessMeasurementEvents(measurements, template, log, ct);
-            await ProcessMeasurementGroupEvents(measurementGroups, template, log, ct);
+            string partitionId = events.FirstOrDefault()?.PartitionId;
+            using (ITimed processEventsDuration = log.TrackDuration(IomtMetrics.ProcessEventsDurationMs(partitionId)))
+            {
+                await ProcessMeasurementEvents(measurements, template, log, ct);
+                await ProcessMeasurementGroupEvents(measurementGroups, template, log, ct);
+            }
         }
 
         private async Task ProcessMeasurementEvents(IEnumerable<IEventMessage> events, ILookupTemplate<IFhirTemplate> template, ITelemetryLogger log, CancellationToken ct)
@@ -139,17 +143,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 try
                 {
                     IEnumerable<MeasurementGroup> groupedMeasurements;
+                    string partitionId;
 
                     try
                     {
-                        var partitionId = events.FirstOrDefault()?.PartitionId;
+                        partitionId = events.FirstOrDefault()?.PartitionId;
 
                         // decompress the measurement group if it is compressed
                         IEnumerable<Measurement> measurementGroup = null;
                         if (evt.BodyContentType == Compression.GzipContentType)
                         {
-                            using var stream = Compression.DecompressWithGzip(evt.Body.AsStream());
-                            measurementGroup = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<Measurement>>(stream);
+                            using (ITimed decompressDuration = log.TrackDuration(IomtMetrics.DecompressDurationMs(partitionId)))
+                            {
+                                using var stream = Compression.DecompressWithGzip(evt.Body.AsStream());
+                                measurementGroup = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<Measurement>>(stream);
+                            }
                         }
                         else
                         {
@@ -174,7 +182,10 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                             .AddEventContext(evt);
                     }
 
-                    await SendMeasurementGroups(groupedMeasurements, template, log, ct, null, evt).ConfigureAwait(false);
+                    using (ITimed sendMeasurementGroupsDuration = log.TrackDuration(IomtMetrics.SendMeasurementGroupDurationMs(partitionId)))
+                    {
+                        await SendMeasurementGroups(groupedMeasurements, template, log, ct, null, evt).ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {

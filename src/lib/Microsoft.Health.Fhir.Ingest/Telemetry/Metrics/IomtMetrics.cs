@@ -239,5 +239,60 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
                 .AddDimension(_resourceTypeDimension, resourceType.ToString())
                 .AddDimension(_partitionDimension, partitionId);
         }
+
+        /// <summary>
+        /// The time taken to send measurement groups to the FHIR service.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric ProcessEventsDurationMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.ProcessEventsDurationMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
+        /// The time taken to send measurement groups to the FHIR service.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric SendMeasurementGroupDurationMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.SendMeasurementGroupDurationMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
+        /// The time taken to decompress a compressed object.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric DecompressDurationMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.DecompressDurationMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
+        /// The time taken to create observations groups from the measurement groups.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric CreateObservationGroupsMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.CreateObservationGroupsMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
+        /// The time taken to save observation groups to the FHIR service.
+        /// </summary>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param
+        public static Metric SaveObservationGroupsMs(string partitionId = null)
+        {
+            return IomtMetricDefinition.SaveObservationGroupsMs
+                .CreateBaseMetric(Category.Traffic, ConnectorOperation.FHIRConversion)
+                .AddDimension(_partitionDimension, partitionId);
+        }
     }
 }
