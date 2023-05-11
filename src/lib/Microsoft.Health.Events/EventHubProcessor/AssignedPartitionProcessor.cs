@@ -20,6 +20,8 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
+    // This class was modeled after a sample Event Hub custom processor here:
+    // https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/eventhub/Azure.Messaging.EventHubs/samples/Sample08_CustomEventProcessor.md
     public class AssignedPartitionProcessor : PluggableCheckpointStoreEventProcessor<EventProcessorPartition>
     {
         private IEventConsumerService _eventConsumerService;
@@ -98,15 +100,12 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             try
             {
-                if (events.Count() == 0)
-                {
-                    var maxWaitEvent = new MaximumWaitEvent(partition.PartitionId, DateTime.UtcNow);
-                    await _eventConsumerService.ConsumeEvent(maxWaitEvent, cancellationToken);
-                    return;
-                }
+                bool isEventBatchEmpty = true;
 
                 foreach (var currentEvent in events)
                 {
+                    isEventBatchEmpty = false;
+
                     var eventMessage = new EventMessage(
                         partition.PartitionId,
                         currentEvent.EventBody,
@@ -118,6 +117,12 @@ namespace Microsoft.Health.Events.EventHubProcessor
                         currentEvent.SystemProperties);
 
                     await _eventConsumerService.ConsumeEvent(eventMessage, cancellationToken);
+                }
+
+                if (isEventBatchEmpty)
+                {
+                    var maxWaitEvent = new MaximumWaitEvent(partition.PartitionId, DateTime.UtcNow);
+                    await _eventConsumerService.ConsumeEvent(maxWaitEvent, cancellationToken);
                 }
             }
             catch (Exception ex)

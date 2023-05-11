@@ -26,6 +26,9 @@ using Microsoft.Health.Logging.Telemetry;
 // - Next, it will lock the partition(s) using blob leases
 // - Next, it will pass the partition id(s) into the AssignedPartitionProcessor which will run until the number of total processors changes
 
+// For a flowchart of the PartitionLockingBackgroundService see:
+// \iomt-fhir\docs\PartitionLocking.md
+
 // todos:
 // - detect if a partition has no ownership updates for some time
 // - handle cases where the ratio of processors to partitions is not divided evenly
@@ -79,7 +82,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             _containerClient.CreateIfNotExists();
         }
 
-        private async Task RegisterProcessor()
+        private async Task RegisterProcessor(CancellationToken ct)
         {
             // write process id to storage
             _logger.LogTrace($"Processor Id: {_processorId}");
@@ -91,21 +94,21 @@ namespace Microsoft.Health.Events.EventHubProcessor
             };
 
             BlobUploadOptions options = new BlobUploadOptions() { Metadata = activeUntil };
-            await blobClient.UploadAsync(BinaryData.FromString(string.Empty), options);
+            await blobClient.UploadAsync(BinaryData.FromString(string.Empty), options, ct);
 
             _logger.LogTrace($"Registered processor {_processorId}");
         }
 
-        private async Task RegisterProcessorLoop()
+        private async Task RegisterProcessorLoop(CancellationToken ct)
         {
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
-                await RegisterProcessor();
-                await Task.Delay(15000);
+                await RegisterProcessor(ct);
+                await Task.Delay(15000, ct);
             }
         }
 
-        private async Task<string[]> GetPartitionsIdsForEventHub()
+        private async Task<string[]> GetPartitionsIdsForEventHub(CancellationToken ct)
         {
             await using (var consumer = new EventHubConsumerClient(
                 _eventHubClientOptions.EventHubConsumerGroup,
@@ -113,7 +116,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 _eventHubClientOptions.EventHubName,
                 _eventHubClientOptions.EventHubTokenCredential))
             {
-                return await consumer.GetPartitionIdsAsync();
+                return await consumer.GetPartitionIdsAsync(ct);
             }
         }
 
@@ -163,14 +166,14 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     if (ex.ErrorCode == BlobErrorCode.LeaseAlreadyPresent)
                     {
                         _logger.LogTrace($"Failed to acquire partition {partitionId}");
-                        await Task.Delay(1000);
+                        await Task.Delay(1000, ct);
                         partitionIdIndex++;
 
                         // reset if we have reached the end of the partition list but have not acquired enough partitions
                         if (partitionId + 1 >= _eventHubPartitions.Length && _ownedPartitions.Count != suggestedPartitionsPerProcessor)
                         {
                             _logger.LogTrace("Not enough partitions are available for processing... Waiting");
-                            await Task.Delay(5000);
+                            await Task.Delay(5000, ct);
                             partitionIdIndex = 0;
                             continue;
                         }
@@ -187,13 +190,13 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 if (partitionId + 1 >= _eventHubPartitions.Length && _ownedPartitions.Count != suggestedPartitionsPerProcessor)
                 {
                     _logger.LogTrace("Not enough partitions are available for processing... Waiting");
-                    await Task.Delay(5000);
+                    await Task.Delay(5000, ct);
                     partitionIdIndex = 0;
                     continue;
                 }
 
                 partitionIdIndex++;
-                await Task.Delay(1000);
+                await Task.Delay(1000, ct);
             }
         }
 
@@ -291,7 +294,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             return activePods.Count;
         }
 
-        public async Task RunAndRenew(CancellationTokenSource cts)
+        private async Task RunAndRenew(CancellationTokenSource cts)
         {
             // in the background we will continually update partition ownership until
             // we receive a cancellation token to shutdown the processor
@@ -312,25 +315,25 @@ namespace Microsoft.Health.Events.EventHubProcessor
         protected override async Task ExecuteAsync(CancellationToken ct)
         {
             CreateContainerClient();
-            await RegisterProcessor();
-            await ContinuallyRegisterProcessor();
+            await RegisterProcessor(ct);
+            await ContinuallyRegisterProcessor(ct);
 
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 using var innerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 while (!innerCts.IsCancellationRequested)
                 {
-                    await Task.Delay(5000);
-                    _eventHubPartitions = await GetPartitionsIdsForEventHub();
+                    await Task.Delay(5000, innerCts.Token);
+                    _eventHubPartitions = await GetPartitionsIdsForEventHub(innerCts.Token);
                     await AcquirePartitions(innerCts.Token);
                     await RunAndRenew(innerCts);
                 }
             }
         }
 
-        private Task ContinuallyRegisterProcessor()
+        private Task ContinuallyRegisterProcessor(CancellationToken ct)
         {
-            Task.Run(() => RegisterProcessorLoop());
+            Task.Run(() => RegisterProcessorLoop(ct), ct);
             return Task.CompletedTask;
         }
 

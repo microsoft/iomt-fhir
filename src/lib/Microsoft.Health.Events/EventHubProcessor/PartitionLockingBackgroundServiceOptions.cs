@@ -15,5 +15,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
         public Uri BlobContainerUri { get; set; }
 
         public IAzureCredentialProvider StorageTokenCredential { get; set; }
+
+        public bool Enabled { get; set; } = false;
     }
 }

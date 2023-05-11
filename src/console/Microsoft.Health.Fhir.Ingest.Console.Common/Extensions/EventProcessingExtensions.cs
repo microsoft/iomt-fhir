@@ -61,8 +61,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
         public static IServiceCollection AddResumableEventProcessor(this IServiceCollection services, IConfiguration config)
         {
-            // if assigned partition processor is enabled then inject it
-            if (config.GetValue<bool>("UseAssignedPartitionProcessor"))
+            // if assigned partition processor is enabled, then inject it
+            var partitionLockingOptions = new PartitionLockingBackgroundServiceOptions();
+            config.GetSection("PartitionLocking").Bind(partitionLockingOptions);
+            var partitionLockingEnabled = partitionLockingOptions.Enabled;
+
+            if (partitionLockingEnabled)
             {
                 services.AddSingleton<ICheckpointClient, StorageCheckpointClient>();
 
@@ -77,10 +81,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
                 services.AddSingleton((sp) =>
                 {
-                    var options = new PartitionLockingBackgroundServiceOptions();
-                    config.GetSection("PartitionLocking").Bind(options);
-                    options.StorageTokenCredential = sp.GetService<IAzureCredentialProvider>();
-                    return options;
+                    partitionLockingOptions.StorageTokenCredential = sp.GetService<IAzureCredentialProvider>();
+                    return partitionLockingOptions;
                 });
 
                 services.AddSingleton<PartitionLockingBackgroundService>();
