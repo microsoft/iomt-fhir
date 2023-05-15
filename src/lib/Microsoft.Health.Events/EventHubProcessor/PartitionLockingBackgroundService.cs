@@ -18,6 +18,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
+using Microsoft.Health.Events.Telemetry;
+using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 
 // Description
@@ -317,6 +319,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             CreateContainerClient();
             await RegisterProcessor(ct);
             await ContinuallyRegisterProcessor(ct);
+            await CheckIfPartitionsAreUnclaimed(ct);
 
             while (!ct.IsCancellationRequested)
             {
@@ -362,6 +365,48 @@ namespace Microsoft.Health.Events.EventHubProcessor
             return Task.CompletedTask;
         }
 
+        private Task CheckIfPartitionsAreUnclaimed(CancellationToken ct)
+        {
+            Task.Run(async () =>
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(5), ct);
+
+                    _logger.LogTrace("Checking if any partitions are unclaimed");
+                    foreach (var partition in _eventHubPartitions)
+                    {
+                        try
+                        {
+                            BlobClient checkPartitionBlobLastModifiedTime = _containerClient.GetBlobClient($"ownedpartitions/{partition}");
+                            var properties = await checkPartitionBlobLastModifiedTime.GetPropertiesAsync();
+                            var lastModifiedTime = properties.Value.LastModified;
+
+                            var delay = DateTimeOffset.UtcNow - lastModifiedTime;
+                            _logger.LogMetric(EventMetrics.PartitionLastClaimedDelay(partition), delay.TotalMilliseconds);
+
+                            var delayThreshold = DateTimeOffset.UtcNow.AddMinutes(-5);
+                            if (lastModifiedTime < delayThreshold)
+                            {
+                                _logger.LogError(new UnclaimedPartitionException($"Partition {partition} was last claimed at {lastModifiedTime}. The current time is {DateTime.UtcNow}. Delay = {delay.TotalMinutes} minutes"));
+                            }
+                            else
+                            {
+                                _logger.LogTrace($"Partition ownership is up to date for partition {partition}. The last modified time was {lastModifiedTime}. Delay = {delay.TotalMinutes} minutes");
+                            }
+                        }
+                        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+                        {
+                            _logger.LogError(new UnclaimedPartitionException($"Partition {partition} has never been claimed"));
+                            _logger.LogMetric(EventMetrics.PartitionLastClaimedDelay(partition), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                        }
+                    }
+                }
+            });
+
+            return Task.CompletedTask;
+        }
+
         private Task RenewOwnership(CancellationToken ct)
         {
             Task.Run(async () =>
@@ -374,9 +419,19 @@ namespace Microsoft.Health.Events.EventHubProcessor
                         BlobClient ownershipClient = _containerClient.GetBlobClient($"ownedpartitions/{partition}");
                         var leaseClient = ownershipClient.GetBlobLeaseClient(_processorId);
                         await leaseClient.RenewAsync(default, ct);
+
+                        // upload to update last modified timestamp
+                        BlobUploadOptions blobUploadOptions = new BlobUploadOptions()
+                        {
+                            Conditions = new BlobRequestConditions()
+                            {
+                                LeaseId = _processorId,
+                            },
+                        };
+                        await ownershipClient.UploadAsync(BinaryData.FromString(string.Empty), blobUploadOptions);
                     }
 
-                    await Task.Delay(20000);
+                    await Task.Delay(20000, ct);
                 }
             });
 
