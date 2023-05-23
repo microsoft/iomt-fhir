@@ -1,4 +1,5 @@
 - [Custom Functions](#custom-functions)
+  - [Literal Values](#literal-values)
   - [Exception Handling](#exception-handling)
   - [Mathmatical Functions](#mathmatical-functions)
     - [add](#add)
@@ -22,10 +23,35 @@ Each function has a signature that follows the JmesPath [specification](https://
 return_type function_name(type $argname)
 ```
 
-The signature indicates the the valid types for the arugments. If an invalid type is passed in for an argument an error will occur.
+The signature indicates the valid types for the arugments. If an invalid type is passed in for an argument an error will occur.
 
 When math related functions are performed the end result _must_ be able to fit within a C# [long](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types#characteristics-of-the-integral-types) value. If this cannot happen then a mathmatical error will occur.
 
+**Note**: As stated previously, these functions may only be used when specifying **JmesPath** as the expression language. By default the expression language is **JsonPath**. The language can be changed [when defining the expression](Configuration.md#calculatedcontenttemplate). For example:
+
+```json
+"templateType": "CalculatedContent",
+    "template": {
+        "typeName": "heartrate",
+        "patientIdExpression": {
+            "value": "insertString('123', 'patient', `0`) ",
+            "language": "JmesPath"
+        },
+        ...
+    }
+```
+
+The above uses the [insertString](#insertstring) expression to generate the patient ID `patient123`
+
+## Literal Values
+
+Constant values may be supplied to functions.
+
+ - Numeric values should be enclosed within backticks: \`
+   - Example: add(\`10\`, \`10\`)
+ - String values should be enclosed within single quotes: '
+   - Example: insertString('mple', 'sa', \`0\`)
+  
 Please see the [specification](https://jmespath.org/specification.html#built-in-functions) for more details.
 
 ## Exception Handling
@@ -61,11 +87,11 @@ number add(number $left, number $right)
 Returns the result of adding the left argument to the right.
 
 Examples:
-| Given                       | Expression       | Result |
-|-----------------------------|------------------|--------|
-| n/a                         | add(`10`, `10`)  | 20     |
-| {"left" : 40, "right" : 50} | add(left, right) | 90     |
-| {"left" : 0, "right" : 50}  | add(left, right) | 50     |
+| Given                       | Expression          | Result |
+|-----------------------------|---------------------|--------|
+| n/a                         | add(\`10\`, \`10\`) | 20     |
+| {"left" : 40, "right" : 50} | add(left, right)    | 90     |
+| {"left" : 0, "right" : 50}  | add(left, right)    | 50     |
 
 ### divide
 
@@ -76,12 +102,12 @@ number divide(number $left, number $right)
 Returns the result of dividing the left argument by the right.
 
 Examples:
-| Given                       | Expression          | Result                           |
-|-----------------------------|---------------------|----------------------------------|
-| n/a                         | divide(`10`, `10`)  | 1                                |
-| {"left" : 40, "right" : 50} | divide(left, right) | 0.8                              |
-| {"left" : 0, "right" : 50}  | divide(left, right) | 0                                |
-| {"left" : 50, "right" : 0}  | divide(left, right) | mathmatic error : divide by zero |
+| Given                       | Expression             | Result                           |
+|-----------------------------|------------------------|----------------------------------|
+| n/a                         | divide(\`10\`, \`10\`) | 1                                |
+| {"left" : 40, "right" : 50} | divide(left, right)    | 0.8                              |
+| {"left" : 0, "right" : 50}  | divide(left, right)    | 0                                |
+| {"left" : 50, "right" : 0}  | divide(left, right)    | mathmatic error : divide by zero |
 
 ### multiply
 
@@ -92,11 +118,11 @@ number multiply(number $left, number $right)
 Returns the result of multiplying the left argument with the right.
 
 Examples:
-| Given                       | Expression            | Result |
-|-----------------------------|-----------------------|--------|
-| n/a                         | multiply(`10`, `10`)  | 100    |
-| {"left" : 40, "right" : 50} | multiply(left, right) | 2000   |
-| {"left" : 0, "right" : 50}  | multiply(left, right) | 0      |
+| Given                       | Expression               | Result |
+|-----------------------------|--------------------------|--------|
+| n/a                         | multiply(\`10\`, \`10\`) | 100    |
+| {"left" : 40, "right" : 50} | multiply(left, right)    | 2000   |
+| {"left" : 0, "right" : 50}  | multiply(left, right)    | 0      |
 
 
 ### pow
@@ -108,12 +134,12 @@ number pow(number $left, number $right)
 Returns the result of raising the left argument to the power of the right.
 
 Examples:
-| Given                         | Expression       | Result                     |
-|-------------------------------|------------------|----------------------------|
-| n/a                           | pow(`10`, `10`)  | 10000000000                |
-| {"left" : 40, "right" : 50}   | pow(left, right) | mathmatic error : overflow |
-| {"left" : 0, "right" : 50}    | pow(left, right) | 0                          |
-| {"left" : 100, "right" : 0.5} | pow(left, right) | 10                         |
+| Given                         | Expression          | Result                     |
+|-------------------------------|---------------------|----------------------------|
+| n/a                           | pow(\`10\`, \`10\`) | 10000000000                |
+| {"left" : 40, "right" : 50}   | pow(left, right)    | mathmatic error : overflow |
+| {"left" : 0, "right" : 50}    | pow(left, right)    | 0                          |
+| {"left" : 100, "right" : 0.5} | pow(left, right)    | 10                         |
 
 ### subtract
 
@@ -124,11 +150,11 @@ number subtract(number $left, number $right)
 Returns the result of subtracting the right argument from the left.
 
 Examples:
-| Given                       | Expression            | Result |
-|-----------------------------|-----------------------|--------|
-| n/a                         | subtract(`10`, `10`)  | 0      |
-| {"left" : 40, "right" : 50} | subtract(left, right) | -10    |
-| {"left" : 0, "right" : 50}  | subtract(left, right) | -50    |
+| Given                       | Expression               | Result |
+|-----------------------------|--------------------------|--------|
+| n/a                         | subtract(\`10\`, \`10\`) | 0      |
+| {"left" : 40, "right" : 50} | subtract(left, right)    | -10    |
+| {"left" : 0, "right" : 50}  | subtract(left, right)    | -50    |
 
 ## String Functions
 
@@ -145,6 +171,7 @@ The positional argument is zero based, the position of zero refers to the first 
 Examples:
 | Given                                                     | Expression                                         | Result              |
 |-----------------------------------------------------------|----------------------------------------------------|---------------------|
+| n/a                                                       | insertString('mple', 'sa', `0`)                    | "sample"            |
 | {"original" : "mple", "toInsert" : "sa", "pos" : 0}       | insertString(original, toInsert, pos)              | "sample"            |
 | {"original" : "suess", "toInsert" : "cc", "pos" : 2}      | insertString(original, toInsert, pos)              | "success"           |
 | {"original" : "myString", "toInsert" : "!!", "pos" : 8}   | insertString(original, toInsert, pos)              | "myString!!"        |
