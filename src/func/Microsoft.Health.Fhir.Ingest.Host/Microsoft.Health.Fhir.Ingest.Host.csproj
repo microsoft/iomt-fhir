@@ -19,31 +19,31 @@
 		<FhirVersion Condition="'$(FhirVersion)' == ''">R4</FhirVersion>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="4.3.1" />
-		<PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.31" />
+		<PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="4.3.2" />
+		<PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.37" />
 		<PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="4.3.0" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.12" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Logging.ApplicationInsights" Version="3.0.27" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="5.3.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.1.2" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Logging.ApplicationInsights" Version="3.0.35" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.6.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.1" />
+		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
 		<PackageReference Include="Ensure.That" Version="10.1.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
+		<PackageReference Include="System.Text.Encodings.Web" Version="7.0.0" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-		<PackageReference Include="Azure.Storage.Queues" Version="12.11.0" />
-		<PackageReference Include="System.Drawing.Common" Version="4.7.2" />
+		<PackageReference Include="Azure.Storage.Queues" Version="12.14.0" />
+		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="host.json">

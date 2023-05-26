@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using DevLab.JmesPath;
+using DevLab.JmesPath.Expressions;
 using EnsureThat;
 using Newtonsoft.Json.Linq;
 
@@ -13,7 +14,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
 {
     public class JmesPathExpressionEvaluator : IExpressionEvaluator
     {
-        private readonly JmesPath.Expression _jmespathExpression;
+        private readonly JmesPathExpression _jmespathExpression;
         private readonly ILineInfo _lineInfo;
 
         public JmesPathExpressionEvaluator(JmesPath jmesPath, string expression, ILineInfo lineInfo)
