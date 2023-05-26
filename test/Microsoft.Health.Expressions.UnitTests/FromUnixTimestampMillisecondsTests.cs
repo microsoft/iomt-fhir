@@ -5,6 +5,7 @@
 
 using System;
 using DevLab.JmesPath;
+using DevLab.JmesPath.Expressions;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.Health.Expressions
     public class FromUnixTimestampMillisecondsTests
     {
         private JmesPath _jmesPath;
-        private JmesPath.Expression _expression;
+        private JmesPathExpression _expression;
 
         public FromUnixTimestampMillisecondsTests()
         {
