@@ -10,13 +10,13 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class ResumableAssignedPartitionProcessor : IResumableEventProcessor
     {
-        private PartitionLockingBackgroundService _lockingBackgroundService;
+        private PartitionLockingService _lockingService;
 
-        private bool _isRunning = false;
+        private long _isRunning = 0;
 
-        public ResumableAssignedPartitionProcessor(PartitionLockingBackgroundService lockingBackgroundService)
+        public ResumableAssignedPartitionProcessor(PartitionLockingService lockingBackgroundService)
         {
-            _lockingBackgroundService = lockingBackgroundService;
+            _lockingService = lockingBackgroundService;
         }
 
         public void Dispose()
@@ -26,26 +26,26 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         public async Task ResumeAsync(CancellationToken ct)
         {
-            if (!_isRunning)
+            if (Interlocked.Exchange(ref _isRunning, 1) == 0)
             {
-                _isRunning = true;
-                await _lockingBackgroundService.StartAsync(ct);
+                await _lockingService.StartAsync(ct);
             }
         }
 
         public async Task RunAsync(CancellationToken ct)
         {
-            if (!_isRunning)
+            if (Interlocked.Exchange(ref _isRunning, 1) == 0)
             {
-                _isRunning = true;
-                await _lockingBackgroundService.StartAsync(ct);
+                await _lockingService.StartAsync(ct);
             }
         }
 
         public async Task SuspendAsync(CancellationToken ct)
         {
-            await _lockingBackgroundService.StopAsync(ct);
-            _isRunning = false;
+            if (Interlocked.Exchange(ref _isRunning, 0) == 1)
+            {
+                await _lockingService.StopAsync(ct);
+            }
         }
     }
 }

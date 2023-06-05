@@ -8,7 +8,7 @@ using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
-    public class PartitionLockingBackgroundServiceOptions
+    public class PartitionLockingServiceOptions
     {
         public const string Settings = "PartitionLocking";
 

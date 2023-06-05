@@ -16,6 +16,7 @@ using Microsoft.Health.Logging.Telemetry;
 using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Common.Auth;
+using Azure.Messaging.EventHubs.Consumer;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
@@ -62,7 +63,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
         public static IServiceCollection AddResumableEventProcessor(this IServiceCollection services, IConfiguration config)
         {
             // if assigned partition processor is enabled, then inject it
-            var partitionLockingOptions = new PartitionLockingBackgroundServiceOptions();
+            var partitionLockingOptions = new PartitionLockingServiceOptions();
             config.GetSection("PartitionLocking").Bind(partitionLockingOptions);
             var partitionLockingEnabled = partitionLockingOptions.Enabled;
 
@@ -85,7 +86,28 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                     return partitionLockingOptions;
                 });
 
-                services.AddSingleton<PartitionLockingBackgroundService>();
+                services.AddSingleton((sp) =>
+                {
+                    var options = sp.GetService<EventHubClientOptions>();
+                    var eventHubConsumerClient = new EventHubConsumerClient(
+                        options?.EventHubConsumerGroup,
+                        options?.EventHubNamespaceFQDN,
+                        options?.EventHubName,
+                        options?.EventHubTokenCredential);
+
+                    return eventHubConsumerClient;
+                });
+
+                services.AddSingleton<IPartitionCoordinator>((sp) =>
+                {
+                    var logger = sp.GetService<ITelemetryLogger>();
+                    var partitionLockingOptions = sp.GetService<PartitionLockingServiceOptions>();
+                    var tokenCredential = partitionLockingOptions?.StorageTokenCredential;
+                    var containerClient = new BlobContainerClient(partitionLockingOptions?.BlobContainerUri, tokenCredential?.GetCredential());
+                    return new PartitionCoordinator(containerClient, logger);
+                });
+
+                services.AddSingleton<PartitionLockingService>();
                 services.AddSingleton<IResumableEventProcessor, ResumableAssignedPartitionProcessor>();
 
                 return services;

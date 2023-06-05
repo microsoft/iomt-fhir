@@ -13,6 +13,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Primitives;
 using Azure.Messaging.EventHubs.Processor;
+using Azure.Storage.Blobs;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
@@ -20,8 +21,10 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace Microsoft.Health.Events.EventHubProcessor
 {
-    // This class was modeled after a sample Event Hub custom processor here:
-    // https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/eventhub/Azure.Messaging.EventHubs/samples/Sample08_CustomEventProcessor.md
+    /// <summary>
+    /// This class was modeled after a sample Event Hub custom processor class
+    /// </summary>
+    /// <see href="Sample08_CustomEventProcessor">https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/eventhub/Azure.Messaging.EventHubs/samples/Sample08_CustomEventProcessor.md</see>
     public class AssignedPartitionProcessor : PluggableCheckpointStoreEventProcessor<EventProcessorPartition>
     {
         private IEventConsumerService _eventConsumerService;
@@ -34,7 +37,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         public AssignedPartitionProcessor(
             IEventConsumerService eventConsumerService,
-            StorageCheckpointClient checkpointClient,
+            ICheckpointClient checkpointClient,
             ITelemetryLogger logger,
             string[] assignedPartitions,
             int eventBatchMaximumCount,
@@ -44,7 +47,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             string fullyQualifiedNamespace,
             EventProcessorOptions clientOptions = default)
                 : base(
-                    new BlobCheckpointStore(checkpointClient.GetBlobContainerClient()),
+                    new BlobCheckpointStore(GetBlobClient(checkpointClient)),
                     eventBatchMaximumCount,
                     consumerGroup,
                     fullyQualifiedNamespace,
@@ -57,6 +60,12 @@ namespace Microsoft.Health.Events.EventHubProcessor
             _checkpointClient = checkpointClient;
             _assignedPartitions = assignedPartitions
                 ?? throw new ArgumentNullException(nameof(assignedPartitions));
+        }
+
+        private static BlobContainerClient GetBlobClient(ICheckpointClient checkpointClient)
+        {
+            var client = (StorageCheckpointClient)checkpointClient;
+            return client.GetBlobContainerClient();
         }
 
         // To simplify logic, tell the processor that only its assigned
@@ -127,6 +136,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             }
             catch (Exception ex)
             {
+                _logger.LogTrace($"OnProcessingEventBatchAsync failed to process event batch {ex.Message}");
                 _logger.LogError(ex);
             }
         }
