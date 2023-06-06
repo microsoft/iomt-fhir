@@ -14,6 +14,8 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         private long _isRunning = 0;
 
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+
         public ResumableAssignedPartitionProcessor(PartitionLockingService lockingBackgroundService)
         {
             _lockingService = lockingBackgroundService;
@@ -28,7 +30,8 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             if (Interlocked.Exchange(ref _isRunning, 1) == 0)
             {
-                await _lockingService.StartAsync(ct);
+                _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                await _lockingService.StartAsync(_cts.Token);
             }
         }
 
@@ -36,16 +39,19 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             if (Interlocked.Exchange(ref _isRunning, 1) == 0)
             {
-                await _lockingService.StartAsync(ct);
+                _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                await _lockingService.StartAsync(_cts.Token);
             }
         }
 
-        public async Task SuspendAsync(CancellationToken ct)
+        public Task SuspendAsync(CancellationToken ct)
         {
             if (Interlocked.Exchange(ref _isRunning, 0) == 1)
             {
-                await _lockingService.StopAsync(ct);
+                _cts.Cancel();
             }
+
+            return Task.CompletedTask;
         }
     }
 }

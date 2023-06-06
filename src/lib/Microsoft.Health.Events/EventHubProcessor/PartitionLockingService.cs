@@ -46,6 +46,8 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         private EventBatchingService _eventBatchingService;
 
+        private EventBatchingOptions _eventBatchingOptions;
+
         private ICheckpointClient _checkpointClient;
 
         private ITelemetryLogger _logger;
@@ -54,27 +56,69 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         private EventHubConsumerClient _eventHubPartitionCountClient;
 
-        private AssignedPartitionProcessor _assignedPartitionProcessor;
+        private IAssignedPartitionProcessorFactory _assignedPartitionProcessorFactory;
 
         private IPartitionCoordinator _partitionCoordinator;
 
         public PartitionLockingService(
+            IProcessorIdProvider processorIdProvider,
             EventHubConsumerClient eventHubPartitionCountClient,
             EventHubClientOptions eventHubClientOptions,
             EventBatchingService eventBatchingService,
+            EventBatchingOptions eventBatchingOptions,
             ICheckpointClient checkpointClient,
             IPartitionCoordinator partitionCoordinator,
+            IAssignedPartitionProcessorFactory processorFactory,
             ITelemetryLogger logger)
         {
-            _processorId = Guid.NewGuid().ToString(); // consider using the pod name when running in AKS
+            _processorId = processorIdProvider.GetProcessorId();
             _ownedPartitions = new List<string>();
             _partitionCoordinator = partitionCoordinator;
             _eventHubClientOptions = eventHubClientOptions;
             _eventBatchingService = eventBatchingService;
+            _eventBatchingOptions = eventBatchingOptions;
+            _assignedPartitionProcessorFactory = processorFactory;
             _checkpointClient = checkpointClient;
             _logger = logger;
 
             _eventHubPartitionCountClient = eventHubPartitionCountClient; // used to check if number of event hub partitions has changed
+        }
+
+        public async Task StartAsync(CancellationToken ct)
+        {
+            await _partitionCoordinator.ResisterProcessorIdAsync(_processorId, ct);
+            await RegisterProcessorAsBackgroundTask(ct);
+            await CheckIfPartitionsAreUnclaimed(ct);
+
+            while (!ct.IsCancellationRequested)
+            {
+                using var innerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                while (!innerCts.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5), innerCts.Token);
+                    _eventHubPartitions = await GetPartitionsIdsForEventHub(innerCts.Token);
+                    await AcquirePartitions(innerCts.Token);
+                    await RunProcessorAndRenewPartitionOwnership(innerCts);
+                }
+            }
+        }
+
+        private async Task RunProcessorAndRenewPartitionOwnership(CancellationTokenSource cts)
+        {
+            // in the background we will continually update partition ownership until
+            // we receive a cancellation token to shutdown the processor
+            _logger.LogTrace($"Running the processor with partitions: {string.Join(", ", _partitionCoordinator.GetOwnedPartitions().Select(i => i.Key.ToString()).ToArray())}");
+
+            try
+            {
+                await RenewOwnershipAsBackgroundTask(cts.Token);
+                await CheckProcessorCountAsBackgroundTask(cts);
+                await StartAssignedPartitionProcessor(cts.Token, _partitionCoordinator.GetOwnedPartitions());
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogTrace("A task was cancelled");
+            }
         }
 
         private async Task RegisterProcessorLoop(CancellationToken ct)
@@ -101,7 +145,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
             if (activeProcessorCount == 0)
             {
-                throw new Exception("active processors is 0");
+                throw new ProcessorCountException("The number of active processors is 0");
             }
 
             // divide the partitions among the active pods
@@ -172,49 +216,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             }
         }
 
-        private async Task RunAndRenew(CancellationTokenSource cts)
-        {
-            // in the background we will continually update partition ownership until
-            // we receive a cancellation token to shutdown the processor
-            _logger.LogTrace($"Running the processor with partitions: {string.Join(", ", _partitionCoordinator.GetOwnedPartitions().Select(i => i.Key.ToString()).ToArray())}");
-
-            try
-            {
-                await RenewOwnershipAsBackgroundTask(cts.Token);
-                await CheckProcessorCountAsBackgroundTask(cts);
-                await StartAssignedPartitionProcessor(cts.Token, _partitionCoordinator.GetOwnedPartitions());
-            }
-            catch (TaskCanceledException)
-            {
-                _logger.LogTrace("A task was cancelled");
-            }
-        }
-
-        public async Task StartAsync(CancellationToken ct)
-        {
-            await _partitionCoordinator.ResisterProcessorIdAsync(_processorId, ct);
-            await ContinuallyRegisterProcessorAsBackgroundTask(ct);
-            await CheckIfPartitionsAreUnclaimed(ct);
-
-            while (!ct.IsCancellationRequested)
-            {
-                using var innerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                while (!innerCts.IsCancellationRequested)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(5), innerCts.Token);
-                    _eventHubPartitions = await GetPartitionsIdsForEventHub(innerCts.Token);
-                    await AcquirePartitions(innerCts.Token);
-                    await RunAndRenew(innerCts);
-                }
-            }
-        }
-
-        public async Task StopAsync(CancellationToken ct)
-        {
-            await StopAssignedPartitionProcessor();
-        }
-
-        private Task ContinuallyRegisterProcessorAsBackgroundTask(CancellationToken ct)
+        private Task RegisterProcessorAsBackgroundTask(CancellationToken ct)
         {
             Task.Run(() => RegisterProcessorLoop(ct), ct);
             return Task.CompletedTask;
@@ -233,10 +235,10 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
                     if (activeProcessorCount != _totalProcessorsRunning)
                     {
-                        _logger.LogTrace($"Detected that number of processors equals {activeProcessors} but this processor is running with {_totalProcessorsRunning} known processors");
+                        _logger.LogTrace($"Detected that number of processors equals {activeProcessorCount} but this processor is running with {_totalProcessorsRunning} known processors");
                         _logger.LogTrace("Restarting and recomputing");
 
-                        // Cancel the main loop and restart
+                        // Cancel the main loop and restart so that the application can recompute the partitions it needs to be assigned
                         cts.Cancel();
                     }
 
@@ -288,8 +290,6 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         private async Task StartAssignedPartitionProcessor(CancellationToken ct, ConcurrentDictionary<string, DateTimeOffset> ownedPartitions)
         {
-            var maximumBatchSize = 100;
-
             string[] partitions = ownedPartitions.Select(i => i.Key.ToString()).ToArray();
 
             var eventHubName = EnsureArg.IsNotNull(_eventHubClientOptions.EventHubName, nameof(_eventHubClientOptions.EventHubName));
@@ -297,20 +297,21 @@ namespace Microsoft.Health.Events.EventHubProcessor
             var eventHubConsumerGroup = EnsureArg.IsNotNull(_eventHubClientOptions.EventHubConsumerGroup, nameof(_eventHubClientOptions.EventHubConsumerGroup));
             var tokenCrendential = EnsureArg.IsNotNull(_eventHubClientOptions.EventHubTokenCredential, nameof(_eventHubClientOptions.EventHubTokenCredential));
 
-            _assignedPartitionProcessor = new AssignedPartitionProcessor(
+            var assignedPartitionProcessor = _assignedPartitionProcessorFactory.CreateAssignedPartitionProcessor(
                 _eventBatchingService,
                 _checkpointClient,
                 _logger,
                 partitions,
-                maximumBatchSize,
+                _eventBatchingOptions.MaxEvents,
                 eventHubConsumerGroup,
                 tokenCrendential,
                 eventHubName,
-                eventHubNamespaceFQDN);
+                eventHubNamespaceFQDN,
+                default);
 
             try
             {
-                await _assignedPartitionProcessor.StartProcessingAsync(ct);
+                await assignedPartitionProcessor.StartProcessingAsync(ct);
                 await Task.Delay(Timeout.Infinite, ct);
             }
             catch (TaskCanceledException)
@@ -324,15 +325,8 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 // as the TryTimeout configured for the processor;
                 // By default, this is 60 seconds.
 
-                await _assignedPartitionProcessor.StopProcessingAsync();
-            }
-        }
-
-        private async Task StopAssignedPartitionProcessor()
-        {
-            if (_assignedPartitionProcessor != null && _assignedPartitionProcessor.IsRunning)
-            {
-                await _assignedPartitionProcessor.StopProcessingAsync();
+                await assignedPartitionProcessor.StopProcessingAsync();
+                _logger.LogTrace("AssignedPartitionProcessor has finished StopProcessingAsync()");
             }
         }
     }

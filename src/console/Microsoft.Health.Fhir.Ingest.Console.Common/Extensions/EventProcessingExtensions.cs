@@ -98,6 +98,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                     return eventHubConsumerClient;
                 });
 
+                services.AddSingleton<IProcessorIdProvider>((sp) =>
+                {
+                    var processorId = Environment.GetEnvironmentVariable("HOSTNAME");
+                    processorId ??= Guid.NewGuid().ToString();
+                    return new ProcessorIdProvider(processorId);
+                });
+
+                services.AddSingleton<IAssignedPartitionProcessorFactory, AssignedPartitionProcessorFactory>();
+
                 services.AddSingleton<IPartitionCoordinator>((sp) =>
                 {
                     var logger = sp.GetService<ITelemetryLogger>();
