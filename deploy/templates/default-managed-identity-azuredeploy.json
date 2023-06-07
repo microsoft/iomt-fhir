@@ -612,7 +612,7 @@
         "numberOfWorkers": 1,
         "defaultDocuments": [
         ],
-        "netFrameworkVersion": "v7.0",
+        "netFrameworkVersion": "v6.0",
         "phpVersion": "5.6",
         "pythonVersion": "",
         "nodeVersion": "",
