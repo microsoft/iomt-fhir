@@ -5,7 +5,6 @@
 
 using System;
 using DevLab.JmesPath;
-using DevLab.JmesPath.Expressions;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -14,7 +13,7 @@ namespace Microsoft.Health.Expressions
     public class AddFunctionTests
     {
         private JmesPath _jmesPath;
-        private JmesPathExpression _expression;
+        private JmesPath.Expression _expression;
 
         public AddFunctionTests()
         {
