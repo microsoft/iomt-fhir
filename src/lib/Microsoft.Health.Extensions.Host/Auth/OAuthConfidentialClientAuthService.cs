@@ -39,9 +39,7 @@ namespace Microsoft.Health.Extensions.Host.Auth
 
             try
             {
-#pragma warning disable CS0618
                 return await authContext.AcquireTokenSilentAsync(resource, clientCredential, UserIdentifier.AnyUser).ConfigureAwait(false);
-#pragma warning restore CS0618
             }
             catch (AdalException adalEx)
             {
@@ -49,9 +47,7 @@ namespace Microsoft.Health.Extensions.Host.Auth
                 {
                     case AdalError.FailedToAcquireTokenSilently:
                         {
-#pragma warning disable CS0618
                             return await authContext.AcquireTokenAsync(resource, clientCredential).ConfigureAwait(false);
-#pragma warning restore CS0618
                         }
 
                     default: throw;
