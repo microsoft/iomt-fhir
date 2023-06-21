@@ -37,7 +37,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
             catch (FhirResourceNotFoundException ex)
             {
-                // Continue with create path if device  or patient wasn't found.
+                // Continue with create path if device or patient wasn't found.
                 if (!(ex.FhirResourceType == ResourceType.Device || ex.FhirResourceType == ResourceType.Patient))
                 {
                     throw;

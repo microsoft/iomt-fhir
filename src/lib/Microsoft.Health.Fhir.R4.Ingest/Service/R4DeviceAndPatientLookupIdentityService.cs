@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Extensions.Fhir;
@@ -47,6 +48,21 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         {
             var device = await ResourceManagementService.GetResourceByIdentityAsync<Model.Device>(value, system).ConfigureAwait(false) ?? throw new FhirResourceNotFoundException(ResourceType.Device);
             return (device.Id, GetPatientIdFromDevice(device));
+        }
+
+        protected async override Task<IDictionary<ResourceType, string>> ResolveResourceIdentitiesInternalAsync(IMeasurementGroup input)
+        {
+            EnsureArg.IsNotNull(input, nameof(input));
+
+            var identities = await base.ResolveResourceIdentitiesInternalAsync(input).ConfigureAwait(false);
+
+            if (!string.IsNullOrWhiteSpace(input.EncounterId))
+            {
+                var encounter = await ResourceManagementService.GetResourceByIdentityAsync<Model.Encounter>(input.EncounterId, null).ConfigureAwait(false) ?? throw new FhirResourceNotFoundException(ResourceType.Encounter);
+                identities[ResourceType.Encounter] = encounter?.Id;
+            }
+
+            return identities;
         }
     }
 }

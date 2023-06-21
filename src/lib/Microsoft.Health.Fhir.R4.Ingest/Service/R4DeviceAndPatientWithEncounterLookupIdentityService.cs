@@ -10,7 +10,6 @@ using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Fhir.Ingest.Config;
 using Microsoft.Health.Fhir.Ingest.Data;
 using Microsoft.Health.Fhir.Ingest.Host;
-using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Fhir.Ingest.Service
 {
@@ -42,9 +41,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 throw new ResourceIdentityNotDefinedException(ResourceType.Encounter);
             }
-
-            var encounter = await ResourceManagementService.GetResourceByIdentityAsync<Model.Encounter>(input.EncounterId, null).ConfigureAwait(false) ?? throw new FhirResourceNotFoundException(ResourceType.Encounter);
-            identities[ResourceType.Encounter] = encounter?.Id;
 
             return identities;
         }
