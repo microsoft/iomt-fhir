@@ -11,6 +11,8 @@ stages:
   dependsOn: []
   jobs:
   - job: Semver
+    pool:
+      vmImage: 'ubuntu-20.04'
     variables:
       skipComponentGovernanceDetection: true
     steps:
