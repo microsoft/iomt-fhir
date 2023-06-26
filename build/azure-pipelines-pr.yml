@@ -31,6 +31,8 @@ stages:
       vmImage: 'windows-2019'
     steps:
     - template: build.yml
+      parameters:
+        packageArtifacts: false
 
   - job: Linux
     pool:
