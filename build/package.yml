@@ -13,7 +13,7 @@ steps:
       nobuild: true
       zipAfterPublish: true
     env:
-      nuget_version: 1.0.0-$(build.buildNumber)
+      nuget_version: $(build.buildNumber)
 
   # Publish artifacts
 
@@ -23,3 +23,4 @@ steps:
       pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
       artifactName: 'nuget'
       publishLocation: 'container'
+

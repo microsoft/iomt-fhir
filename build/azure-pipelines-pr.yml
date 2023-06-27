@@ -4,17 +4,40 @@
 # name: pr$(system.pullRequest.pullRequestNumber)-$(Date:yyyyMMdd)$(Rev:-r)
 variables:
   buildConfiguration: 'Release'
-jobs:
-- job: Windows
-  pool:
-    vmImage: 'windows-2019'
-  steps:
-  - template: build.yml
 
-- job: Linux
-  pool:
-    vmImage: 'ubuntu-20.04'
-  steps:
-  - template: build.yml
-    parameters:
-      packageArtifacts: false
+stages:
+- stage: UpdateVersion
+  displayName: 'Determine Semver'
+  dependsOn: []
+  jobs:
+  - job: Semver
+    pool:
+      vmImage: 'ubuntu-20.04'
+    variables:
+      skipComponentGovernanceDetection: true
+    steps:
+    - template: update-semver.yml
+- stage: BuildTestDeployPackages
+  displayName: 'Build, run unit tests and deploy nuget packages'
+  dependsOn:
+  - UpdateVersion
+  variables:
+    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['IomtVersion.GitVersion.AssemblySemVer']]
+    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['IomtVersion.GitVersion.AssemblySemFileVer']]
+    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['IomtVersion.GitVersion.InformationalVersion']]
+    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['IomtVersion.GitVersion.MajorMinorPatch']]
+    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['IomtVersion.GitVersion.SemVer']]
+  jobs:
+  - job: Windows
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - template: build.yml
+
+  - job: Linux
+    pool:
+      vmImage: 'ubuntu-20.04'
+    steps:
+    - template: build.yml
+      parameters:
+        packageArtifacts: false
