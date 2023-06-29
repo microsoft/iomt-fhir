@@ -10,7 +10,7 @@ steps:
     selectOrConfig: configs
     nugetConfigPath: nuget.config
 
-- script: dotnet build --configuration $(buildConfiguration) --version-suffix $(build.buildNumber) -p:AssemblyVersion="$(assemblySemVer)" -p:FileVersion="$(assemblySemFileVer)" /warnaserror
+- script: dotnet build --configuration $(buildConfiguration) -p:Version="$(assemblySemFileVer)" -p:InformationalVersion="$(informationalVersion)" /warnaserror
   displayName: 'dotnet build $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2

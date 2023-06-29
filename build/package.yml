@@ -12,7 +12,6 @@ steps:
       versionEnvVar: 'nuget_version'
       nobuild: true
       zipAfterPublish: true
-      buildProperties: AssemblyVersion="$(assemblySemVer)";FileVersion="$(assemblySemFileVer)";InformationalVersion="$(informationalVersion)"
     env:
       nuget_version: $(build.buildNumber)
 
