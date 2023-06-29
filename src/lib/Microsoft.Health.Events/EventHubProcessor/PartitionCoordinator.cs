@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -20,11 +21,11 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class PartitionCoordinator : IPartitionCoordinator
     {
-        private BlobContainerClient _blobContainerClient;
+        private readonly BlobContainerClient _blobContainerClient;
 
-        private ITelemetryLogger _logger;
+        private readonly ITelemetryLogger _logger;
 
-        private ConcurrentDictionary<string, DateTimeOffset> _ownedPartitions = new ConcurrentDictionary<string, DateTimeOffset>();
+        private readonly ConcurrentDictionary<string, DateTimeOffset> _ownedPartitions = new ConcurrentDictionary<string, DateTimeOffset>();
 
         public PartitionCoordinator(BlobContainerClient blobContainerClient, ITelemetryLogger logger)
         {
@@ -105,9 +106,22 @@ namespace Microsoft.Health.Events.EventHubProcessor
                     }
                     else
                     {
-                        // todo: check the etag as a condition for delete
+                        var eTag = blobItem.Properties.ETag;
+                        var conditions = new BlobRequestConditions()
+                        {
+                            IfMatch = eTag,
+                        };
+
                         _logger.LogTrace($"Deleting blob {blobItem.Name}. It was last active {activeUntil}.");
-                        await _blobContainerClient.DeleteBlobAsync(blobItem.Name);
+
+                        try
+                        {
+                            await _blobContainerClient.DeleteBlobIfExistsAsync(blobItem.Name, conditions: conditions);
+                        }
+                        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet)
+                        {
+                            _logger.LogTrace($"ETag mismatch. Did not delete blob {blobItem.Name} because it was recently modified.");
+                        }
                     }
                 }
             }
@@ -176,19 +190,14 @@ namespace Microsoft.Health.Events.EventHubProcessor
             }
         }
 
-        public ConcurrentDictionary<string, DateTimeOffset> GetOwnedPartitions()
+        public string[] GetOwnedPartitions()
         {
-            return _ownedPartitions;
+            return _ownedPartitions.Keys.ToArray();
         }
 
         public void ClearOwnedPartitions()
         {
             _ownedPartitions.Clear();
-        }
-
-        public Task<IEnumerable<string>> GetUnclaimedPartitionsAsync(IEnumerable<string> partitionsToCheck, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<bool> RenewPartitionOwnershipAsync(string processorId, string partitionId, CancellationToken cancellationToken)

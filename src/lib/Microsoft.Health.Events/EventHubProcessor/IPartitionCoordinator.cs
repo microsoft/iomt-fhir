@@ -26,15 +26,12 @@ namespace Microsoft.Health.Events.EventHubProcessor
         Task<bool> ClaimPartitionAsync(string processorId, string partitionId, CancellationToken cancellationToken);
 
         // Get the partitions owned
-        ConcurrentDictionary<string, DateTimeOffset> GetOwnedPartitions();
+        string[] GetOwnedPartitions();
 
         // Clear the partitions that are owned
         void ClearOwnedPartitions();
 
         // Renew ownership for a partition
         Task<bool> RenewPartitionOwnershipAsync(string processorId, string partitionId, CancellationToken cancellationToken);
-
-        // Check if any partitions are unclaimed.
-        Task<IEnumerable<string>> GetUnclaimedPartitionsAsync(IEnumerable<string> partitionsToCheck, CancellationToken cancellationToken);
     }
 }

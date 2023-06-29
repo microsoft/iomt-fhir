@@ -28,11 +28,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
         public async Task ResumeAsync(CancellationToken ct)
         {
-            if (Interlocked.Exchange(ref _isRunning, 1) == 0)
-            {
-                _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                await _lockingService.StartAsync(_cts.Token);
-            }
+            await RunAsync(ct);
         }
 
         public async Task RunAsync(CancellationToken ct)

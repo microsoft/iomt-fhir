@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -36,29 +35,29 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public class PartitionLockingService
     {
-        private string _processorId;
+        private readonly string _processorId;
 
-        private List<string> _ownedPartitions;
+        private readonly List<string> _ownedPartitions;
 
         private int _totalProcessorsRunning = 0;
 
         private string[] _eventHubPartitions;
 
-        private EventBatchingService _eventBatchingService;
+        private readonly EventBatchingService _eventBatchingService;
 
-        private EventBatchingOptions _eventBatchingOptions;
+        private readonly EventBatchingOptions _eventBatchingOptions;
 
-        private ICheckpointClient _checkpointClient;
+        private readonly ICheckpointClient _checkpointClient;
 
-        private ITelemetryLogger _logger;
+        private readonly ITelemetryLogger _logger;
 
-        private EventHubClientOptions _eventHubClientOptions;
+        private readonly EventHubClientOptions _eventHubClientOptions;
 
-        private EventHubConsumerClient _eventHubPartitionCountClient;
+        private readonly EventHubConsumerClient _eventHubPartitionCountClient;
 
-        private IAssignedPartitionProcessorFactory _assignedPartitionProcessorFactory;
+        private readonly IAssignedPartitionProcessorFactory _assignedPartitionProcessorFactory;
 
-        private IPartitionCoordinator _partitionCoordinator;
+        private readonly IPartitionCoordinator _partitionCoordinator;
 
         public PartitionLockingService(
             IProcessorIdProvider processorIdProvider,
@@ -107,7 +106,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
         {
             // in the background we will continually update partition ownership until
             // we receive a cancellation token to shutdown the processor
-            _logger.LogTrace($"Running the processor with partitions: {string.Join(", ", _partitionCoordinator.GetOwnedPartitions().Select(i => i.Key.ToString()).ToArray())}");
+            _logger.LogTrace($"Running the processor with partitions: {string.Join(", ", _partitionCoordinator.GetOwnedPartitions().Select(i => i.ToString()).ToArray())}");
 
             try
             {
@@ -167,7 +166,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
 
             int partitionIdIndex = 0;
 
-            while (_partitionCoordinator.GetOwnedPartitions().Count < suggestedPartitionsPerProcessor && partitionIdIndex < _eventHubPartitions.Length)
+            while (_partitionCoordinator.GetOwnedPartitions().Length < suggestedPartitionsPerProcessor && partitionIdIndex < _eventHubPartitions.Length)
             {
                 // attempt to claim a partition
                 var partitionId = _eventHubPartitions[partitionIdIndex];
@@ -186,7 +185,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                         partitionIdIndex++;
 
                         // reset if we have reached the end of the partition list but have not acquired enough partitions
-                        if (int.Parse(partitionId) + 1 >= _eventHubPartitions.Length && _partitionCoordinator.GetOwnedPartitions().Count != suggestedPartitionsPerProcessor)
+                        if (int.Parse(partitionId) + 1 >= _eventHubPartitions.Length && _partitionCoordinator.GetOwnedPartitions().Length != suggestedPartitionsPerProcessor)
                         {
                             _logger.LogTrace($"Not enough partitions are available for processing... Suggested {suggestedPartitionsPerProcessor}. Currently own {_ownedPartitions.Count}. Waiting");
                             await Task.Delay(TimeSpan.FromSeconds(5), ct);
@@ -203,7 +202,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 }
 
                 // if not enough available partitions then return and wait
-                if (int.Parse(partitionId) + 1 >= _eventHubPartitions.Length && _partitionCoordinator.GetOwnedPartitions().Count != suggestedPartitionsPerProcessor)
+                if (int.Parse(partitionId) + 1 >= _eventHubPartitions.Length && _partitionCoordinator.GetOwnedPartitions().Length != suggestedPartitionsPerProcessor)
                 {
                     _logger.LogTrace("Not enough partitions are available for processing... Waiting");
                     await Task.Delay(TimeSpan.FromSeconds(5), ct);
@@ -288,9 +287,9 @@ namespace Microsoft.Health.Events.EventHubProcessor
             return Task.CompletedTask;
         }
 
-        private async Task StartAssignedPartitionProcessor(CancellationToken ct, ConcurrentDictionary<string, DateTimeOffset> ownedPartitions)
+        private async Task StartAssignedPartitionProcessor(CancellationToken ct, string[] ownedPartitions)
         {
-            string[] partitions = ownedPartitions.Select(i => i.Key.ToString()).ToArray();
+            string[] partitions = ownedPartitions.Select(i => i.ToString()).ToArray();
 
             var eventHubName = EnsureArg.IsNotNull(_eventHubClientOptions.EventHubName, nameof(_eventHubClientOptions.EventHubName));
             var eventHubNamespaceFQDN = EnsureArg.IsNotNull(_eventHubClientOptions.EventHubNamespaceFQDN, nameof(_eventHubClientOptions.EventHubNamespaceFQDN));
