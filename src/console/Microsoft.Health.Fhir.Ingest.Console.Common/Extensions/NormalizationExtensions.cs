@@ -11,6 +11,7 @@ using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers;
+using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.EventHubProcessor;
 using Microsoft.Health.Events.EventProducers;
 using Microsoft.Health.Events.Model;
@@ -51,6 +52,10 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
                 // Add EventHubClientOptions (Used for EventProcessorClient - common to all applications)
                 var options = new EventHubClientOptions();
                 config.GetSection("InputEventHub").Bind(options);
+                var externalMiTokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>();
+                var serviceMiTokenProvider = sp.GetService<IAzureCredentialProvider>();
+                var tokenProvider = externalMiTokenProvider ?? serviceMiTokenProvider;
+                options.EventHubTokenCredential = tokenProvider?.GetCredential();
                 return options;
             });
             services.AddSingleton((sp) =>

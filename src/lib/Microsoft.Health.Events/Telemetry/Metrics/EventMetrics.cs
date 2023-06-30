@@ -134,6 +134,17 @@ namespace Microsoft.Health.Events.Telemetry
         }
 
         /// <summary>
+        /// The amount of time that has elapsed since a partition was last claimed
+        /// </summary>
+        /// <param name="partitionId">The partition id of the event hub</param>
+        public static Metric PartitionLastClaimedDelay(string partitionId)
+        {
+            return EventMetricDefinition.PartitionLastClaimedDelay
+                .CreateBaseMetric(Category.Latency, _connectorOperation)
+                .AddDimension(_partitionDimension, partitionId);
+        }
+
+        /// <summary>
         /// A metric recorded when there is an error reading from or connecting with an Event Hub.
         /// </summary>
         /// <param name="exceptionName">The name of the exception</param>

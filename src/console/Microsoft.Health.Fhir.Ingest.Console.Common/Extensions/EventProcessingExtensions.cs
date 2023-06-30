@@ -15,6 +15,8 @@ using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Logging.Telemetry;
 using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Common.Auth;
+using Azure.Messaging.EventHubs.Consumer;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
@@ -60,6 +62,66 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 
         public static IServiceCollection AddResumableEventProcessor(this IServiceCollection services, IConfiguration config)
         {
+            // if assigned partition processor is enabled, then inject it
+            var partitionLockingOptions = new PartitionLockingServiceOptions();
+            config.GetSection("PartitionLocking").Bind(partitionLockingOptions);
+            var partitionLockingEnabled = partitionLockingOptions.Enabled;
+
+            if (partitionLockingEnabled)
+            {
+                services.AddSingleton<ICheckpointClient, StorageCheckpointClient>();
+
+                services.AddSingleton(sp =>
+                {
+                    var eventBatchingServiceOptions = new EventBatchingOptions();
+                    config.GetSection(EventBatchingOptions.Settings).Bind(eventBatchingServiceOptions);
+                    return eventBatchingServiceOptions;
+                });
+
+                services.AddSingleton<EventBatchingService>();
+
+                services.AddSingleton((sp) =>
+                {
+                    partitionLockingOptions.StorageTokenCredential = sp.GetService<IAzureCredentialProvider>();
+                    return partitionLockingOptions;
+                });
+
+                services.AddSingleton((sp) =>
+                {
+                    var options = sp.GetService<EventHubClientOptions>();
+                    var eventHubConsumerClient = new EventHubConsumerClient(
+                        options?.EventHubConsumerGroup,
+                        options?.EventHubNamespaceFQDN,
+                        options?.EventHubName,
+                        options?.EventHubTokenCredential);
+
+                    return eventHubConsumerClient;
+                });
+
+                services.AddSingleton<IProcessorIdProvider>((sp) =>
+                {
+                    var processorId = Environment.GetEnvironmentVariable("HOSTNAME");
+                    processorId ??= Guid.NewGuid().ToString();
+                    return new ProcessorIdProvider(processorId);
+                });
+
+                services.AddSingleton<IAssignedPartitionProcessorFactory, AssignedPartitionProcessorFactory>();
+
+                services.AddSingleton<IPartitionCoordinator>((sp) =>
+                {
+                    var logger = sp.GetService<ITelemetryLogger>();
+                    var partitionLockingOptions = sp.GetService<PartitionLockingServiceOptions>();
+                    var tokenCredential = partitionLockingOptions?.StorageTokenCredential;
+                    var containerClient = new BlobContainerClient(partitionLockingOptions?.BlobContainerUri, tokenCredential?.GetCredential());
+                    return new PartitionCoordinator(containerClient, logger);
+                });
+
+                services.AddSingleton<PartitionLockingService>();
+                services.AddSingleton<IResumableEventProcessor, ResumableAssignedPartitionProcessor>();
+
+                return services;
+            }
+
             services.AddSingleton<IResumableEventProcessor>((sp) =>
             {
                 var eventConsumerService = sp.GetRequiredService<IEventConsumerService>();

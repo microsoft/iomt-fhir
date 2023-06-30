@@ -33,5 +33,7 @@ namespace Microsoft.Health.Events.Telemetry
         public static EventMetricDefinition DeviceIngressSizeBytes { get; } = new EventMetricDefinition(nameof(DeviceIngressSizeBytes));
 
         public static EventMetricDefinition MeasurementToFhirBytes { get; } = new EventMetricDefinition(nameof(MeasurementToFhirBytes));
+
+        public static EventMetricDefinition PartitionLastClaimedDelay { get; } = new EventMetricDefinition(nameof(PartitionLastClaimedDelay));
     }
 }

@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using Azure.Core;
+
 namespace Microsoft.Health.Events.Common
 {
     public enum AuthenticationType
@@ -19,6 +22,8 @@ namespace Microsoft.Health.Events.Common
 
     public class EventHubClientOptions
     {
+        public const string Settings = "Settings";
+
         public AuthenticationType AuthenticationType { get; set; }
 
         public string EventHubNamespaceFQDN { get; set; }
@@ -28,5 +33,9 @@ namespace Microsoft.Health.Events.Common
         public string EventHubName { get; set; }
 
         public string ConnectionString { get; set; }
+
+        public TokenCredential EventHubTokenCredential { get; set; }
+
+        public Uri StorageCheckpointUri { get; set; }
     }
 }
