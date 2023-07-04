@@ -58,7 +58,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         /// <returns>The registry of resource identity service class types.</returns>
         private static IDictionary<string, Type> GetResourceIdentityServiceRegistry()
         {
-            IDictionary<string, Type> serviceTypeRegistry = new Dictionary<string, Type>();
+            IDictionary<string, Type> serviceTypeRegistry = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
             AppDomain.CurrentDomain
                 .GetAssemblies()

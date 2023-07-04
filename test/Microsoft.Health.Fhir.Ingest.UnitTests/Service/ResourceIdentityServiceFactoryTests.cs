@@ -23,20 +23,24 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             _output = output;
         }
 
-        [Fact]
-        public void GivenSupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test()
+        [Theory]
+        [InlineData("Lookup")]
+        [InlineData("lookup")]
+        public void GivenSupportedConfigurationAndNoCtorParams_WhenLookup_ThenObjectCreated_Test(string resourceIdentityServiceType)
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "Lookup" };
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = resourceIdentityServiceType };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options);
             Assert.NotNull(srv);
             var typedSrv = Assert.IsType<TestLookupResourceIdentityService>(srv);
             Assert.Equal(options, typedSrv.Options);
         }
 
-        [Fact]
-        public void GivenSupportedConfigurationAndValidCtorParams_WhenCreate_ThenObjectCreatedWithParam_Test()
+        [Theory]
+        [InlineData("Create")]
+        [InlineData("create")]
+        public void GivenSupportedConfigurationAndValidCtorParams_WhenCreate_ThenObjectCreatedWithParam_Test(string resourceIdentityServiceType)
         {
-            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = "Create" };
+            var options = new ResourceIdentityOptions { ResourceIdentityServiceType = resourceIdentityServiceType };
             var srv = ResourceIdentityServiceFactory.Instance.Create(options, "foo");
             Assert.NotNull(srv);
             var typedSrv = Assert.IsType<TestCreateResourceIdentityService>(srv);
