@@ -1,56 +1,59 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
-    <HighEntropyVA>true</HighEntropyVA>
-    <AssemblyName>Microsoft.Health.Fhir.Ingest.Legacy</AssemblyName>
-    <RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
-    <langversion>10.0</langversion>
-  </PropertyGroup>
-  <PropertyGroup>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
-  <PropertyGroup>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Azure.EventHubs" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.31" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Polly" Version="7.2.4" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Events\Microsoft.Health.Events.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
-    <ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
+		<HighEntropyVA>true</HighEntropyVA>
+		<AssemblyName>Microsoft.Health.Fhir.Ingest.Legacy</AssemblyName>
+		<RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
+		<langversion>10.0</langversion>
+	</PropertyGroup>
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+	<PropertyGroup>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<Optimize>true</Optimize>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Ensure.That" Version="10.1.0" />
+		<PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
+		<PackageReference Include="Microsoft.Azure.EventHubs" Version="3.0.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.31" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+		<PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Polly" Version="7.2.4" />
+		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="System.Memory" Version="4.5.5" />
+		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
+		<ProjectReference Include="..\Microsoft.Health.Events\Microsoft.Health.Events.csproj" />
+		<ProjectReference Include="..\Microsoft.Health.Extensions.Fhir\Microsoft.Health.Extensions.Fhir.csproj" />
+		<ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
+		<ProjectReference Include="..\Microsoft.Health.Fhir.Ingest.Template\Microsoft.Health.Fhir.Ingest.Template.csproj" />
+		<ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
+	</ItemGroup>
 </Project>

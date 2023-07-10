@@ -1,24 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Ensure.That" Version="10.1.0" />
+		<PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />
+	</ItemGroup>
 
 </Project>
