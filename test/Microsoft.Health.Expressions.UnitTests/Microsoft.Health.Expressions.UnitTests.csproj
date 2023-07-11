@@ -12,6 +12,9 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
 			<PrivateAssets>all</PrivateAssets>

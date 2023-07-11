@@ -8,6 +8,9 @@
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	<PropertyGroup>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
@@ -27,7 +30,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
-    </ItemGroup>
+	</ItemGroup>
 	<ItemGroup>
 		<AdditionalFiles Include="..\..\..\stylecop.json">
 			<Link>stylecop.json</Link>

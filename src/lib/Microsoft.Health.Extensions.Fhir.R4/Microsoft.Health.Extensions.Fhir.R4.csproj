@@ -13,6 +13,9 @@
 		<WarningsAsErrors />
 		<RootNamespace>Microsoft.Health.Extensions.Fhir</RootNamespace>
 	</PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
 	<ItemGroup>
 		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
 	</ItemGroup>

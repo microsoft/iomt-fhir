@@ -11,6 +11,9 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
@@ -19,21 +22,12 @@
 		<Optimize>true</Optimize>
 	</PropertyGroup>
 	<ItemGroup>
-		<Compile Remove="Config\**" />
-		<Compile Remove="Search\**" />
-		<EmbeddedResource Remove="Config\**" />
-		<EmbeddedResource Remove="Search\**" />
-		<None Remove="Config\**" />
-		<None Remove="Search\**" />
-		<None Remove="Extensions\" />
-	</ItemGroup>
-	<ItemGroup>
 		<PackageReference Include="Hl7.Fhir.R4" Version="4.1.0" />
-    </ItemGroup>
+	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Extensions\" />
+		<Folder Include="Extensions\" />
 	</ItemGroup>
 </Project>

@@ -13,6 +13,9 @@
 		<WarningsAsErrors />
 	</PropertyGroup>
 	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<PropertyGroup>
