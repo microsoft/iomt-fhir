@@ -68,7 +68,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             propertySetter?.Invoke(resource, identifier);
 
-            return await FhirService.CreateResourceAsync(resource).ConfigureAwait(false);
+            return await FhirService.UpdateResourceAsync(resource).ConfigureAwait(false);
         }
 
         private static Identifier BuildIdentifier(string value, string system)
