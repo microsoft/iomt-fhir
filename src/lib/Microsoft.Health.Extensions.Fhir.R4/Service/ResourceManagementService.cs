@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Microsoft.Health.Extensions.Fhir.Search;
+using Model = Hl7.Fhir.Model;
 
 namespace Microsoft.Health.Extensions.Fhir.Service
 {
@@ -28,8 +29,8 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         /// <param name="system">The system the identifier belongs to.</param>
         /// <param name="propertySetter">Optional setter to provide property values if the resource needs to be created.</param>
         /// <returns>Reource that was found or created.</returns>
-        public virtual async Task<TResource> EnsureResourceByIdentityAsync<TResource>(string value, string system, Action<TResource, Identifier> propertySetter = null)
-            where TResource : Resource, new()
+        public virtual async Task<TResource> EnsureResourceByIdentityAsync<TResource>(string value, string system, Action<TResource, Model.Identifier> propertySetter = null)
+            where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
 
@@ -39,7 +40,7 @@ namespace Microsoft.Health.Extensions.Fhir.Service
         }
 
         public virtual async Task<TResource> GetResourceByIdentityAsync<TResource>(string value, string system)
-            where TResource : Resource, new()
+            where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNullOrWhiteSpace(value, nameof(value));
 
@@ -47,8 +48,8 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             return await GetResourceByIdentityAsync<TResource>(identifier).ConfigureAwait(false);
         }
 
-        protected async Task<TResource> GetResourceByIdentityAsync<TResource>(Identifier identifier)
-            where TResource : Resource, new()
+        protected async Task<TResource> GetResourceByIdentityAsync<TResource>(Model.Identifier identifier)
+            where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
 
@@ -56,12 +57,12 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             _ = Enum.TryParse(fhirTypeName, out ResourceType resourceType);
 
-            Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
+            Model.Bundle result = await FhirService.SearchForResourceAsync(resourceType, identifier.ToSearchQueryParameter()).ConfigureAwait(false);
             return await result.ReadOneFromBundleWithContinuationAsync<TResource>(FhirService);
         }
 
-        protected async Task<TResource> CreateResourceByIdentityAsync<TResource>(Identifier identifier, Action<TResource, Identifier> propertySetter)
-            where TResource : Resource, new()
+        protected async Task<TResource> CreateResourceByIdentityAsync<TResource>(Model.Identifier identifier, Action<TResource, Model.Identifier> propertySetter)
+            where TResource : Model.Resource, new()
         {
             EnsureArg.IsNotNull(identifier, nameof(identifier));
             var resource = new TResource();
@@ -71,9 +72,9 @@ namespace Microsoft.Health.Extensions.Fhir.Service
             return await FhirService.CreateResourceAsync(resource).ConfigureAwait(false);
         }
 
-        private static Identifier BuildIdentifier(string value, string system)
+        private static Model.Identifier BuildIdentifier(string value, string system)
         {
-            var identifier = new Identifier { Value = value, System = string.IsNullOrWhiteSpace(system) ? null : system };
+            var identifier = new Model.Identifier { Value = value, System = string.IsNullOrWhiteSpace(system) ? null : system };
             return identifier;
         }
     }
