@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Hl7.Fhir.Model;
+using Microsoft.Health.Common;
 using Microsoft.Health.Extensions.Fhir.Service;
 using NSubstitute;
 using Xunit;
@@ -21,7 +22,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests.Service
             var identiferValue = "123";
             var identifierSystem = "abc";
             var patient = new Patient { Id = "1" };
-            var fhirClient = Substitute.For<IFhirService>();
+            var fhirClient = Utilities.CreateMockFhirService();
             fhirClient.SearchForResourceAsync(ResourceType.Patient, "identifier=abc|123")
                 .Returns(
                     new Bundle
@@ -49,11 +50,10 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests.Service
         {
             var identiferValue = "123";
             var identifierSystem = "abc";
-            var newPatient = new Patient { Id = "1" };
-            var fhirClient = Substitute.For<IFhirService>();
-            fhirClient.SearchForResourceAsync(default, default)
-                .ReturnsForAnyArgs(new Bundle());
-            fhirClient.CreateResourceAsync(Arg.Any<Patient>()).Returns(newPatient);
+            var newPatient = new Patient();
+            var fhirClient = Utilities.CreateMockFhirService()
+                .SearchReturnsEmptyBundle();
+            fhirClient.UpdateResourceAsync(Arg.Any<Patient>()).Returns(newPatient);
 
             var rms = new ResourceManagementService(fhirClient);
             var setterCalled = false;
@@ -61,17 +61,18 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests.Service
             {
                 setterCalled = true;
                 p.Identifier = new List<Identifier> { new Identifier { Value = identiferValue, System = identifierSystem } };
+                p.Id = "1";
             };
 
             var result = await rms.EnsureResourceByIdentityAsync(identiferValue, identifierSystem, setter);
 
-            // Verify create path used
+            // Verify update path used
             Assert.True(setterCalled);
             Assert.Equal(expected: newPatient, actual: result);
-            await fhirClient.DidNotReceiveWithAnyArgs().UpdateResourceAsync<Patient>(default, default, default, default);
+            await fhirClient.DidNotReceiveWithAnyArgs().CreateResourceAsync<Patient>(default, default, default, default);
             await fhirClient.Received(1).SearchForResourceAsync(ResourceType.Patient, "identifier=abc|123", default, default);
-            await fhirClient.Received(1).CreateResourceAsync(
-                Arg.Is<Patient>(p => p.Identifier[0].Value == identiferValue && p.Identifier[0].System == identifierSystem),
+            await fhirClient.Received(1).UpdateResourceAsync(
+                Arg.Is<Patient>(p => p.Identifier[0].Value == identiferValue && p.Identifier[0].System == identifierSystem && p.Id == "1"),
                 null,
                 null,
                 Arg.Any<CancellationToken>());
