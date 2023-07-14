@@ -71,11 +71,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             var patient = await ResourceManagementService.EnsureResourceByIdentityAsync<Model.Patient>(
                 input.PatientId,
                 null,
-                (p, id) =>
-                {
-                    p.Identifier = new List<Model.Identifier> { id };
-                    p.Id = id.ComputeHashForIdentifier();
-                })
+                (p, id) => p.Identifier = new List<Model.Identifier> { id })
                 .ConfigureAwait(false);
 
             var device = await ResourceManagementService.EnsureResourceByIdentityAsync<Model.Device>(
@@ -85,7 +81,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
                 {
                     d.Identifier = new List<Model.Identifier> { id };
                     d.Patient = patient.ToReference();
-                    d.Id = id.ComputeHashForIdentifier();
                 })
                 .ConfigureAwait(false);
 
