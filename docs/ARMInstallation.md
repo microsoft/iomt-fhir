@@ -3,7 +3,7 @@ This article details provisioning and installation of the IoMT FHIR Connector fo
 
 ## ARM Template Provisioning
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Fiomt-fhir%2Fmain%2Fdeploy%2Ftemplates%2Fdefault-managed-identity-azuredeploy.json" target="_blank">
-    <img src="https://azuredeploy.net/deploybutton.png"/>
+    <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
 
 An [ARM Template](../deploy/templates/default-managed-identity-azuredeploy.json) is provided for easy provisioning of an environment within Azure with the Azure API for FHIR. When executed, the ARM template will provision the following:
