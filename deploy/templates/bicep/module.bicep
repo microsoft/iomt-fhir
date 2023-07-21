@@ -1,4 +1,4 @@
-param baseName string
+param baseName string 
 param location string 
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {

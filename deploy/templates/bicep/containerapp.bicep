@@ -194,27 +194,27 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
               value: appInsights.properties.InstrumentationKey
             }
             {
-              name: 'CheckpointStorage_BlobStorageContainerUri'
+              name: 'CheckpointStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}checkpoint'
             }
             {
-              name: 'TemplateStorage_BlobStorageContainerUri'
+              name: 'TemplateStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}template'
             }
             {
-              name: 'InputEventHub_EventHubNamespaceFQDN'
+              name: 'InputEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
-              name: 'InputEventHub_EventHubName'
+              name: 'InputEventHub__EventHubName'
               value: 'devicedata'
             }
             {
-              name: 'NormalizationEventHub_EventHubNamespaceFQDN'
+              name: 'NormalizationEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
-              name: 'NormalizationEventHub_EventHubName'
+              name: 'NormalizationEventHub__EventHubName'
               value: 'normalizeddata'
             }
           ]
@@ -254,31 +254,31 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
               value: appInsights.properties.InstrumentationKey
             }
             {
-              name: 'CheckpointStorage_BlobStorageContainerUri'
+              name: 'CheckpointStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}checkpoint'
             }
             {
-              name: 'TemplateStorage_BlobStorageContainerUri'
+              name: 'TemplateStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}template'
             }
             {
-              name: 'FhirService_Url'
+              name: 'FhirService__Url'
               value: 'https://fs-${baseName}.fhir.azurehealthcareapis.com'
             }
             {
-              name: 'InputEventHub_EventHubNamespaceFQDN'
+              name: 'InputEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
-              name: 'InputEventHub_EventHubName'
+              name: 'InputEventHub__EventHubName'
               value: 'devicedata'
             }
             {
-              name: 'NormalizationEventHub_EventHubNamespaceFQDN'
+              name: 'NormalizationEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
-              name: 'NormalizationEventHub_EventHubName'
+              name: 'NormalizationEventHub__EventHubName'
               value: 'normalizeddata'
             }
           ]
@@ -291,7 +291,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
 var eventHubReceiverRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')
 var eventHubOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'f526a384-b230-433a-b45c-95f59c4a2dec')
 var storageBlobDataOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
-var fhirDataContributorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')
+// var fhirDataContributorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')
 
 // Assign roles to Normalization Container App 
 resource eventHubReceiverNormalization 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
