@@ -1,7 +1,7 @@
 param baseName string 
 param location string 
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: '${baseName}sa'
   location: location
   kind: 'StorageV2'
