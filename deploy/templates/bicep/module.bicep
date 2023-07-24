@@ -47,7 +47,7 @@ resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
     isAutoInflateEnabled: true
     maximumThroughputUnits: 8
     kafkaEnabled: false
-    disableLocalAuth: true
+    disableLocalAuth: false
   }
 }
 
@@ -114,37 +114,6 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
     }
   }
 }
-// resource fhirService 'Microsoft.HealthcareApis/services@2021-11-01' = {
-//   name: 'fs-${baseName}'
-//   location: location
-//   kind: 'fhir-R4'
-//   identity: {
-//     type: 'SystemAssigned'
-//   }
-//   properties: {
-//     authenticationConfiguration: {
-//       audience: 'https://${baseName}.azurehealthcareapis.com'
-//       authority: uri(environment().authentication.loginEndpoint, subscription().tenantId)
-//       smartProxyEnabled: false
-//     }
-//   }
-// }
-
-// var iotCentralName = 'iotc-${baseName}'
-// param iotLocation string 
-
-// resource iotCentral 'Microsoft.IoTCentral/iotApps@2021-06-01' = {
-//   name: iotCentralName
-//   location: iotLocation
-//   sku: {
-//     name: 'ST2'
-//   }
-//   properties: {
-//     displayName: iotCentralName
-//     subdomain: iotCentralName
-//     template: 'iotc-patient@1.0.0'
-//   }
-// }
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' = {
   name: '${baseName}acr'

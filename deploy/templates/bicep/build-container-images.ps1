@@ -15,7 +15,6 @@ $ErrorActionPreference = "Stop"
 try {
     Write-Host "Get current Az context..."
     $azContext = Get-AzContext
-    $deploymentSubscriptionId = $azContext.Subscription.Id
 } 
 catch {
     throw "Please log in to Azure RM with Login-AzAccount cmdlet before proceeding"
