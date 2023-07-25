@@ -35,7 +35,7 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: location
 }
 
-module infrastructure 'infrastructure-setup.bicep' = {
+module infrastructureSetup 'infrastructure-setup.bicep' = {
     name: 'infrastructure'
     scope: resourceGroup
     params: {
@@ -52,6 +52,19 @@ module buildContainerImages 'build-container-images.bicep' = {
     location: location
   }
   dependsOn: [
-    infrastructure
+    infrastructureSetup
+  ]
+}
+
+module containerAppSetup 'containerAppSetup.bicep' = {
+  name: 'containerAppSetup'
+  scope: resourceGroup
+  params: {
+    baseName: baseName
+    location: location
+  }
+  dependsOn: [
+    infrastructureSetup
+    buildContainerImages
   ]
 }

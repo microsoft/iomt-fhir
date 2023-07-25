@@ -57,7 +57,7 @@ param
 )
 Write-Host "Deploying Azure resources setup..."
 
-$setupTemplate = "main.bicep" 
+$setupTemplate = "Main.bicep" 
 
 az deployment sub create --location $location --template-file $setupTemplate --name "${$baseName}MainSetup" --parameters baseName=$baseName  location=$location
 
@@ -78,7 +78,7 @@ Write-Host "Building FHIR Transformation image..."
 az acr build --registry $acrName --image "$($fhirTransformationImage):$($imageTag)" --file $fhirTransformationDockerfile . 
 Write-Host "FHIR Transformation image created."
 
-$caSetupTemplate = "deploy\templates\bicep\containerapp-setup.bicep"
+$caSetupTemplate = "deploy\templates\bicep\containerAppSetup.bicep"
 
 Write-Host "Deploying Container Apps Setup..."
 az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "${$baseName}ContainerAppSetup" --parameters baseName=$baseName location=$location
