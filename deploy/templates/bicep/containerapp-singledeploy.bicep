@@ -43,3 +43,15 @@ module infrastructure 'infrastructure-setup.bicep' = {
         location: location 
     }
 }
+
+module buildContainerImages 'build-container-images.bicep' = {
+  name: 'buildContainerImages'
+  scope: resourceGroup
+  params: {
+    baseName: baseName
+    location: location
+  }
+  dependsOn: [
+    infrastructure
+  ]
+}

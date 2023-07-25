@@ -78,9 +78,9 @@ Write-Host "Building FHIR Transformation image..."
 az acr build --registry $acrName --image "$($fhirTransformationImage):$($imageTag)" --file $fhirTransformationDockerfile . 
 Write-Host "FHIR Transformation image created."
 
-$caSetupTemplate = "deploy\templates\bicep\containerapp.bicep"
+$caSetupTemplate = "deploy\templates\bicep\containerapp-setup.bicep"
 
 Write-Host "Deploying Container Apps Setup..."
-az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "${$baseName}CASetup" --parameters baseName=$baseName location=$location
+az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "${$baseName}ContainerAppSetup" --parameters baseName=$baseName location=$location
 
 Write-Host "Deployment complete."

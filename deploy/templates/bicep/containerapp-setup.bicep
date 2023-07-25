@@ -39,16 +39,9 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
   name: 'fs-${baseName}'
 }
 
-// // param userAssignedMIName string = '${baseName}UAMI'
-
-resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: '${baseName}UAMI'
-  location: location
 }
-
-// resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
-//   name: '${baseName}UAMI'
-// }
 
 // param userAssignedMIPath string = 'subscriptions/${subscription().subscriptionId}/resourceGroups/${baseName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${userAssignedMIName}'
 
@@ -63,18 +56,6 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
 //     principalType: 'ServicePrincipal'
 //   }
 // }
-
-var acrPullRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-
-resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: containerRegistry
-  name: guid(acrPullRoleId, userAssignedMI.id, containerRegistry.id)
-  properties: {
-    roleDefinitionId: acrPullRoleId
-    principalId: userAssignedMI.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
 
 // // @description('Arry of actions for the the custom deployment principal role.')
 // // param actions array = [
@@ -134,14 +115,13 @@ resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 // //   }
 // // }
 
-// resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' existing = {
-//   name: '${baseName}env'
-// }
-
-// https://github.com/Azure/azure-rest-api-specs/blob/Microsoft.App-2022-03-01/specification/app/resource-manager/Microsoft.App/preview/2022-01-01-preview/ManagedEnvironments.json
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: '${baseName}env'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirVersion: 'R4'
+  }
   properties: {
     daprAIInstrumentationKey:appInsights.properties.InstrumentationKey
     appLogsConfiguration: {
@@ -154,19 +134,15 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   }
 }
 
-// // resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' existing = {
-// //   name: 'normalization'
-// // }
-
-// // resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01' existing = {
-// //   name: 'fhir-transformation'
-// // }
-
 param timestamp string = utcNow('yyyyMMddHHmmss')
 // https://github.com/Azure/azure-rest-api-specs/blob/Microsoft.App-2022-01-01-preview/specification/app/resource-manager/Microsoft.App/preview/2022-01-01-preview/ContainerApps.json
 resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
   name: 'normalization'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirVersion: 'R4'
+  }
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -194,28 +170,76 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
               value: appInsights.properties.InstrumentationKey
             }
             {
+              name: 'EventBatching__FlushTimespan'
+              value: '30'
+            }
+            {
+              name: 'EventBatching__MaxEvents'
+              value: '20'
+            }
+            {
+              name: 'Checkpoint__BlobPrefix'
+              value: 'Normalization'
+            }
+            {
+              name: 'CheckpointStorage__AuthenticationType'
+              value: 'ManagedIdentity'
+            }
+            {
               name: 'CheckpointStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}checkpoint'
             }
             {
+              name: 'CheckpointStorage__BlobContainerName'
+              value: 'checkpoint'
+            } 
+            {
+              name: 'TemplateStorage__AuthenticationType'
+              value: 'ManagedIdentity'
+            } 
+            {
               name: 'TemplateStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}template'
+            }
+            {
+              name: 'TemplateStorage__BlobContainerName'
+              value: 'template'
+            }
+            {
+              name: 'InputEventHub__AuthenticationType'
+              value: 'ManagedIdentity'
             }
             {
               name: 'InputEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
+              name: 'InputEventHub__EventHubConsumerGroup'
+              value: '$Default'
+            }
+            {
               name: 'InputEventHub__EventHubName'
               value: 'devicedata'
+            }
+            {
+              name: 'NormalizationEventHub__AuthenticationType'
+              value: 'ManagedIdentity'
             }
             {
               name: 'NormalizationEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
+              name: 'NormalizationEventHub__EventHubConsumerGroup'
+              value: '$Default'
+            }
+            {
               name: 'NormalizationEventHub__EventHubName'
               value: 'normalizeddata'
+            } 
+            {
+              name: 'Tempalte__DeviceContent'
+              value: 'devicecontent.json'
             }
           ]
         }
@@ -227,6 +251,10 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
 resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
   name: 'fhir-transformation'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirVersion: 'R4'
+  }
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -254,36 +282,100 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
               value: appInsights.properties.InstrumentationKey
             }
             {
+              name: 'EventBatching__FlushTimespan'
+              value: '300'
+            }
+            {
+              name: 'EventBatching__MaxEvents'
+              value: '300'
+            }
+            {
+              name: 'Checkpoint__BlobPrefix'
+              value: 'MeasurementToFhir'
+            }
+            {
+              name: 'CheckpointStorage__AuthenticationType'
+              value: 'ManagedIdentity'
+            }
+            {
               name: 'CheckpointStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}checkpoint'
+            }
+            {
+              name: 'CheckpointStorage__BlobContainerName'
+              value: 'checkpoint'
+            }
+            {
+              name: 'TemplateStorage__AuthenticationType'
+              value: 'ManagedIdentity'
             }
             {
               name: 'TemplateStorage__BlobStorageContainerUri'
               value: '${storageAccount.properties.primaryEndpoints.blob}template'
             }
             {
+              name: 'TemplateStorage__BlobContainerName'
+              value: 'template'
+            }
+            {
+              name: 'FhirClient__UseManagedIdentity'
+              value: 'true'
+            }
+            {
               name: 'FhirService__Url'
               value: 'https://fs-${baseName}.fhir.azurehealthcareapis.com'
+            }
+            {
+              name: 'InputEventHub__AuthenticationType'
+              value: 'ManagedIdentity'
             }
             {
               name: 'InputEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
             }
             {
+              name: 'InputEventHub__EventHubConsumerGroup'
+              value: '$Default'
+            }
+            {
               name: 'InputEventHub__EventHubName'
               value: 'devicedata'
             }
             {
+              name: 'NormalizationEventHub__AuthenticationType'
+              value: 'ManagedIdentity'
+            }
+            {
               name: 'NormalizationEventHub__EventHubNamespaceFQDN'
               value: eventhubNamespace.properties.serviceBusEndpoint
+            } 
+            {
+              name: 'NormalizationEventHub__EventHubConsumerGroup'
+              value: '$Default'
             }
             {
               name: 'NormalizationEventHub__EventHubName'
               value: 'normalizeddata'
             }
+            {
+              name: 'ResourceIdentity__ResourceIdentityServiceType'
+              value: 'Create'
+            }
+            {
+              name: 'ResourceIdentity__DefaultDeviceIdentifierSystem'
+              value: ''
+            }
+            {
+              name: 'Template__FhirMapping'
+              value: 'fhirmapping.json'
+            }
           ]
         }
       ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
     }
   }
 }
@@ -291,7 +383,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
 var eventHubReceiverRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')
 var eventHubOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'f526a384-b230-433a-b45c-95f59c4a2dec')
 var storageBlobDataOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
-// var fhirDataContributorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')
+var fhirDataContributorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')
 
 // Assign roles to Normalization Container App 
 resource eventHubReceiverNormalization 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -346,15 +438,15 @@ resource storageBlobDataOwnerFhirTransformation 'Microsoft.Authorization/roleAss
 }
 
 // may not be needed 
-// resource fhirDataContributorFhirTransformation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   scope: fhirService
-//   name: guid(fhirDataContributorRoleId, fhirTransformationContainerApp.id, fhirService.identity.principalId)
-//   properties: {
-//     roleDefinitionId: fhirDataContributorRoleId
-//     principalId: fhirTransformationContainerApp.identity.principalId
-//     principalType: 'ServicePrincipal'
-//   }
-// }
+resource fhirDataContributorFhirTransformation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: fhirService
+  name: guid(fhirDataContributorRoleId, fhirTransformationContainerApp.id, fhirService.id)
+  properties: {
+    roleDefinitionId: fhirDataContributorRoleId
+    principalId: fhirTransformationContainerApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
 
 // // // output location string = location
 // // // output environmentId string = environment.id
