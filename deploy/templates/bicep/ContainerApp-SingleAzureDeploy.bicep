@@ -35,8 +35,8 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: location
 }
 
-module infrastructureSetup 'infrastructure-setup.bicep' = {
-    name: 'infrastructure'
+module infrastructureSetup 'InfrastructureSetup.bicep' = {
+    name: 'infrastructureSetup'
     scope: resourceGroup
     params: {
         baseName: baseName 
@@ -44,7 +44,7 @@ module infrastructureSetup 'infrastructure-setup.bicep' = {
     }
 }
 
-module buildContainerImages 'build-container-images.bicep' = {
+module buildContainerImages 'BuildContainerImages.bicep' = {
   name: 'buildContainerImages'
   scope: resourceGroup
   params: {
@@ -56,7 +56,7 @@ module buildContainerImages 'build-container-images.bicep' = {
   ]
 }
 
-module containerAppSetup 'containerAppSetup.bicep' = {
+module containerAppSetup 'ContainerAppSetup.bicep' = {
   name: 'containerAppSetup'
   scope: resourceGroup
   params: {

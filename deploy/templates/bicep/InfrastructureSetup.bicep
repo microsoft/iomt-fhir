@@ -100,7 +100,7 @@ resource normalizeddataEHAuthRule 'Microsoft.EventHub/namespaces/eventhubs/autho
 }
 
 resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' = {
-  name: '${baseName}hw'
+  name: 'hw${baseName}'
   location: location
 }
 
@@ -114,8 +114,8 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
   }
   properties: {
     authenticationConfiguration: {
-      authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
-      audience: 'https://fs-${baseName}.fhir.azurehealthcareapis.com'
+      authority: uri(environment().authentication.loginEndpoint, subscription().tenantId) //'${environment().authentication.loginEndpoint}${subscription().tenantId}'
+      audience: 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }
   }

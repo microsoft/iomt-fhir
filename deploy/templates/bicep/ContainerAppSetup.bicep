@@ -43,78 +43,6 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
   name: '${baseName}UAMI'
 }
 
-// param userAssignedMIPath string = 'subscriptions/${subscription().subscriptionId}/resourceGroups/${baseName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${userAssignedMIName}'
-
-// var managedIdentityOperatorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'f1a07417-d97a-45cb-824c-7a7467783830')
-
-// resource managedI 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   scope: containerRegistry
-//   name: guid(managedIdentityOperatorRoleId, userAssignedMI.id, containerRegistry.id)
-//   properties: {
-//     roleDefinitionId: managedIdentityOperatorRoleId
-//     principalId: userAssignedMI.properties.principalId
-//     principalType: 'ServicePrincipal'
-//   }
-// }
-
-// // @description('Arry of actions for the the custom deployment principal role.')
-// // param actions array = [
-// //   'Microsoft.Resources/deployments/*'
-// //   'Microsoft.Resources/deploymentScripts/*'
-// //   'Microsoft.ContainerRegistry/registries/push/write'
-// // ]
-
-// // @description('Array of notActions for the custom deployment principal role.')
-// // param notActions array = []
-
-// // param deploymentPrincipalRoleName string = 'Custom Role - Deployment Principal'
-
-// // param deploymentPrincipalRoleDefName string = guid(subscription, string(actions), string(notActions))
-
-// // resource deploymentPrincipalRoleDef 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
-// //   name: deploymentPrincipalRoleDefName
-// //   properties: {
-// //     roleName: deploymentPrincipalRoleName
-// //     description: 'Configure least privilege for the deployment principal in deployment script'
-// //     type: 'customRole'
-// //     permissions: [
-// //       {
-// //         actions: actions 
-// //         notActions: notActions
-// //       }
-// //     ]
-// //     assignableScopes: [
-// //       '${subscription}' // may change to provider later 
-// //     ]
-// //   }
-// // }
-
-// // // Build and deploy Normalization and FHIR Transformation container images 
-// // resource containerAppScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-// //   name: 'containerAppScript'
-// //   location: location
-// //   kind: 'AzurePowerShell'
-// //   // tags: {
-// //   //   tagName1: 'tagValue1'
-// //   //   tagName2: 'tagValue2'
-// //   // }
-// //   identity: {
-// //     type: 'UserAssigned'
-// //     userAssignedIdentities: {
-// //       '${userAssignedMI.id}': {}
-// //     }
-// //   }
-// //   properties: {
-// //     containerSettings: {
-// //       containerGroupName: 'deployment'
-// //     }
-// //     azPowerShellVersion: '9.7' 
-// //     arguments: '-containerRegistry ${containerRegistry.name}'
-// //     scriptContent: loadTextContent('build-container-images.ps1')
-// //     retentionInterval: 'P1D'
-// //   }
-// // }
-
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: '${baseName}env'
   location: location
@@ -238,7 +166,7 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
               value: 'normalizeddata'
             } 
             {
-              name: 'Tempalte__DeviceContent'
+              name: 'Template__DeviceContent'
               value: 'devicecontent.json'
             }
           ]
@@ -383,7 +311,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
 var eventHubReceiverRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')
 var eventHubOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'f526a384-b230-433a-b45c-95f59c4a2dec')
 var storageBlobDataOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
-var fhirDataContributorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')
+var fhirContributorRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')
 
 // Assign roles to Normalization Container App 
 resource eventHubReceiverNormalization 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -438,17 +366,12 @@ resource storageBlobDataOwnerFhirTransformation 'Microsoft.Authorization/roleAss
 }
 
 // may not be needed 
-resource fhirDataContributorFhirTransformation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource fhirContributorFhirTransformation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: fhirService
-  name: guid(fhirDataContributorRoleId, fhirTransformationContainerApp.id, fhirService.id)
+  name: guid(fhirContributorRoleId, fhirTransformationContainerApp.id, fhirService.id)
   properties: {
-    roleDefinitionId: fhirDataContributorRoleId
+    roleDefinitionId: fhirContributorRoleId
     principalId: fhirTransformationContainerApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
-
-// // // output location string = location
-// // // output environmentId string = environment.id
-// // // output appUrl string = containerApp.properties.configuration.ingress.fqdn
-// // // output appInsightsConnectionString string = appInsights.properties.ConnectionString
