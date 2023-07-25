@@ -177,6 +177,7 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
 }
 
 var acrPushRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '8311e382-0749-4cb8-b61a-304f252e45ec')
+var readerId = resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
 
 resource acrPushRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: containerRegistry
@@ -187,20 +188,6 @@ resource acrPushRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     principalType: 'ServicePrincipal'
   }
 }
-
-var acrPullRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-
-resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: containerRegistry
-  name: guid(acrPullRoleId, userAssignedMI.id, containerRegistry.id)
-  properties: {
-    roleDefinitionId: acrPullRoleId
-    principalId: userAssignedMI.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-var readerId = resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
 
 resource readerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: containerRegistry
