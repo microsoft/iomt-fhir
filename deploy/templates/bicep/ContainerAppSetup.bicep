@@ -260,7 +260,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
             }
             {
               name: 'FhirService__Url'
-              value: 'https://fs-${baseName}.fhir.azurehealthcareapis.com'
+              value: fhirService.properties.authenticationConfiguration.audience
             }
             {
               name: 'InputEventHub__AuthenticationType'
