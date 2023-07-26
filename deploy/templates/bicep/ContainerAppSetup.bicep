@@ -35,8 +35,13 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing 
   name: '${baseName}sa'
 }
 
+resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' existing = {
+  name: 'hw${baseName}'
+}
+
 resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-28' existing = {
   name: 'fs-${baseName}'
+  parent: healthWorkspace
 }
 
 resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
@@ -47,7 +52,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: '${baseName}env'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   properties: {
@@ -68,7 +73,7 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
   name: 'normalization'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   identity: {
@@ -172,6 +177,10 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
           ]
         }
       ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
     }
   }
 }
@@ -180,7 +189,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
   name: 'fhir-transformation'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   identity: {
@@ -365,7 +374,6 @@ resource storageBlobDataOwnerFhirTransformation 'Microsoft.Authorization/roleAss
   }
 }
 
-// may not be needed 
 resource fhirContributorFhirTransformation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: fhirService
   name: guid(fhirContributorRoleId, fhirTransformationContainerApp.id, fhirService.id)

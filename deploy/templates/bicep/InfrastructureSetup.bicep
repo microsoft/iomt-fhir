@@ -5,7 +5,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: '${baseName}sa'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   kind: 'StorageV2'
@@ -41,7 +41,7 @@ resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
   name: 'en-${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   sku: {
@@ -102,19 +102,27 @@ resource normalizeddataEHAuthRule 'Microsoft.EventHub/namespaces/eventhubs/autho
 resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' = {
   name: 'hw${baseName}'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirVersion: 'R4'
+  }
 }
 
 resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-28' = {
   name: 'fs-${baseName}'
   parent: healthWorkspace
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirVersion: 'R4'
+  }
   kind: 'fhir-R4'
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     authenticationConfiguration: {
-      authority: uri(environment().authentication.loginEndpoint, subscription().tenantId) //'${environment().authentication.loginEndpoint}${subscription().tenantId}'
+      authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
       audience: 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }
@@ -125,7 +133,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' =
   name: '${baseName}acr'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   identity: {
@@ -143,7 +151,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   name: 'law-${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   properties: any({
@@ -161,7 +169,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: 'ai-${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity__Create'
+    IomtFhirConnector: 'ResourceIdentity:Create'
     IomtFhirVersion: 'R4'
   }
   kind: 'web'
@@ -174,27 +182,4 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: '${baseName}UAMI'
   location: location
-}
-
-var acrPushRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '8311e382-0749-4cb8-b61a-304f252e45ec')
-var readerId = resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
-
-resource acrPushRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: containerRegistry
-  name: guid(acrPushRoleId, userAssignedMI.id, containerRegistry.id)
-  properties: {
-    roleDefinitionId: acrPushRoleId
-    principalId: userAssignedMI.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource readerRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: containerRegistry
-  name: guid(readerId, userAssignedMI.id, containerRegistry.id)
-  properties: {
-    roleDefinitionId: readerId
-    principalId: userAssignedMI.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
 }
