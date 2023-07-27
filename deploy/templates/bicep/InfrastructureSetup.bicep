@@ -1,11 +1,12 @@
 param baseName string 
 param location string 
+param resourceIdentityResolutionType string 
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: '${baseName}sa'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   kind: 'StorageV2'
@@ -41,7 +42,7 @@ resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
   name: 'en-${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   sku: {
@@ -103,7 +104,7 @@ resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' = {
   name: 'hw${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
 }
@@ -113,7 +114,7 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
   parent: healthWorkspace
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   kind: 'fhir-R4'
@@ -133,7 +134,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' =
   name: '${baseName}acr'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   identity: {
@@ -151,7 +152,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   name: 'law-${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   properties: any({
@@ -169,7 +170,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: 'ai-${baseName}'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   kind: 'web'

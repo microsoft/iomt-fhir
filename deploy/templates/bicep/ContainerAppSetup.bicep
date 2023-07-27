@@ -1,5 +1,6 @@
 param baseName string
 param location string
+param resourceIdentityResolutionType string 
 
 param normalizationImage string = 'normalization'
 param fhirTransformationImage string = 'fhir-transformation'
@@ -52,7 +53,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: '${baseName}env'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   properties: {
@@ -67,13 +68,15 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   }
 }
 
+// The UserAssigned identity is used by both Container Apps to pull the container image from ACR. 
+// This cannot be done with the Container App's SystemAssigned Identity since the image needs to be pulled to create the Container App. 
+// The SystemAssigned identities for each Container App is used to assign the necessary permissions for running each service. 
 param timestamp string = utcNow('yyyyMMddHHmmss')
-// https://github.com/Azure/azure-rest-api-specs/blob/Microsoft.App-2022-01-01-preview/specification/app/resource-manager/Microsoft.App/preview/2022-01-01-preview/ContainerApps.json
 resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
   name: 'normalization'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   identity: {
@@ -189,7 +192,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
   name: 'fhir-transformation'
   location: location
   tags: {
-    IomtFhirConnector: 'ResourceIdentity:Create'
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
     IomtFhirVersion: 'R4'
   }
   identity: {
@@ -296,7 +299,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
             }
             {
               name: 'ResourceIdentity__ResourceIdentityServiceType'
-              value: 'Create'
+              value: resourceIdentityResolutionType
             }
             {
               name: 'ResourceIdentity__DefaultDeviceIdentifierSystem'

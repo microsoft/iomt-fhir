@@ -1,5 +1,6 @@
 param baseName string 
 param location string 
+param resourceIdentityResolutionType string 
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' existing = {
   name: '${baseName}acr'
@@ -20,6 +21,10 @@ param acrBuildPlatform string = 'linux'
 resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: '${baseName}deploysa'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
+    IomtFhirVersion: 'R4'
+  }
   kind: 'StorageV2'
   sku: {
     name: 'Standard_RAGRS'
@@ -29,6 +34,10 @@ resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01'
 resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'buildNormalizationImage'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
+    IomtFhirVersion: 'R4'
+  }
   kind: 'AzureCLI'
   identity: {
     type: 'UserAssigned'
@@ -57,6 +66,10 @@ resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-
 resource buildFhirTransformationImage 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'buildFhirTransformationImage'
   location: location
+  tags: {
+    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
+    IomtFhirVersion: 'R4'
+  }
   kind: 'AzureCLI'
   identity: {
     type: 'UserAssigned'
