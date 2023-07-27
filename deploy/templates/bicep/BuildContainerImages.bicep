@@ -17,14 +17,14 @@ var fhirTransformationDockerfile = 'src/console/Microsoft.Health.Fhir.Ingest.Con
 param gitRepositoryUrl string = 'https://github.com/microsoft/iomt-fhir.git'
 param acrBuildPlatform string = 'linux'
 
-// resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-//   name: '${baseName}deploysa'
-//   location: location
-//   kind: 'StorageV2'
-//   sku: {
-//     name: 'Standard_RAGRS'
-//   }
-// }
+resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: '${baseName}deploysa'
+  location: location
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_RAGRS'
+  }
+}
 
 resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'buildNormalizationImage'
@@ -38,8 +38,8 @@ resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-
   }
   properties: {
     storageAccountSettings: {
-      storageAccountName: '${baseName}deploymentsa'
-      storageAccountKey: listkeys(resourceId('Microsoft.Storage/storageAccounts', '${baseName}deploymentsa'), '2022-09-01').keys[0].value
+      storageAccountName: '${baseName}deploysa'
+      storageAccountKey: listkeys(resourceId('Microsoft.Storage/storageAccounts', deploymentStorageAccount.name), '2022-09-01').keys[0].value
     }
     containerSettings: {
       containerGroupName: '${baseName}deployContainer'
@@ -66,8 +66,8 @@ resource buildFhirTransformationImage 'Microsoft.Resources/deploymentScripts@202
   }
   properties: {
     storageAccountSettings: {
-      storageAccountName: '${baseName}deploymentsa'
-      storageAccountKey: listkeys(resourceId('Microsoft.Storage/storageAccounts', '${baseName}deploymentsa'), '2022-09-01').keys[0].value
+      storageAccountName: '${baseName}deploysa'
+      storageAccountKey: listkeys(resourceId('Microsoft.Storage/storageAccounts', deploymentStorageAccount.name), '2022-09-01').keys[0].value
     }
     containerSettings: {
       containerGroupName: '${baseName}deployContainer'
