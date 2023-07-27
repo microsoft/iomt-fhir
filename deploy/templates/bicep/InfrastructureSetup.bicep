@@ -123,7 +123,7 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
   properties: {
     authenticationConfiguration: {
       authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
-      audience: 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
+      // audience: 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }
   }
@@ -137,7 +137,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' =
     IomtFhirVersion: 'R4'
   }
   identity: {
-    type: 'SystemAssigned' //maybe? 
+    type: 'SystemAssigned' 
   }
   sku: {
     name:'Standard'
@@ -182,4 +182,27 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: '${baseName}UAMI'
   location: location
+}
+
+var contributorId = resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+var acrPushRoleId = resourceId('Microsoft.Authorization/roleDefinitions', '8311e382-0749-4cb8-b61a-304f252e45ec')
+
+resource contributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: containerRegistry
+  name: guid(contributorId, userAssignedMI.id, containerRegistry.id)
+  properties: {
+    roleDefinitionId: contributorId
+    principalId: userAssignedMI.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource acrPushRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: containerRegistry
+  name: guid(acrPushRoleId, userAssignedMI.id, containerRegistry.id)
+  properties: {
+    roleDefinitionId: acrPushRoleId
+    principalId: userAssignedMI.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
