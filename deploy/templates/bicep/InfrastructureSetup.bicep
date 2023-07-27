@@ -123,7 +123,7 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
   properties: {
     authenticationConfiguration: {
       authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
-      audience: 'https://${healthWorkspace.name}/fs-${baseName}.fhir.azurehealthcareapis.com'
+      audience: 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }
   }
