@@ -30,16 +30,25 @@ param baseName string
 ])
 param location string 
 
+@description('Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream.')
+@allowed([
+  'Create'
+  'Lookup'
+  'LookupWithEncounter'
+])
+param resourceIdentityResolutionType string 
+
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: baseName
   location: location
 }
 
 module infrastructure 'InfrastructureSetup.bicep' = {
-    name: 'infrastructureSetup'
-    scope: resourceGroup
-    params: {
-        baseName: baseName 
-        location: location 
-    }
+  name: 'infrastructureSetup'
+  scope: resourceGroup
+  params: {
+      baseName: baseName 
+      location: location 
+      resourceIdentityResolutionType: resourceIdentityResolutionType
+  }
 }

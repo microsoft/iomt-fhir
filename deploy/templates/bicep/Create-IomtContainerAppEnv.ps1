@@ -43,7 +43,7 @@ param
         'Lookup',
         'LookupWithEncounter'
     )]
-    [string]$resourceIdentityResolutionType = 'Create'
+    [string]$resourceIdentityResolutionType = "Create"
 )
 
 Set-StrictMode -Version Latest
