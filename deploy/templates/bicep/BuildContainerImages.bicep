@@ -5,6 +5,7 @@ param resourceIdentityResolutionType string
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' existing = {
   name: '${baseName}acr'
 }
+
 resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: '${baseName}UAMI'
 }
@@ -18,17 +19,8 @@ var fhirTransformationDockerfile = 'src/console/Microsoft.Health.Fhir.Ingest.Con
 param gitRepositoryUrl string = 'https://github.com/microsoft/iomt-fhir.git'
 param acrBuildPlatform string = 'linux'
 
-resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
   name: '${baseName}deploysa'
-  location: location
-  tags: {
-    IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
-  }
-  kind: 'StorageV2'
-  sku: {
-    name: 'Standard_RAGRS'
-  }
 }
 
 resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-01' = {

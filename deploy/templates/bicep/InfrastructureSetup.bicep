@@ -15,27 +15,31 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
-    name: 'default'
-    parent: storageAccount
-}
+// resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
+//     name: 'default'
+//     parent: storageAccount
+// }
 
 resource checkpointContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
-    parent: blobService
-    name: 'checkpoint'
-    properties: {
-        publicAccess: 'None'
-        metadata: {}
-    }
+  name: '${baseName}sa/default/checkpoint'
+  properties: {
+      publicAccess: 'None'
+      metadata: {}
+  }
+  dependsOn: [
+    storageAccount
+  ]
 }
 
 resource templateContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
-    parent: blobService
-    name: 'template'
-    properties: {
-        publicAccess: 'None'
-        metadata: {}
-    }
+  name: '${baseName}sa/default/template'
+  properties: {
+      publicAccess: 'None'
+      metadata: {}
+  }
+  dependsOn: [
+    storageAccount
+  ]
 }
 
 resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
