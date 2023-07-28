@@ -15,11 +15,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
-// resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
-//     name: 'default'
-//     parent: storageAccount
-// }
-
 resource checkpointContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
   name: '${baseName}sa/default/checkpoint'
   properties: {
