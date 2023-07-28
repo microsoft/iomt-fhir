@@ -81,12 +81,13 @@ else {
     throw "Running as an unsupported account type. Please use either a 'User' or 'Service Principal' to run this command"
 }
 
-Write-Host "Deploying Azure resources setup..."
-
+# Create a resource group in subscription if it doesn't exist and deploy Azure resources needed to run IoMT Service.
 $setupTemplate = "Main.bicep" 
 
+Write-Host "Deploying Azure resources setup..."
 az deployment sub create --location $location --template-file $setupTemplate --name "$($baseName)MainSetup" --parameters baseName=$baseName  location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType
 
+# Build and push container images to ACR. Running command directly avoids the creation of a separate storage account and container instance to run the script. 
 $acrName = "$($baseName)acr"
 $normalizationImage = "normalization"
 $fhirTransformationImage = "fhir-transformation"
@@ -104,6 +105,7 @@ Write-Host "Building FHIR Transformation image..."
 az acr build --registry $acrName $gitRepositoryUrl --image "$($fhirTransformationImage):$($imageTag)" --file $fhirTransformationDockerfile --platform $acrBuildPlatform 
 Write-Host "FHIR Transformation image created."
 
+# Set up container apps and configure necessary permissions with other resources. 
 $caSetupTemplate = "ContainerAppSetup.bicep"
 
 Write-Host "Deploying Container Apps Setup..."
