@@ -52,36 +52,38 @@ $ErrorActionPreference = "Stop"
 # Get current Az context
 try {
     Write-Host "Get current Az context..."
-    $azContext = Get-AzContext
+    az account show 
 } 
 catch {
-    throw "Please log in to Azure RM with Login-AzAccount cmdlet before proceeding"
+    throw "Please log in with az login cmdlet before proceeding"
 }
 
 # Get current account context - User/Service Principal
-if ($azContext.Account.Type -eq "User") {
-    Write-Host "Current account context is user: $($azContext.Account.Id)"
+$azAccountId = az account show --query user.name --output tsv
+$azAccountType = az account show --query user.type --output tsv
+if ($azAccountType -eq "user") {
+    Write-Host "Current account context is user: $($azAccountId)"
     
-    $currentUser = Get-AzADUser -UserPrincipalName $azContext.Account.Id
+    $currentUser = az ad user show --id $azAccountId #Get-AzADUser -UserPrincipalName $azContext.Account.Id 
 
     if ($currentUser) {
-        $currentObjectId = $currentUser.Id
+        $currentObjectId = az ad user show --id $azAccountId --query id --output tsv
     }
 
     if (!$currentObjectId) {
         throw "Failed to find objectId for signed in user"
     }
 }
-elseif ($azContext.Account.Type -eq "ServicePrincipal") {
-    Write-Host "Current account context is service principal: $($azContext.Account.Id)"
-    $currentObjectId = (Get-AzADServicePrincipal -ServicePrincipalName $azContext.Account.Id).Id
+elseif ($azAccountType -eq "servicePrincipal") {
+    Write-Host "Current account context is service principal: $($azAccountId)"
+    $currentObjectId = az ad sp show --id $accountId --query id --output tsv
 }
 else {
-    Write-Host "Current context is account of type '$($azContext.Account.Type)' with id of '$($azContext.Account.Id)"
+    Write-Host "Current context is account of type '$($azAccountType)' with id of '$($azAccountId)"
     throw "Running as an unsupported account type. Please use either a 'User' or 'Service Principal' to run this command"
 }
 
-# Create a resource group in subscription if it doesn't exist and deploy Azure resources needed to run IoMT Service.
+# Create a resource group in provided subscription if it doesn't exist and deploy Azure resources needed to run IoMT Service.
 $setupTemplate = "Main.bicep" 
 
 Write-Host "Deploying Azure resources setup..."
