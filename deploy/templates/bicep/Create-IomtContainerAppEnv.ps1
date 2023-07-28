@@ -35,7 +35,15 @@ param
         'westus3',
         'uksouth'
     )]
-    [string]$location = "westus2"
+    [string]$location = "westus2",
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet(
+        'Create',
+        'Lookup',
+        'LookupWithEncounter'
+    )]
+    [string]$resourceIdentityResolutionType = 'Create'
 )
 
 Set-StrictMode -Version Latest
@@ -77,7 +85,7 @@ Write-Host "Deploying Azure resources setup..."
 
 $setupTemplate = "Main.bicep" 
 
-az deployment sub create --location $location --template-file $setupTemplate --name "$($baseName)MainSetup" --parameters baseName=$baseName  location=$location
+az deployment sub create --location $location --template-file $setupTemplate --name "$($baseName)MainSetup" --parameters baseName=$baseName  location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType
 
 $acrName = "$($baseName)acr"
 $normalizationImage = "normalization"
@@ -99,6 +107,6 @@ Write-Host "FHIR Transformation image created."
 $caSetupTemplate = "ContainerAppSetup.bicep"
 
 Write-Host "Deploying Container Apps Setup..."
-az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "$($baseName)ContainerAppSetup" --parameters baseName=$baseName location=$location
+az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "$($baseName)ContainerAppSetup" --parameters baseName=$baseName location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType
 
 Write-Host "Deployment complete."
