@@ -57,6 +57,19 @@ module infrastructureSetup 'InfrastructureSetup.bicep' = {
   }
 }
 
+module uploadTemplates 'UploadTemplates.bicep' = {
+  name: 'uploadTemplates'
+  scope: resourceGroup
+  params: {
+    baseName: baseName
+    location: location 
+    resourceIdentityResolutionType: resourceIdentityResolutionType
+  }
+  dependsOn: [
+    infrastructureSetup
+  ]
+}
+
 module buildContainerImages 'BuildContainerImages.bicep' = {
   name: 'buildContainerImages'
   scope: resourceGroup
@@ -67,6 +80,7 @@ module buildContainerImages 'BuildContainerImages.bicep' = {
   }
   dependsOn: [
     infrastructureSetup
+    uploadTemplates
   ]
 }
 
@@ -80,6 +94,7 @@ module containerAppSetup 'ContainerAppSetup.bicep' = {
   }
   dependsOn: [
     infrastructureSetup
+    uploadTemplates
     buildContainerImages
   ]
 }
