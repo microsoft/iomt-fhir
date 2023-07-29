@@ -73,6 +73,8 @@ This option deploys the Bicep template that was used to generate the ARM templat
 
 The 'deploymentScripts' resource is used to upload the sample mapping templates and build and push container images to the ACR. An additional Storage Account is provisioned to run these deployment scripts. A Container Instance is also created for each 'deploymentScripts' resource instance and is deleted upon successful deployment. 
 
+To view the progress of the deployment, navigate to the resource group in Azure Portal and select the 'Deployments' tab under 'Settings' in the left panel. 
+
 ## Option 3: Execute a single PowerShell deployment script locally
 Run the following command to run the PowerShell script: 
 
@@ -86,3 +88,5 @@ The mapping configurations for device content and converting to FHIR need to be 
 
 More information on mapping templates can be found [here](https://github.com/microsoft/iomt-fhir/blob/7794cbcc463e8d26c3097cd5e2243d770f26fe45/docs/Configuration.md).
 Full examples can be found in the repository under [/sample/templates](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates)
+
+To view the progress of the deployment, navigate to the resource group in Azure Portal and select the 'Deployments' tab under 'Settings' in the left panel. Outputs from each deployment step are visible in the terminal following completion. 
