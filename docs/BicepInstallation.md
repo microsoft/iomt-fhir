@@ -82,7 +82,7 @@ Run the following command to run the PowerShell script:
 
 This [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContainerAppEnv.ps1) sets up all necessary Azure resources for running the IoMT Service by deploying Bicep templates. The 'deploymentScripts' resource is not used in this option and the commands are instead invoked locally via the PowerShell script. Therefore, no additional Storage Account or Container Instances are created.
 
-The mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob.  You can use a tool like [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to easily upload and update the configurations. Navigate to the Azure Storage account and select the template storage container. From there, upload the configurations and you are done.
+The mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob. Navigate to the Azure Storage account and select the template storage container. From there, upload the configurations and you are done.
 
 More information on mapping templates can be found [here](https://github.com/microsoft/iomt-fhir/blob/7794cbcc463e8d26c3097cd5e2243d770f26fe45/docs/Configuration.md).
 Full examples can be found in the repository under [/sample/templates](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates)
