@@ -3,17 +3,17 @@ This article details three deployment options for provisioning and installation 
 
 The following Azure components will be provisioned once deployment has completed:
 
-* Storage Account - Used to track Event Hub processing watermark and host the configuration files for device normalization mapping and FHIR conversion mapping.
-* Event Hubs Namespace - Hosts the two Event Hubs, 'devicedata' and 'normalizeddata'. 
-* Event Hubs - Two Event Hubs are deployed. One is the initial ingestion point for device data. The second receives normalized device data for further processing.
-* Azure Health Data Services Workspace - Logical container to host the FHIR Service.
-* FHIR Service - A FHIR Service in Azure Health Data Services workspace instance using FHIR version R4
-* Azure Container Registry - Stores two container images, 'normalization' and 'fhir-transformation'. 
-* Log Analytics Workspace - 
-* App Insights - Records telemetry.
-* Managed Identity - An Azure Active Directory service identity is created to connect the Container Apps to the ACR where they pull the container images to run. 
-* Container Apps Environment - Hosts the two Container Apps, 'normalization' and 'fhir-transformation'. 
-* Container Apps - Two Container Apps are deployed. One performs normalization of the device data. The second executes the FHIR conversion logic and sends the results to the FHIR service. 
+* Storage Account 
+* Event Hubs Namespace  
+* Event Hubs 
+* Azure Health Data Services Workspace
+* FHIR Service
+* Azure Container Registry 
+* Log Analytics Workspace 
+* App Insights 
+* Managed Identity 
+* Container Apps Environment
+* Container Apps  
 
 ### Prerequisites
 To run any of these deployment options, the following items must be set up before execution:
@@ -58,24 +58,31 @@ The following parameters are provided by the Bicep template:
 |**LookupWithEncounter**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient.  The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Deployment 
-## Option 1: Single-click Deploy to Azure via ARM template generated from [Bicep Template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep)
+## Option 1: Single-click Deploy to Azure via ARM template generated from Bicep Template
 
-## Option 2: Deploy a single [Bicep file](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep) locally 
-Deploy the Bicep template by running the following command: 
+## Option 2: Deploy a single Bicep file locally 
+Deploy the [Bicep template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep) by running the following command: 
 
 ```PowerShell
-az deployment sub create --
+az deployment sub create --location <Location> --template-file ContainerApp-SingleAzureDeploy.bicep
 ```
 
-This option deploys the [Bicep template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep) that was used to generate the ARM template in Option 1. This Bicep template serves as a single entry point for provisioning all necessary resources and configuring permissions. 
+NOTE: See [region availability](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=health-data-services) to select a location for the resources to be deployed in. 
 
-## Option 3: Execute a single [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContainerAppEnv.ps1) locally
+This option deploys the Bicep template that was used to generate the ARM template in Option 1. This Bicep template serves as a single entry point for provisioning all necessary Azure resources and role assignments. Sample configuration templates, [devicecontent.json](../sample/templates/basic/devicecontent.json) and [fhirmapping.json](../sample/templates/basic/fhirmapping.json) are also uploaded to the 'template' blob container in the storage account using a User-Assigned Managed Identity. 
+
+The 'deploymentScripts' resource is used to upload the sample mapping templates and build and push container images to the ACR. An additional Storage Account is provisioned to run these deployment scripts. A Container Instance is also created for each 'deploymentScripts' resource instance and is deleted upon successful deployment. 
+
+## Option 3: Execute a single PowerShell deployment script locally
 Run the following command to run the PowerShell script: 
 
 ```PowerShell
 ./Create-IomtContainerAppEnv.ps1
 ```
 
+This [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContainerAppEnv.ps1) sets up all necessary Azure resources for running the IoMT Service by deploying Bicep templates. The 'deploymentScripts' resource is not used in this option and the commands are instead invoked locally via the PowerShell script. Therefore, no additional Storage Account or Container Instances are created.
 
+The mapping configurations for device content and converting to FHIR need to be added to the template container in the deployed Azure Storage blob.  You can use a tool like [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to easily upload and update the configurations. Navigate to the Azure Storage account and select the template storage container. From there, upload the configurations and you are done.
 
-## Post Deployment
+More information on mapping templates can be found [here](https://github.com/microsoft/iomt-fhir/blob/7794cbcc463e8d26c3097cd5e2243d770f26fe45/docs/Configuration.md).
+Full examples can be found in the repository under [/sample/templates](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates)
