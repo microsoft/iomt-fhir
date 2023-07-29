@@ -1,4 +1,4 @@
-# Installation via ARM Template for use with Azure API for FHIR and Azure Active Directory
+# Installation options via Bicep Templates for use with FHIR service in Azure Health Data Services 
 This article details three deployment options for provisioning and installation of the IoMT FHIR Connector for Azure and [FHIR service in Azure Health Data Services](https://learn.microsoft.com/en-us/azure/healthcare-apis/fhir/overview) using Bicep templates. 
 
 The following Azure components will be provisioned once deployment has completed:
