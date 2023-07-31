@@ -57,9 +57,9 @@ NOTE: All identity look ups are cached once resolved to decrease load on the FHI
 
 |Type|Behavior
 |---|---
-|**Lookup**|Default setting. Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
 |**Create**|System attempts to retrieve the device identifier and associated patient from the FHIR server. If either isn't found a shell resource with just the identity will be created. Requires a patient identifier be mapped in the device content configuration template.
-|**LookupWithEncounter**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient. The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
+|**Lookup**|Device identifier from ingested messages is retrieved from the FHIR server. Patient is expected to be linked to the device.
+|**LookupWithEncounter**|Similar to the 'Lookup' setting but allows you to include an encounter identifier with the message to associate with the device/patient. The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Deployment 
 ### Option 1: Single-click Deploy to Azure via ARM template generated from Bicep Template
