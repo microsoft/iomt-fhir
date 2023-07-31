@@ -39,7 +39,7 @@ param blobContainerName string = 'template'
 param devicecontentFile string = 'devicecontent.json'
 param fhirmappingFile string = 'fhirmapping.json'
 param devicecontentURL string = 'https://raw.githubusercontent.com/microsoft/iomt-fhir/main/sample/templates/basic/devicecontent.json'
-param fhirmappingURL string = 'https://raw.githubusercontent.com/microsoft/iomt-fhir/main/sample/templates/basic/devicecontent.json'
+param fhirmappingURL string = 'https://raw.githubusercontent.com/microsoft/iomt-fhir/main/sample/templates/basic/fhirmapping.json'
 
 resource uploadDeviceContentTemplate 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'uploadDeviceContentTemplate'
