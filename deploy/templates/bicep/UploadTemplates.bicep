@@ -67,7 +67,7 @@ resource uploadDeviceContentTemplate 'Microsoft.Resources/deploymentScripts@2020
     arguments: '${devicecontentFile} ${devicecontentURL} ${storageAccount.name} ${blobContainerName}'
     scriptContent: '''
       wget -O $1 $2
-      az storage blob upload --account-name $3 --container-name $4 --name $1 --file $1 --auth-mode login --overwrite
+      az storage blob upload --account-name $3 --container-name $4 --name $1 --file $1 --auth-mode login 
     '''
     retentionInterval: 'P1D'
     cleanupPreference: 'OnSuccess'
