@@ -7,6 +7,7 @@
         "typeName": "heartrate",
         "typeMatchExpression": "$..[?(@heartrate)]",
         "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
@@ -23,6 +24,7 @@
         "typeName": "steps",
         "typeMatchExpression": "$..[?(@steps)]",
         "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
@@ -39,6 +41,7 @@
         "typeName": "bloodpressure",
         "typeMatchExpression": "$..[?(@systolic && @diastolic)]",
         "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
@@ -60,6 +63,7 @@
         "typeName": "hrv",
         "typeMatchExpression": "$..[?(@hrv)]",
         "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
