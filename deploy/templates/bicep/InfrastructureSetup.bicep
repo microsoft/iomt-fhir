@@ -15,6 +15,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
+// A Blob Service resource (default) is not explicitly provisioned to allow direct dependency of Container creation on the completion of tbe Storage Account deployment.
 resource checkpointContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
   name: '${baseName}sa/default/checkpoint'
   properties: {
