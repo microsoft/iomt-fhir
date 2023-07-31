@@ -12,7 +12,7 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
 
 var storageBlobDataOwnerRoleId = resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
 
-resource storageBlobDataOwnerNormalization 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource storageBlobDataOwnerDeployment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: storageAccount
   name: guid(storageBlobDataOwnerRoleId, userAssignedMI.id, storageAccount.id)
   properties: {
