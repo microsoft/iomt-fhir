@@ -80,6 +80,7 @@
         "typeName": "deviceWorn",
         "typeMatchExpression": "$..[?(@deviceWorn)]",
         "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
@@ -96,6 +97,7 @@
         "typeName": "deviceRemoved",
         "typeMatchExpression": "$..[?(@deviceRemoved)]",
         "deviceIdExpression": "$.deviceid",
+        "patientIdExpression": "$.patientid",
         "timestampExpression": "$.measurementdatetime",
         "values": [
           {
