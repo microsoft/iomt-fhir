@@ -13,8 +13,7 @@ param
         }
     })]
     [string]$baseName,
-    
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $true)]
     [ValidateSet(
         'australiaeast', 
         'canadacentral', 
@@ -34,16 +33,15 @@ param
         'westus2',
         'westus3',
         'uksouth'
-    )]
-    [string]$location = "westus2",
-
-    [Parameter(Mandatory = $false)]
+   )]
+    [string]$location,
+    [Parameter(Mandatory = $true)]
     [ValidateSet(
         'Create',
         'Lookup',
         'LookupWithEncounter'
     )]
-    [string]$resourceIdentityResolutionType = "Create"
+    [string]$resourceIdentityResolutionType
 )
 
 Set-StrictMode -Version Latest
@@ -76,7 +74,7 @@ if ($azAccountType -eq "user") {
 }
 elseif ($azAccountType -eq "servicePrincipal") {
     Write-Host "Current account context is service principal: $($azAccountId)"
-    $currentObjectId = az ad sp show --id $accountId --query id --output tsv
+    $currentObjectId = az ad sp show --id $azAccountId --query id --output tsv
 }
 else {
     Write-Host "Current context is account of type '$($azAccountType)' with id of '$($azAccountId)"
