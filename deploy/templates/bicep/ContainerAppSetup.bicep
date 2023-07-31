@@ -69,7 +69,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
 }
 
 // The UserAssigned identity is used by both Container Apps to pull the container image from ACR. 
-// This cannot be done with the Container App's SystemAssigned Identity since the image needs to be pulled to create the Container App. 
+// This cannot be done with the Container App's SystemAssigned Identity since the image needs to be pulled in order to create the Container App. 
 // The SystemAssigned identities for each Container App is used to assign the necessary permissions for running each service. 
 param timestamp string = utcNow('yyyyMMddHHmmss')
 resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
@@ -263,6 +263,10 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
             }
             {
               name: 'FhirService__Url'
+              value: fhirService.properties.authenticationConfiguration.audience
+            }
+            {
+              name: 'FhirService__Resource'
               value: fhirService.properties.authenticationConfiguration.audience
             }
             {
