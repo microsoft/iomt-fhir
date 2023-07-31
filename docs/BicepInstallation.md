@@ -17,7 +17,7 @@ The following Azure components will be provisioned once deployment has completed
 
 An additional Storage Account and Container Instances will be created if the 'deploymentScripts' Bicep resource type is used in the chosen deployment option. 
 
-\* NOTE: The FHIR Service in Azure Health Data Services is used as opposed to the Azure API for FHIR. For more information, please see this [page](https://learn.microsoft.com/en-us/azure/healthcare-apis/fhir/overview) for more information. 
+\* NOTE: These deployment options use the FHIR service in Azure Health Data Services as opposed to the Azure API for FHIR. For more information, please see this [page](https://learn.microsoft.com/en-us/azure/healthcare-apis/fhir/overview). 
 
 ### Prerequisites
 To run any of these deployment options, the following items must be set up before execution:
@@ -62,6 +62,10 @@ NOTE: All identity look ups are cached once resolved to decrease load on the FHI
 |**LookupWithEncounter**|Like the first setting but allows you to include an encounter identifier with the message to associate with the device/patient. The encounter is looked up during processing and any observations created are linked to the encounter. The association here is assumed to be one encounter per device.
 
 ## Deployment 
+Options 1-3 reference separate Bicep files that are used to provision a set of resources. To redeploy a specific supporting Bicep file, run the following command: 
+```PowerShell
+az deployment group create --resource-group <baseName> --template-file <File.bicep>
+```
 ### Option 1: Single-click Deploy to Azure via ARM template generated from Bicep Template
 
 ### Option 2: Deploy a single Bicep file locally 
@@ -88,11 +92,11 @@ Run the following command to run the PowerShell deployment script:
 ./Create-IomtContainerAppEnv.ps1
 ```
 
-Values for *baseName*, *location*, and *resourceIdentityResolutionType* will need to be provided. Please note the valid options listed in the PowerShell deployment script file for each parameter. 
+Values for *baseName*, *location*, and *resourceIdentityResolutionType* will need to be provided. Please note the valid options listed in the PowerShell deployment script file for each parameter before deployment. Be careful to provide these values exactly, otherwise the deployment will fail. 
 
-This [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContainerAppEnv.ps1) sets up all necessary Azure resources for running the IoMT Service by deploying Bicep templates via Azure CLI commands. Azure CLI commands are also used to build and push container images to the ACR. The 'deploymentScripts' resource type is not used in this option and the commands are instead invoked locally via the PowerShell script. Therefore, no additional Storage Account or Container Instances are created. The duration of running these commands locally is also shorter than running via the 'deploymentScripts' resource in Bicep. 
+This [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContainerAppEnv.ps1) sets up all necessary Azure resources for running the IoMT Service by deploying Bicep templates via Azure CLI commands. Azure CLI commands are also used to build and push container images to the ACR. The 'deploymentScripts' resource type is not used in this option and the commands are instead invoked locally via the PowerShell script. Therefore, no additional Storage Account or Container Instances are created. The duration of running these commands locally is also shorter than running the commands within the 'deploymentScripts' resource in Bicep. 
 
-The mapping configurations for device content and converting to FHIR need to be added to the 'template' container in the deployed Azure Storage blob. Navigate to the Azure Storage Account and select the template storage container. From there, upload the configurations and you are done.
+The mapping configurations for device content and converting to FHIR need to be added to the 'template' container in the deployed Azure Storage blob. Navigate to the  Storage Account and select the 'template' storage container. From there, upload the configurations to complete set up of the IoMT FHIR Connector.
 
 More information on mapping templates can be found [here](https://github.com/microsoft/iomt-fhir/blob/7794cbcc463e8d26c3097cd5e2243d770f26fe45/docs/Configuration.md). Full examples can be found in the repository under [/sample/templates](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates)
 
