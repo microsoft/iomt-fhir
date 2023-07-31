@@ -87,7 +87,7 @@ $setupTemplate = "Main.bicep"
 Write-Host "Deploying Azure resources setup..."
 az deployment sub create --location $location --template-file $setupTemplate --name "$($baseName)MainSetup" --parameters baseName=$baseName  location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType
 
-# Build and push container images to ACR. Running command directly avoids the creation of a separate storage account and container instance to run the script. 
+# Build and push container images to ACR
 $acrName = "$($baseName)acr"
 $normalizationImage = "normalization"
 $fhirTransformationImage = "fhir-transformation"
