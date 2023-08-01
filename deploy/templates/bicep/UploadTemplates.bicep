@@ -1,6 +1,7 @@
 param baseName string 
 param location string 
 param resourceIdentityResolutionType string 
+param fhirVersion string 
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
   name: '${baseName}sa'
@@ -27,7 +28,7 @@ resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'StorageV2'
   sku: {
@@ -46,7 +47,7 @@ resource uploadDeviceContentTemplate 'Microsoft.Resources/deploymentScripts@2020
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'AzureCLI'
   identity: {
@@ -79,7 +80,7 @@ resource uploadFhirMappingTemplate 'Microsoft.Resources/deploymentScripts@2020-1
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'AzureCLI'
   identity: {

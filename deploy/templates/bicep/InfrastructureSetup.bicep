@@ -1,13 +1,14 @@
 param baseName string 
 param location string 
 param resourceIdentityResolutionType string 
+param fhirVersion string 
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: '${baseName}sa'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'StorageV2'
   sku: {
@@ -43,7 +44,7 @@ resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   sku: {
     name: 'Standard'
@@ -105,7 +106,7 @@ resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' = {
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
 }
 
@@ -115,9 +116,9 @@ resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-2
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
-  kind: 'fhir-R4'
+  kind: 'fhir-${fhirVersion}'
   identity: {
     type: 'SystemAssigned'
   }
@@ -135,7 +136,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' =
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   identity: {
     type: 'SystemAssigned' 
@@ -153,7 +154,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   properties: any({
     retentionInDays: 30
@@ -171,7 +172,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'web'
   properties: {

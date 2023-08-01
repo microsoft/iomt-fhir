@@ -30,6 +30,12 @@ param baseName string
 ])
 param location string 
 
+@description('')
+@allowed([
+  'R4'
+])
+param fhirVersion string 
+
 @description('Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream.')
 @allowed([
   'Create'
@@ -54,6 +60,7 @@ module infrastructureSetup 'InfrastructureSetup.bicep' = {
     baseName: baseName 
     location: location 
     resourceIdentityResolutionType: resourceIdentityResolutionType
+    fhirVersion: fhirVersion
   }
 }
 
@@ -64,6 +71,7 @@ module uploadTemplates 'UploadTemplates.bicep' = {
     baseName: baseName
     location: location 
     resourceIdentityResolutionType: resourceIdentityResolutionType
+    fhirVersion: fhirVersion
   }
   dependsOn: [
     infrastructureSetup
@@ -77,6 +85,7 @@ module buildContainerImages 'BuildContainerImages.bicep' = {
     baseName: baseName
     location: location
     resourceIdentityResolutionType: resourceIdentityResolutionType
+    fhirVersion: fhirVersion
   }
   dependsOn: [
     infrastructureSetup
@@ -91,6 +100,7 @@ module containerAppSetup 'ContainerAppSetup.bicep' = {
     baseName: baseName
     location: location
     resourceIdentityResolutionType: resourceIdentityResolutionType
+    fhirVersion: fhirVersion
   }
   dependsOn: [
     infrastructureSetup

@@ -41,7 +41,12 @@ param
         'Lookup',
         'LookupWithEncounter'
     )]
-    [string]$resourceIdentityResolutionType
+    [string]$resourceIdentityResolutionType,
+    [Parameter(Mandatory = $true)]
+    [ValidateSet(
+        'R4'
+    )]
+    [string]$fhirVersion
 )
 
 Set-StrictMode -Version Latest
@@ -85,7 +90,7 @@ else {
 $setupTemplate = "Main.bicep" 
 
 Write-Host "Deploying Azure resources setup..."
-az deployment sub create --location $location --template-file $setupTemplate --name "$($baseName)MainSetup" --parameters baseName=$baseName  location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType
+az deployment sub create --location $location --template-file $setupTemplate --name "$($baseName)MainSetup" --parameters baseName=$baseName  location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType fhirVersion=$fhirVersion
 
 # Build and push container images to ACR
 $acrName = "$($baseName)acr"
@@ -109,6 +114,6 @@ Write-Host "FHIR Transformation image created."
 $caSetupTemplate = "ContainerAppSetup.bicep"
 
 Write-Host "Deploying Container Apps Setup..."
-az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "$($baseName)ContainerAppSetup" --parameters baseName=$baseName location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType
+az deployment group create --resource-group $baseName --template-file $caSetupTemplate --name "$($baseName)ContainerAppSetup" --parameters baseName=$baseName location=$location resourceIdentityResolutionType=$resourceIdentityResolutionType fhirVersion=$fhirVersion
 
 Write-Host "Deployment complete."

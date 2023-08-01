@@ -1,6 +1,7 @@
 param baseName string 
 param location string 
 param resourceIdentityResolutionType string 
+param fhirVersion string 
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' existing = {
   name: '${baseName}acr'
@@ -28,7 +29,7 @@ resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'AzureCLI'
   identity: {
@@ -60,7 +61,7 @@ resource buildFhirTransformationImage 'Microsoft.Resources/deploymentScripts@202
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   kind: 'AzureCLI'
   identity: {

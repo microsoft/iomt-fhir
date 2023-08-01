@@ -1,6 +1,7 @@
 param baseName string
 param location string
 param resourceIdentityResolutionType string 
+param fhirVersion string 
 
 param normalizationImage string = 'normalization'
 param fhirTransformationImage string = 'fhir-transformation'
@@ -54,7 +55,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   properties: {
     daprAIInstrumentationKey:appInsights.properties.InstrumentationKey
@@ -77,7 +78,7 @@ resource normalizationContainerApp 'Microsoft.App/containerApps@2022-03-01' ={
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   identity: {
     type: 'SystemAssigned,UserAssigned'
@@ -193,7 +194,7 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
   identity: {
     type: 'SystemAssigned,UserAssigned'
