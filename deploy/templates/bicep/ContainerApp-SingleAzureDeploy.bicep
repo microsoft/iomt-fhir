@@ -30,12 +30,6 @@ param baseName string
 ])
 param location string 
 
-@description('FHIR version that the FHIR Server supports')
-@allowed([
-  'R4'
-])
-param fhirVersion string 
-
 @description('Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream.')
 @allowed([
   'Create'
@@ -43,6 +37,12 @@ param fhirVersion string
   'LookupWithEncounter'
 ])
 param resourceIdentityResolutionType string 
+
+@description('FHIR version that the FHIR Server supports')
+@allowed([
+  'R4'
+])
+param fhirVersion string
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: baseName

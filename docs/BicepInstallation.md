@@ -7,8 +7,8 @@ The following Azure components will be provisioned once deployment has completed
 * Two Blob Containers
 * Event Hubs Namespace  
 * Two Event Hubs 
-* Azure Health Data Services Workspace
-* FHIR Service* 
+* Azure Health Data Services workspace
+* FHIR service* 
 * Azure Container Registry 
 * Log Analytics Workspace 
 * App Insights 
@@ -72,6 +72,11 @@ Deploy the [Bicep template](../deploy/templates/bicep/ContainerApp-SingleAzureDe
 az deployment sub create --location <Location> --template-file ContainerApp-SingleAzureDeploy.bicep
 ```
 
+Example: 
+```PowerShell
+az deployment sub create --location westus2 --template-file ContainerApp-SingleAzureDeploy.bicep
+```
+
 NOTE: See [region availability](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=health-data-services) for Azure Health Data Servicces to select a valid location for the resources to be deployed in. 
 
 You will need to provide a *baseName* to name the services that will be provisioned. The valid *location* and *resourceIdentityResolutionType* options are presented as an enumerated list. To select an option, type the number corresponding to your desired selection. For help, type '?' to see a description of a parameter. 
@@ -101,4 +106,19 @@ To view the progress of a deployment, navigate to the resource group in Azure Po
 All deployment options reference separate Bicep files that are used to provision a set of resources. To redeploy a specific supporting Bicep file, run the following command: 
 ```PowerShell
 az deployment group create --resource-group <baseName> --template-file <File.bicep>
+```
+
+Example: 
+```PowerShell
+az deployment group create --resource-group testdeployment --template-file BuildContainerImages.bicep
+```
+
+NOTE: If you wish to redeploy Main.bicep, run the following command: 
+```PowerShell
+az deployment sub create --location <Location> --template-file Main.bicep
+```
+
+Example: 
+```PowerShell
+az deployment sub create --location westus2 --template-file Main.bicep
 ```
