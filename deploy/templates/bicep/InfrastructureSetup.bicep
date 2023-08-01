@@ -40,7 +40,7 @@ resource templateContainer 'Microsoft.Storage/storageAccounts/blobServices/conta
 }
 
 resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
-  name: 'en-${baseName}'
+  name: '${baseName}en'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
@@ -102,7 +102,7 @@ resource normalizeddataEHAuthRule 'Microsoft.EventHub/namespaces/eventhubs/autho
 }
 
 resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' = {
-  name: 'hw${baseName}'
+  name: '${baseName}hw'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
@@ -111,7 +111,7 @@ resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' = {
 }
 
 resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-28' = {
-  name: 'fs-${baseName}'
+  name: '${baseName}fs'
   parent: healthWorkspace
   location: location
   tags: {
@@ -150,7 +150,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' =
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
-  name: 'law-${baseName}'
+  name: '${baseName}law'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
@@ -168,7 +168,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
 }
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'ai-${baseName}'
+  name: '${baseName}ai'
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'

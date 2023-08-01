@@ -12,15 +12,15 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-12-01' e
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
-  name: 'law-${baseName}'
+  name: '${baseName}law'
 }
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
-  name: 'ai-${baseName}'
+  name: '${baseName}ai'
 }
 
 resource eventhubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' existing = {
-  name: 'en-${baseName}'
+  name: '${baseName}en'
 }
 
 resource devicedataEH 'Microsoft.EventHub/namespaces/eventhubs@2021-11-01' existing = {
@@ -38,11 +38,11 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing 
 }
 
 resource healthWorkspace 'Microsoft.HealthcareApis/workspaces@2023-02-28' existing = {
-  name: 'hw${baseName}'
+  name: '${baseName}hw'
 }
 
 resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2023-02-28' existing = {
-  name: 'fs-${baseName}'
+  name: '${baseName}fs'
   parent: healthWorkspace
 }
 

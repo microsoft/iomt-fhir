@@ -30,7 +30,7 @@ param baseName string
 ])
 param location string 
 
-@description('')
+@description('FHIR version that the FHIR Server supports')
 @allowed([
   'R4'
 ])
@@ -49,7 +49,7 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: location
   tags: {
     IomtFhirConnector: 'ResourceIdentity:${resourceIdentityResolutionType}'
-    IomtFhirVersion: 'R4'
+    IomtFhirVersion: fhirVersion
   }
 }
 

@@ -38,7 +38,7 @@ param location string
 ])
 param resourceIdentityResolutionType string 
 
-@description('')
+@description('FHIR version that the FHIR Server supports')
 @allowed([
   'R4'
 ])
