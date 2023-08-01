@@ -8,7 +8,7 @@ param
             return $true
         }
         else {
-			throw "Service name must be lowercase and numbers"
+            throw "Service name must be lowercase and numbers"
             return $false
         }
     })]
