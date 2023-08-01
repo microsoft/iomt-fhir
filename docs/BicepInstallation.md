@@ -83,7 +83,7 @@ You will need to provide a *baseName* to name the services that will be provisio
 
 This option deploys the Bicep file that was used to generate the ARM template in Option 1. This Bicep template serves as a single entry point for setting up all necessary Azure resources and role assignments. Sample configuration templates, [devicecontent.json](../sample/templates/basic/devicecontent.json) and [fhirmapping.json](../sample/templates/basic/fhirmapping.json) are also uploaded to the 'template' container in the Storage Account using a User-Assigned Managed Identity. 
 
-The 'deploymentScripts' resource type in Bicep is used to (1) upload the sample mapping templates and (2) build and push container container images to the ACR. An additional Storage Account is provisioned to execute these deployment scripts. A Container Instance is also created for each 'deploymentScripts' resource instance and is deleted upon successful deployment. 
+The 'deploymentScripts' resource type in Bicep is used to (1) upload the sample mapping templates and (2) build and push container images to the ACR. An additional Storage Account is provisioned to execute these deployment scripts. A Container Instance is also created for each 'deploymentScripts' resource instance and is deleted upon successful deployment. 
 
 ### Option 3: Execute a single PowerShell deployment script locally
 Run the following command to run the PowerShell deployment script: 
