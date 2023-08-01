@@ -38,6 +38,12 @@ param location string
 ])
 param resourceIdentityResolutionType string 
 
+@description('')
+@allowed([
+  'R4'
+])
+param fhirVersion string
+
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: baseName
   location: location
@@ -50,5 +56,6 @@ module infrastructure 'InfrastructureSetup.bicep' = {
       baseName: baseName 
       location: location 
       resourceIdentityResolutionType: resourceIdentityResolutionType
+      fhirVersion: fhirVersion
   }
 }
