@@ -4,6 +4,7 @@ This article details three deployment options for provisioning and installation 
 The following Azure components will be provisioned once deployment has completed:
 
 * Storage Account 
+* Two Blob Containers
 * Event Hubs Namespace  
 * Two Event Hubs 
 * Azure Health Data Services Workspace
@@ -11,7 +12,7 @@ The following Azure components will be provisioned once deployment has completed
 * Azure Container Registry 
 * Log Analytics Workspace 
 * App Insights 
-* Managed Identity 
+* User-Assigned Managed Identity 
 * Container Apps Environment
 * Two Container Apps  
 
@@ -79,8 +80,6 @@ This option deploys the Bicep file that was used to generate the ARM template in
 
 The 'deploymentScripts' resource type in Bicep is used to (1) upload the sample mapping templates and (2) build and push container container images to the ACR. An additional Storage Account is provisioned to execute these deployment scripts. A Container Instance is also created for each 'deploymentScripts' resource instance and is deleted upon successful deployment. 
 
-To view the progress of the deployment, navigate to the resource group in Azure Portal and select the 'Deployments' tab under 'Settings' in the left panel. 
-
 ### Option 3: Execute a single PowerShell deployment script locally
 Run the following command to run the PowerShell deployment script: 
 
@@ -94,9 +93,10 @@ This [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContain
 
 The mapping configurations for device content and converting to FHIR need to be added to the 'template' container in the deployed Azure Storage blob. Navigate to the  Storage Account and select the 'template' storage container. From there, upload the configurations to complete set up of the IoMT FHIR Connector.
 
-More information on mapping templates can be found [here](https://github.com/microsoft/iomt-fhir/blob/7794cbcc463e8d26c3097cd5e2243d770f26fe45/docs/Configuration.md). Full examples can be found in the repository under [/sample/templates](https://github.com/microsoft/iomt-fhir/tree/7794cbcc463e8d26c3097cd5e2243d770f26fe45/sample/templates)
+More information on mapping templates can be found [here](./Configuration.md). Full examples can be found in the repository under [../sample/templates](../sample/templates/)
 
-To view the progress of the deployment, navigate to the resource group in Azure Portal and select the 'Deployments' tab under 'Settings' in the left panel. Outputs from each deployment step are visible in the terminal following completion. 
+### Additional Deployment Notes
+To view the progress of a deployment, navigate to the resource group in Azure Portal and select the 'Deployments' tab under 'Settings' in the left panel.
 
 All deployment options reference separate Bicep files that are used to provision a set of resources. To redeploy a specific supporting Bicep file, run the following command: 
 ```PowerShell
