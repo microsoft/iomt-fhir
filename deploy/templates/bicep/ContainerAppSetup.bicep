@@ -89,7 +89,7 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
   name: '${baseName}UAMI'
 }
 
-var fhirURL = 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
+var fhirURL = 'https://${healthWorkspace.name}-${fhirService.name}.fhir.azurehealthcareapis.com'
 
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: '${baseName}env'
