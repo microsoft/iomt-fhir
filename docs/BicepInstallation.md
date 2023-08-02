@@ -64,6 +64,7 @@ NOTE: All identity look ups are cached once resolved to decrease load on the FHI
 
 ## Deployment 
 ### Option 1: Single-click Deploy to Azure via ARM template generated from Bicep Template
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fiomt-fhir%2Fpersonal%2Ft-wenolivia%2Fcontainerapps-deployment%2Fdeploy%2Ftemplates%2Fbicep%2FContainerApp-SingleAzureDeploy.json)
 
 ### Option 2: Deploy a single Bicep file locally 
 Deploy the [Bicep template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep) by running the following command: 
