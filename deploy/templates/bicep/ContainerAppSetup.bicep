@@ -89,6 +89,8 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
   name: '${baseName}UAMI'
 }
 
+var fhirURL = 'https://${healthWorkspace.name}-fs-${baseName}.fhir.azurehealthcareapis.com'
+
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: '${baseName}env'
   location: location
@@ -303,11 +305,11 @@ resource fhirTransformationContainerApp 'Microsoft.App/containerApps@2022-03-01'
             }
             {
               name: 'FhirService__Url'
-              value: fhirService.properties.authenticationConfiguration.audience
+              value: fhirURL
             }
             {
               name: 'FhirService__Resource'
-              value: fhirService.properties.authenticationConfiguration.audience
+              value: fhirURL
             }
             {
               name: 'InputEventHub__AuthenticationType'
