@@ -1,0 +1,1314 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.20.4.51522",
+      "templateHash": "13672600818265155109"
+    }
+  },
+  "parameters": {
+    "baseName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 16,
+      "metadata": {
+        "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+      }
+    },
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "australiaeast",
+        "canadacentral",
+        "centralindia",
+        "eastus",
+        "eastus2",
+        "francecentral",
+        "japaneast",
+        "koreacentral",
+        "northcentralus",
+        "northeurope",
+        "qatarcentral",
+        "southcentralus",
+        "southeastasia",
+        "swedencentral",
+        "switzerlandnorth",
+        "westcentralus",
+        "westeurope",
+        "westus2",
+        "westus3",
+        "uksouth"
+      ],
+      "metadata": {
+        "description": "Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)"
+      }
+    },
+    "resourceIdentityResolutionType": {
+      "type": "string",
+      "allowedValues": [
+        "Create",
+        "Lookup",
+        "LookupWithEncounter"
+      ],
+      "metadata": {
+        "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
+      }
+    },
+    "fhirVersion": {
+      "type": "string",
+      "allowedValues": [
+        "R4"
+      ],
+      "metadata": {
+        "description": "FHIR version that the FHIR Server supports"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('baseName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+        "IomtFhirVersion": "[parameters('fhirVersion')]"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "infrastructureSetup",
+      "resourceGroup": "[parameters('baseName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "baseName": {
+            "value": "[parameters('baseName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceIdentityResolutionType": {
+            "value": "[parameters('resourceIdentityResolutionType')]"
+          },
+          "fhirVersion": {
+            "value": "[parameters('fhirVersion')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.20.4.51522",
+              "templateHash": "9440424175545731576"
+            }
+          },
+          "parameters": {
+            "baseName": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 16,
+              "metadata": {
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+              }
+            },
+            "location": {
+              "type": "string",
+              "allowedValues": [
+                "australiaeast",
+                "canadacentral",
+                "centralindia",
+                "eastus",
+                "eastus2",
+                "francecentral",
+                "japaneast",
+                "koreacentral",
+                "northcentralus",
+                "northeurope",
+                "qatarcentral",
+                "southcentralus",
+                "southeastasia",
+                "swedencentral",
+                "switzerlandnorth",
+                "westcentralus",
+                "westeurope",
+                "westus2",
+                "westus3",
+                "uksouth"
+              ],
+              "metadata": {
+                "description": "Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)"
+              }
+            },
+            "resourceIdentityResolutionType": {
+              "type": "string",
+              "allowedValues": [
+                "Create",
+                "Lookup",
+                "LookupWithEncounter"
+              ],
+              "metadata": {
+                "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
+              }
+            },
+            "fhirVersion": {
+              "type": "string",
+              "allowedValues": [
+                "R4"
+              ],
+              "metadata": {
+                "description": "FHIR version that the FHIR Server supports"
+              }
+            }
+          },
+          "variables": {
+            "contributorId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+            "acrPushRoleId": "[resourceId('Microsoft.Authorization/roleDefinitions', '8311e382-0749-4cb8-b61a-304f252e45ec')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2022-09-01",
+              "name": "[format('{0}sa', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "StorageV2",
+              "sku": {
+                "name": "Standard_RAGRS"
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2022-09-01",
+              "name": "[format('{0}sa/default/checkpoint', parameters('baseName'))]",
+              "properties": {
+                "publicAccess": "None",
+                "metadata": {}
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2022-09-01",
+              "name": "[format('{0}sa/default/template', parameters('baseName'))]",
+              "properties": {
+                "publicAccess": "None",
+                "metadata": {}
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.EventHub/namespaces",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}en', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "sku": {
+                "name": "Standard",
+                "tier": "Standard",
+                "capacity": 2
+              },
+              "properties": {
+                "zoneRedundant": false,
+                "isAutoInflateEnabled": false,
+                "kafkaEnabled": true,
+                "disableLocalAuth": false
+              }
+            },
+            {
+              "type": "Microsoft.EventHub/namespaces/eventhubs",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}/{1}', format('{0}en', parameters('baseName')), 'devicedata')]",
+              "properties": {
+                "messageRetentionInDays": 1,
+                "partitionCount": 32,
+                "status": "Active"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', format('{0}en', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.EventHub/namespaces/eventhubs",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}/{1}', format('{0}en', parameters('baseName')), 'normalizeddata')]",
+              "properties": {
+                "messageRetentionInDays": 1,
+                "partitionCount": 32,
+                "status": "Active"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', format('{0}en', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}/{1}/{2}', format('{0}en', parameters('baseName')), 'devicedata', 'devicedataSendAndListen')]",
+              "properties": {
+                "rights": [
+                  "Send",
+                  "Listen"
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('{0}en', parameters('baseName')), 'devicedata')]"
+              ]
+            },
+            {
+              "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}/{1}/{2}', format('{0}en', parameters('baseName')), 'normalizeddata', 'normalizeddataSendAndListen')]",
+              "properties": {
+                "rights": [
+                  "Send",
+                  "Listen"
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('{0}en', parameters('baseName')), 'normalizeddata')]"
+              ]
+            },
+            {
+              "type": "Microsoft.HealthcareApis/workspaces",
+              "apiVersion": "2023-02-28",
+              "name": "[format('{0}hw', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              }
+            },
+            {
+              "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
+              "apiVersion": "2023-02-28",
+              "name": "[format('{0}/{1}', format('{0}hw', parameters('baseName')), format('{0}fs', parameters('baseName')))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "[format('fhir-{0}', parameters('fhirVersion'))]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "authenticationConfiguration": {
+                  "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
+                  "audience": "[format('https://{0}-{1}fs.fhir.azurehealthcareapis.com', format('{0}hw', parameters('baseName')), parameters('baseName'))]",
+                  "smartProxyEnabled": false
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.HealthcareApis/workspaces', format('{0}hw', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2022-12-01",
+              "name": "[format('{0}acr', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "adminUserEnabled": true
+              }
+            },
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2022-10-01",
+              "name": "[format('{0}law', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "properties": {
+                "retentionInDays": 30,
+                "features": {
+                  "searchVersion": 1
+                },
+                "sku": {
+                  "name": "PerGB2018"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[format('{0}ai', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('{0}law', parameters('baseName')))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', format('{0}law', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-01-31",
+              "name": "[format('{0}UAMI', parameters('baseName'))]",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.ContainerRegistry/registries/{0}', format('{0}acr', parameters('baseName')))]",
+              "name": "[guid(variables('contributorId'), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))), resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('baseName'))))]",
+              "properties": {
+                "roleDefinitionId": "[variables('contributorId')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('baseName')))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.ContainerRegistry/registries/{0}', format('{0}acr', parameters('baseName')))]",
+              "name": "[guid(variables('acrPushRoleId'), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))), resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('baseName'))))]",
+              "properties": {
+                "roleDefinitionId": "[variables('acrPushRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('baseName')))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName')))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('baseName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "uploadTemplates",
+      "resourceGroup": "[parameters('baseName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "baseName": {
+            "value": "[parameters('baseName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceIdentityResolutionType": {
+            "value": "[parameters('resourceIdentityResolutionType')]"
+          },
+          "fhirVersion": {
+            "value": "[parameters('fhirVersion')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.20.4.51522",
+              "templateHash": "11639116328160071053"
+            }
+          },
+          "parameters": {
+            "baseName": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 16,
+              "metadata": {
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+              }
+            },
+            "location": {
+              "type": "string",
+              "allowedValues": [
+                "australiaeast",
+                "canadacentral",
+                "centralindia",
+                "eastus",
+                "eastus2",
+                "francecentral",
+                "japaneast",
+                "koreacentral",
+                "northcentralus",
+                "northeurope",
+                "qatarcentral",
+                "southcentralus",
+                "southeastasia",
+                "swedencentral",
+                "switzerlandnorth",
+                "westcentralus",
+                "westeurope",
+                "westus2",
+                "westus3",
+                "uksouth"
+              ],
+              "metadata": {
+                "description": "Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)"
+              }
+            },
+            "resourceIdentityResolutionType": {
+              "type": "string",
+              "allowedValues": [
+                "Create",
+                "Lookup",
+                "LookupWithEncounter"
+              ],
+              "metadata": {
+                "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
+              }
+            },
+            "fhirVersion": {
+              "type": "string",
+              "allowedValues": [
+                "R4"
+              ],
+              "metadata": {
+                "description": "FHIR version that the FHIR Server supports"
+              }
+            },
+            "blobContainerName": {
+              "type": "string",
+              "defaultValue": "template"
+            },
+            "devicecontentFile": {
+              "type": "string",
+              "defaultValue": "devicecontent.json"
+            },
+            "fhirmappingFile": {
+              "type": "string",
+              "defaultValue": "fhirmapping.json"
+            },
+            "devicecontentURL": {
+              "type": "string",
+              "defaultValue": "https://raw.githubusercontent.com/microsoft/iomt-fhir/main/sample/templates/basic/devicecontent.json"
+            },
+            "fhirmappingURL": {
+              "type": "string",
+              "defaultValue": "https://raw.githubusercontent.com/microsoft/iomt-fhir/main/sample/templates/basic/fhirmapping.json"
+            }
+          },
+          "variables": {
+            "storageBlobDataOwnerRoleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}sa', parameters('baseName')))]",
+              "name": "[guid(variables('storageBlobDataOwnerRoleId'), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))), resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))))]",
+              "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2022-09-01",
+              "name": "[format('{0}deploysa', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "StorageV2",
+              "sku": {
+                "name": "Standard_RAGRS"
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "uploadDeviceContentTemplate",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))))]": {}
+                }
+              },
+              "properties": {
+                "storageAccountSettings": {
+                  "storageAccountName": "[format('{0}deploysa', parameters('baseName'))]",
+                  "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}deploysa', parameters('baseName'))), '2022-09-01').keys[0].value]"
+                },
+                "containerSettings": {
+                  "containerGroupName": "[format('{0}deployContainer', parameters('baseName'))]"
+                },
+                "azCliVersion": "2.50.0",
+                "arguments": "[format('{0} {1} {2} {3}', parameters('devicecontentFile'), parameters('devicecontentURL'), format('{0}sa', parameters('baseName')), parameters('blobContainerName'))]",
+                "scriptContent": "      wget -O $1 $2\r\n      az storage blob upload --account-name $3 --container-name $4 --name $1 --file $1 --auth-mode login \r\n    ",
+                "retentionInterval": "P1D",
+                "cleanupPreference": "OnSuccess"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}deploysa', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "uploadFhirMappingTemplate",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))))]": {}
+                }
+              },
+              "properties": {
+                "storageAccountSettings": {
+                  "storageAccountName": "[format('{0}deploysa', parameters('baseName'))]",
+                  "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}deploysa', parameters('baseName'))), '2022-09-01').keys[0].value]"
+                },
+                "containerSettings": {
+                  "containerGroupName": "[format('{0}deployContainer', parameters('baseName'))]"
+                },
+                "azCliVersion": "2.50.0",
+                "arguments": "[format('{0} {1} {2} {3}', parameters('fhirmappingFile'), parameters('fhirmappingURL'), format('{0}sa', parameters('baseName')), parameters('blobContainerName'))]",
+                "scriptContent": "      wget -O $1 $2\r\n      az storage blob upload --account-name $3 --container-name $4 --name $1 --file $1 --auth-mode login\r\n    ",
+                "retentionInterval": "P1D",
+                "cleanupPreference": "OnSuccess"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}deploysa', parameters('baseName')))]",
+                "[resourceId('Microsoft.Resources/deploymentScripts', 'uploadDeviceContentTemplate')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('baseName')), 'Microsoft.Resources/deployments', 'infrastructureSetup')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('baseName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "buildContainerImages",
+      "resourceGroup": "[parameters('baseName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "baseName": {
+            "value": "[parameters('baseName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceIdentityResolutionType": {
+            "value": "[parameters('resourceIdentityResolutionType')]"
+          },
+          "fhirVersion": {
+            "value": "[parameters('fhirVersion')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.20.4.51522",
+              "templateHash": "12312286705077005359"
+            }
+          },
+          "parameters": {
+            "baseName": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 16,
+              "metadata": {
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+              }
+            },
+            "location": {
+              "type": "string",
+              "allowedValues": [
+                "australiaeast",
+                "canadacentral",
+                "centralindia",
+                "eastus",
+                "eastus2",
+                "francecentral",
+                "japaneast",
+                "koreacentral",
+                "northcentralus",
+                "northeurope",
+                "qatarcentral",
+                "southcentralus",
+                "southeastasia",
+                "swedencentral",
+                "switzerlandnorth",
+                "westcentralus",
+                "westeurope",
+                "westus2",
+                "westus3",
+                "uksouth"
+              ],
+              "metadata": {
+                "description": "Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)"
+              }
+            },
+            "resourceIdentityResolutionType": {
+              "type": "string",
+              "allowedValues": [
+                "Create",
+                "Lookup",
+                "LookupWithEncounter"
+              ],
+              "metadata": {
+                "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
+              }
+            },
+            "fhirVersion": {
+              "type": "string",
+              "allowedValues": [
+                "R4"
+              ],
+              "metadata": {
+                "description": "FHIR version that the FHIR Server supports"
+              }
+            },
+            "gitRepositoryUrl": {
+              "type": "string",
+              "defaultValue": "https://github.com/microsoft/iomt-fhir.git"
+            },
+            "acrBuildPlatform": {
+              "type": "string",
+              "defaultValue": "linux"
+            }
+          },
+          "variables": {
+            "normalizationImage": "normalization",
+            "fhirTransformationImage": "fhir-transformation",
+            "imageTag": "latest",
+            "normalizationDockerfile": "src/console/Microsoft.Health.Fhir.Ingest.Console.Normalization/Dockerfile",
+            "fhirTransformationDockerfile": "src/console/Microsoft.Health.Fhir.Ingest.Console.FhirTransformation/Dockerfile"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "buildNormalizationImage",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))))]": {}
+                }
+              },
+              "properties": {
+                "storageAccountSettings": {
+                  "storageAccountName": "[format('{0}deploysa', parameters('baseName'))]",
+                  "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}deploysa', parameters('baseName'))), '2022-09-01').keys[0].value]"
+                },
+                "containerSettings": {
+                  "containerGroupName": "[format('{0}deployContainer', parameters('baseName'))]"
+                },
+                "azCliVersion": "2.50.0",
+                "arguments": "[format('{0} {1} {2} {3} {4} {5}', format('{0}acr', parameters('baseName')), parameters('gitRepositoryUrl'), variables('normalizationImage'), variables('imageTag'), variables('normalizationDockerfile'), parameters('acrBuildPlatform'))]",
+                "scriptContent": "      az acr build --registry $1 $2 --image $3:$4 --file $5 --platform $6\r\n    ",
+                "retentionInterval": "P1D",
+                "cleanupPreference": "OnSuccess"
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "buildFhirTransformationImage",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))))]": {}
+                }
+              },
+              "properties": {
+                "storageAccountSettings": {
+                  "storageAccountName": "[format('{0}deploysa', parameters('baseName'))]",
+                  "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}deploysa', parameters('baseName'))), '2022-09-01').keys[0].value]"
+                },
+                "containerSettings": {
+                  "containerGroupName": "[format('{0}deployContainer', parameters('baseName'))]"
+                },
+                "azCliVersion": "2.50.0",
+                "arguments": "[format('{0} {1} {2} {3} {4} {5}', format('{0}acr', parameters('baseName')), parameters('gitRepositoryUrl'), variables('fhirTransformationImage'), variables('imageTag'), variables('fhirTransformationDockerfile'), parameters('acrBuildPlatform'))]",
+                "scriptContent": "      az acr build --registry $1 $2 --image $3:$4 --file $5 --platform $6\r\n    ",
+                "retentionInterval": "P1D",
+                "cleanupPreference": "OnSuccess"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deploymentScripts', 'buildNormalizationImage')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('baseName')), 'Microsoft.Resources/deployments', 'infrastructureSetup')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('baseName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('baseName')), 'Microsoft.Resources/deployments', 'uploadTemplates')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "containerAppSetup",
+      "resourceGroup": "[parameters('baseName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "baseName": {
+            "value": "[parameters('baseName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceIdentityResolutionType": {
+            "value": "[parameters('resourceIdentityResolutionType')]"
+          },
+          "fhirVersion": {
+            "value": "[parameters('fhirVersion')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.20.4.51522",
+              "templateHash": "18029408802853782428"
+            }
+          },
+          "parameters": {
+            "baseName": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 16,
+              "metadata": {
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+              }
+            },
+            "location": {
+              "type": "string",
+              "allowedValues": [
+                "australiaeast",
+                "canadacentral",
+                "centralindia",
+                "eastus",
+                "eastus2",
+                "francecentral",
+                "japaneast",
+                "koreacentral",
+                "northcentralus",
+                "northeurope",
+                "qatarcentral",
+                "southcentralus",
+                "southeastasia",
+                "swedencentral",
+                "switzerlandnorth",
+                "westcentralus",
+                "westeurope",
+                "westus2",
+                "westus3",
+                "uksouth"
+              ],
+              "metadata": {
+                "description": "Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)"
+              }
+            },
+            "resourceIdentityResolutionType": {
+              "type": "string",
+              "allowedValues": [
+                "Create",
+                "Lookup",
+                "LookupWithEncounter"
+              ],
+              "metadata": {
+                "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
+              }
+            },
+            "fhirVersion": {
+              "type": "string",
+              "allowedValues": [
+                "R4"
+              ],
+              "metadata": {
+                "description": "FHIR version that the FHIR Server supports"
+              }
+            },
+            "normalizationImage": {
+              "type": "string",
+              "defaultValue": "normalization"
+            },
+            "fhirTransformationImage": {
+              "type": "string",
+              "defaultValue": "fhir-transformation"
+            },
+            "imageTag": {
+              "type": "string",
+              "defaultValue": "latest"
+            },
+            "timestamp": {
+              "type": "string",
+              "defaultValue": "[utcNow('yyyyMMddHHmmss')]"
+            }
+          },
+          "variables": {
+            "fhirURL": "[format('https://{0}-{1}.fhir.azurehealthcareapis.com', format('{0}hw', parameters('baseName')), format('{0}fs', parameters('baseName')))]",
+            "eventHubReceiverRoleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
+            "eventHubOwnerRoleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'f526a384-b230-433a-b45c-95f59c4a2dec')]",
+            "storageBlobDataOwnerRoleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]",
+            "fhirContributorRoleId": "[resourceId('Microsoft.Authorization/roleDefinitions', '5a1fc7df-4bf1-4951-a576-89034ee01acd')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/managedEnvironments",
+              "apiVersion": "2022-10-01",
+              "name": "[format('{0}env', parameters('baseName'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "properties": {
+                "daprAIInstrumentationKey": "[reference(resourceId('Microsoft.Insights/components', format('{0}ai', parameters('baseName'))), '2020-02-02').InstrumentationKey]",
+                "appLogsConfiguration": {
+                  "destination": "log-analytics",
+                  "logAnalyticsConfiguration": {
+                    "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', format('{0}law', parameters('baseName'))), '2022-10-01').customerId]",
+                    "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', format('{0}law', parameters('baseName'))), '2022-10-01').primarySharedKey]"
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2022-03-01",
+              "name": "normalization",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "identity": {
+                "type": "SystemAssigned,UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}env', parameters('baseName')))]",
+                "configuration": {
+                  "registries": [
+                    {
+                      "server": "[format('{0}.azurecr.io', format('{0}acr', parameters('baseName')))]",
+                      "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName')))]"
+                    }
+                  ]
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "image": "[format('{0}.azurecr.io/{1}:{2}', format('{0}acr', parameters('baseName')), parameters('normalizationImage'), parameters('imageTag'))]",
+                      "name": "[format('normalization-{0}', parameters('timestamp'))]",
+                      "env": [
+                        {
+                          "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                          "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}ai', parameters('baseName'))), '2020-02-02').InstrumentationKey]"
+                        },
+                        {
+                          "name": "EventBatching__FlushTimespan",
+                          "value": "30"
+                        },
+                        {
+                          "name": "EventBatching__MaxEvents",
+                          "value": "20"
+                        },
+                        {
+                          "name": "Checkpoint__BlobPrefix",
+                          "value": "Normalization"
+                        },
+                        {
+                          "name": "CheckpointStorage__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "CheckpointStorage__BlobStorageContainerUri",
+                          "value": "[format('{0}checkpoint', reference(resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))), '2022-09-01').primaryEndpoints.blob)]"
+                        },
+                        {
+                          "name": "CheckpointStorage__BlobContainerName",
+                          "value": "checkpoint"
+                        },
+                        {
+                          "name": "TemplateStorage__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "TemplateStorage__BlobStorageContainerUri",
+                          "value": "[format('{0}template', reference(resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))), '2022-09-01').primaryEndpoints.blob)]"
+                        },
+                        {
+                          "name": "TemplateStorage__BlobContainerName",
+                          "value": "template"
+                        },
+                        {
+                          "name": "InputEventHub__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "InputEventHub__EventHubNamespaceFQDN",
+                          "value": "[reference(resourceId('Microsoft.EventHub/namespaces', format('{0}en', parameters('baseName'))), '2021-11-01').serviceBusEndpoint]"
+                        },
+                        {
+                          "name": "InputEventHub__EventHubConsumerGroup",
+                          "value": "$Default"
+                        },
+                        {
+                          "name": "InputEventHub__EventHubName",
+                          "value": "devicedata"
+                        },
+                        {
+                          "name": "NormalizationEventHub__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "NormalizationEventHub__EventHubNamespaceFQDN",
+                          "value": "[reference(resourceId('Microsoft.EventHub/namespaces', format('{0}en', parameters('baseName'))), '2021-11-01').serviceBusEndpoint]"
+                        },
+                        {
+                          "name": "NormalizationEventHub__EventHubConsumerGroup",
+                          "value": "$Default"
+                        },
+                        {
+                          "name": "NormalizationEventHub__EventHubName",
+                          "value": "normalizeddata"
+                        },
+                        {
+                          "name": "Template__DeviceContent",
+                          "value": "devicecontent.json"
+                        }
+                      ]
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": 1,
+                    "maxReplicas": 10
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', format('{0}env', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2022-03-01",
+              "name": "fhir-transformation",
+              "location": "[parameters('location')]",
+              "tags": {
+                "IomtFhirConnector": "[format('ResourceIdentity:{0}', parameters('resourceIdentityResolutionType'))]",
+                "IomtFhirVersion": "[parameters('fhirVersion')]"
+              },
+              "identity": {
+                "type": "SystemAssigned,UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName'))))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}env', parameters('baseName')))]",
+                "configuration": {
+                  "registries": [
+                    {
+                      "server": "[format('{0}.azurecr.io', format('{0}acr', parameters('baseName')))]",
+                      "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}UAMI', parameters('baseName')))]"
+                    }
+                  ]
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "image": "[format('{0}.azurecr.io/{1}:{2}', format('{0}acr', parameters('baseName')), parameters('fhirTransformationImage'), parameters('imageTag'))]",
+                      "name": "[format('fhir-transformation-{0}', parameters('timestamp'))]",
+                      "env": [
+                        {
+                          "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                          "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}ai', parameters('baseName'))), '2020-02-02').InstrumentationKey]"
+                        },
+                        {
+                          "name": "EventBatching__FlushTimespan",
+                          "value": "300"
+                        },
+                        {
+                          "name": "EventBatching__MaxEvents",
+                          "value": "300"
+                        },
+                        {
+                          "name": "Checkpoint__BlobPrefix",
+                          "value": "MeasurementToFhir"
+                        },
+                        {
+                          "name": "CheckpointStorage__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "CheckpointStorage__BlobStorageContainerUri",
+                          "value": "[format('{0}checkpoint', reference(resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))), '2022-09-01').primaryEndpoints.blob)]"
+                        },
+                        {
+                          "name": "CheckpointStorage__BlobContainerName",
+                          "value": "checkpoint"
+                        },
+                        {
+                          "name": "TemplateStorage__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "TemplateStorage__BlobStorageContainerUri",
+                          "value": "[format('{0}template', reference(resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))), '2022-09-01').primaryEndpoints.blob)]"
+                        },
+                        {
+                          "name": "TemplateStorage__BlobContainerName",
+                          "value": "template"
+                        },
+                        {
+                          "name": "FhirClient__UseManagedIdentity",
+                          "value": "true"
+                        },
+                        {
+                          "name": "FhirService__Url",
+                          "value": "[variables('fhirURL')]"
+                        },
+                        {
+                          "name": "FhirService__Resource",
+                          "value": "[variables('fhirURL')]"
+                        },
+                        {
+                          "name": "InputEventHub__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "InputEventHub__EventHubNamespaceFQDN",
+                          "value": "[reference(resourceId('Microsoft.EventHub/namespaces', format('{0}en', parameters('baseName'))), '2021-11-01').serviceBusEndpoint]"
+                        },
+                        {
+                          "name": "InputEventHub__EventHubConsumerGroup",
+                          "value": "$Default"
+                        },
+                        {
+                          "name": "InputEventHub__EventHubName",
+                          "value": "devicedata"
+                        },
+                        {
+                          "name": "NormalizationEventHub__AuthenticationType",
+                          "value": "ManagedIdentity"
+                        },
+                        {
+                          "name": "NormalizationEventHub__EventHubNamespaceFQDN",
+                          "value": "[reference(resourceId('Microsoft.EventHub/namespaces', format('{0}en', parameters('baseName'))), '2021-11-01').serviceBusEndpoint]"
+                        },
+                        {
+                          "name": "NormalizationEventHub__EventHubConsumerGroup",
+                          "value": "$Default"
+                        },
+                        {
+                          "name": "NormalizationEventHub__EventHubName",
+                          "value": "normalizeddata"
+                        },
+                        {
+                          "name": "ResourceIdentity__ResourceIdentityServiceType",
+                          "value": "[parameters('resourceIdentityResolutionType')]"
+                        },
+                        {
+                          "name": "ResourceIdentity__DefaultDeviceIdentifierSystem",
+                          "value": ""
+                        },
+                        {
+                          "name": "Template__FhirMapping",
+                          "value": "fhirmapping.json"
+                        }
+                      ]
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": 1,
+                    "maxReplicas": 10
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', format('{0}env', parameters('baseName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('{0}en', parameters('baseName')), 'devicedata')]",
+              "name": "[guid(variables('eventHubReceiverRoleId'), resourceId('Microsoft.App/containerApps', 'normalization'), resourceId('Microsoft.EventHub/namespaces/eventhubs', format('{0}en', parameters('baseName')), 'devicedata'))]",
+              "properties": {
+                "roleDefinitionId": "[variables('eventHubReceiverRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.App/containerApps', 'normalization'), '2022-03-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', 'normalization')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('{0}en', parameters('baseName')), 'normalizeddata')]",
+              "name": "[guid(variables('eventHubOwnerRoleId'), resourceId('Microsoft.App/containerApps', 'normalization'), resourceId('Microsoft.EventHub/namespaces/eventhubs', format('{0}en', parameters('baseName')), 'normalizeddata'))]",
+              "properties": {
+                "roleDefinitionId": "[variables('eventHubOwnerRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.App/containerApps', 'normalization'), '2022-03-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', 'normalization')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}sa', parameters('baseName')))]",
+              "name": "[guid(variables('storageBlobDataOwnerRoleId'), resourceId('Microsoft.App/containerApps', 'normalization'), resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))))]",
+              "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.App/containerApps', 'normalization'), '2022-03-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', 'normalization')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('{0}en', parameters('baseName')), 'normalizeddata')]",
+              "name": "[guid(variables('eventHubOwnerRoleId'), resourceId('Microsoft.App/containerApps', 'fhir-transformation'), resourceId('Microsoft.EventHub/namespaces/eventhubs', format('{0}en', parameters('baseName')), 'normalizeddata'))]",
+              "properties": {
+                "roleDefinitionId": "[variables('eventHubOwnerRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.App/containerApps', 'fhir-transformation'), '2022-03-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', 'fhir-transformation')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}sa', parameters('baseName')))]",
+              "name": "[guid(variables('storageBlobDataOwnerRoleId'), resourceId('Microsoft.App/containerApps', 'fhir-transformation'), resourceId('Microsoft.Storage/storageAccounts', format('{0}sa', parameters('baseName'))))]",
+              "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.App/containerApps', 'fhir-transformation'), '2022-03-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', 'fhir-transformation')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', format('{0}hw', parameters('baseName')), format('{0}fs', parameters('baseName')))]",
+              "name": "[guid(variables('fhirContributorRoleId'), resourceId('Microsoft.App/containerApps', 'fhir-transformation'), resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', format('{0}hw', parameters('baseName')), format('{0}fs', parameters('baseName'))))]",
+              "properties": {
+                "roleDefinitionId": "[variables('fhirContributorRoleId')]",
+                "principalId": "[reference(resourceId('Microsoft.App/containerApps', 'fhir-transformation'), '2022-03-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', 'fhir-transformation')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('baseName')), 'Microsoft.Resources/deployments', 'buildContainerImages')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('baseName')), 'Microsoft.Resources/deployments', 'infrastructureSetup')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('baseName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('baseName')), 'Microsoft.Resources/deployments', 'uploadTemplates')]"
+      ]
+    }
+  ]
+}

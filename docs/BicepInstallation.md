@@ -52,6 +52,7 @@ The following parameters are provided by the Bicep template:
 |**Service Name**|Name for the service(s) being deployed. Name will be applied to all relevant services being created.
 |**Resource Location**|The location of the deployed resources.
 |**Resource Identity Resolution Type**|Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream. The different supported modes are further documented below.
+|**FHIR Version**|The FHIR version used in the connector.
 
 ### Resource Identity Resolution Type
 NOTE: All identity look ups are cached once resolved to decrease load on the FHIR server. If you plan on reusing devices with multiple patients it is advised you create a *virtual device* resource that is specific to the patient and the virtual device identifier is what is sent in the message payload. The virtual device can be linked to the actual device resource as a parent.
@@ -64,6 +65,17 @@ NOTE: All identity look ups are cached once resolved to decrease load on the FHI
 
 ## Deployment 
 ### Option 1: Single-click Deploy to Azure via ARM template generated from Bicep Template
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fiomt-fhir%2Fpersonal%2Ft-wenolivia%2Fcontainerapps-deployment%2Fdeploy%2Ftemplates%2Fbicep%2FContainerApp-SingleAzureDeploy.json)
+
+Click the button above to provision the IoMT FHIR Connector via Azure Portal. This button deploys a remote [ARM template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.json) generated from the single [Bicep template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep) entry point for provisioning all necessary Azure resources and role assignments in Option 2. 
+
+You will need to provide a *baseName* to name the services that will be provisioned. Select values for *location*, *resourceIdentityResolutionType*, and *fhirVersion* via a dropdown list of the valid options. Hover over the 'i' icon next to each parameter if you wish to see a description. 
+
+Since this is a remote deployment option, there is no need to clone this repo or install additional tools. 
+
+Sample configuration templates, [devicecontent.json](../sample/templates/basic/devicecontent.json) and [fhirmapping.json](../sample/templates/basic/fhirmapping.json) are also uploaded as part of the deployment to the 'template' container in the Storage Account using a User-Assigned Managed Identity. 
+
+The 'deploymentScripts' resource type in Bicep is used to (1) upload the sample mapping templates and (2) build and push container images to the ACR. An additional Storage Account is provisioned to execute these deployment scripts. A Container Instance is also created for each 'deploymentScripts' resource instance and is deleted upon successful deployment. 
 
 ### Option 2: Deploy a single Bicep file locally 
 Deploy the [Bicep template](../deploy/templates/bicep/ContainerApp-SingleAzureDeploy.bicep) by running the following command: 
@@ -79,7 +91,7 @@ az deployment sub create --location westus2 --template-file ContainerApp-SingleA
 
 NOTE: See [region availability](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=health-data-services) for Azure Health Data Servicces to select a valid location for the resources to be deployed in. 
 
-You will need to provide a *baseName* to name the services that will be provisioned. The valid *location* and *resourceIdentityResolutionType* options are presented as an enumerated list. To select an option, type the number corresponding to your desired selection. For help, type '?' to see a description of a parameter. 
+You will need to provide a *baseName* to name the services that will be provisioned. The valid *location*, *resourceIdentityResolutionType*, and *fhirVersion* options are presented as an enumerated list. To select an option, type the number corresponding to your desired selection. For help, type '?' to see a description of a parameter. 
 
 This option deploys the Bicep file that was used to generate the ARM template in Option 1. This Bicep template serves as a single entry point for setting up all necessary Azure resources and role assignments. Sample configuration templates, [devicecontent.json](../sample/templates/basic/devicecontent.json) and [fhirmapping.json](../sample/templates/basic/fhirmapping.json) are also uploaded to the 'template' container in the Storage Account using a User-Assigned Managed Identity. 
 
@@ -92,7 +104,7 @@ Run the following command to run the PowerShell deployment script:
 ./Create-IomtContainerAppEnv.ps1
 ```
 
-Values for *baseName*, *location*, and *resourceIdentityResolutionType* will need to be provided. Please note the valid options listed in the PowerShell deployment script file for each parameter before deployment. Be careful to provide these values exactly, otherwise the deployment will fail. 
+Values for *baseName*, *location*, *resourceIdentityResolutionType*, *fhirVersion* will need to be provided. Please note the valid options listed in the PowerShell deployment script file for each parameter before deployment. Be careful to provide these values exactly, otherwise the deployment will fail. 
 
 This [PowerShell deployment script](../deploy/templates/bicep/Create-IomtContainerAppEnv.ps1) sets up all necessary Azure resources for running the IoMT Service by deploying Bicep templates via Azure CLI commands. Azure CLI commands are also used to build and push container images to the ACR. The 'deploymentScripts' resource type is not used in this option and the commands are instead invoked locally via the PowerShell script. Therefore, no additional Storage Account or Container Instances are created. The duration of running these commands locally is also shorter than running the commands within the 'deploymentScripts' resource in Bicep. 
 
