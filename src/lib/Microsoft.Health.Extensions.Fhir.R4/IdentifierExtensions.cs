@@ -9,9 +9,9 @@ using EnsureThat;
 
 namespace Microsoft.Health.Extensions.Fhir
 {
-    public static class SHA256HashGenerator
+    public static class IdentifierExtensions
     {
-        public static string ComputeHashForIdentifier(Hl7.Fhir.Model.Identifier identifier)
+        public static string ComputeHashForIdentifier(this Hl7.Fhir.Model.Identifier identifier)
         {
             EnsureArg.IsNotNullOrWhiteSpace(identifier.Value, nameof(identifier.Value));
 

@@ -188,7 +188,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             observation.Subject = patientId.ToReference<Model.Patient>();
             observation.Device = deviceId.ToReference<Model.Device>();
             observation.Identifier = new List<Model.Identifier> { observationId };
-            observation.Id = SHA256HashGenerator.ComputeHashForIdentifier(observationId);
+            observation.Id = observationId.ComputeHashForIdentifier();
 
             if (ids.TryGetValue(ResourceType.Encounter, out string encounterId))
             {
