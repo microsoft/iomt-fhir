@@ -10,15 +10,9 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {
     public static class EnvironmentConfiguration
     {
-        public static IConfiguration GetEnvironmentConfig()
+        public static IConfigurationBuilder AddLocalAppSettings(this IConfigurationBuilder builder, bool reloadOnChange = true)
         {
-            IConfiguration config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile("local.appsettings.json", true, true)
-                .AddEnvironmentVariables()
-                .Build();
-
-            return config;
+            return builder.AddJsonFile("local.appsettings.json", true, reloadOnChange);
         }
     }
 }
