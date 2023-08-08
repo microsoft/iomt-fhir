@@ -85,10 +85,8 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             // Add FHIR Client
             // Use IAzureExternalIdentityCredentialProvider if it exists, else use IAzureCredentialProvider
             var sp = services.BuildServiceProvider();
-            var externalMiTokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>();
-            var serviceMiTokenProvider = sp.GetService<IAzureCredentialProvider>();
-            var tokenProvider = externalMiTokenProvider ?? serviceMiTokenProvider;
-            services.AddFhirClient(config, tokenProvider);
+            
+            services.AddFhirClient(config);
 
             services.AddSingleton<IMemoryCache>(sp => new MemoryCache(sp.GetRequiredService<IOptions<ObservationCacheOptions>>()));
 

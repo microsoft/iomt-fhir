@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Azure.Core;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,26 @@ namespace Microsoft.Health.Extensions.Fhir
             EnsureArg.IsNotNull(serviceCollection, nameof(serviceCollection));
             EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-            var url = new Uri(configuration.GetValue<string>("FhirService:Url"));
+            Uri url = new (configuration.GetValue<string>("FhirService:Url"));
             bool useManagedIdentity = configuration.GetValue<bool>("FhirClient:UseManagedIdentity");
+
+            serviceCollection.TryAddSingleton<TokenCredential>(sp =>
+            {
+                var tokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>() ?? sp.GetService<IAzureCredentialProvider>();
+
+                if (useManagedIdentity)
+                {
+                    return new ManagedIdentityAuthService();
+                }
+                else if (tokenProvider != null)
+                {
+                    return new ManagedIdentityAuthService(tokenProvider);
+                }
+                else
+                {
+                    return new OAuthConfidentialClientAuthService();
+                }
+            });
 
             serviceCollection.AddHttpClient<IFhirClient, FhirClient>((client, sp) =>
             {
@@ -39,40 +58,20 @@ namespace Microsoft.Health.Extensions.Fhir
 
                 return fhirClient;
             })
-            .AddAuthenticationHandler(serviceCollection, url, useManagedIdentity, credentialProvider);
+            .AddAuthenticationHandler(url);
 
             return serviceCollection;
         }
 
         public static void AddAuthenticationHandler(
            this IHttpClientBuilder httpClientBuilder,
-           IServiceCollection services,
-           Uri uri,
-           bool useManagedIdentity,
-           IAzureCredentialProvider credentialProvider = null)
+           Uri uri)
         {
             EnsureArg.IsNotNull(httpClientBuilder, nameof(httpClientBuilder));
-            EnsureArg.IsNotNull(services, nameof(services));
             EnsureArg.IsNotNull(uri, nameof(uri));
 
-            if (useManagedIdentity)
-            {
-                services.TryAddSingleton(new ManagedIdentityAuthService());
-                httpClientBuilder.AddHttpMessageHandler(sp =>
-                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<ManagedIdentityAuthService>(), sp.GetRequiredService<ITelemetryLogger>()));
-            }
-            else if (credentialProvider != null)
-            {
-                services.TryAddSingleton(new ManagedIdentityAuthService(credentialProvider));
-                httpClientBuilder.AddHttpMessageHandler(sp =>
-                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<ManagedIdentityAuthService>(), sp.GetRequiredService<ITelemetryLogger>()));
-            }
-            else
-            {
-                services.TryAddSingleton(new OAuthConfidentialClientAuthService());
-                httpClientBuilder.AddHttpMessageHandler(sp =>
-                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<OAuthConfidentialClientAuthService>(), sp.GetRequiredService<ITelemetryLogger>()));
-            }
+            httpClientBuilder.AddHttpMessageHandler(sp =>
+                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<TokenCredential>(), sp.GetRequiredService<ITelemetryLogger>()));
         }
     }
 }
