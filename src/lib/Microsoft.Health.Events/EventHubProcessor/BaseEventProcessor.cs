@@ -94,9 +94,11 @@ namespace Microsoft.Health.Events.EventHubProcessor
             {
                 EventConsumerService.NewPartitionInitialized(partitionId);
                 var checkpoint = await CheckpointClient.GetCheckpointForPartitionAsync(partitionId, initArgs.CancellationToken);
-                initArgs.DefaultStartingPosition = EventPosition.FromEnqueuedTime(checkpoint.LastProcessed);
 
-                Logger.LogTrace($"Starting to read partition {partitionId} from checkpoint {checkpoint.LastProcessed}");
+                // Get the last checkpointed event offset and begin reading from the next event by setting isInclusive = false
+                initArgs.DefaultStartingPosition = EventPosition.FromOffset(checkpoint.Offset, isInclusive: false);
+
+                Logger.LogTrace($"Starting to read partition {partitionId} from next event after checkpoint offset {checkpoint.Offset} checkpoint time {checkpoint.LastProcessed}");
                 Logger.LogMetric(EventMetrics.EventHubPartitionInitialized(partitionId), 1);
             }
             catch (TaskCanceledException ex)
