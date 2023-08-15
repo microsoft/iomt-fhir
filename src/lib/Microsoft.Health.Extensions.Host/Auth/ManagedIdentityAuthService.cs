@@ -11,9 +11,9 @@ using Microsoft.Health.Common.Auth;
 
 namespace Microsoft.Health.Extensions.Host.Auth
 {
-    public class ManagedIdentityAuthService : TokenCredential
+    public class ManagedIdentityAuthService : TokenCredential, IFhirTokenProvider
     {
-        private TokenCredential _tokenCredential;
+        private readonly TokenCredential _tokenCredential;
 
         public ManagedIdentityAuthService()
         {
@@ -33,6 +33,11 @@ namespace Microsoft.Health.Extensions.Host.Auth
         public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
         {
             return _tokenCredential.GetTokenAsync(requestContext, cancellationToken);
+        }
+
+        public TokenCredential GetTokenCredential()
+        {
+            return this;
         }
     }
 }

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Azure.Core;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +26,7 @@ namespace Microsoft.Health.Extensions.Fhir
             Uri url = new (configuration.GetValue<string>("FhirService:Url"));
             bool useManagedIdentity = configuration.GetValue<bool>("FhirClient:UseManagedIdentity");
 
-            serviceCollection.TryAddSingleton<TokenCredential>(sp =>
+            serviceCollection.TryAddSingleton<IFhirTokenProvider>(sp =>
             {
                 var tokenProvider = sp.GetService<IAzureExternalIdentityCredentialProvider>() ?? sp.GetService<IAzureCredentialProvider>();
 
@@ -71,7 +70,7 @@ namespace Microsoft.Health.Extensions.Fhir
             EnsureArg.IsNotNull(uri, nameof(uri));
 
             httpClientBuilder.AddHttpMessageHandler(sp =>
-                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<TokenCredential>(), sp.GetRequiredService<ITelemetryLogger>()));
+                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<IFhirTokenProvider>().GetTokenCredential(), sp.GetRequiredService<ITelemetryLogger>()));
         }
     }
 }

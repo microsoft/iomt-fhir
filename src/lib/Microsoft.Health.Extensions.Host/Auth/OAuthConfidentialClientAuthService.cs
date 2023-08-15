@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 using EnsureThat;
+using Microsoft.Health.Common.Auth;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Microsoft.Health.Extensions.Host.Auth
@@ -14,7 +15,7 @@ namespace Microsoft.Health.Extensions.Host.Auth
     /// <summary>
     /// https://docs.microsoft.com/en-us/dotnet/api/overview/azure/app-auth-migration
     /// </summary>
-    public class OAuthConfidentialClientAuthService : TokenCredential
+    public class OAuthConfidentialClientAuthService : TokenCredential, IFhirTokenProvider
     {
         public static async Task<string> GetAccessTokenAsync()
         {
@@ -55,7 +56,7 @@ namespace Microsoft.Health.Extensions.Host.Auth
             }
         }
 
-        public async override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
         {
             var authResult = await AquireServiceTokenAsync().ConfigureAwait(false);
             var accessToken = new AccessToken(authResult.AccessToken, authResult.ExpiresOn);
@@ -66,6 +67,11 @@ namespace Microsoft.Health.Extensions.Host.Auth
         {
             ValueTask<AccessToken> valueTask = Task.Run(() => GetTokenAsync(requestContext, cancellationToken)).GetAwaiter().GetResult();
             return valueTask.Result;
+        }
+
+        public TokenCredential GetTokenCredential()
+        {
+            return this;
         }
     }
 }
