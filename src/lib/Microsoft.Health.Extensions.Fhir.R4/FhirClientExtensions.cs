@@ -70,7 +70,7 @@ namespace Microsoft.Health.Extensions.Fhir
             EnsureArg.IsNotNull(uri, nameof(uri));
 
             httpClientBuilder.AddHttpMessageHandler(sp =>
-                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<IFhirTokenProvider>().GetTokenCredential(), sp.GetRequiredService<ITelemetryLogger>()));
+                    new BearerTokenAuthorizationMessageHandler(uri, sp.GetRequiredService<IFhirTokenProvider>(), sp.GetRequiredService<ITelemetryLogger>()));
         }
     }
 }

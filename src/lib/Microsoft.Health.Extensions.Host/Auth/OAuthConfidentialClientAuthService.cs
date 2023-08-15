@@ -56,7 +56,7 @@ namespace Microsoft.Health.Extensions.Host.Auth
             }
         }
 
-        public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        public async override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
         {
             var authResult = await AquireServiceTokenAsync().ConfigureAwait(false);
             var accessToken = new AccessToken(authResult.AccessToken, authResult.ExpiresOn);

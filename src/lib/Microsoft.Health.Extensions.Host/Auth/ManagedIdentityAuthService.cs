@@ -30,9 +30,9 @@ namespace Microsoft.Health.Extensions.Host.Auth
             return _tokenCredential.GetToken(requestContext, cancellationToken);
         }
 
-        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        public async override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
         {
-            return _tokenCredential.GetTokenAsync(requestContext, cancellationToken);
+            return await _tokenCredential.GetTokenAsync(requestContext, cancellationToken);
         }
 
         public TokenCredential GetTokenCredential()
