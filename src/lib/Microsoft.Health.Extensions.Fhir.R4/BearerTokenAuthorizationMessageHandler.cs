@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 using EnsureThat;
+using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Metrics;
 using Microsoft.Health.Logging.Telemetry;
@@ -18,9 +19,9 @@ namespace Microsoft.Health.Extensions.Fhir
 {
     public class BearerTokenAuthorizationMessageHandler : DelegatingHandler
     {
-        public BearerTokenAuthorizationMessageHandler(Uri uri, TokenCredential tokenCredentialProvider, ITelemetryLogger logger)
+        public BearerTokenAuthorizationMessageHandler(Uri uri, IFhirTokenProvider tokenProvider, ITelemetryLogger logger)
         {
-            TokenCredential = EnsureArg.IsNotNull(tokenCredentialProvider, nameof(tokenCredentialProvider));
+            TokenProvider = EnsureArg.IsNotNull(tokenProvider, nameof(tokenProvider));
             Uri = EnsureArg.IsNotNull(uri, nameof(uri));
             Logger = EnsureArg.IsNotNull(logger, nameof(logger));
             Scopes = new string[] { Uri.ToString().EndsWith(@"/") ? Uri + ".default" : Uri + "/.default" };
@@ -28,7 +29,7 @@ namespace Microsoft.Health.Extensions.Fhir
 
         private ITelemetryLogger Logger { get; }
 
-        private TokenCredential TokenCredential { get; }
+        private IFhirTokenProvider TokenProvider { get; }
 
         private Uri Uri { get; }
 
@@ -37,8 +38,10 @@ namespace Microsoft.Health.Extensions.Fhir
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var requestContext = new TokenRequestContext(Scopes);
-            var accessToken = await TokenCredential.GetTokenAsync(requestContext, cancellationToken);
+            var accessToken = await TokenProvider.GetTokenCredential()
+                .GetTokenAsync(requestContext, cancellationToken);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
             var response = await base.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)

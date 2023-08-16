@@ -15,10 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common
         protected StartupBase(IConfiguration config)
         {
             Configuration = config;
-            ServiceCollection = new ServiceCollection();
         }
-
-        public ServiceCollection ServiceCollection { get; set; }
 
         public IConfiguration Configuration { get; }
 
