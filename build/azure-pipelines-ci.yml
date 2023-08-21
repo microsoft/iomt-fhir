@@ -37,7 +37,7 @@ stages:
     steps:
     - template: build.yml    
     - task: ComponentGovernanceComponentDetection@0
-        displayName: Component Detection
+      displayName: Component Detection
     - task: notice@0
       displayName: 'Generate NOTICE file'
       inputs:
