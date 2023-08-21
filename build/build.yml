@@ -24,4 +24,4 @@ steps:
   - template: package.yml      
 
 - task: ComponentGovernanceComponentDetection@0
-      displayName: Component Detection
+  displayName: Component Detection
