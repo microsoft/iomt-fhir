@@ -22,3 +22,8 @@ steps:
     
 - ${{ if eq(parameters.packageArtifacts, 'true') }}:
   - template: package.yml
+
+- task: notice@0
+  displayName: 'Generate NOTICE file'
+  inputs:
+    outputformat: 'text'
