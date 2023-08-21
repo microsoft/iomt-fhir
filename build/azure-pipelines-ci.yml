@@ -44,7 +44,7 @@ stages:
 
 - stage: GenerateNoticeFile
   displayName: 'Generate NOTICE file based on component governance detection results'
-  dependsOn: BuildTestDeployPackagesjobs:
+  dependsOn: BuildTestDeployPackagesjobs
   - job: Windows
     pool:
       vmImage: 'windows-2019'
