@@ -41,3 +41,15 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
+
+- stage: GenerateNoticeFile
+  displayName: 'Generate NOTICE file based on component governance detection results'
+  dependsOn: BuildTestDeployPackagesjobs:
+  - job: Windows
+    pool:
+      vmImage: 'windows-2019'
+    steps:    
+    - task: notice@0
+      displayName: 'Generate NOTICE file'
+      inputs:
+        outputformat: 'text'
