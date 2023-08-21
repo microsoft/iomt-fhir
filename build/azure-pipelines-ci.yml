@@ -44,7 +44,7 @@ stages:
 
 - stage: ComponentGovernanceDetectionAndGenerateNoticeFile
   displayName: 'Component detection and generate NOTICE file based on component governance detection results'
-  dependsOn: Semver # BuildTestDeployPackages
+  dependsOn: UpdateVersion # BuildTestDeployPackages
   jobs:
   - job: Windows
     pool:
