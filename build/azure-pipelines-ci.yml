@@ -35,14 +35,7 @@ stages:
     pool:
       vmImage: 'windows-2019'
     steps:
-    - template: build.yml    
-    - task: ComponentGovernanceComponentDetection@0
-      displayName: Component Detection
-    - task: notice@0
-      displayName: 'Generate NOTICE file'
-      inputs:
-        outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
-        outputformat: 'text'
+    - template: build.yml
 
   - job: Linux
     pool:
@@ -52,19 +45,20 @@ stages:
       parameters:
         packageArtifacts: false
 
-# - stage: ComponentGovernanceDetectionAndGenerateNoticeFile
-#   displayName: 'Component detection and generate NOTICE file based on component governance detection results'
-#   dependsOn: BuildTestDeployPackages
-#   jobs:
-#   - job: Windows
-#     pool:
-#       vmImage: 'windows-2019'
-#     steps:
-#     - task: ComponentGovernanceComponentDetection@0
-#       displayName: Component Detection
-
-#     - task: notice@0
-#       displayName: 'Generate NOTICE file'
-#       inputs:
-#         outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
-#         outputformat: 'text'
+- stage: ComponentGovernanceDetectionAndGenerateNoticeFile
+  displayName: 'Component detection and generate NOTICE file based on component governance detection results'
+  dependsOn: BuildTestDeployPackages
+  jobs:
+  - job: Windows
+    variables:
+      skipComponentGovernanceDetection: true
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    # - task: ComponentGovernanceComponentDetection@0
+    #   displayName: Component Detection
+    - task: notice@0
+      displayName: 'Generate NOTICE file'
+      inputs:
+        outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
+        outputformat: 'text'
