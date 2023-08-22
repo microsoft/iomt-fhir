@@ -36,7 +36,7 @@ stages:
       vmImage: 'windows-2019'
     steps:
     - template: build.yml
-    - template: cg-notice.yml
+    # - template: cg-notice.yml
 
   - job: Linux
     pool:
@@ -45,3 +45,16 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
+
+- stage: CGAndGenerateNOTICE
+  displayName: 'Component Governance detection and generate NOTICE file'
+  dependsOn:
+  - BuildTestDeployPackages
+  jobs:
+  - job: Windows
+    variables:
+      skipComponentGovernanceDetection: true
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - template: cg-notice.yml
