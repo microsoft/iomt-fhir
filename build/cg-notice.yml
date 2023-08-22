@@ -2,7 +2,7 @@ steps:
 
 # Run component governance detection scan
 - task: ComponentGovernanceComponentDetection@0
-      displayName: Component Detection
+  displayName: Component Detection
 
 # Publish generated NOTICE from the above component governance detection scan
 - task: notice@0
