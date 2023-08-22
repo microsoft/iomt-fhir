@@ -35,11 +35,16 @@ stages:
     pool:
       vmImage: 'windows-2019'
     steps:
-    - template: build.yml    
+    - template: build.yml
     - task: ComponentGovernanceComponentDetection@0
       displayName: Component Detection
-    - task: GenerateNOTICEFile@0
+    - task: notice@0
       displayName: 'Generate NOTICE file'
+      inputs:
+        outputfile: $(System.DefaultWorkingDirectory)/GeneratedNOTICE
+        outputformat: 'text'
+    - publish: $(System.DefaultWorkingDirectory)/NOTICE
+      artifact: CurrentNOTICE
 
   - job: Linux
     pool:
