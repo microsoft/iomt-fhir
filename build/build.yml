@@ -21,7 +21,4 @@ steps:
     arguments: '--configuration $(buildConfiguration)'
     
 - ${{ if eq(parameters.packageArtifacts, 'true') }}:
-  - template: package.yml      
-
-- task: ComponentGovernanceComponentDetection@0
-  displayName: Component Detection
+  - template: package.yml
