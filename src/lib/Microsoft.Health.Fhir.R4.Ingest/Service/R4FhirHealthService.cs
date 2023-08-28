@@ -43,10 +43,6 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             {
                 return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, (int)ex.StatusCode));
             }
-            catch (IdentityModel.Clients.ActiveDirectory.AdalServiceException ex)
-            {
-                return await Task.FromResult(new FhirHealthCheckStatus(ex.Message, ex.StatusCode));
-            }
 #pragma warning disable CA1031
             catch (Exception ex)
 #pragma warning restore CA1031
