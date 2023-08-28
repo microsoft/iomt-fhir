@@ -448,10 +448,11 @@
       },
       "Microsoft.Azure.Services.AppAuthentication": {
         "type": "Transitive",
-        "resolved": "1.6.1",
-        "contentHash": "78AcjpxnhJDov7HJa4kPpZxpI0coZhS0tdA9ZLUSPExKz5KTgfozayBTLAXDuTuq0gLRzFyf85SvIkrtbB8KpA==",
+        "resolved": "1.0.3",
+        "contentHash": "ywpQaK1klu1IoX4VUf+TBmU4kR71aWNI6O5rEIJU8z28L2xhJhnIm7k2Nf1Zu/PygeuOtt5g0QPCk5+lLltbeQ==",
         "dependencies": {
-          "Microsoft.IdentityModel.Clients.ActiveDirectory": "5.2.0",
+          "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.14.2",
+          "NETStandard.Library": "1.6.1",
           "System.Diagnostics.Process": "4.3.0"
         }
       },
@@ -2409,10 +2410,9 @@
         "dependencies": {
           "Azure.Identity": "[1.9.0, )",
           "Ensure.That": "[10.1.0, )",
-          "Microsoft.Azure.Services.AppAuthentication": "[1.6.1, )",
           "Microsoft.Azure.WebJobs": "[3.0.31, )",
           "Microsoft.Health.Common": "[1.0.0, )",
-          "Microsoft.IdentityModel.Clients.ActiveDirectory": "[5.2.9, )",
+          "Microsoft.Identity.Client": "[4.49.1, )",
           "System.Text.RegularExpressions": "[4.3.1, )"
         }
       },

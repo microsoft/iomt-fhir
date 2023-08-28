@@ -41,8 +41,8 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 
             switch (exception)
             {
-                case FhirException _:
-                    var status = ((FhirException)exception).StatusCode;
+                case FhirClientException _:
+                    var status = ((FhirClientException)exception).StatusCode;
                     switch (status)
                     {
                         case HttpStatusCode.Forbidden:

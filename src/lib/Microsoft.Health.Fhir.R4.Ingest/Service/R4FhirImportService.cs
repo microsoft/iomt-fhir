@@ -94,7 +94,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             }
 
             var policyResult = await Policy<(Model.Observation observation, ResourceOperation operationType)>
-                .Handle<FhirException>(ex => ex.StatusCode == System.Net.HttpStatusCode.Conflict || ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+                .Handle<FhirClientException>(ex => ex.StatusCode == System.Net.HttpStatusCode.Conflict || ex.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
                 .RetryAsync(2, async (polyRes, attempt) =>
                 {
                     // 409 Conflict or 412 Precondition Failed can occur if the Observation.meta.versionId does not match the update request.

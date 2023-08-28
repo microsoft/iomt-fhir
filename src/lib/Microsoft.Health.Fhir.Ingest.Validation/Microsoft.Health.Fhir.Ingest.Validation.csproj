@@ -34,7 +34,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Memory" Version="4.5.5" />
-		<PackageReference Include="Hl7.Fhir.R4" Version="4.1.0" />
+		<PackageReference Include="Hl7.Fhir.R4" Version="4.3.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
