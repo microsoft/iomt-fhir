@@ -41,8 +41,8 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
 
             switch (exception)
             {
-                case FhirClientException _:
-                    var status = ((FhirClientException)exception).StatusCode;
+                case FhirClientException fhirClientException:
+                    var status = fhirClientException.StatusCode;
                     switch (status)
                     {
                         case HttpStatusCode.Forbidden:
@@ -58,8 +58,8 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                             return (exception, status.ToString());
                     }
 
-                case ArgumentException _:
-                    var paramName = ((ArgumentException)exception).ParamName;
+                case ArgumentException argumentException:
+                    var paramName = argumentException.ParamName;
                     if (paramName.Contains("endpoint", StringComparison.OrdinalIgnoreCase))
                     {
                         message = FhirResources.FhirServiceEndpointInvalid;
@@ -86,8 +86,8 @@ namespace Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions
                     var statusCode = ((HttpRequestException)exception).StatusCode;
                     return (exception, $"{FhirServiceErrorCode.HttpRequestError}{statusCode}");
 
-                case MsalServiceException _:
-                    var errorCode = ((MsalServiceException)exception).ErrorCode;
+                case MsalServiceException msalServiceException:
+                    var errorCode = msalServiceException.ErrorCode;
                     if (string.Equals(errorCode, "invalid_resource", StringComparison.OrdinalIgnoreCase)
                         || string.Equals(errorCode, "invalid_scope", StringComparison.OrdinalIgnoreCase))
                     {
