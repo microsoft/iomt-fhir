@@ -78,11 +78,10 @@ namespace Microsoft.Health.Extensions.Fhir.Service
 
             if (string.IsNullOrWhiteSpace(ifMatchVersion) && resource.HasVersionId)
             {
-                // Underlying FhirClient already adds the W/"" formating and inserts content of the ifMatchVersion
-                // Later versions of the FhirClient removed the implict inclusion of the W/"".
-                // If switching to the latest version update to ifMatchVersion = @$"W/""{resource.VersionId}""";
+                // Previous FhirClient adds the W/"" formating and inserts content of the ifMatchVersion.
+                // The current version+ of the FhirClient removed the implict inclusion of the W/"".
                 // Change was introduced in this PR https://github.com/microsoft/fhir-server/pull/2467
-                ifMatchVersion = resource.VersionId.ToString();
+                ifMatchVersion = @$"W/""{resource.VersionId}""";
             }
 
             return await _fhirClient.UpdateAsync(resource, ifMatchVersion, provenanceHeader, cancellationToken).ConfigureAwait(false);

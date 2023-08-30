@@ -12,6 +12,7 @@ using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Extensions.Fhir.Telemetry.Exceptions;
 using Microsoft.Health.Fhir.Client;
 using Microsoft.Health.Logging.Telemetry;
+using Microsoft.Health.Tests.Utilities;
 using Microsoft.Identity.Client;
 using NSubstitute;
 using Xunit;
@@ -20,9 +21,9 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
 {
     public class FhirServiceExceptionProcessorTests
     {
-        private static readonly Exception _fhirForbiddenEx = new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Forbidden), new OperationOutcome()));
-        private static readonly Exception _fhirNotFoundEx = new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.NotFound), new OperationOutcome()));
-        private static readonly Exception _fhirBadRequestEx = new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.BadRequest), new OperationOutcome()));
+        private static readonly Exception _fhirForbiddenEx = ExceptionUtilities.GetFhirClientException(HttpStatusCode.Forbidden);
+        private static readonly Exception _fhirNotFoundEx = ExceptionUtilities.GetFhirClientException(HttpStatusCode.NotFound);
+        private static readonly Exception _fhirBadRequestEx = ExceptionUtilities.GetFhirClientException(HttpStatusCode.BadRequest);
         private static readonly Exception _argEndpointNullEx = new ArgumentNullException("endpoint");
         private static readonly Exception _argEndpointEx = new ArgumentException("endpoint", "Endpoint must be absolute");
         private static readonly Exception _argEx = new ArgumentException("test_message", "test_param");
@@ -59,7 +60,7 @@ namespace Microsoft.Health.Extensions.Fhir.R4.UnitTests
             {
                 new object[] { _fhirForbiddenEx, typeof(UnauthorizedAccessFhirServiceException) },
                 new object[] { _fhirNotFoundEx, typeof(InvalidFhirServiceException) },
-                new object[] { _fhirBadRequestEx, typeof(FhirException) },
+                new object[] { _fhirBadRequestEx, typeof(FhirClientException) },
                 new object[] { _argEndpointNullEx, typeof(InvalidFhirServiceException) },
                 new object[] { _argEndpointEx, typeof(InvalidFhirServiceException) },
                 new object[] { _argEx, typeof(ArgumentException) },

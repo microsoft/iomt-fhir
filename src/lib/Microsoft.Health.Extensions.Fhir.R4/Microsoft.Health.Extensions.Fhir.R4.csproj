@@ -21,12 +21,13 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Ensure.That" Version="10.1.0" />
-		<PackageReference Include="Azure.Identity" Version="1.9.0" />
-		<PackageReference Include="Hl7.Fhir.R4" Version="4.1.0" />
+		<PackageReference Include="Azure.Identity" Version="1.10.0" />
+		<PackageReference Include="Hl7.Fhir.R4" Version="4.3.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.7" />
-		<PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.107" />
+		<PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.135" />
+		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.280" />
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -43,6 +44,5 @@
 		<ProjectReference Include="..\Microsoft.Health.Extensions.Host\Microsoft.Health.Extensions.Host.csproj" />
 		<ProjectReference Include="..\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
 		<ProjectReference Include="..\Microsoft.Health.Logger\Microsoft.Health.Logging.csproj" />
-		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
 	</ItemGroup>
 </Project>

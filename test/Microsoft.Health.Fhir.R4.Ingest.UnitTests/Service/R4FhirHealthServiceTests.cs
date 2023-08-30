@@ -9,6 +9,7 @@ using System.Net.Http;
 using Hl7.Fhir.Model;
 using Microsoft.Health.Common;
 using Microsoft.Health.Fhir.Client;
+using Microsoft.Health.Tests.Utilities;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -33,27 +34,16 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         [Fact]
         public async void GivenInvalidOAuthToken_WhenCheckHealthAsync_ThenRespondWithFhirOperationException_Test()
         {
+            FhirClientException exception = ExceptionUtilities.GetFhirClientException(HttpStatusCode.Unauthorized);
+
             var fhirClient = Utilities.CreateMockFhirService();
-            fhirClient.SearchForResourceAsync(Arg.Any<ResourceType>(), Arg.Any<string>(), Arg.Any<int>(), default).ThrowsForAnyArgs(new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Unauthorized), new OperationOutcome())));
+            fhirClient.SearchForResourceAsync(Arg.Any<ResourceType>(), Arg.Any<string>(), Arg.Any<int>(), default).ThrowsForAnyArgs(exception);
 
             var service = new R4FhirHealthService(fhirClient);
             var response = await service.CheckHealth();
 
             Assert.Equal(401, response.StatusCode);
-            Assert.StartsWith("Unauthorized:", response.Message);
-        }
-
-        [Fact]
-        public async void GivenInvalidClientSecret_WhenCheckHealthAsync_ThenRespondWithAADException_Test()
-        {
-            var fhirClient = Utilities.CreateMockFhirService();
-            fhirClient.SearchForResourceAsync(Arg.Any<ResourceType>(), Arg.Any<string>(), Arg.Any<int>(), default).ThrowsForAnyArgs(new IdentityModel.Clients.ActiveDirectory.AdalServiceException("AADSTS123", "Unauthorized") { StatusCode = 401 });
-
-            var service = new R4FhirHealthService(fhirClient);
-            var response = await service.CheckHealth();
-
-            Assert.Equal(401, response.StatusCode);
-            Assert.Equal("Unauthorized", response.Message);
+            Assert.StartsWith("Unauthorized", response.Message);
         }
 
         [Fact]

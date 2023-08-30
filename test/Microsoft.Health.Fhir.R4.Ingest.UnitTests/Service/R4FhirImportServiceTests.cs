@@ -18,6 +18,7 @@ using Microsoft.Health.Fhir.Ingest.Telemetry;
 using Microsoft.Health.Fhir.Ingest.Template;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Health.Tests.Common;
+using Microsoft.Health.Tests.Utilities;
 using NSubstitute;
 using Xunit;
 using Model = Hl7.Fhir.Model;
@@ -192,7 +193,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             fhirClient.SearchForResourceAsync(Arg.Any<Model.ResourceType>(), Arg.Any<string>()).ReturnsForAnyArgs(Task.FromResult(foundBundle1));
             fhirClient.UpdateResourceAsync(Arg.Any<Observation>())
                 .Returns(
-                    x => { throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome())); },
+                    x => { throw ExceptionUtilities.GetFhirClientException(HttpStatusCode.Conflict); },
                     x => Task.FromResult(savedObservation));
 
             var ids = BuildIdCollection();
@@ -274,7 +275,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             fhirClient.When(x => x.UpdateResourceAsync(Arg.Is<Observation>(x => x.Id == "cachedObservationId")))
                 .Do(x =>
                 {
-                    throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome()));
+                    throw ExceptionUtilities.GetFhirClientException(HttpStatusCode.Conflict);
                 });
 
             // do not throw an exception when creating a new obsvervation
@@ -414,7 +415,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         private static Observation ThrowConflictException()
         {
-            throw new FhirException(new FhirResponse<OperationOutcome>(new HttpResponseMessage(HttpStatusCode.Conflict), new OperationOutcome()));
+            throw ExceptionUtilities.GetFhirClientException(HttpStatusCode.Conflict);
         }
     }
 }
