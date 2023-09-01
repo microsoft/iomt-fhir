@@ -1,21 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
-		<HighEntropyVA>true</HighEntropyVA>
+		<TargetFramework>$(LegacyVersion)</TargetFramework>
 		<AssemblyName>Microsoft.Health.Fhir.Ingest</AssemblyName>
 		<RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
-		<langversion>10.0</langversion>
-	</PropertyGroup>
-	<PropertyGroup>
-		<IsPackable>true</IsPackable>
-	</PropertyGroup>
-	<PropertyGroup>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<WarningsAsErrors />
-	</PropertyGroup>
-	<PropertyGroup>
-		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<Optimize>true</Optimize>
@@ -28,10 +15,6 @@
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Polly" Version="7.2.4" />
@@ -42,9 +25,6 @@
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-	</ItemGroup>
-	<ItemGroup>
-		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />

@@ -1,23 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
-		<HighEntropyVA>true</HighEntropyVA>
-		<LangVersion>10.0</LangVersion>
+		<TargetFramework>$(LegacyVersion)</TargetFramework>
 	</PropertyGroup>
-	<PropertyGroup>
-		<IsPackable>true</IsPackable>
-	</PropertyGroup>
-	<PropertyGroup>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<WarningsAsErrors />
-	</PropertyGroup>
-	<PropertyGroup>
-		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-	</PropertyGroup>
-	<ItemGroup>
-		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
-	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Azure.Identity" Version="1.9.0" />
 		<PackageReference Include="Azure.Messaging.EventHubs" Version="5.9.2" />
@@ -27,10 +11,6 @@
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

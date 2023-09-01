@@ -1,22 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
-		<HighEntropyVA>true</HighEntropyVA>
+		<TargetFramework>$(LegacyVersion)</TargetFramework>
 		<AssemblyName>Microsoft.Health.Fhir.Ingest.R4.Templates</AssemblyName>
 		<RootNamespace>Microsoft.Health.Fhir.Ingest</RootNamespace>
-		<LangVersion>10.0</LangVersion>
-	</PropertyGroup>
-	<PropertyGroup>
-		<IsPackable>true</IsPackable>
-	</PropertyGroup>
-	<PropertyGroup>
-		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<WarningsAsErrors />
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<Optimize>true</Optimize>

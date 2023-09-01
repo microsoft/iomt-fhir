@@ -15,6 +15,12 @@
           "System.ComponentModel.Annotations": "5.0.0"
         }
       },
+      "Microsoft.Net.Compilers.Toolset": {
+        "type": "Direct",
+        "requested": "[4.2.0, )",
+        "resolved": "4.2.0",
+        "contentHash": "Hs7t4nRCp68XaWcGf3+SZ5Rud3Km6zQ8+jvR42tBohjVu2Nu2x2QhHVpEzQ56aZmGYEcZUztrTHLYyE0GYLpvg=="
+      },
       "NETStandard.Library": {
         "type": "Direct",
         "requested": "[2.0.3, )",
