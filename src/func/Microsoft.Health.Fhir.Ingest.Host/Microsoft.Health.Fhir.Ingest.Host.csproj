@@ -1,22 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>$(LatestVersion)</TargetFramework>
 		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
-		<CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
-		<HighEntropyVA>true</HighEntropyVA>
 		<AssemblyName>Microsoft.Health.Fhir.Ingest.Host</AssemblyName>
 		<RootNamespace>Microsoft.Health.Fhir.Ingest.Host</RootNamespace>
-		<LangVersion>10.0</LangVersion>
-	</PropertyGroup>
-	<PropertyGroup>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<WarningsAsErrors />
-	</PropertyGroup>
-	<PropertyGroup>
-		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-	</PropertyGroup>
-	<PropertyGroup>
-		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<PropertyGroup>
 		<FhirVersion Condition="'$(FhirVersion)' == ''">R4</FhirVersion>
@@ -33,10 +20,6 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.1" />
 		<PackageReference Include="Ensure.That" Version="10.1.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
@@ -62,9 +45,6 @@
 		<None Update="template_content.json">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.$(FhirVersion).Ingest\Microsoft.Health.Fhir.$(FhirVersion).Ingest.csproj" />

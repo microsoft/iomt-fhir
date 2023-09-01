@@ -1,24 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
-		<HighEntropyVA>true</HighEntropyVA>
-		<LangVersion>10.0</LangVersion>
+		<TargetFramework>$(LatestVersion)</TargetFramework>
 	</PropertyGroup>
 	<PropertyGroup>
-		<IsPackable>true</IsPackable>
-	</PropertyGroup>
-	<PropertyGroup>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<WarningsAsErrors />
 		<RootNamespace>Microsoft.Health.Extensions.Fhir</RootNamespace>
 	</PropertyGroup>
-	<PropertyGroup>
-		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-	</PropertyGroup>
-	<ItemGroup>
-		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
-	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Ensure.That" Version="10.1.0" />
 		<PackageReference Include="Azure.Identity" Version="1.10.0" />
@@ -28,10 +14,6 @@
 		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.7" />
 		<PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.135" />
 		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.280" />
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.2.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
