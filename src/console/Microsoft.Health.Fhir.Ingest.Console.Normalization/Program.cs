@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Fhir.Ingest.Console.Common.Extensions;
-using System.Threading.Tasks;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Normalization
 {
@@ -20,13 +20,15 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalization
                 .RunAsync();
         }
 
-        /// <remarks>
+        /// <summary>
         /// DefaultBuilder will load IConfiguration from several sources including environment variables and appsettings.
         /// See documentation for complete details.
         /// <see cref="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.host.createdefaultbuilder?view=dotnet-plat-ext-6.0"/>
-        /// Once upgraded to .NET 7 can switch to CreateApplicationBuilder. 
+        /// Once upgraded to .NET 7 can switch to CreateApplicationBuilder.
         /// <seealso cref="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.host.createapplicationbuilder?view=dotnet-plat-ext-7.0"/>
-        /// </remarks>
+        /// </summary>
+        /// <param name="args">Arguments to configure the host builder.</param>
+        /// <returns>Initialized <see cref=IHostBuilder></returns>
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
@@ -36,7 +38,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalization
             .ConfigureServices((hostContext, services) =>
             {
                 IConfiguration config = hostContext.Configuration;
-                Startup startup = new(config);
+                Startup startup = new (config);
                 startup.ConfigureServices(services);
                 services.AddApplicationInsightsLogging(config);
                 services.AddHostedService<EventHubReaderService>();

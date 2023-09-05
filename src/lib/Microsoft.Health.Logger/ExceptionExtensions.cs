@@ -9,8 +9,8 @@ using EnsureThat;
 
 namespace Microsoft.Health.Logging
 {
-	public static class ExceptionExtensions
-	{
+    public static class ExceptionExtensions
+    {
         /// <summary>
         /// Returns a concatenation of this Exceptions message along with the messages of all Inner Exceptions.
         /// </summary>
@@ -35,4 +35,3 @@ namespace Microsoft.Health.Logging
         }
     }
 }
-

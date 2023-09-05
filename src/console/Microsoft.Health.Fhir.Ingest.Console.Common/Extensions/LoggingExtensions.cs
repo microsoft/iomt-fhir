@@ -1,11 +1,10 @@
-﻿// --------------------------------------------------------------------------
-// <copyright file="LoggingExtensions.cs" company="Microsoft Corporation">
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Logging.Telemetry;

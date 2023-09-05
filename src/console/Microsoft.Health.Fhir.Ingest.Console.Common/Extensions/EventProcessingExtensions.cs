@@ -1,22 +1,21 @@
-﻿// --------------------------------------------------------------------------
-// <copyright file="EventProcessorExtensions.cs" company="Microsoft Corporation">
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Events.EventConsumers.Service;
-using Microsoft.Health.Events.EventConsumers;
-using Microsoft.Health.Events.EventHubProcessor;
-using Microsoft.Health.Events.EventProducers;
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Consumer;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Common.Auth;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
+using Microsoft.Health.Events.EventConsumers;
+using Microsoft.Health.Events.EventConsumers.Service;
+using Microsoft.Health.Events.EventHubProcessor;
+using Microsoft.Health.Events.EventProducers;
 using Microsoft.Health.Logging.Telemetry;
-using Azure.Messaging.EventHubs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Health.Common.Auth;
-using Azure.Messaging.EventHubs.Consumer;
 
 namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
 {

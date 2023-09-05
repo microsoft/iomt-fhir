@@ -1,8 +1,7 @@
-﻿// --------------------------------------------------------------------------
-// <copyright file="FhirTransformationExtensions.cs" company="Microsoft Corporation">
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
 using Azure.Messaging.EventHubs;
 using Hl7.Fhir.Model;
@@ -85,7 +84,7 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Common.Extensions
             // Add FHIR Client
             // Use IAzureExternalIdentityCredentialProvider if it exists, else use IAzureCredentialProvider
             var sp = services.BuildServiceProvider();
-            
+
             services.AddFhirClient(config);
 
             services.AddSingleton<IMemoryCache>(sp => new MemoryCache(sp.GetRequiredService<IOptions<ObservationCacheOptions>>()));

@@ -23,7 +23,7 @@ namespace Microsoft.Health.Events.UnitTest
         {
             var initialBatch = new List<EventMessage>()
             {
-                new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()))
+                new EventMessage("0", default, null, 1, 1, new DateTime(2020, 12, 31, 5, 10, 20), new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>())),
             };
 
             var logger = Substitute.For<ITelemetryLogger>();

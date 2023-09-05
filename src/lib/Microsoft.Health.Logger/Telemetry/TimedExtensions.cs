@@ -3,16 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-using Microsoft.Health.Common.Telemetry;
 using System;
 using System.Diagnostics;
+using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Logging.Telemetry
 {
     public static class TimedExtensions
     {
-
         /// <summary>
         /// Creates an ITimed object around the provided <see cref="ITelemetryLogger"/> and tracks the duration till the ITimed object is disposed and emits the duration to the <see cref="ITelemetryLogger"/>
         /// </summary>
