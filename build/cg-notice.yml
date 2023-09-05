@@ -1,0 +1,16 @@
+steps:
+
+# Run component governance component detection scan
+- task: ComponentGovernanceComponentDetection@0
+  displayName: Component Detection
+
+# Publish generated NOTICE from the above component detection scan
+- task: notice@0
+  displayName: 'Generate NOTICE file'
+  inputs:
+    outputfile: $(System.DefaultWorkingDirectory)/GeneratedNOTICE
+    outputformat: 'text'
+
+# Publish current NOTICE file from the repository
+- publish: $(System.DefaultWorkingDirectory)/NOTICE
+  artifact: NOTICE
