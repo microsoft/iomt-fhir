@@ -8,7 +8,7 @@ namespace Microsoft.Health.Extensions.Fhir.Search
     /// <summary>
     /// Defines common search prefixes that can be applied before value to indicate how values should be matched.
     /// </summary>
-    /// <seealso cref="https://www.hl7.org/fhir/search.html#prefix"/>
+    /// <seealso cref="!:https://www.hl7.org/fhir/search.html#prefix"/>
     public class SearchPrefix
     {
         private SearchPrefix(string searchPrefixValue)

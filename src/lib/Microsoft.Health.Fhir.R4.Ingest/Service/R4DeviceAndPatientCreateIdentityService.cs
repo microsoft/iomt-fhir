@@ -53,7 +53,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
         /// </summary>
         /// <param name="input">IMeasurementGroup to retrieve device and patient identifiers from.</param>
         /// <returns>Internal reference id to the patient and device resources found or created.</returns>
-        /// <exception cref="PatientIdentityNotDefinedException">Thrown when a unique patient identifier isn't found in the provided input.</exception>
+        /// <exception cref="ResourceIdentityNotDefinedException">Thrown when a unique resource identifier of the specified type isn't found in the provided input.</exception>
         /// <exception cref="PatientDeviceMismatchException">Thrown when expected patient internal id of the device doesn't match the actual patient internal id.</exception>
         protected async virtual Task<(string DeviceId, string PatientId)> EnsureDeviceAndPatientExistsAsync(IMeasurementGroup input)
         {

@@ -15,7 +15,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template
         /// would return multiple tokens, an exception will be thrown.
         /// </summary>
         /// <param name="data">The JToken to evaluate the expression against</param>
-        /// <returns>A single JToken which represents the result of expression evaluation, or <c>null</c> if nothing could be found</c></returns>
+        /// <returns>A single JToken which represents the result of expression evaluation, or <c>null</c> if nothing could be found.</returns>
         JToken SelectToken(JToken data);
 
         /// <summary>
