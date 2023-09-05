@@ -32,8 +32,8 @@ stages:
     pool:
       vmImage: 'windows-2019'
     steps:
-    - template: build.yml
     - template: cg-notice.yml
+    - template: build.yml
 
   - job: Linux
     pool:
