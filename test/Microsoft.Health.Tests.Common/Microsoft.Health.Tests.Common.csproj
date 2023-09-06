@@ -3,6 +3,7 @@
 		<TargetFramework>$(LatestVersion)</TargetFramework>
 		<IsPackable>true</IsPackable>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+		<NoWarn>$(NoWarn);NU5100</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Ensure.That" />
