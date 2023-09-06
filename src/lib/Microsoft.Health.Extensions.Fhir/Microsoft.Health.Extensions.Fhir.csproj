@@ -3,13 +3,9 @@
 		<TargetFramework>$(LegacyVersion)</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Ensure.That" Version="10.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+		<PackageReference Include="Ensure.That" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+		<PackageReference Include="System.Text.RegularExpressions" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />

@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Net.Sockets;
 using Azure;
 using Azure.Messaging.EventHubs;
 using Microsoft.Health.Common.Telemetry;
@@ -12,9 +15,6 @@ using Microsoft.Health.Events.Telemetry.Exceptions;
 using Microsoft.Health.Logging.Telemetry;
 using Microsoft.Identity.Client;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
 using Xunit;
 
 namespace Microsoft.Health.Events.UnitTest
@@ -74,7 +74,8 @@ namespace Microsoft.Health.Events.UnitTest
             EventHubExceptionProcessor.ProcessException(ex, logger);
 
             logger.ReceivedWithAnyArgs(1).LogError(ex);
-            logger.Received(1).LogMetric(Arg.Is<Metric>(m =>
+            logger.Received(1).LogMetric(
+                Arg.Is<Metric>(m =>
                 ValidateEventHubErrorMetricProperties(m, expectedErrorMetricName, expectedErrorTypeName, expectedErrorSource)),
                 1);
         }
@@ -90,7 +91,8 @@ namespace Microsoft.Health.Events.UnitTest
             EventHubExceptionProcessor.ProcessException(ex, logger, errorMetricName: expectedErrorMetricName);
 
             logger.Received(1).LogError(ex);
-            logger.Received(1).LogMetric(Arg.Is<Metric>(m =>
+            logger.Received(1).LogMetric(
+                Arg.Is<Metric>(m =>
                 ValidateEventHubErrorMetricProperties(m, expectedErrorMetricName, ErrorType.EventHubError, null)),
                 1);
         }

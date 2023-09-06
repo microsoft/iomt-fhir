@@ -4,11 +4,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Ensure.That" Version="10.1.0" />
-		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.280" />
-		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+		<PackageReference Include="Ensure.That" />
+		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
 	</ItemGroup>
 </Project>

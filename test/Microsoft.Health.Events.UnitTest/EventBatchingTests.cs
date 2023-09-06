@@ -1,12 +1,17 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Events.EventConsumers.Service;
 using Microsoft.Health.Events.Model;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.Health.Events.UnitTest
@@ -34,7 +39,7 @@ namespace Microsoft.Health.Events.UnitTest
 
             var enqueuedTime = DateTime.UtcNow;
 
-            var event1 = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var event1 = new EventMessage("0", default, null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
 
             await eventReader.ConsumeEvent(event1, default);
 
@@ -50,14 +55,14 @@ namespace Microsoft.Health.Events.UnitTest
             var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-901);
-            var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var firstEvent = new EventMessage("0", default, null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(firstEvent, default);
 
             var endWindow = firstEventTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
             Assert.Equal(endWindow, eventReader.GetPartition("0").GetPartitionWindow());
 
             var nextEventTime = DateTime.UtcNow;
-            var nextEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 2, 2, nextEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var nextEvent = new EventMessage("0", default, null, 2, 2, nextEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(nextEvent, default);
 
             // check that the window is incremented up until next event is included in the current window
@@ -73,7 +78,7 @@ namespace Microsoft.Health.Events.UnitTest
             var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-301);
-            var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var firstEvent = new EventMessage("0", default, null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(firstEvent, default);
 
             // first window end is: utc - 1 second
@@ -82,7 +87,7 @@ namespace Microsoft.Health.Events.UnitTest
             Assert.Equal(endWindow, eventReader.GetPartition(firstEvent.PartitionId).GetPartitionWindow());
 
             var nextEventTime = DateTime.UtcNow;
-            var nextEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 2, 2, nextEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var nextEvent = new EventMessage("0", default, null, 2, 2, nextEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(nextEvent, default);
 
             // flush the 1 event that exists within the first window, verify event outside of window is in queue
@@ -103,7 +108,7 @@ namespace Microsoft.Health.Events.UnitTest
             var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
 
             var newEventTime = DateTime.UtcNow;
-            var newEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, newEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var newEvent = new EventMessage("0", default, null, 1, 1, newEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(newEvent, default);
             await eventReader.ConsumeEvent(newEvent, default);
 
@@ -124,7 +129,7 @@ namespace Microsoft.Health.Events.UnitTest
             var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-400);
-            var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var firstEvent = new EventMessage("0", default, null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(firstEvent, default);
 
             var maxWaitEvent = new MaximumWaitEvent("0", DateTime.UtcNow.AddSeconds(-10));
@@ -138,7 +143,7 @@ namespace Microsoft.Health.Events.UnitTest
             var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-30);
-            var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var firstEvent = new EventMessage("0", default, null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(firstEvent, default);
 
             var maxWaitEvent = new MaximumWaitEvent("0", DateTime.UtcNow.AddSeconds(-10));
@@ -154,7 +159,7 @@ namespace Microsoft.Health.Events.UnitTest
             var eventReader = new EventBatchingService(_eventConsumerService, _options, _checkpointClient, _logger);
 
             var firstEventTime = DateTime.UtcNow.AddSeconds(-301);
-            var firstEvent = new EventMessage("0", new ReadOnlyMemory<byte>(), null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var firstEvent = new EventMessage("0", default, null, 1, 1, firstEventTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(firstEvent, default);
 
             await _checkpointClient.Received(1).SetCheckpointAsync(firstEvent, default);
@@ -168,7 +173,7 @@ namespace Microsoft.Health.Events.UnitTest
 
             var enqueuedTime = DateTime.UtcNow;
 
-            var event1 = new EventMessage(partitionId, new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var event1 = new EventMessage(partitionId, default, null, 1, 1, enqueuedTime, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(event1, default);
 
             var endWindow = enqueuedTime.Add(TimeSpan.FromSeconds(_options.FlushTimespan));
@@ -182,7 +187,7 @@ namespace Microsoft.Health.Events.UnitTest
             Assert.False(partitionExists);
 
             var enqueuedTime2 = DateTime.UtcNow;
-            var event2 = new EventMessage(partitionId, new ReadOnlyMemory<byte>(), null, 1, 1, enqueuedTime2, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
+            var event2 = new EventMessage(partitionId, default, null, 1, 1, enqueuedTime2, new Dictionary<string, object>(), new ReadOnlyDictionary<string, object>(new Dictionary<string, object>()));
             await eventReader.ConsumeEvent(event2, default);
 
             var endWindow2 = enqueuedTime2.Add(TimeSpan.FromSeconds(_options.FlushTimespan));

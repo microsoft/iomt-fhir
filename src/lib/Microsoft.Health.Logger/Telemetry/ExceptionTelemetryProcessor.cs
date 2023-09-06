@@ -3,10 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-using Microsoft.Health.Common.Telemetry;
 using System;
 using System.Collections.Generic;
+using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 
 namespace Microsoft.Health.Logging.Telemetry
 {

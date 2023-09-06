@@ -6,19 +6,15 @@
 		<RootNamespace>Microsoft.Health.Extensions.Fhir</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Ensure.That" Version="10.1.0" />
-		<PackageReference Include="Azure.Identity" Version="1.10.0" />
-		<PackageReference Include="Hl7.Fhir.R4" Version="4.3.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.7" />
-		<PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.135" />
-		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.280" />
-		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+		<PackageReference Include="Ensure.That" />
+		<PackageReference Include="Azure.Identity" />
+		<PackageReference Include="Hl7.Fhir.R4" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" />
+		<PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" />
+		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
+		<PackageReference Include="System.Text.RegularExpressions" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Health.Common\Microsoft.Health.Common.csproj" />

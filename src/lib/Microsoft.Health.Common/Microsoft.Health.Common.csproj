@@ -3,20 +3,16 @@
 		<TargetFramework>$(LegacyVersion)</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
-		<PackageReference Include="Ensure.That" Version="10.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Azure.Core" Version="1.33.0" />
-		<PackageReference Include="Azure.Identity" Version="1.9.0" />
-		<PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
-		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
+		<PackageReference Include="Azure.Storage.Blobs" />
+		<PackageReference Include="Ensure.That" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+		<PackageReference Include="Microsoft.Extensions.Options" />
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="Azure.Core" />
+		<PackageReference Include="Azure.Identity" />
+		<PackageReference Include="System.Text.Encodings.Web" />
+		<PackageReference Include="System.Text.RegularExpressions" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" />
 	</ItemGroup>
 </Project>

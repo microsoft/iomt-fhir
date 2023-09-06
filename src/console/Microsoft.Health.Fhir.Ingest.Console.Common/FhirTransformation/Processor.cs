@@ -63,7 +63,6 @@ namespace Microsoft.Health.Fhir.Ingest.Console.FhirTransformation
                 var errorMessage = new IomtErrorMessage(policyResult.FinalException);
                 _errorMessageService?.ReportError(errorMessage);
             }
-
         }
 
         private async Task ConsumeAsyncImpl(IEnumerable<IEventMessage> events, string templateContent, CancellationToken ct)

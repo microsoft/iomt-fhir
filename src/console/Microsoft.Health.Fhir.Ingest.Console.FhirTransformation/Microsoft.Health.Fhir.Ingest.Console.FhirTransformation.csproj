@@ -5,7 +5,8 @@
 		<TargetFramework>$(LatestVersion)</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" />
+		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -15,7 +16,6 @@
 		<ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.Ingest\Microsoft.Health.Fhir.Ingest.csproj" />
 		<ProjectReference Include="..\..\lib\Microsoft.Health.Fhir.R4.Ingest\Microsoft.Health.Fhir.R4.Ingest.csproj" />
 		<ProjectReference Include="..\..\lib\Microsoft.Health.Expressions\Microsoft.Health.Expressions.csproj" />
-		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.280" />
 	</ItemGroup>
 
 	<ItemGroup>

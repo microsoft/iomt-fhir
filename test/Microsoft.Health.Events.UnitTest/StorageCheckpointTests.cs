@@ -1,14 +1,19 @@
-﻿using Azure;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Health.Events.Common;
 using Microsoft.Health.Events.EventCheckpointing;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Health.Events.UnitTest
@@ -32,7 +37,7 @@ namespace Microsoft.Health.Events.UnitTest
             _storageCheckpointOptions = new StorageCheckpointOptions()
             {
                 BlobPrefix = "Normalization",
-                CheckpointBatchCount = "5"
+                CheckpointBatchCount = "5",
             };
 
             _eventHubClientOptions = new EventHubClientOptions();
@@ -47,7 +52,7 @@ namespace Microsoft.Health.Events.UnitTest
             {
                 BlobsModelFactory.BlobItem(name: $"{_blobPath}1"),
                 BlobsModelFactory.BlobItem(name: $"{_blobPath}10"),
-                BlobsModelFactory.BlobItem(name: $"{_blobPath}20")
+                BlobsModelFactory.BlobItem(name: $"{_blobPath}20"),
             };
 
             var mockPageBlobItems = Page<BlobItem>.FromValues(mockBlobItems, "continuationToken", Substitute.For<Response>());
@@ -75,7 +80,7 @@ namespace Microsoft.Health.Events.UnitTest
             eventHubClientOptions = new EventHubClientOptions
             {
                 AuthenticationType = AuthenticationType.ConnectionString,
-                ConnectionString = "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;"
+                ConnectionString = "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;",
             };
             Assert.Throws<ArgumentNullException>("eventHubName", () => new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger));
 
@@ -103,7 +108,7 @@ namespace Microsoft.Health.Events.UnitTest
             var eventHubClientOptions = new EventHubClientOptions()
             {
                 AuthenticationType = AuthenticationType.ConnectionString,
-                ConnectionString = "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;EntityPath=devicedata"
+                ConnectionString = "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test123;EntityPath=devicedata",
             };
 
             var storageClient = new StorageCheckpointClient(_blobContainerClient, _storageCheckpointOptions, eventHubClientOptions, _logger);
@@ -171,14 +176,14 @@ namespace Microsoft.Health.Events.UnitTest
             _eventHubClientOptions.EventHubNamespaceFQDN = _eventHubNamespaceFQDN;
             _eventHubClientOptions.EventHubName = "newdevicedata";
             _storageCheckpointOptions.BlobPrefix = "MeasurementToFhir";
-            var fhirconvBlobCheckpointPrefix = $"{_storageCheckpointOptions.BlobPrefix }/checkpoint/";
+            var fhirconvBlobCheckpointPrefix = $"{_storageCheckpointOptions.BlobPrefix}/checkpoint/";
             var fhirconvBlobPath = $"{fhirconvBlobCheckpointPrefix}{_eventHubNamespaceFQDN}/{_eventHubName}/";
 
             IReadOnlyList<BlobItem> mockBlobItems = new List<BlobItem>()
             {
                 BlobsModelFactory.BlobItem(name: $"{fhirconvBlobPath}1"),
                 BlobsModelFactory.BlobItem(name: $"{fhirconvBlobPath}10"),
-                BlobsModelFactory.BlobItem(name: $"{fhirconvBlobPath}20")
+                BlobsModelFactory.BlobItem(name: $"{fhirconvBlobPath}20"),
             };
 
             var mockPageBlobItems = Page<BlobItem>.FromValues(mockBlobItems, "continuationToken", Substitute.For<Response>());
