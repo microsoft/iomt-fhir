@@ -64,7 +64,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <summary>
         /// The number of measurement readings to import to FHIR.
         /// </summary>
-        /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition</param>>
+        /// <param name="partitionId">The partition id of the input events being consumed from the event hub partition</param>
         public static Metric Measurement(string partitionId = null)
         {
             return IomtMetricDefinition.Measurement
@@ -75,7 +75,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <summary>
         /// The number of input events received.
         /// </summary>
-        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>
         public static Metric DeviceEvent(string partitionId = null)
         {
             return IomtMetricDefinition.DeviceEvent
@@ -97,7 +97,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <summary>
         /// The number of input device events with no normalized events.
         /// </summary>
-        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>>
+        /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>
         public static Metric DroppedEvent(string partitionId = null)
         {
             return IomtMetricDefinition.DroppedEvent
@@ -146,8 +146,8 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <summary>
         /// A metric for when a FHIR resource has been saved.
         /// </summary>
-        /// <param name="resourceType">The type of FHIR resource that was saved.</param>>
-        /// <param name="resourceOperation">The operation performed on the FHIR resource.</param>>
+        /// <param name="resourceType">The type of FHIR resource that was saved.</param>
+        /// <param name="resourceOperation">The operation performed on the FHIR resource.</param>
         public static Metric FhirResourceSaved(ResourceType resourceType, ResourceOperation resourceOperation)
         {
             return new Metric(
@@ -230,7 +230,7 @@ namespace Microsoft.Health.Fhir.Ingest.Telemetry
         /// <summary>
         /// There are multiple processes updating the same FHIR resource.
         /// </summary>
-        /// <param name="resourceType">The type of FHIR resource that was updated.</param>>
+        /// <param name="resourceType">The type of FHIR resource that was updated.</param>
         /// <param name="partitionId">The partition id of the events being consumed from the event hub partition</param>
         public static Metric FHIRResourceContention(ResourceType resourceType, string partitionId = null)
         {
