@@ -63,8 +63,8 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         /// <param name="sortParameters">The parameters to sort by, applied in order. If null or empty no sorting will be applied.</param>
         /// <returns>The modified search parameter collection.</returns>
         /// <remarks>Fhir spec calls for indicating a descing sort using a minus, i.e. -date. Currently our fhir server implementation doesn't support sorting so values are ignored.</remarks>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#_sort"/>
-        /// <seealso cref="!:https://github.com/Microsoft/fhir-server/blob/master/docs/Features.md#Search"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#_sort"/>
+        /// <seealso href="https://github.com/Microsoft/fhir-server/blob/master/docs/Features.md#Search"/>
         public static Hl7.Fhir.Rest.SearchParams SortBy(this Hl7.Fhir.Rest.SearchParams searchParams, params string[] sortParameters)
         {
             foreach (var sortParam in sortParameters ?? Enumerable.Empty<string>())

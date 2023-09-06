@@ -18,13 +18,13 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         /// <summary>
         /// Generic date search parameter.
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#date" />
+        /// <seealso href="https://www.hl7.org/fhir/search.html#date" />
         public static SearchParam Date { get; } = new SearchParam("date");
 
         /// <summary>
         /// Subject reference search parameter.
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#reference" />
+        /// <seealso href="https://www.hl7.org/fhir/search.html#reference" />
         public static SearchParam Subject { get; } = new SearchParam("subject");
 
         public static SearchParam Code { get; } = new SearchParam("code");
@@ -40,55 +40,55 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         /// <summary>
         /// Generic id search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#id"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#id"/>
         public static SearchParam Id { get; } = new SearchParam("_id");
 
         /// <summary>
         /// Generic lastUpdated search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#lastUpdated"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#lastUpdated"/>
         public static SearchParam LastUpdated { get; } = new SearchParam("_lastUpdated");
 
         /// <summary>
         /// Generic tag search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#tag"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#tag"/>
         public static SearchParam Tag { get; } = new SearchParam("_tag");
 
         /// <summary>
         /// Generic profile search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#profile"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#profile"/>
         public static SearchParam Profile { get; } = new SearchParam("_profile");
 
         /// <summary>
         /// Generic text search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#text"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#text"/>
         public static SearchParam Text { get; } = new SearchParam("_text");
 
         /// <summary>
         /// Generic content search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#content"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#content"/>
         public static SearchParam Content { get; } = new SearchParam("_content");
 
         /// <summary>
         /// Generic list search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#list"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#list"/>
         public static SearchParam List { get; } = new SearchParam("_list");
 
         /// <summary>
         /// Generic has search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#has"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#has"/>
         public static SearchParam Has { get; } = new SearchParam("_has");
 
         /// <summary>
         /// Generic type search parameter
         /// </summary>
-        /// <seealso cref="!:https://www.hl7.org/fhir/search.html#_type"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#_type"/>
         public static SearchParam Type { get; } = new SearchParam("_type");
 
         private string SearchParamValue { get; set; }
