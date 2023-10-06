@@ -1,8 +1,8 @@
 targetScope = 'subscription'
 
-@minLength(3)
+@minLength(6)
 @maxLength(16)
-@description('Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters.')
+@description('Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters.')
 param baseName string
 
 @description('Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)')
@@ -43,6 +43,12 @@ param resourceIdentityResolutionType string
   'R4'
 ])
 param fhirVersion string
+
+@description('The URL for the repository where the container code resides.')
+param gitRepositoryUrl string = 'https://github.com/microsoft/iomt-fhir.git'
+
+@description('The branch name or commit hash to be used when building the containers, defaults to main.')
+param gitBranch string = 'main'
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: baseName
@@ -86,6 +92,8 @@ module buildContainerImages 'BuildContainerImages.bicep' = {
     location: location
     resourceIdentityResolutionType: resourceIdentityResolutionType
     fhirVersion: fhirVersion
+    gitRepositoryUrl: gitRepositoryUrl
+    gitBranch: gitBranch
   }
   dependsOn: [
     infrastructureSetup
