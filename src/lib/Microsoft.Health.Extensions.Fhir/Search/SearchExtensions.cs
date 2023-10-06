@@ -15,7 +15,7 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         /// </summary>
         /// <param name="searchTokens">Enumerable of search tokens to combine.</param>
         /// <returns>A concatenated string of search terms joined for an Or search.</returns>
-        /// <seealso cref="https://www.hl7.org/fhir/search.html#combining"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#combining"/>
         public static string CompositeOr(this IEnumerable<string> searchTokens)
         {
             return InternalBuildCompositeSearch(searchTokens, SearchCondition.CompositeOr);
@@ -26,7 +26,7 @@ namespace Microsoft.Health.Extensions.Fhir.Search
         /// </summary>
         /// <param name="searchTokens">Enumerable of search tokens to combine.</param>
         /// <returns>A concatenated string of search terms joined for an And search.</returns>
-        /// <seealso cref="https://www.hl7.org/fhir/search.html#combining"/>
+        /// <seealso href="https://www.hl7.org/fhir/search.html#combining"/>
         public static string CompositeAnd(this IEnumerable<string> searchTokens)
         {
             return InternalBuildCompositeSearch(searchTokens, SearchCondition.CompositeAnd);

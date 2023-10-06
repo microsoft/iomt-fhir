@@ -45,7 +45,7 @@ namespace Microsoft.Health.Fhir.Ingest.Template.Serialization
 
                 var templateContainer = new TemplateContainer();
                 serializer.Populate(templateContainerObject.CreateReader(), templateContainer);
-                /**
+                /*
                  * At this point the TemplateContainer is fully populated but the inner 'Template' contains no line numbers.
                  * Replace the 'Template' property with that of the templateContainerObject, which will contain line
                  * information

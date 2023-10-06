@@ -23,12 +23,12 @@ namespace Microsoft.Health.Fhir.Ingest.Console.Normalization
         /// <summary>
         /// DefaultBuilder will load IConfiguration from several sources including environment variables and appsettings.
         /// See documentation for complete details.
-        /// <see cref="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.host.createdefaultbuilder?view=dotnet-plat-ext-6.0"/>
+        /// <see href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.host.createdefaultbuilder?view=dotnet-plat-ext-6.0"/>
         /// Once upgraded to .NET 7 can switch to CreateApplicationBuilder.
-        /// <seealso cref="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.host.createapplicationbuilder?view=dotnet-plat-ext-7.0"/>
+        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.host.createapplicationbuilder?view=dotnet-plat-ext-7.0"/>
         /// </summary>
         /// <param name="args">Arguments to configure the host builder.</param>
-        /// <returns>Initialized <see cref=IHostBuilder></returns>
+        /// <returns>Initialized <see cref="IHostBuilder" /></returns>
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
