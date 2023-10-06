@@ -26,9 +26,11 @@ namespace Microsoft.Health.Events.EventHubProcessor
             // todo?
         }
 
-        public async Task ResumeAsync(CancellationToken ct)
+        public async Task<bool> ResumeAsync(CancellationToken ct)
         {
+            var isRunning = Interlocked.Read(ref _isRunning) == 1;
             await RunAsync(ct);
+            return !isRunning;
         }
 
         public async Task RunAsync(CancellationToken ct)

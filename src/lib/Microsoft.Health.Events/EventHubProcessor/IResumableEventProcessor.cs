@@ -11,7 +11,12 @@ namespace Microsoft.Health.Events.EventHubProcessor
 {
     public interface IResumableEventProcessor : IDisposable
     {
-        Task ResumeAsync(CancellationToken ct);
+        /// <summary>
+        /// Attempts to resume the Event Processor.
+        /// </summary>
+        /// <param name="ct">The cancellation token</param>
+        /// <returns>true if the Event Processor was restarted. false if it was already running.</returns>
+        Task<bool> ResumeAsync(CancellationToken ct);
 
         Task RunAsync(CancellationToken ct);
 

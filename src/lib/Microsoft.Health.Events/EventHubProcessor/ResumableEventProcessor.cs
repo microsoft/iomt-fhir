@@ -42,7 +42,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
             await ResumeAsync(ct);
         }
 
-        public async Task ResumeAsync(CancellationToken ct)
+        public async Task<bool> ResumeAsync(CancellationToken ct)
         {
             // Only start if necessary.
             if (!EventProcessorClient.IsRunning)
@@ -51,6 +51,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
                 {
                     Logger.LogTrace($"Starting event hub processor at {DateTime.UtcNow}");
                     await EventProcessorClient.StartProcessingAsync(ct);
+                    return true;
                 }
                 catch (AggregateException ex)
                 {
@@ -61,6 +62,8 @@ namespace Microsoft.Health.Events.EventHubProcessor
             {
                 Logger.LogTrace("Eventhub Processor is already running");
             }
+
+            return false;
         }
 
         public async Task SuspendAsync(CancellationToken ct)
