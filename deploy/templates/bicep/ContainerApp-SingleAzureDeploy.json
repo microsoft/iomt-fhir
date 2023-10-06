@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "8746001509181318699"
+      "templateHash": "10383856546982714086"
     }
   },
   "parameters": {
@@ -465,13 +465,13 @@
             "_generator": {
               "name": "bicep",
               "version": "0.22.6.54827",
-              "templateHash": "15930281173876783170"
+              "templateHash": "16984454648748429824"
             }
           },
           "parameters": {
             "baseName": {
               "type": "string",
-              "minLength": 3,
+              "minLength": 6,
               "maxLength": 16,
               "metadata": {
                 "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
