@@ -1,4 +1,4 @@
-@minLength(3)
+@minLength(6)
 @maxLength(16)
 @description('Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters.')
 param baseName string

@@ -4,14 +4,14 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.20.4.51522",
-      "templateHash": "13672600818265155109"
+      "version": "0.22.6.54827",
+      "templateHash": "8746001509181318699"
     }
   },
   "parameters": {
     "baseName": {
       "type": "string",
-      "minLength": 3,
+      "minLength": 6,
       "maxLength": 16,
       "metadata": {
         "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
@@ -64,6 +64,20 @@
       "metadata": {
         "description": "FHIR version that the FHIR Server supports"
       }
+    },
+    "gitRepositoryUrl": {
+      "type": "string",
+      "defaultValue": "https://github.com/microsoft/iomt-fhir.git",
+      "metadata": {
+        "description": "The URL for the repository where the container code resides."
+      }
+    },
+    "gitBranch": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "The branch name or commit hash to be used when building the containers, defaults to main."
+      }
     }
   },
   "resources": [
@@ -107,14 +121,14 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "9440424175545731576"
+              "version": "0.22.6.54827",
+              "templateHash": "13080453463463393731"
             }
           },
           "parameters": {
             "baseName": {
               "type": "string",
-              "minLength": 3,
+              "minLength": 6,
               "maxLength": 16,
               "metadata": {
                 "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
@@ -450,8 +464,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "11639116328160071053"
+              "version": "0.22.6.54827",
+              "templateHash": "15930281173876783170"
             }
           },
           "parameters": {
@@ -660,6 +674,12 @@
           },
           "fhirVersion": {
             "value": "[parameters('fhirVersion')]"
+          },
+          "gitRepositoryUrl": {
+            "value": "[parameters('gitRepositoryUrl')]"
+          },
+          "gitBranch": {
+            "value": "[parameters('gitBranch')]"
           }
         },
         "template": {
@@ -668,14 +688,14 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "12312286705077005359"
+              "version": "0.22.6.54827",
+              "templateHash": "8458475336653759686"
             }
           },
           "parameters": {
             "baseName": {
               "type": "string",
-              "minLength": 3,
+              "minLength": 6,
               "maxLength": 16,
               "metadata": {
                 "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
@@ -720,6 +740,20 @@
                 "description": "Configures how patient, device, and other FHIR resource identities are resolved from the ingested data stream."
               }
             },
+            "gitRepositoryUrl": {
+              "type": "string",
+              "defaultValue": "https://github.com/microsoft/iomt-fhir.git",
+              "metadata": {
+                "description": "The URL for the repository where the container code resides."
+              }
+            },
+            "gitBranch": {
+              "type": "string",
+              "defaultValue": "main",
+              "metadata": {
+                "description": "The branch name or commit hash to be used when building the containers, defaults to main."
+              }
+            },
             "fhirVersion": {
               "type": "string",
               "allowedValues": [
@@ -729,16 +763,13 @@
                 "description": "FHIR version that the FHIR Server supports"
               }
             },
-            "gitRepositoryUrl": {
-              "type": "string",
-              "defaultValue": "https://github.com/microsoft/iomt-fhir.git"
-            },
             "acrBuildPlatform": {
               "type": "string",
               "defaultValue": "linux"
             }
           },
           "variables": {
+            "gitRepositoryAndBranch": "[format('{0}#{1}', parameters('gitRepositoryUrl'), parameters('gitBranch'))]",
             "normalizationImage": "normalization",
             "fhirTransformationImage": "fhir-transformation",
             "imageTag": "latest",
@@ -771,7 +802,7 @@
                   "containerGroupName": "[format('{0}deployContainer', parameters('baseName'))]"
                 },
                 "azCliVersion": "2.50.0",
-                "arguments": "[format('{0} {1} {2} {3} {4} {5}', format('{0}acr', parameters('baseName')), parameters('gitRepositoryUrl'), variables('normalizationImage'), variables('imageTag'), variables('normalizationDockerfile'), parameters('acrBuildPlatform'))]",
+                "arguments": "[format('{0} {1} {2} {3} {4} {5}', format('{0}acr', parameters('baseName')), variables('gitRepositoryAndBranch'), variables('normalizationImage'), variables('imageTag'), variables('normalizationDockerfile'), parameters('acrBuildPlatform'))]",
                 "scriptContent": "      az acr build --registry $1 $2 --image $3:$4 --file $5 --platform $6\r\n    ",
                 "retentionInterval": "P1D",
                 "cleanupPreference": "OnSuccess"
@@ -802,7 +833,7 @@
                   "containerGroupName": "[format('{0}deployContainer', parameters('baseName'))]"
                 },
                 "azCliVersion": "2.50.0",
-                "arguments": "[format('{0} {1} {2} {3} {4} {5}', format('{0}acr', parameters('baseName')), parameters('gitRepositoryUrl'), variables('fhirTransformationImage'), variables('imageTag'), variables('fhirTransformationDockerfile'), parameters('acrBuildPlatform'))]",
+                "arguments": "[format('{0} {1} {2} {3} {4} {5}', format('{0}acr', parameters('baseName')), variables('gitRepositoryAndBranch'), variables('fhirTransformationImage'), variables('imageTag'), variables('fhirTransformationDockerfile'), parameters('acrBuildPlatform'))]",
                 "scriptContent": "      az acr build --registry $1 $2 --image $3:$4 --file $5 --platform $6\r\n    ",
                 "retentionInterval": "P1D",
                 "cleanupPreference": "OnSuccess"
@@ -850,14 +881,14 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "18029408802853782428"
+              "version": "0.22.6.54827",
+              "templateHash": "13621101343156168702"
             }
           },
           "parameters": {
             "baseName": {
               "type": "string",
-              "minLength": 3,
+              "minLength": 6,
               "maxLength": 16,
               "metadata": {
                 "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."

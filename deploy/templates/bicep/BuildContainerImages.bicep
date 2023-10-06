@@ -1,4 +1,4 @@
-@minLength(3)
+@minLength(6)
 @maxLength(16)
 @description('Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters.')
 param baseName string
@@ -34,7 +34,13 @@ param location string
   'Lookup'
   'LookupWithEncounter'
 ])
-param resourceIdentityResolutionType string 
+param resourceIdentityResolutionType string
+
+@description('The URL for the repository where the container code resides.')
+param gitRepositoryUrl string = 'https://github.com/microsoft/iomt-fhir.git'
+
+@description('The branch name or commit hash to be used when building the containers, defaults to main.')
+param gitBranch string = 'main'
 
 @description('FHIR version that the FHIR Server supports')
 @allowed([
@@ -50,13 +56,13 @@ resource userAssignedMI 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-0
   name: '${baseName}UAMI'
 }
 
+var gitRepositoryAndBranch = '${gitRepositoryUrl}#${gitBranch}'
 var normalizationImage = 'normalization'
 var fhirTransformationImage = 'fhir-transformation'
 var imageTag = 'latest'
 var normalizationDockerfile = 'src/console/Microsoft.Health.Fhir.Ingest.Console.Normalization/Dockerfile'
 var fhirTransformationDockerfile = 'src/console/Microsoft.Health.Fhir.Ingest.Console.FhirTransformation/Dockerfile'
 
-param gitRepositoryUrl string = 'https://github.com/microsoft/iomt-fhir.git'
 param acrBuildPlatform string = 'linux'
 
 resource deploymentStorageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
@@ -86,7 +92,7 @@ resource buildNormalizationImage 'Microsoft.Resources/deploymentScripts@2020-10-
       containerGroupName: '${baseName}deployContainer'
     }
     azCliVersion: '2.50.0'
-    arguments: '${containerRegistry.name} ${gitRepositoryUrl} ${normalizationImage} ${imageTag} ${normalizationDockerfile} ${acrBuildPlatform}'
+    arguments: '${containerRegistry.name} ${gitRepositoryAndBranch} ${normalizationImage} ${imageTag} ${normalizationDockerfile} ${acrBuildPlatform}'
     scriptContent: '''
       az acr build --registry $1 $2 --image $3:$4 --file $5 --platform $6
     '''
@@ -118,7 +124,7 @@ resource buildFhirTransformationImage 'Microsoft.Resources/deploymentScripts@202
       containerGroupName: '${baseName}deployContainer'
     }
     azCliVersion: '2.50.0'
-    arguments: '${containerRegistry.name} ${gitRepositoryUrl} ${fhirTransformationImage} ${imageTag} ${fhirTransformationDockerfile} ${acrBuildPlatform}'
+    arguments: '${containerRegistry.name} ${gitRepositoryAndBranch} ${fhirTransformationImage} ${imageTag} ${fhirTransformationDockerfile} ${acrBuildPlatform}'
     scriptContent: '''
       az acr build --registry $1 $2 --image $3:$4 --file $5 --platform $6
     '''
