@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "10383856546982714086"
+      "templateHash": "13353804260323222956"
     }
   },
   "parameters": {
@@ -14,7 +14,7 @@
       "minLength": 6,
       "maxLength": 16,
       "metadata": {
-        "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+        "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters."
       }
     },
     "location": {
@@ -122,7 +122,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.22.6.54827",
-              "templateHash": "13080453463463393731"
+              "templateHash": "17349789646225745736"
             }
           },
           "parameters": {
@@ -131,7 +131,7 @@
               "minLength": 6,
               "maxLength": 16,
               "metadata": {
-                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters."
               }
             },
             "location": {
@@ -465,7 +465,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.22.6.54827",
-              "templateHash": "16984454648748429824"
+              "templateHash": "11088519812661916410"
             }
           },
           "parameters": {
@@ -474,7 +474,7 @@
               "minLength": 6,
               "maxLength": 16,
               "metadata": {
-                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters."
               }
             },
             "location": {
@@ -689,7 +689,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.22.6.54827",
-              "templateHash": "8458475336653759686"
+              "templateHash": "1636373595736283998"
             }
           },
           "parameters": {
@@ -698,7 +698,7 @@
               "minLength": 6,
               "maxLength": 16,
               "metadata": {
-                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters."
               }
             },
             "location": {
@@ -882,7 +882,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.22.6.54827",
-              "templateHash": "13621101343156168702"
+              "templateHash": "17147861500615029993"
             }
           },
           "parameters": {
@@ -891,7 +891,7 @@
               "minLength": 6,
               "maxLength": 16,
               "metadata": {
-                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
+                "description": "Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters."
               }
             },
             "location": {

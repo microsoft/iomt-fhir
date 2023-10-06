@@ -2,7 +2,7 @@ targetScope = 'subscription'
 
 @minLength(6)
 @maxLength(16)
-@description('Basename that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters.')
+@description('Basename that is used to name provisioned resources. Should be alphanumeric, at least 6 characters and less than 16 characters.')
 param baseName string
 
 @description('Location where the resources are deployed. For a list of Azure regions where Azure Health Data Services are available, see [Products available by regions](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/?products=health-data-services)')
