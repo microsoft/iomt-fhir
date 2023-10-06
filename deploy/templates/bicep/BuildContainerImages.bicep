@@ -131,4 +131,7 @@ resource buildFhirTransformationImage 'Microsoft.Resources/deploymentScripts@202
     retentionInterval: 'P1D'
     cleanupPreference: 'OnSuccess'
   }
+  dependsOn: [
+    buildNormalizationImage
+  ]
 }
