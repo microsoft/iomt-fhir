@@ -15,7 +15,7 @@ namespace Microsoft.Health.Events.EventHubProcessor
         /// Attempts to resume the Event Processor.
         /// </summary>
         /// <param name="ct">The cancellation token</param>
-        /// <returns><true> if the Event Processor was restart. <false> if it was already running.</returns>
+        /// <returns>true if the Event Processor was restart. false if it was already running.</returns>
         Task<bool> ResumeAsync(CancellationToken ct);
 
         Task RunAsync(CancellationToken ct);
