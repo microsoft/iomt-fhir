@@ -1,3 +1,5 @@
+# Partition Locking
+
 Below is a flowchart of an event hub processor implementation that locks the partitions before reading events from the partition. The locking (via blob leases) is done so that two event hub processors cannot both read from the same event hub partition(s) at the same time.
 
 See [PartitionLockingService.cs](https://github.com/microsoft/iomt-fhir/pull/268/files#diff-316b56d2a26014f9f8a392be2c1d400b48f9f7689e1b7c5e00113671e69e875f) and [PartitionCoordinator.cs](https://github.com/microsoft/iomt-fhir/pull/268/files#diff-89ff615f3dcbf679f7f8b056961fbd87f12098af45bae6ae0c26650e1d672651) for the actual code implementation.
