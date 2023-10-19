@@ -1843,6 +1843,7 @@
       "microsoft.health.tests.utilities": {
         "type": "Project",
         "dependencies": {
+          "Azure.Identity": "[1.10.3, )",
           "Ensure.That": "[10.1.0, )",
           "Microsoft.Health.Fhir.R4.Client": "[3.4.280, )",
           "Microsoft.NET.Test.Sdk": "[17.2.0, )",
