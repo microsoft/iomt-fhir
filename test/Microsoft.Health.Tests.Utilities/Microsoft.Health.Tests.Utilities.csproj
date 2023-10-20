@@ -4,6 +4,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Azure.Identity" />
 		<PackageReference Include="Ensure.That" />
 		<PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
 	</ItemGroup>
