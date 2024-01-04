@@ -13,7 +13,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
 
         public ObservationCacheOptions()
         {
-            SizeLimit = 5000;
+            SizeLimit = 20000;
         }
     }
 }

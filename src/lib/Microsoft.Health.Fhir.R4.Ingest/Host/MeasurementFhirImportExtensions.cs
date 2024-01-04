@@ -45,7 +45,7 @@ namespace Microsoft.Health.Fhir.Ingest.Host
             builder.Services.TryAddSingleton<ResourceManagementService>();
 
             builder.Services.TryAddSingleton<IFhirTemplateProcessor<ILookupTemplate<IFhirTemplate>, Observation>, R4FhirLookupTemplateProcessor>();
-            builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 5000 })));
+            builder.Services.TryAddSingleton<IMemoryCache>(sp => new MemoryCache(Options.Create(new MemoryCacheOptions { SizeLimit = 20000 })));
             builder.Services.TryAddSingleton<FhirImportService, R4FhirImportService>();
 
             // Register extensions

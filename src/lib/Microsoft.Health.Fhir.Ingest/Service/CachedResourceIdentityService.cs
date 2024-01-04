@@ -24,7 +24,7 @@ namespace Microsoft.Health.Fhir.Ingest.Service
             Dispose(false);
         }
 
-        protected IMemoryCache IdentityCache { get; private set; } = new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 5000 }));
+        protected IMemoryCache IdentityCache { get; private set; } = new MemoryCache(Options.Create<MemoryCacheOptions>(new MemoryCacheOptions { SizeLimit = 20000 }));
 
         protected ResourceIdentityOptions ResourceIdentityOptions { get; private set; }
 
