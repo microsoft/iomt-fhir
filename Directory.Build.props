@@ -16,7 +16,7 @@
   <!--Project framework related property configurations-->
   <PropertyGroup>
     <LangVersion>Latest</LangVersion>
-    <LatestVersion>net6.0</LatestVersion>
+    <LatestVersion>net8.0</LatestVersion>
     <LegacyVersion>netstandard2.0</LegacyVersion>
     <TargetFramework>$(LatestVersion)</TargetFramework>
   </PropertyGroup>
