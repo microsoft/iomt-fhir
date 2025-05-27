@@ -19,7 +19,7 @@ stages:
   jobs:
   - job: Semver
     pool:
-      vmImage: 'ubuntu-20.04'
+      vmImage: 'ubuntu-22.04'
     variables:
       skipComponentGovernanceDetection: true
     steps:
@@ -37,13 +37,13 @@ stages:
   jobs:
   - job: Windows
     pool:
-      vmImage: 'windows-2019'
+      vmImage: 'windows-2022'
     steps:
     - template: build.yml
 
   - job: Linux
     pool:
-      vmImage: 'ubuntu-20.04'
+      vmImage: 'ubuntu-22.04'
     steps:
     - template: build.yml
       parameters:
@@ -57,7 +57,7 @@ stages:
   - job: Guardian
     pool:
       pool:
-      vmImage: 'windows-2019'
+      vmImage: 'windows-2022'
       
     steps:
     - template: analyze.yml
