@@ -48,3 +48,18 @@ stages:
     - template: build.yml
       parameters:
         packageArtifacts: false
+
+- stage: AnalyzeSecurity
+  displayName: 'Run Security Analysis and Validate'
+  dependsOn:
+  - BuildTestDeployPackages
+  jobs:
+  - job: Guardian
+    pool:
+      pool:
+      vmImage: 'windows-latest'
+      
+    steps:
+    - template: analyze.yml
+      parameters:
+        analyzePackages: true
