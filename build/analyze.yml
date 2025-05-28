@@ -87,7 +87,7 @@ steps:
   inputs:
     userProvideBuildInfo: 'msBuildInfo'
     msBuildArchitecture: 'DotNetCore'
-    msBuildCommandline: 'dotnet build $(Build.SourcesDirectory)/Fhir.Liquid.Converter.sln --configuration $(buildConfiguration) -p:ContinuousIntegrationBuild=true'
+    msBuildCommandline: 'dotnet build $(Build.SourcesDirectory)/Microsoft.Health.Fhir.Ingest.sln --configuration $(buildConfiguration) -p:ContinuousIntegrationBuild=true'
   
 - task: BinSkim@4
   inputs:
