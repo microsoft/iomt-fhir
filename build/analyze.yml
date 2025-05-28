@@ -13,15 +13,6 @@ steps:
     selectOrConfig: configs
     nugetConfigPath: nuget.config
 
-# - ${{ if eq(parameters.analyzeBinaries, 'true') }}:
-#   - task: DownloadBuildArtifacts@0
-#     displayName: 'Download Binaries'
-#     inputs:
-#       buildType: 'current'
-#       downloadType: 'single'
-#       downloadPath: '$(Agent.TempDirectory)/artifacts'
-#       artifactName: 'FhirConverterBuild'
-
 - ${{ if eq(parameters.analyzePackages, 'true') }}:
   - task: DownloadBuildArtifacts@0
     displayName: 'Download NuGet Packages'
@@ -30,13 +21,6 @@ steps:
       downloadType: 'single'
       downloadPath: '$(Build.SourcesDirectory)/artifacts'
       artifactName: 'nuget'
-
-# - ${{ if eq(parameters.analyzeBinaries, 'true') }}:
-#   - task: ExtractFiles@1
-#     displayName: 'Extract Fhir Converter Binaries'
-#     inputs:
-#       archiveFilePatterns: '$(Agent.TempDirectory)/artifacts/FhirConverterBuild/bin/Microsoft.Health.Fhir.Liquid.Converter.Tool.zip'
-#       destinationFolder: '$(Build.SourcesDirectory)/artifacts/fhirconverter'
 
 - ${{ if eq(parameters.runAntiMalware, 'true') }}:
   - task: AntiMalware@4
@@ -155,18 +139,9 @@ steps:
     CredScan: true
 
 - task: TSAUpload@2
-  # condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/main'))
+  condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/main'))
   displayName: 'TSA upload'
   inputs:
-    GdnPublishTsaOnboard: true
+    GdnPublishTsaOnboard: false
     GdnPublishTsaConfigFile: '$(Build.SourcesDirectory)\.config\tsaoptions.json'
     GdnPublishTsaExportedResultsPublishable: true
-
-# - task: DropValidatorTask@0
-#   displayName: 'SBOM Validator and Publisher Task'
-#   inputs:
-#     BuildDropPath: '$(Agent.TempDirectory)/artifacts/FhirConverterBuild'
-#     OutputPath: 'output.json'
-#     ValidateSignature: true
-#     Verbosity: 'Verbose'
-#     continueOnError: true
