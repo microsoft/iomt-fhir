@@ -5,7 +5,8 @@
 
 This repository is part of the open-source assets associated with the Microsoft MedTech service. The MedTech service has been formally deprecated, and there are no remaining active customers using the service. As a result, this repository is no longer maintained and has been archived to prevent confusion for customers and the broader open-source community.
 
-As of **April 13, 2026**, this open-source repository has been archived and will not receive updates, bug fixes, or security patches.
+As of **April 13, 2026**, this open-source repository has been archived and will not receive updates, bug fixes, or security patches. Microsoft recommends that customers evaluate currently supported Azure Health Data Services capabilities for device data interoperability and transformation scenarios.
+
 
 
 **Why this repository is being archived**
@@ -38,8 +39,6 @@ The content in this repository is no longer actively maintained and may be out o
 ⚠️ **Security Notice:**
 
 Archived repositories do not receive security updates, bug fixes, or compatibility improvements. Use of this code in production environments may introduce security or operational risks. Microsoft recommends against deploying or relying on archived repositories in active workloads.
-
-Microsoft recommends that customers evaluate currently supported Azure Health Data Services capabilities for device data interoperability and transformation scenarios.
 
 **The original README content has been preserved below for historical reference.**
 
